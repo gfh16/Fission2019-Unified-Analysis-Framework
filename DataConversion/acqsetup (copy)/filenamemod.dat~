@@ -1,0 +1,20 @@
+**** filenamemod.dat ****
+*   for the V2718 data
+*     acquisition
+*************************
+* crate  1
+C1_G3_V775N_IRQ.dat
+C1_G4_V785.dat
+C1_G6_V775.dat
+C1_G8_V775.dat
+C1_G9_V775.dat
+C1_G11_V785.dat
+C1_G12_V785.dat
+C1_G14_V785.dat
+C1_G15_V785.dat
+C1_G17_V785.dat
+C1_G18_V785.dat
+C1_G20_V785.dat
+C1_G21_V785.dat
+***************************
+*  crate  2
