@@ -1,0 +1,219 @@
+#****************************************************************************
+# Copyright (C) 2001-2004  ARW Elektronik Germany
+#
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+#
+# Maintainer(s): Klaus Hitschler (klaus.hitschler@gmx.de)
+#****************************************************************************
+
+#****************************************************************************
+#
+# Makefile - makefile for ARW Elektronik CAMAC interfaces driver
+#
+# $Log: Makefile,v $
+# Revision 1.9  2005/10/08 13:20:26  klaus
+# added parts to do a persitent installation
+#
+# Revision 1.8  2005/03/11 13:23:26  klaus
+# simple corrections for to use with kernels 2.4.21
+#
+# Revision 1.7  2004/08/12 19:59:19  klaus
+# conversion to kernel-version 2.6, released version 6.0
+#
+# Revision 1.6  2003/05/11 11:13:35  klaus
+# added include-file dependence handling
+#
+# Revision 1.5  2002/04/14 18:25:38  klaus
+# added interrupt handling, driver 4.4. ...3.5.tar.gz
+#
+# Revision 1.4  2002/04/10 18:40:09  klaus
+# compiled and modified on RedHat 7.2
+#
+# Revision 1.3  2001/11/20 20:12:50  klaus
+# included new header and CVS log
+#
+#
+#****************************************************************************
+
+#****************************************************************************
+# please modify only here if your kernel path is elsewhere located
+#
+KERNEL_LOCATION = /usr/src/kernels/2.6.18-92.1.6.el5-PAE-i686
+
+#****************************************************************************
+# removed old kernel source path retrival for support of kernels < 2.2.18!
+# old KERNSRC = /lib/modules/$(VERSION)/build
+#
+KERNSRC := $(KERNEL_LOCATION)
+
+#****************************************************************************
+# whole makefile is based on availability of version.h file
+# do a forced stop if it is not available
+#
+HASVERSION_H := $(shell if test -f $(KERNEL_LOCATION)/include/linux/version.h ; then echo yes ; else echo no; fi )
+
+ifeq ($(HASVERSION_H),no)
+$(error "Can't find $(KERNEL_LOCATION)/include/linux/version.h !")
+else
+
+#****************************************************************************
+# removed old version retrival for better cross compile support
+# old VERSION := $(shell uname -r)
+#
+VERSION := $(shell cpp -dM -I$(KERNEL_LOCATION)/include $(KERNEL_LOCATION)/include/linux/version.h \
+            | grep UTS_RELEASE | sed -e 's;[^"]*"\(.*\)";\1;g')
+
+#****************************************************************************
+# where the driver should be installed - change here for cross install - currently not functional
+#
+INSTALL_LOCATION = /lib/modules/$(VERSION)/misc
+
+#****************************************************************************
+# get extracted kernel VERSION and PATCHLEVEL for comparison
+# decide to use KBUILD for kernels greater 2.6.0
+#
+KVERSION    := $(shell echo $(VERSION) | sed -e 's;\([1-9]\)\..*;\1;g' )
+KPATCHLEVEL := $(shell echo $(VERSION) | sed -e 's;[1-9]\.\([0-9]\{0,3\}\)\..*;\1;g' )
+USEKBUILD   := $(shell if [ $(KVERSION) -gt 2 ] || [ $(KVERSION) -eq 2 ] && [ $(KPATCHLEVEL) -ge 6 ]  ; \
+                 then echo "yes" ; else echo "no"  ; fi)
+
+#****************************************************************************
+# some common switches and defines
+#
+DBG     = __NO_DEBUG__  # or __DEBUG__ to debug the driver
+SRC     = .
+
+#****************************************************************************
+# preparation what to build or what to KBUILD
+#
+pcicc32-objs :=  $(SRC)/main.o $(SRC)/list.o $(SRC)/askpci.o $(SRC)/plxbug.o $(SRC)/fops.o
+
+
+ifeq ($(USEKBUILD),yes) # <<<<< USEKBUILD >>>>>>
+
+#****************************************************************************
+# for local installation only: sometimes /etc/modprobe.conf.local is used
+#
+MODCONF = /etc/modprobe.conf
+MODINST = "install pcicc32 /sbin/modprobe --ignore-install pcicc32; /usr/local/bin/pcicc32_make_devices 2"
+
+#****************************************************************************
+# what's the target
+#
+TARGET = pcicc32.ko
+obj-m := pcicc32.o
+
+#****************************************************************************
+# add flags to standard flags
+#
+CPPFLAGS += -I$(PWD) -D$(DBG)
+
+#****************************************************************************
+# do it
+#
+all : message
+	$(MAKE) -C $(KERNSRC) M=$(PWD) V=$(VERBOSE) $(filter-out all, $(MAKECMDGOLAS)) modules
+
+else # <<<<< USEKBUILD >>>>>>
+
+#****************************************************************************
+# for local installation only: sometimes /etc/modules.conf.local is used
+#
+MODCONF = /etc/modules.conf
+MODINST = "post-install pcicc32 /usr/local/bin/pcicc32_make_devices 2"
+
+#****************************************************************************
+# additional common switches and defines
+#
+CC      = gcc
+LD      = ld
+INC     = -I$(SRC) -I$(KERNSRC)/include
+DEP     = .depend
+
+#****************************************************************************
+# what's the target
+#
+TARGET = pcicc32.o
+
+#****************************************************************************
+# compile flags
+#
+CFLAGS = -O2 -D__KERNEL__ -DMODULE -Wall $(INCLUDE) -D$(DBG) $(INC)
+
+#****************************************************************************
+# do it
+#
+all: message $(TARGET)
+
+$(TARGET)  : $(pcicc32-objs)
+	$(LD) -r $^ -o $@
+
+#********** catch include file depencies ************************************
+ifeq ($(DEP),$(wildcard $(DEP)))
+
+depend:
+	makedepend -f$(DEP) -- $(CFLAGS) -- $(addsuffix .c, $(basename $(pcicc32-objs))) -I$(INC)
+
+include $(DEP)
+
+else
+
+depend:
+	touch $(DEP)
+	makedepend -f$(DEP) -- $(CFLAGS) -- $(addsuffix .c, $(basename $(pcicc32-objs))) -I$(INC)
+endif
+
+endif # <<<<< USEKBUILD >>>>>>
+
+#********** clean all for a rebuild *****************************************
+clean:
+	rm -f *~ $(TARGET) $(pcicc32-objs)
+
+#********** clean all for a rebuild *****************************************
+fresh:
+	touch *.c
+	make all
+	
+#********** informations during build of driver *****************************
+.PHONY : message
+message:
+	@ echo "***"
+	@ echo "*** Host machine kernel version=$(shell uname -r), Driver kernel version=$(VERSION), Path to kernel sources=$(KERNSRC), use KBUILD=$(USEKBUILD)"
+	@ echo "***"
+
+#********** this entry is reserved for root access only *********************
+install:
+	@if test -d $(INSTALL_LOCATION) ; then echo "info: $(INSTALL_LOCATION) exists."; else mkdir $(INSTALL_LOCATION); fi
+	cp $(TARGET) $(INSTALL_LOCATION)/$(TARGET)
+	cp pcicc32_make_devices /usr/local/bin/pcicc32_make_devices
+	if test -z $(shell grep -l pcicc32 $(MODCONF)); then\
+		cp $(MODCONF) $(MODCONF)~;\
+		echo ""                                                  >> $(MODCONF);\
+		echo "# pcicc32 - automatic made entry, begin --------"  >> $(MODCONF);\
+		echo $(MODINST)                                          >> $(MODCONF);\
+		echo "# pcicc32 - automatic made entry, end ----------"  >> $(MODCONF);\
+		echo ""                                                  >> $(MODCONF);\
+	fi
+	/sbin/depmod
+	cp pcicc32.h /usr/include/pcicc32.h
+	chmod 644 /usr/include/pcicc32.h
+
+endif  # <<<<< HASVERSION_H >>>>>>
+
+# DO NOT DELETE
+
+	
+	

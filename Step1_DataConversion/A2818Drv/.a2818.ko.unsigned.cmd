@@ -1,0 +1,1 @@
+cmd_/home/vip/data/vme-single/A2818Drv/a2818.ko.unsigned := ld -r -m elf_i386 -T /usr/src/kernels/2.6.32-358.el6.i686/scripts/module-common.lds --build-id -o /home/vip/data/vme-single/A2818Drv/a2818.ko.unsigned /home/vip/data/vme-single/A2818Drv/a2818.o /home/vip/data/vme-single/A2818Drv/a2818.mod.o 

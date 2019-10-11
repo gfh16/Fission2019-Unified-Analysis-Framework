@@ -192,7 +192,7 @@ int main(int argc, char *argv[])
 
     TFile fout(pathoutfile.Data(),"recreate");
 
-    TTree *tree = new TTree("PbAu","PbAu");
+    TTree *tree = new TTree("KrPb","KrPb");
 
 
     //=============================================
