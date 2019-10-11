@@ -3,7 +3,10 @@
 
     1. 数据转换（一）: 将原始数据(二进制文件)转换成.root文件
     2. 数据转换（二）: 将RawRoot数据转换成 MapRoot数据
-    3. 数据质检
+    3. 数据质检：采取两种方法读取 tree 
+       (1)传统的setBranchAddress方法
+       (2)TTreeReader方法
+     
     4. 对Pedestal作cut
     5. SSD能量刻度
        (1)Pulser Calibration
@@ -39,7 +42,7 @@
      <3>为避免与原始的.root文件混淆，转换后的.root文件需要另起名称，且最好输出到不同的文件夹下
 
 
-3. 数据质检
+3. 数据质检：
 
 
 
