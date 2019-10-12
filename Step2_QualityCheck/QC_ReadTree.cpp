@@ -22,7 +22,7 @@
 using namespace std;
 
 void PrintUsage(char *name);
-void ReadTree( TTree* myTree, const char* rootpath, const char* pdfpath);
+void ReadTree( TChain* myChain, const char* rootpath, const char* pdfpath);
 
 
 //==============================================================================
@@ -116,16 +116,18 @@ int main(int argc, char *argv[])
     //      设置输出 .pdf 文件路径 与 命名
     TString pdf_name(rdfname);
     pdf_name.ReplaceAll(".root", "");
-    TString outpdfpath = "QC_pdf_ReadTree"; //输出.pdf文件保存在 QC_pdf_ReadTree文件夹下
+    TString outpdfpath = "QC_pdf"; //输出.pdf文件保存在 QC_pdf_ReadTree文件夹下
     outpdfpath += "/QC_";	                  //QC_标记是质检文件
     outpdfpath += pdf_name;
     outpdfpath += ".pdf";
     cout << outpdfpath << endl;
 
-    TFile f(pathrdfn.Data());
-    TTree *fChain = (TTree*)gFile->Get("KrPb");//fChain can be a TChain
+  //  TFile f(pathrdfn.Data());
+  //  TTree *fChain = (TTree*)gFile->Get("KrPb");//fChain can be a TChain
+    TChain* myChain = (TChain*) new TChain("KrPb");
+    myChain->Add(pathrdfn);
 
-    ReadTree(fChain,outrootpath, outpdfpath);
+    ReadTree(myChain,outrootpath,outpdfpath);
   }
 
   return 0;
@@ -148,7 +150,7 @@ void PrintUsage(char *name)
 
 //==============================================================================
 //      从这里开始编辑 ReadTree() 函数
-void ReadTree( TTree* myTree, const char* rootpath, const char* pdfpath)
+void ReadTree( TChain* myChain, const char* rootpath, const char* pdfpath)
 {
   int BIN_NUM = 4096;
   int LOW_CH  = 0;
@@ -238,7 +240,7 @@ void ReadTree( TTree* myTree, const char* rootpath, const char* pdfpath)
 
   //===========================================
   //  TTreeReader 方法遍历读取 Tree 的所有branch
-  TTreeReader myReader(myTree);
+  TTreeReader myReader(myChain);
   TTreeReaderValue<Int_t> PPAC1_T(myReader,"PPAC1_T");
   TTreeReaderValue<Int_t> PPAC1_X1(myReader,"PPAC1_X1");
   TTreeReaderValue<Int_t> PPAC1_X2(myReader,"PPAC1_X2");
@@ -556,7 +558,7 @@ void ReadTree( TTree* myTree, const char* rootpath, const char* pdfpath)
     }
 
 
-    //================================
+    //=====================================================
     //  Draw and Save the Canvas
     //  注意：在void ReadTree()中，pdfpath是 const char* 类型
     //        Canvas_begin->Print(pdfpath+'[')会报错
@@ -590,7 +592,7 @@ void ReadTree( TTree* myTree, const char* rootpath, const char* pdfpath)
     Canvas_AuSi1_L1E ->cd(); gPad->SetLogy(); Hist_AuSi1_L1E ->Draw(); Canvas_AuSi1_L1E ->Print(pdfpath);
     Canvas_AuSi1_L2E ->cd(); gPad->SetLogy(); Hist_AuSi1_L2E ->Draw(); Canvas_AuSi1_L2E ->Print(pdfpath);
     Canvas_AuSi2_L1T ->cd(); Hist_AuSi2_L1T ->Draw(); Canvas_AuSi2_L1T ->Print(pdfpath);
-    Canvas_AuSi2_L1E ->cd(); gPad->SetLogy(); Hist_AuSi2_L1E ->Dr+=']';aw(); Canvas_AuSi2_L1E ->Print(pdfpath);
+    Canvas_AuSi2_L1E ->cd(); gPad->SetLogy(); Hist_AuSi2_L1E ->Draw(); Canvas_AuSi2_L1E ->Print(pdfpath);
     Canvas_AuSi2_L2E ->cd(); gPad->SetLogy(); Hist_AuSi2_L2E ->Draw(); Canvas_AuSi2_L2E ->Print(pdfpath);
 
     Canvas_RF1 ->cd(); Hist_RF1 ->Draw(); Canvas_RF1 ->Print(pdfpath);

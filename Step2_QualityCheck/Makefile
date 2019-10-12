@@ -3,8 +3,9 @@
 #  yj-wang 2018-2-28                #
 ######################################
 
-Obj =   QC_ReadTree
-Src =   QC_ReadTree.cpp
+Obj =   QC_BranchAddress   #QC_ReadTree
+Src =   QC_BranchAddress.cpp  #QC_ReadTree.cpp     
+
 
 
 CC=gcc

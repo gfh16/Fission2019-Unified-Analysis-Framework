@@ -129,7 +129,7 @@ int main(int argc, char *argv[])
     //      设置输出 .pdf 文件路径 与 命名
     TString Canvas_name(rdfname);
     Canvas_name.ReplaceAll(".root", "");
-    TString pathoutpdf = "./QC_pdf_All";//------------------------------------------------------->outputpath of pdf
+    TString pathoutpdf = "./QC_pdf";//------------------------------------------------------->outputpath of pdf
     mkdir(pathoutpdf,0777);
     pathoutpdf += "/QC_";	//--------"a_QA_" is the signature of qautify data
     pathoutpdf += Canvas_name;
