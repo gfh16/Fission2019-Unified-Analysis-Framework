@@ -5,8 +5,7 @@
     2. 数据转换（二）: 将RawRoot数据转换成 MapRoot数据
     3. 数据质检：采取两种方法读取 tree 
        (1)传统的setBranchAddress方法
-       (2)TTreeReader方法
-     
+       (2)TTreeReader方法  
     4. 对Pedestal作cut
     5. SSD能量刻度
        (1)Pulser Calibration
@@ -42,7 +41,15 @@
      <3>为避免与原始的.root文件混淆，转换后的.root文件需要另起名称，且最好输出到不同的文件夹下
 
 
-3. 数据质检：
+3. 数据质检：包括两部分--画出每个探测器ch的直方图，将所有的直方图存成.root文件.步骤如下：
+   (1)读取.root文件的tree数据.有两种方法：
+      <1>方法1: 传统的setBranchAddress()的方法读取tree结构. 【QC_BranchAdress.cpp】
+      <2>方法2：TTreeReader方法更方便读取tree结构           【QC_ReadTree.cpp】
+
+   (2)定义、填充直方图
+   (3)存储所有的Hist，输出pdf到文件, 方便肉眼进行质检
+   (4)存储所有的Hist,写入.root文件. 这一步是为了:一旦pdf文件中的谱有问题，马上可以查看.root文件中对应的直方图
+ 
 
 
 
