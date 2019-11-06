@@ -2,29 +2,28 @@
         Analysis framework for Experiment Fisssion2019 in RIBLL1
 ================================================================================
 
---------------------------------------------------------------------------------
+
 #一. 数据转换
 ##   1 将原始数据(二进制文件)转换成.root文件
 ##   2 将RawRoot数据转换成 MapRoot数据
 
 
 #二. 数据质检：采取两种方法读取 tree
-
-        1 传统的setBranchAddress方法
-        2 TTreeReader方法  
+##   1 传统的setBranchAddress方法
+##   2 TTreeReader方法  
 
 #三. PPAC数据处理
 
 #四. SSD数据处理
-        (一)数据刻度
-        1 Energy Calibration
-        2.Hit Multiplicity
-        3.CsI Energy Calibration
-        4.Hit Pixellation
-        5.Particle Identification
+##   (一)数据刻度
+###      1.Energy Calibration
+###      2.Hit Multiplicity
+###      3.CsI Energy Calibration
+###      4.Hit Pixellation
+###      5.Particle Identification
 
-        (二)物理分析
---------------------------------------------------------------------------------
+##   (二)物理分析
+
 
 ***************
 一. 数据转换
