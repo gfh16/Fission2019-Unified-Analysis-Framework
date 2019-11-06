@@ -213,22 +213,22 @@ void ReadTree( TChain* myChain, const char* rootpath, const char* pdfpath)
   TH1D * Hist_SSD4_L3A_E[9];
   for(int i=0; i<16; i++)
   {
-    Hist_SSD1_L2F_T[i] = new TH1D(Form("SSD1_L2F_T_CH%d", i), Form("SSD1_L2F_T_CH%d", i), BIN_NUM-100, LOW_CH+100, HIGH_CH);
-    Hist_SSD1_L1S_E[i] = new TH1D(Form("SSD1_L1S_E_CH%d", i), Form("SSD1_L1S_E_CH%d", i), BIN_NUM, LOW_CH, HIGH_CH);
-    Hist_SSD1_L2F_E[i] = new TH1D(Form("SSD1_L2F_E_CH%d", i), Form("SSD1_L2F_E_CH%d", i), BIN_NUM, LOW_CH, HIGH_CH);
-    Hist_SSD1_L2B_E[i] = new TH1D(Form("SSD1_L2B_E_CH%d", i), Form("SSD1_L2B_E_CH%d", i), BIN_NUM, LOW_CH, HIGH_CH);
-    Hist_SSD2_L2F_T[i] = new TH1D(Form("SSD2_L2F_T_CH%d", i), Form("SSD2_L2F_T_CH%d", i), BIN_NUM-100, LOW_CH+100, HIGH_CH);
-    Hist_SSD2_L1S_E[i] = new TH1D(Form("SSD2_L1S_E_CH%d", i), Form("SSD2_L1S_E_CH%d", i), BIN_NUM, LOW_CH, HIGH_CH);
-    Hist_SSD2_L2F_E[i] = new TH1D(Form("SSD2_L2F_E_CH%d", i), Form("SSD2_L2F_E_CH%d", i), BIN_NUM, LOW_CH, HIGH_CH);
-    Hist_SSD2_L2B_E[i] = new TH1D(Form("SSD2_L2B_E_CH%d", i), Form("SSD2_L2B_E_CH%d", i), BIN_NUM, LOW_CH, HIGH_CH);
-    Hist_SSD3_L2F_T[i] = new TH1D(Form("SSD3_L2F_T_CH%d", i), Form("SSD3_L2F_T_CH%d", i), BIN_NUM-100, LOW_CH+100, HIGH_CH);
-    Hist_SSD3_L1S_E[i] = new TH1D(Form("SSD3_L1S_E_CH%d", i), Form("SSD3_L1S_E_CH%d", i), BIN_NUM, LOW_CH, HIGH_CH);
-    Hist_SSD3_L2F_E[i] = new TH1D(Form("SSD3_L2F_E_CH%d", i), Form("SSD3_L2F_E_CH%d", i), BIN_NUM, LOW_CH, HIGH_CH);
-    Hist_SSD3_L2B_E[i] = new TH1D(Form("SSD3_L2B_E_CH%d", i), Form("SSD3_L2B_E_CH%d", i), BIN_NUM, LOW_CH, HIGH_CH);
-    Hist_SSD4_L2F_T[i] = new TH1D(Form("SSD4_L2F_T_CH%d", i), Form("SSD4_L2F_T_CH%d", i), BIN_NUM-100, LOW_CH+100, HIGH_CH);
-    Hist_SSD4_L1S_E[i] = new TH1D(Form("SSD4_L1S_E_CH%d", i), Form("SSD4_L1S_E_CH%d", i), BIN_NUM, LOW_CH, HIGH_CH);
-    Hist_SSD4_L2F_E[i] = new TH1D(Form("SSD4_L2F_E_CH%d", i), Form("SSD4_L2F_E_CH%d", i), BIN_NUM, LOW_CH, HIGH_CH);
-    Hist_SSD4_L2B_E[i] = new TH1D(Form("SSD4_L2B_E_CH%d", i), Form("SSD4_L2B_E_CH%d", i), BIN_NUM, LOW_CH, HIGH_CH);
+    Hist_SSD1_L2F_T[i] = new TH1D(Form("SSD1_L2F_T_CH%02d", i), Form("SSD1_L2F_T_CH%02d", i), BIN_NUM-100, LOW_CH+100, HIGH_CH);
+    Hist_SSD1_L1S_E[i] = new TH1D(Form("SSD1_L1S_E_CH%02d", i), Form("SSD1_L1S_E_CH%02d", i), BIN_NUM, LOW_CH, HIGH_CH);
+    Hist_SSD1_L2F_E[i] = new TH1D(Form("SSD1_L2F_E_CH%02d", i), Form("SSD1_L2F_E_CH%02d", i), BIN_NUM, LOW_CH, HIGH_CH);
+    Hist_SSD1_L2B_E[i] = new TH1D(Form("SSD1_L2B_E_CH%02d", i), Form("SSD1_L2B_E_CH%02d", i), BIN_NUM, LOW_CH, HIGH_CH);
+    Hist_SSD2_L2F_T[i] = new TH1D(Form("SSD2_L2F_T_CH%02d", i), Form("SSD2_L2F_T_CH%02d", i), BIN_NUM-100, LOW_CH+100, HIGH_CH);
+    Hist_SSD2_L1S_E[i] = new TH1D(Form("SSD2_L1S_E_CH%02d", i), Form("SSD2_L1S_E_CH%02d", i), BIN_NUM, LOW_CH, HIGH_CH);
+    Hist_SSD2_L2F_E[i] = new TH1D(Form("SSD2_L2F_E_CH%02d", i), Form("SSD2_L2F_E_CH%02d", i), BIN_NUM, LOW_CH, HIGH_CH);
+    Hist_SSD2_L2B_E[i] = new TH1D(Form("SSD2_L2B_E_CH%02d", i), Form("SSD2_L2B_E_CH%02d", i), BIN_NUM, LOW_CH, HIGH_CH);
+    Hist_SSD3_L2F_T[i] = new TH1D(Form("SSD3_L2F_T_CH%02d", i), Form("SSD3_L2F_T_CH%02d", i), BIN_NUM-100, LOW_CH+100, HIGH_CH);
+    Hist_SSD3_L1S_E[i] = new TH1D(Form("SSD3_L1S_E_CH%02d", i), Form("SSD3_L1S_E_CH%02d", i), BIN_NUM, LOW_CH, HIGH_CH);
+    Hist_SSD3_L2F_E[i] = new TH1D(Form("SSD3_L2F_E_CH%02d", i), Form("SSD3_L2F_E_CH%02d", i), BIN_NUM, LOW_CH, HIGH_CH);
+    Hist_SSD3_L2B_E[i] = new TH1D(Form("SSD3_L2B_E_CH%02d", i), Form("SSD3_L2B_E_CH%02d", i), BIN_NUM, LOW_CH, HIGH_CH);
+    Hist_SSD4_L2F_T[i] = new TH1D(Form("SSD4_L2F_T_CH%02d", i), Form("SSD4_L2F_T_CH%02d", i), BIN_NUM-100, LOW_CH+100, HIGH_CH);
+    Hist_SSD4_L1S_E[i] = new TH1D(Form("SSD4_L1S_E_CH%02d", i), Form("SSD4_L1S_E_CH%02d", i), BIN_NUM, LOW_CH, HIGH_CH);
+    Hist_SSD4_L2F_E[i] = new TH1D(Form("SSD4_L2F_E_CH%02d", i), Form("SSD4_L2F_E_CH%02d", i), BIN_NUM, LOW_CH, HIGH_CH);
+    Hist_SSD4_L2B_E[i] = new TH1D(Form("SSD4_L2B_E_CH%02d", i), Form("SSD4_L2B_E_CH%02d", i), BIN_NUM, LOW_CH, HIGH_CH);
   }
   for(int i=0; i<9; i++)
   {

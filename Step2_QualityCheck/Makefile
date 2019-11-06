@@ -3,6 +3,7 @@
 #  yj-wang 2018-2-28                #
 ######################################
 
+#### 根据需要添加必要的
 CC=gcc
 CPP=g++
 CFLAG = -O2 -D LINUX -g
@@ -13,7 +14,8 @@ ROOTINC = -I$(shell root-config --incdir)
 CRFLAG = $(shell root-config --cflags)
 ROOTBIN = $(shell root-config --bindir)
 
-PROG = QC_BranchAddress QC_ReadTree
+
+PROG: QC_ReadTree  QC_BranchAddress
 
 
 QC_BranchAddress: QC_BranchAddress.o
@@ -25,6 +27,8 @@ QC_ReadTree: QC_ReadTree.o
 %.o: %.cpp
 	$(CPP) -c $(CFLAG) $(CRFLAG) -o $@ $<
 
+
+
 clean:
 	-rm *.o
-	-rm $(PROG)
+	-rm QC_ReadTree  QC_BranchAddress
