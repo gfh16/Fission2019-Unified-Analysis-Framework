@@ -1,5 +1,5 @@
 
-#        Analysis framework for Experiment Fisssion2019 in RIBLL1
+#        Analysis-ramework for Exp-Fission2019 in RIBLL1
 
 
 ##    一. 数据转换
@@ -8,7 +8,7 @@
 
 
 ##    二. 数据质检：采取两种方法读取 tree
-###       1.传统的setBranchAddress方法
+###       1.SetBranchAddress方法
 ###       2.TTreeReader方法  
 
 ##    三. PPAC数据处理
