@@ -1,4 +1,11 @@
-// This macro is used to find the pedestals for Energy Channel of SSD
+//============================================================================
+//  This macro is used to find the pedestals for Energy Channel of SSD
+//=============================================================================
+
+#include "TH1.h"
+#include "TF1.h"
+#include "TCanvas.h"
+
 
 int Index = 0;
 int NPoints;
@@ -8,12 +15,13 @@ TLine   *l[2];
 void FindPedestals()
 {
 
-   std::string FileOutTag1("Pedestals");  // here to change "Pedestals" or "Pulser" or "Alpha"
-   std::string FileOutTag2("L1S_E");      // here to change "L1S_E" or "L2F_E" or "L2B_E" or "L3A_E"
-
    // ====================================================================
    //   在此修改输入文件路径、文件名称
    std::string path_to_file("data/QC_MapSSD_PulserCali_Pedestal0000.root");
+
+   std::string FileOutTag1("Pedestals");  // here to change "Pedestals" or "Pulser" or "Alpha"
+   std::string FileOutTag2("L1S_E");      // here to change "L1S_E" or "L2F_E" or "L2B_E" or "L3A_E"
+
 
    TFile * FileIn = new TFile(path_to_file.c_str());
    if(!FileIn)
@@ -77,6 +85,7 @@ void FindPedestals()
        }
 
        PedestalHist[i][j]->GetXaxis()->SetRangeUser(50,150);
+       PedestalHist[i][j]->GetYaxis()->SetRangeUser(0,7000);
        PedestalHist[i][j]->Draw();
 
        //====================================
