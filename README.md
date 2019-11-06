@@ -11,32 +11,27 @@ Contributor: Fenhai Guan(1)
 Personal information could be found at the link:
 http://inspirehep.net/author/profile/Fen.Hai.Guan.1
 
-Table of contents
-=================
+目录
+=====
 <!--ts-->
 * [数据转换](#数据转换)
   * [将原始数据(二进制文件)转换成.root文件](#将原始数据二进制文件转换成.root文件)
   * [将RawRoot数据转换成 MapRoot数据](#将RawRoot数据转换成 MapRoot数据)
+* [数据质检](#数据质检)
+  * [SetBranchAddress方法](#SetBranchAddress方法)
+  * [TTreeReader方法](#TTreeReader方法)
+* [PPAC数据处理](#PPAC数据处理)
+* [SSD数据处理](#SSD数据处理)
+  * [数据刻度](#数据刻度)
+    * [Energy Calibration](#Energy-Calibration)
+    * [Hit Multiplicity](#Hit-Multiplicity)
+    * [CsI Energy Calibration](#CsI-Energy-Calibration)
+    * [Hit Pixellation](#Hit-Pixellatio)
+    * [Particle Identification](#Particle-Identification)
+  * [物理分析](#物理分析)
 <!--te-->
 
 
-
-
-##    二. 数据质检：采取两种方法读取 tree
-###       1.SetBranchAddress方法
-###       2.TTreeReader方法  
-
-##    三. PPAC数据处理
-
-##    四. SSD数据处理
-###      (一)数据刻度
-####         1.Energy Calibration
-####         2.Hit Multiplicity
-####         3.CsI Energy Calibration
-####         4.Hit Pixellation
-####         5.Particle Identification
-
-###      (二)物理分析
 
 
 
