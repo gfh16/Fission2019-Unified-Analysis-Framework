@@ -16,7 +16,7 @@ http://inspirehep.net/author/profile/Fen.Hai.Guan.1
 <!--ts-->
 * [数据转换](#数据转换)
   * [将原始数据(二进制文件)转换成.root文件](#将原始数据二进制文件转换成.root文件)
-  * [将RawRoot数据转换成MapRoot数据](#将RawRoot数据转换成 MapRoot数据)
+  * [将RawRoot数据转换成MapRoot数据](#将RawRoot数据转换成MapRoot数据)
 * [数据质检](#数据质检)
   * [SetBranchAddress方法](#SetBranchAddress方法)
   * [TTreeReader方法](#TTreeReader方法)
@@ -38,14 +38,14 @@ http://inspirehep.net/author/profile/Fen.Hai.Guan.1
 
 ## 数据转换
 
-###    1. 将原始数据(二进制文件)转换成.root文件 (需要利用DAQ配置)
-####       (1)修改文件：/RIBLLVMEDAQ/Raw2ROOT.cpp
-####       (2)目的：将原始数据(二进制文件)转换成.root文件
-####       (3)操作：批量转换
-#####          <1> 输入文件(原始文件)都在 /vmedata/文件夹下
-#####          <2> 在 /vmedata/中 添加 listfilename 文件，将需要格式转换的原始文件名一一写出，每个文件名占一行
-#####          <3> 修改 /RIBLLVMEDAQ/下的 Raw2ROOT.cpp文件：目的是修改输出文件的位置输出文件(.root文件)都在 /rootdata/文件加下 (原因：个人更倾向于将输出文件放在/rootdata/文件夹下)
-#####          <4> 执行：编译成功后, ./raw2roo.sh listfilename
+### 将原始数据(二进制文件)转换成.root文件 (需要利用DAQ配置)
+1.修改文件：/RIBLLVMEDAQ/Raw2ROOT.cpp
+2.目的：将原始数据(二进制文件)转换成.root文件
+3.操作：批量转换
+  3.1 输入文件(原始文件)都在 /vmedata/文件夹下
+  3.2 在 /vmedata/中 添加 listfilename 文件，将需要格式转换的原始文件名一一写出，每个文件名占一行
+  3.3 修改 /RIBLLVMEDAQ/下的 Raw2ROOT.cpp文件：目的是修改输出文件的位置输出文件(.root文件)都在 /rootdata/文件加下 (原因：个人更倾向于将输出文件放在/rootdata/文件夹下)
+4.执行：编译成功后, ./raw2roo.sh listfilename
 
 
    2. 将RawRoot数据转换成 MapRoot数据 (需要利用探测器Map)
