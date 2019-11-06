@@ -14,14 +14,14 @@ http://inspirehep.net/author/profile/Fen.Hai.Guan.1
 目录
 =====
 <!--ts-->
-* [数据转换](#数据转换)
-  * [将原始数据(二进制文件)转换成.root文件](#将原始数据二进制文件转换成.root文件)
+* [一.数据转换](#数据转换)
+  * [将原始数据二进制文件转换成.root文件](#将原始数据二进制文件转换成.root文件)
   * [将RawRoot数据转换成MapRoot数据](#将RawRoot数据转换成MapRoot数据)
-* [数据质检](#数据质检)
+* [二.数据质检](#数据质检)
   * [SetBranchAddress方法](#SetBranchAddress方法)
   * [TTreeReader方法](#TTreeReader方法)
-* [PPAC数据处理](#PPAC数据处理)
-* [SSD数据处理](#SSD数据处理)
+* [三.PPAC数据处理](#PPAC数据处理)
+* [四.SSD数据处理](#SSD数据处理)
   * [数据刻度](#数据刻度)
     * [Energy Calibration](#Energy-Calibration)
     * [Hit Multiplicity](#Hit-Multiplicity)
@@ -51,7 +51,7 @@ http://inspirehep.net/author/profile/Fen.Hai.Guan.1
    3.3 为避免与原始的.root文件混淆，转换后的.root文件需要另起名称，且最好输出到不同的文件夹下
    3.4 执行: 编译成功后, ./ReadRootFile2D listfilename
 
-## 数据质检：画出每个探测器ch的直方图，将所有的直方图存成.root文件.步骤如下：
+## 数据质检
 ### SetBranchAddress方法
 ### TTreeReader方法
 1. QC_BranchAdress.cpp, QC_ReadTree.cpp
