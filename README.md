@@ -11,7 +11,7 @@ Contributor: Fenhai Guan(1)
 Personal information could be found at the link:
 http://inspirehep.net/author/profile/Fen.Hai.Guan.1
 
-The whole framework is avariable at the link:
+The whole framework is available at the link:
 https://github.com/gfh16/Fission2019-Unified-Analysis-Framework
 
 目录
