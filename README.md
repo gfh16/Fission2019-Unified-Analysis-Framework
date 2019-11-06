@@ -71,17 +71,17 @@
 ***********************
 
 (一)数据刻度
-    1 Energy Calibration
-      (1)FindPedestal
-      (2)PulserCali_AutoFindPeak
-      (3)PulserCali_LinearFit
-      (4)AlphaCali_FindPeak
-      (5)Energy_Calibration
+    1. Energy Calibration
+       (1)FindPedestal
+       (2)PulserCali_AutoFindPeak
+       (3)PulserCali_LinearFit
+       (4)AlphaCali_FindPeak
+       (5)Energy_Calibration
 
 
 
 
-    2.Hit Multiplicity
-    3.CsI Energy Calibration
-    4.Hit Pixellation
-    5.Particle Identification
+    2. Hit Multiplicity
+    3. CsI Energy Calibration
+    4. Hit Pixellation
+    5. Particle Identification
