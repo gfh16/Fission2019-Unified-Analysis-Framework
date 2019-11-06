@@ -38,8 +38,8 @@ http://inspirehep.net/author/profile/Fen.Hai.Guan.1
 1.修改文件：/RIBLLVMEDAQ/Raw2ROOT.cpp  
 2.目的：将原始数据(二进制文件)转换成.root文件  
 3.操作：批量转换  
-  3.1 输入文件(原始文件)都在 /vmedata/文件夹下  
-  3.2 在 /vmedata/中 添加 listfilename 文件，将需要格式转换的原始文件名一一写出，每个文件名占一行  
+    3.1 输入文件(原始文件)都在 /vmedata/文件夹下  
+     3.2 在 /vmedata/中 添加 listfilename 文件，将需要格式转换的原始文件名一一写出，每个文件名占一行  
   3.3 修改 /RIBLLVMEDAQ/下的 Raw2ROOT.cpp文件：目的是修改输出文件的位置输出文件(.root文件)都在 /rootdata/文件加下 (原因：个人更倾向于将输出文件放在/rootdata/文件夹下)  
 4.执行：编译成功后, ./raw2roo.sh listfilename  
 
