@@ -16,7 +16,7 @@ http://inspirehep.net/author/profile/Fen.Hai.Guan.1
 <!--ts-->
 * [数据转换](#数据转换)
   * [将原始数据(二进制文件)转换成.root文件](#将原始数据二进制文件转换成.root文件)
-  * [将RawRoot数据转换成 MapRoot数据](#将RawRoot数据转换成 MapRoot数据)
+  * [将RawRoot数据转换成MapRoot数据](#将RawRoot数据转换成 MapRoot数据)
 * [数据质检](#数据质检)
   * [SetBranchAddress方法](#SetBranchAddress方法)
   * [TTreeReader方法](#TTreeReader方法)
@@ -36,7 +36,7 @@ http://inspirehep.net/author/profile/Fen.Hai.Guan.1
 
 
 
-## 一. 数据转换
+## 数据转换
 
 ###    1. 将原始数据(二进制文件)转换成.root文件 (需要利用DAQ配置)
 ####       (1)修改文件：/RIBLLVMEDAQ/Raw2ROOT.cpp
