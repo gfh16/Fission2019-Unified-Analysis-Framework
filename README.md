@@ -5,12 +5,12 @@
         1 将原始数据(二进制文件)转换成.root文件
         2 将RawRoot数据转换成 MapRoot数据
 
-    二. 数据质检：采取两种方法读取 tree 
+    二. 数据质检：采取两种方法读取 tree
         1 传统的setBranchAddress方法
         2 TTreeReader方法  
 
     三. PPAC数据处理
-   
+
     四. SSD数据处理
         (一)数据刻度
         1 Energy Calibration
@@ -18,9 +18,9 @@
         3.CsI Energy Calibration
         4.Hit Pixellation
         5.Particle Identification
-        
+
         (二)物理分析
-   
+
 
 ***************
 一. 数据转换
@@ -34,24 +34,24 @@
           <3> 修改 /RIBLLVMEDAQ/下的 Raw2ROOT.cpp文件：目的是修改输出文件的位置
               输出文件(.root文件)都在 /rootdata/文件加下
              (原因：个人更倾向于将输出文件放在/rootdata/文件夹下)
-             【 *** listfilename中的文件名可以用 ListFileName.cpp来生成 ***】
+             *** listfilename中的文件名可以用 ListFileName.cpp来生成 ***
           <4> 执行：编译成功后, ./raw2roo.sh listfilename
 
 
-      2. 将RawRoot数据转换成 MapRoot数据 (需要利用探测器Map)
-         (1)修改文件：/RIBLLVMEDAQ/ReadRootFile2D.cpp
-         (2)目的：第一步得到的.root文件数据以 T103000 等命名，第二步需要利用探测器Map将每个插件对应的探测器还原出来, 以PPAC1_T 等命名
-         (3)操作
-           <1>修改/RIBLLVMEDAQ/ReadRootFile2D.cpp 文件
-           <2>假定输入文件都在 /rootdata/中，在/rootdata/下添加listfilename 文件,将需要转换的文件名称一一列出，每个文件名占一行
-           <3>为避免与原始的.root文件混淆，转换后的.root文件需要另起名称，且最好输出到不同的文件夹下
-         (4)执行: 编译成功后, ./ReadRootFile2D listfilename
+   2. 将RawRoot数据转换成 MapRoot数据 (需要利用探测器Map)
+      (1)修改文件：/RIBLLVMEDAQ/ReadRootFile2D.cpp
+      (2)目的：第一步得到的.root文件数据以 T103000 等命名，第二步需要利用探测器Map将每个插件对应的探测器还原出来, 以PPAC1_T 等命名
+      (3)操作
+         <1>修改/RIBLLVMEDAQ/ReadRootFile2D.cpp 文件
+         <2>假定输入文件都在 /rootdata/中，在/rootdata/下添加listfilename 文件,将需要转换的文件名称一一列出，每个文件名占一行
+         <3>为避免与原始的.root文件混淆，转换后的.root文件需要另起名称，且最好输出到不同的文件夹下
+      (4)执行: 编译成功后, ./ReadRootFile2D listfilename
 
 
 ***************************************************************************
 二. 数据质检：画出每个探测器ch的直方图，将所有的直方图存成.root文件.步骤如下：
 ***************************************************************************
-1. 读取.root文件的tree数据.有两种方法：
+    1. 读取.root文件的tree数据.有两种方法：
        <1>方法1: 传统的setBranchAddress()的方法读取tree结构. 【QC_BranchAdress.cpp】
        <2>方法2：TTreeReader方法更方便读取tree结构           【QC_ReadTree.cpp】
 
@@ -70,7 +70,6 @@
 四. SSD数据处理
 ***********************
 
-=========
 (一)数据刻度
     1 Energy Calibration
       (1)FindPedestal
@@ -78,7 +77,7 @@
       (3)PulserCali_LinearFit
       (4)AlphaCali_FindPeak
       (5)Energy_Calibration
-   
+
 
 
 
@@ -86,10 +85,3 @@
     3.CsI Energy Calibration
     4.Hit Pixellation
     5.Particle Identification
-
- 
-
-
-
-
-
