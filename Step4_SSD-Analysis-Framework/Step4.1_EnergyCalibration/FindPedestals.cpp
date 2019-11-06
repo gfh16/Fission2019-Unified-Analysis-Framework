@@ -2,6 +2,12 @@
 //  This macro is used to find the pedestals for Energy Channel of SSD
 //=============================================================================
 
+//***************************
+//  Date: 2019-11-06
+//  Author: gfh
+//***************************
+
+
 #include "TH1.h"
 #include "TF1.h"
 #include "TCanvas.h"
