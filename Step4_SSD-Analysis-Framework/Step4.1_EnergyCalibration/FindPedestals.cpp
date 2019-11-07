@@ -23,16 +23,17 @@ void FindPedestals()
 
    // ====================================================================
    //   在此修改输入文件路径、文件名称
-   std::string path_to_file("data/QC_MapSSD_PulserCali_Pedestal0000.root");
+   std::string path_to_file("data/QCMapSSD_PulserCali_Pedestal0000.root");
 
    std::string FileOutTag1("Pedestals");  // here to change "Pedestals" or "Pulser" or "Alpha"
    std::string FileOutTag2("L1S_E");      // here to change "L1S_E" or "L2F_E" or "L2B_E" or "L3A_E"
 
 
    TFile * FileIn = new TFile(path_to_file.c_str());
-   if(!FileIn)
+   if(!FileIn->IsOpen())
    {
-     cout<<"Open file "<< path_to_file.c_str() << "failed"<<endl;
+     cout<<"Open file "<< path_to_file.c_str() << " failed"<<endl;
+     return;
    }
 
    //============================================================================================
