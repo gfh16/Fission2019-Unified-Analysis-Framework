@@ -49,7 +49,7 @@ void FindPedestals()
    {
      for(int j=0; j<16; j++)
      {
-       PedestalHist[i][j]=(TH1D*)FileIn->Get(Form("SSD%d_%s_CH%d",(i+1),FileOutTag2.c_str(),j));
+       PedestalHist[i][j]=(TH1D*)FileIn->Get(Form("SSD%d_%s_CH%02d",(i+1),FileOutTag2.c_str(),j));
      }
    }
    printf("Histograms loaded\n");
@@ -87,7 +87,7 @@ void FindPedestals()
        // 如果某个Histogram为空,则跳过
        if(PedestalHist[i][j]==0)
        {
-         printf("No data present for SSD%d_%s_CH%d\n",(i+1),FileOutTag2.c_str(),j);
+         printf("No data present for SSD%d_%s_CH%02d\n",(i+1),FileOutTag2.c_str(),j);
          continue;
        }
 
