@@ -4,10 +4,11 @@
 //    Then the histogram is fitted using the user-defined function                //
 //    The canva is saved as pdf                                                   //
 //                                                                                //
+//    Run this macro: root -l FindPedestals.cpp                                   //
+//                                                                                //
 //    Date: 2019-11-06                                                            //
 //    Author: gfh                                                                 //
 ////////////////////////////////////////////////////////////////////////////////////
-
 
 #include "TH1.h"
 #include "TF1.h"
@@ -18,13 +19,20 @@ int NPoints;
 TMarker *m[2];
 TLine   *l[2];
 
+//___________________________________________________________________________
 void FindPedestals()
 {
 ////////////////////////////////////////////////////////////////////////////
 //
-//
-//
-//
+//   1. 读取Histograms
+//   2. 通过c1->Connect("ProcessedEvent(Int_t,Int_t,Int_t,TObject*)",0,0,"SetPoints(Int_t,Int_t,Int_t,TObject*)")调用GUI
+//   3. 定义一个正数Option，作为操作选项：
+//     (1) Option 初始化为 2
+//     (2) Option = 2 : 调用 SetPoints(), 手动选点
+//     (3) 提示输入Option：
+//         <1> 输入 1, 进行拟合并保存;
+//         <2> 输入 2, 在此执行while(Option==2)
+//         <3> 输入 3，中断跳出
 ////////////////////////////////////////////////////////////////////////////
     
    //   在此修改输入文件路径、文件名称
@@ -63,10 +71,9 @@ void FindPedestals()
    TCanvas *c_end   = new TCanvas("c_end","");
    c_end->Close();
 
-
-   //========================================================
-   //                  behgen analysis here
-   //========================================================
+   //====================================================================================
+   //                            BEGIN ANALYZE HERE !!!
+   //====================================================================================
    // the pdf file begins here !!!
    c_begin->Print(Form("figures/SSD_%s_%s.pdf[", FileOutTag1.c_str(), FileOutTag2.c_str()));
 
@@ -90,15 +97,6 @@ void FindPedestals()
        PedestalHist[i][j]->GetXaxis()->SetRangeUser(50,150);
        PedestalHist[i][j]->GetYaxis()->SetRangeUser(0,7000);
        PedestalHist[i][j]->Draw();
-
-       //====================================
-       //  Option用于提供选项：
-       //  (1) Option 初始化为 2
-       //  (2) Option = 2 : 调用 SetPoints(), 手动选点
-       //  (3) 提示输入Option：
-       //      <1> 输入 1, 进行拟合并保存;
-       //      <2> 输入 2, 在此执行while(Option==2)
-       //      <3> 输入 3，中断跳出
 
        while(Option==2)
        {
@@ -171,11 +169,15 @@ void FindPedestals()
 void SetPoints(Int_t event, Int_t x, Int_t y, TObject *selected)
 {
 /////////////////////////////////////////////////////////////////////////////
-//    This function is to set the fit range by hand on GUI
-//    Click the Central button of the mouse to get the range
-//
-//
-//
+//    This function is to set the fit range by hand on GUI                 //
+//    Click the Central button of the mouse to get the range               //
+//                                                                         //
+//    Function parameters:                                                 //
+//       event :                                                           //
+//           x :
+//           y :
+//    selected :
+///////////////////////////////////////////////////////////////////////////// 
   if(event == 2)
   {
     float px = gPad->AbsPixeltoX(x); // Conversion of absolute pixel to X
