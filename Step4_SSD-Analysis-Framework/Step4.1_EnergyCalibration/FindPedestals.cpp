@@ -22,21 +22,22 @@ TLine   *l[2];
 //___________________________________________________________________________
 void FindPedestals()
 {
-////////////////////////////////////////////////////////////////////////////
-//
-//   1. 读取Histograms
-//   2. 通过c1->Connect("ProcessedEvent(Int_t,Int_t,Int_t,TObject*)",0,0,"SetPoints(Int_t,Int_t,Int_t,TObject*)")调用GUI
-//   3. 定义一个正数Option，作为操作选项：
-//     (1) Option 初始化为 2
-//     (2) Option = 2 : 调用 SetPoints(), 手动选点
-//     (3) 提示输入Option：
-//         <1> 输入 1, 进行拟合并保存;
-//         <2> 输入 2, 在此执行while(Option==2)
-//         <3> 输入 3，中断跳出
-////////////////////////////////////////////////////////////////////////////
-    
+/////////////////////////////////////////////////////////////////////////////
+//                                                                         //
+//   1. 读取Histograms                                                      //
+//   2. 通过c1->Connect("ProcessedEvent(Int_t,Int_t,Int_t,TObject*)",0,0,   //
+//                     "SetPoints(Int_t,Int_t,Int_t,TObject*)")调用GUI      //
+//   3. 定义一个正数Option，作为操作选项：                                      //
+//     (1) Option 初始化为 2                                                 //
+//     (2) Option = 2: 调用 SetPoints(), 手动选点                            //
+//     (3) 提示输入Option：                                                  //
+//         <1> 输入 1, 进行拟合并保存;                                        //
+//         <2> 输入 2, 在此执行while(Option==2)                              //
+//         <3> 输入 3，中断跳出                                              //
+/////////////////////////////////////////////////////////////////////////////
+
    //   在此修改输入文件路径、文件名称
-   std::string path_to_file("data/QCMapSSD_PulserCali_Pedestal0000.root");
+   std::string path_to_file("data/QC_MapSSD_PulserCali_Pedestal0000.root");
 
    std::string FileOutTag1("Pedestals");  // here to change "Pedestals" or "Pulser" or "Alpha"
    std::string FileOutTag2("L1S_E");      // here to change "L1S_E" or "L2F_E" or "L2B_E" or "L3A_E"
@@ -59,7 +60,7 @@ void FindPedestals()
    {
      for(int j=0; j<16; j++)
      {
-       PedestalHist[i][j]=(TH1D*)FileIn->Get(Form("SSD%d_%s_CH%02d",(i+1),FileOutTag2.c_str(),j));
+       PedestalHist[i][j]=(TH1D*)FileIn->Get(Form("SSD%d_%s_CH%d",(i+1),FileOutTag2.c_str(),j));
      }
    }
    printf("Histograms loaded\n");
@@ -112,7 +113,7 @@ void FindPedestals()
            gClient->HandleInput();
          }
          c1->Disconnect("ProcessedEvent(Int_t,Int_t,Int_t,TObject*)");
-          
+
          if(Index==1)
          {
            for(int ip=0; ip<NPoints; ip++)
@@ -122,7 +123,7 @@ void FindPedestals()
          }
          //  对选取的范围进行拟合
          PedestalHist[i][j]->Fit("gaus","","same",limit[0],limit[1]);
-  
+
          //  提示输入操作选项
          cout<< "Options? 1.Save and next, 2.Retry the fit, 3.Exit"<< endl;
          cin >> Option;
@@ -144,7 +145,7 @@ void FindPedestals()
            c_end->Print(Form("figures/SSD_%s_%s.pdf]", FileOutTag1.c_str(), FileOutTag2.c_str()));
            FileOut.close();
            cout<<"File .dat closed"<<endl;
-            
+
            delete c1;
            delete c_begin;
            delete c_end;
@@ -173,11 +174,11 @@ void SetPoints(Int_t event, Int_t x, Int_t y, TObject *selected)
 //    Click the Central button of the mouse to get the range               //
 //                                                                         //
 //    Function parameters:                                                 //
-//       event :                                                           //
-//           x :
-//           y :
-//    selected :
-///////////////////////////////////////////////////////////////////////////// 
+//       event :   number of click points                                  //
+//           x :   x value of the point                                    //
+//           y :   y value of the point                                    //
+//    selected :   a pointer to the curent point                           //
+/////////////////////////////////////////////////////////////////////////////
   if(event == 2)
   {
     float px = gPad->AbsPixeltoX(x); // Conversion of absolute pixel to X
@@ -185,12 +186,12 @@ void SetPoints(Int_t event, Int_t x, Int_t y, TObject *selected)
     py = gPad->PadtoY(py);           // Convert y from pad to Y
     float Uymin = gPad->GetUymin();  // Returns the minimum/maximum y-coordinate
     float Uymax = gPad->GetUymax();  // value visible on the pad
-     
+
     //  save the clicks as a marker
     if(px>=gPad->GetUxmin() && px<=gPad->GetUxmax())
     {
       m[NPoints] = new TMarker(px,py,3);          // marker style = 3, means “*”
-      l[NPoints] = new TLine(px,Uymin,px,Uymax); 
+      l[NPoints] = new TLine(px,Uymin,px,Uymax);
       l[NPoints] -> SetLineColor(2);
       l[NPoints] -> SetLineWidth(2);
       l[NPoints] -> Draw();
