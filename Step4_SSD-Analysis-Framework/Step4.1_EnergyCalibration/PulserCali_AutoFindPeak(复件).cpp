@@ -73,7 +73,7 @@ void PulserCali_AutoFindPeak()
     // find peaks candidates
     // Search(hist, sigma, option, threshold) \\ 0 < threshold < 1
     Int_t nfound  = s->Search(PulserPeaks[i],6,"",0.05);
-    printf("SSD%d_%s_E_CH%d is analyzed,%2d peaks found\n",SSDNum,FileTag2.c_str(),i,nfound);
+    printf("SSD%d_%s_E_CH%d is analyzed, %02d peaks found\n",SSDNum,FileTag2.c_str(),i,nfound);
 
     //=========================================================
     //  Loop on all found peaks and fit
@@ -82,23 +82,26 @@ void PulserCali_AutoFindPeak()
     gPad->Update();
 
     Double_t *xpeaks = s->GetPositionX();
-    Int_t npeaks = 0;
-    for(Int_t p=0; p<nfound; p++)
+    for(int i=0; i<16; i++)
     {
-      Double_t xp = xpeaks[p];
-      Int_t   bin = PulserPeaks[i]->GetXaxis()->FindBin(xp);
-      Double_t yp = PulserPeaks[i]->GetBinContent(bin);
+      Int_t npeaks = 0;
+      for(Int_t p=0; p<nfound; p++)
+      {
+        Double_t xp = xpeaks[p];
+        Int_t   bin = PulserPeaks[i]->GetXaxis()->FindBin(xp);
+        Double_t yp = PulserPeaks[i]->GetBinContent(bin);
     //    if(yp - TMath::Sqrt(yp) < fline->Eval(xp)) continue; // 判选条件
-      printf(" SSD%d_%s_E_CH%d peak %d is %04f\n",SSDNum,FileTag2.c_str(),i,p,xp);
-      npeaks++;
-    }
-    cout<<"有效的peak数目为:"<< npeaks << endl;
-    cout<<"Now fitting: Be patient\n" <<endl;
+        printf(" SSD%d_%s_E_CH%d peak %d is %f\n",SSDNum,FileTag2.c_str(),i,p,xp);
+        npeaks++;
+      }
+      cout<<"有效的peak数目为:"<< npeaks << endl;
+      cout<<"Now fitting: Be patient\n" <<endl;
 
       //TH1D *h = (TH1D*)PulserPeaks[i]->Clone("h");
     //  TF1 *fit = new TF1("fit",gaus,0,4095,3*npeaks);
     //  fit->SetNpx(1000);
     //  h->Fit("fit");
+    }
   }
 
   delete c1;
