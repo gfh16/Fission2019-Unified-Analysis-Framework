@@ -86,6 +86,8 @@ void FindPeaks()
     par[3*npeaks+3] = xp;  //"mean"
     par[3*npeaks+4] = 3;   // "sigma"
 
+    printf("找到第 %d 个peak: %.1f\n",npeaks,xp);
+
     npeaks++;
   }
   cout<<"有效的peak数目为:"<< npeaks << endl;
