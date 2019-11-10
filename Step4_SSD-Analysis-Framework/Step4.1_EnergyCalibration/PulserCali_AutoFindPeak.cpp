@@ -31,13 +31,6 @@ Double_t Switch10[10] =     {1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0};
 Double_t Switch11[11] ={0.5, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0};
 
 //______________________________________________________________________________
-void Pulser_FindPeakAndFit()
-{
-  
-}
-
-
-//______________________________________________________________________________
 void PulserCali_AutoFindPeak()
 {
 ///////////////////////////////////////////////////////////////////////////////
@@ -56,7 +49,6 @@ void PulserCali_AutoFindPeak()
 ///////////////////////////////////////////////////////////////////////////////
   gStyle->SetOptStat(0);
 
-  Double_t  par[300];
   Int_t SSDNum = 1;               // here to change the telescope number
   std::string FileTag1("L1");     // here to change layer1 (L1) or layer2 (L2)
   std::string FileTag2("L1S");
