@@ -18,19 +18,18 @@
 #include "TMarker.h"
 #include "TGraph.h"
 #include "TMath.h"
-
+#include "TFile.h"
 
 //______________________________________________________________________________
 //  const number definition
-Double_t SwitchFactor[] = {0};
-Double_t Switch5[5] = {1.0, 1/2.0, 1/4.0, 1/5.0, 1/10.0};
-Double_t Switch6[6] = {1.0, 1/2.0, 1/4.0, 1/5.0, 1/10.0, 1/20.0};
-Double_t Switch7[7] = {1.0, 1/2.0, 1/4.0, 1/5.0, 1/10.0, 1/20.0, 1/40.0};
-Double_t Switch8[8] = {1.0, 1/2.0, 1/4.0, 1/5.0, 1/10.0, 1/20.0, 1/40.0, 1/50.0};
+Double_t AttenFactor[11] = {0};     //衰减因子
+Double_t Switch5[5]   = {1.0, 1/2.0, 1/4.0, 1/5.0, 1/10.0};
+Double_t Switch6[6]   = {1.0, 1/2.0, 1/4.0, 1/5.0, 1/10.0, 1/20.0};
+Double_t Switch7[7]   = {1.0, 1/2.0, 1/4.0, 1/5.0, 1/10.0, 1/20.0, 1/40.0};
+Double_t Switch8[8]   = {1.0, 1/2.0, 1/4.0, 1/5.0, 1/10.0, 1/20.0, 1/40.0, 1/50.0};
+Double_t Height10[10] = {10.0, 9.0, 8.0, 7.0, 6.0, 5.0, 4.0, 3.0, 2.0, 1.0};
+Double_t Height11[11] = {10.0, 9.0, 8.0, 7.0, 6.0, 5.0, 4.0, 3.0, 2.0, 1.0, 0.5};
 
-Double_t HeightFactor[] = {0};
-Double_t Height10[10]   = {10.0, 9.0, 8.0, 7.0, 6.0, 5.0, 4.0, 3.0, 2.0, 1.0};
-Double_t Height11[11]   = {10.0, 9.0, 8.0, 7.0, 6.0, 5.0, 4.0, 3.0, 2.0, 1.0, 0.5};
 
 //_______________________________________________
 //  实现数组的降序排序
@@ -43,25 +42,25 @@ bool compare(Int_t a, Int_t b)
 void PulserCali_AutoFindPeak(const char* LayerTag, const char* FileTag, FILE* FileOut, TCanvas* cans[4][16]);
 
 //______________________________________________________________________________
-void PulserCali_FindPeakAndFit()
+void PulserCali_L1_FindPeakAndFit()
 {
   gStyle->SetOptStat(0);
 
   std::string LayerTag("L1");
-  std::string FileTag("Switch");
+  std::string FileTag("Height");   // "Height" or "Switch"
   std::string pdfpath(Form("figures/SSD_%s_PulserCali_%s.pdf",LayerTag.c_str(),FileTag.c_str()));
   std::string FileOutTag(Form("output/SSD_%s_PulserCali_%s.dat",LayerTag.c_str(),FileTag.c_str()));
-  FILE *FileOut = fopen(FileOutTag.c_str(),"w");
+  FILE *FileOut = fopen(FileOutTag.c_str(),"w+");
   fprintf(FileOut,"# Fiiting funtion = par[0] + par[1]*x && y=a*x+b, so a = par[1], b = par[0];  0.0 isn't a peak\n");
-  fprintf(FileOut,"# SSDNum   CHNum    par1(a)   err_par0   par0(b)   err_par1    peak1    peak2    peak3    peak4    peak5    peak6     peak7    peak8     peak9     peak10     peak11\n");
-
+  fprintf(FileOut,"# SSDNum CHNum    par1(a)   err_par0     par0(b)      err_par1      peak1     peak2      peak3      peak4     peak5     peak6     peak7     peak8     peak9     peak10   peak11 \n");
+  fflush(FileOut);
   TCanvas *cans[4][16];
   for(Int_t SSDNum=0; SSDNum<4; SSDNum++)
   {
-    for(int i=0; i<16; i++)
+    for(int CHNum=0; CHNum<16; CHNum++)
     {
-      cans[SSDNum][i] = new TCanvas(Form("C_SSD%d_CH%d",SSDNum+1,i),Form("C_SSD%d_CH%d",SSDNum+1,i),10,10,1000,900);
-      cans[SSDNum][i]->Close();
+      cans[SSDNum][CHNum] = new TCanvas(Form("C_SSD%d_CH%d",SSDNum+1,CHNum),Form("C_SSD%d_CH%d",SSDNum+1,CHNum),10,10,1000,900);
+      cans[SSDNum][CHNum]->Close();
     }
   }
   PulserCali_AutoFindPeak(LayerTag.c_str(),FileTag.c_str(),FileOut,cans);
@@ -78,12 +77,13 @@ void PulserCali_FindPeakAndFit()
   c_end->Print(pdfpath_begin.c_str());
   for(Int_t SSDNum=0; SSDNum<4; SSDNum++)
   {
-    for(int i=0; i<16; i++)
+    for(int CHNum=0; CHNum<16; CHNum++)
     {
-        cans[SSDNum][i]->Print(pdfpath.c_str());
+        cans[SSDNum][CHNum]->Print(pdfpath.c_str());
     }
   }
   c_end->Print(pdfpath_end.c_str());
+  fclose(FileOut);
   return;
 }
 
@@ -121,11 +121,11 @@ void PulserCali_AutoFindPeak(const char* LayerTag, const char* FileTag, FILE* Fi
       return;
     }
     // 读取root文件中的 Histograms
-    for(int i=0; i<16; i++)
+    for(int CHNum=0; CHNum<16; CHNum++)
     {
-      PulserPeaks[SSDNum][i] = (TH1D*)FileIn->Get(Form("SSD%d_%sS_E_CH%02d",SSDNum+1,LayerTag,i));
-      PulserPeaks[SSDNum][i]->GetXaxis()->SetRangeUser(120,4095);
-      cout << Form("SSD%d_%sS_E_CH%d",SSDNum+1,LayerTag,i) << endl;
+      PulserPeaks[SSDNum][CHNum] = (TH1D*)FileIn->Get(Form("SSD%d_%sS_E_CH%02d",SSDNum+1,LayerTag,CHNum));
+      PulserPeaks[SSDNum][CHNum]->GetXaxis()->SetRangeUser(120,4095);
+      cout << Form("SSD%d_%sS_E_CH%d",SSDNum+1,LayerTag,CHNum) << endl;
     }
     printf("Histograms loaded\n");
 
@@ -133,33 +133,33 @@ void PulserCali_AutoFindPeak(const char* LayerTag, const char* FileTag, FILE* Fi
     //                        BEGIN ANALYZE HERE !!!
     //============================================================================
     TSpectrum * s = new TSpectrum();
-    for(int i=0; i<16; i++)
+    for(Int_t CHNum=0; CHNum<16; CHNum++)
     {
-      if(PulserPeaks[SSDNum][i]==0)
+      if(PulserPeaks[SSDNum][CHNum]==0)
       {
-        printf("No data present for SSD%d_%s_E_CH%02d\n",SSDNum+1,LayerTag,i);
+        printf("No data present for SSD%d_%s_E_CH%02d\n",SSDNum+1,LayerTag,CHNum);
         continue;
       }
       // find peaks candidates
       // Search(hist, sigma, option, threshold) \\ 0 < threshold < 1
-      cans[SSDNum][i] = new TCanvas(Form("C_SSD%d_CH%d",SSDNum+1,i),Form("C_SSD%d_CH%d",SSDNum+1,i),10,10,1000,900);
-      cans[SSDNum][i]->Divide(1,2);
-      cans[SSDNum][i]->cd(1);
-      Int_t nfound  = s->Search(PulserPeaks[SSDNum][i],3,"",0.2);
-      printf("SSD%d_%sS_E_CH%d is analyzed,%2d peaks found\n",SSDNum+1,LayerTag,i,nfound);
+      cans[SSDNum][CHNum] = new TCanvas(Form("C_SSD%d_CH%d",SSDNum+1,CHNum),Form("C_SSD%d_CH%d",SSDNum+1,CHNum),10,10,1000,900);
+      cans[SSDNum][CHNum]->Divide(1,2);
+      cans[SSDNum][CHNum]->cd(1);
+      Int_t nfound  = s->Search(PulserPeaks[SSDNum][CHNum],3,"",0.4);
+      printf("SSD%d_%sS_E_CH%d is analyzed,%2d peaks found\n",SSDNum+1,LayerTag,CHNum,nfound);
       //  Loop on all found peaks
       Int_t npeaks = 0;
       Double_t *xpeaks = s->GetPositionX();
       // 对寻找到的峰值降序排序
-      std::sort(xpeaks,xpeaks+nfound,compare);   // sort默认升序
+      std::sort(xpeaks,xpeaks+nfound,compare);   // sort默认升序,compare使之变成降序
       for(Int_t p=0; p<nfound; p++)
       {
         if(xpeaks[p]<120) continue;
         Double_t xp = xpeaks[p];
-        Int_t   bin = PulserPeaks[SSDNum][i]->GetXaxis()->FindBin(xp);
-        Double_t yp = PulserPeaks[SSDNum][i]->GetBinContent(bin);
+        Int_t   bin = PulserPeaks[SSDNum][CHNum]->GetXaxis()->FindBin(xp);
+        Double_t yp = PulserPeaks[SSDNum][CHNum]->GetBinContent(bin);
 
-        printf(" SSD%d_%sS_E_CH%d peak %d is %.1f\n",SSDNum+1,LayerTag,i,p,xp);
+        printf(" SSD%d_%sS_E_CH%d peak %d is %.1f\n",SSDNum+1,LayerTag,CHNum,p,xp);
         npeaks++;
       }
       cout<<"有效的peak数目为:"<< npeaks << endl;
@@ -167,17 +167,19 @@ void PulserCali_AutoFindPeak(const char* LayerTag, const char* FileTag, FILE* Fi
 
       for(Int_t i=0; i<npeaks; i++)
       {
-        if(npeaks==5)  SwitchFactor[i] = Switch5[i];
-        if(npeaks==6)  SwitchFactor[i] = Switch6[i];
-        if(npeaks==7)  SwitchFactor[i] = Switch7[i];
-        if(npeaks==8)  SwitchFactor[i] = Switch8[i];
+        if(npeaks==5)  AttenFactor[i] = Switch5[i];
+        if(npeaks==6)  AttenFactor[i] = Switch6[i];
+        if(npeaks==7)  AttenFactor[i] = Switch7[i];
+        if(npeaks==8)  AttenFactor[i] = Switch8[i];
+        if(npeaks==10) AttenFactor[i] = Height10[i];
+        if(npeaks==11) AttenFactor[i] = Height11[i];
       }
-      cans[SSDNum][i]->cd(2);
-      TGraph *grap = new TGraph(npeaks,SwitchFactor,xpeaks);
+      cans[SSDNum][CHNum]->cd(2);
+      TGraph *grap = new TGraph(npeaks,AttenFactor,xpeaks);
       grap->SetMarkerStyle(20);
       grap->SetMarkerSize(1.5);
       grap->SetMarkerColor(kBlue);
-      grap->SetTitle(Form("PulserFit_SSD%d_%sS_E_CH%02d",SSDNum+1,LayerTag,i));
+      grap->SetTitle(Form("PulserFit_SSD%d_%sS_E_CH%02d",SSDNum+1,LayerTag,CHNum));
       grap->Draw("AP*");
 
       TF1 * fit = new TF1("fit","pol1",100,4096);
@@ -186,9 +188,9 @@ void PulserCali_AutoFindPeak(const char* LayerTag, const char* FileTag, FILE* Fi
       Double_t err_par0 = fit->GetParError(1);
       Double_t par1     = fit->GetParameter(0);
       Double_t err_par1 = fit->GetParError(0);
-      fprintf(FileOut," %5d  %7d   %8.4f  %8.4f  %8.4f  %8.4f   %8.1f  %8.1f %8.1f %8.1f %8.1f %8.1f %8.1f %8.1f %8.1f %8.1f %8.1f\n",
-              SSDNum,i,par0,err_par0,par1,err_par1,xpeaks[0],xpeaks[1],xpeaks[2],xpeaks[3],xpeaks[4],xpeaks[5],xpeaks[6],xpeaks[7],xpeaks[8],xpeaks[9],xpeaks[10]);
-      fflush(FileOut); // 需要加上这句！！！ 否则由于缓存问题，内容不被写入
+      fprintf(FileOut," %5d    %02d   %10.4f  %10.4f  %10.4f   %10.4f   %8.1f   %8.1f   %8.1f   %8.1f  %8.1f  %8.1f  %8.1f  %8.1f  %8.1f  %8.1f  %8.1f\n",
+      SSDNum,CHNum,par0,err_par0,par1,err_par1,xpeaks[0],xpeaks[1],xpeaks[2],xpeaks[3],xpeaks[4],xpeaks[5],xpeaks[6],xpeaks[7],xpeaks[8],xpeaks[9],xpeaks[10]);
+  //    fflush(FileOut); // 需要加上这句！！！ 否则由于缓存问题，内容不被写入
 
       gPad->Modified();
       gPad->Update();

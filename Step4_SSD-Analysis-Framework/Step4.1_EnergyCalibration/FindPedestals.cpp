@@ -60,7 +60,7 @@ void FindPedestals()
    {
      for(int j=0; j<16; j++)
      {
-       PedestalHist[i][j]=(TH1D*)FileIn->Get(Form("SSD%d_%s_CH%d",(i+1),FileOutTag2.c_str(),j));
+       PedestalHist[i][j]=(TH1D*)FileIn->Get(Form("SSD%d_%s_CH%02d",(i+1),FileOutTag2.c_str(),j));
      }
    }
    printf("Histograms loaded\n");
@@ -85,9 +85,7 @@ void FindPedestals()
      {
        int Option = 2;   // 设置一个标志, 当Option==2时，执行后面的while(Option==2)循环
 
-       c1->cd();
-       gPad->Modified(); // Tell the canvas that an object it is displaying have changed
-       gPad->Update();   //  Force the canvas to refresh
+
 
        // 如果某个Histogram为空,则跳过
        if(PedestalHist[i][j]==0)
@@ -95,15 +93,19 @@ void FindPedestals()
          printf("No data present for SSD%d_%s_CH%02d\n",(i+1),FileOutTag2.c_str(),j);
          continue;
        }
-       PedestalHist[i][j]->GetXaxis()->SetRangeUser(50,150);
-       PedestalHist[i][j]->GetYaxis()->SetRangeUser(0,7000);
-       PedestalHist[i][j]->Draw();
+
 
        while(Option==2)
        {
          Index = 0;
          NPoints = 0;
 
+         c1->cd();
+         gPad->Modified();
+         gPad->Update();
+         PedestalHist[i][j]->GetXaxis()->SetRangeUser(50,150);
+         PedestalHist[i][j]->GetYaxis()->SetRangeUser(0,7000);
+         PedestalHist[i][j]->Draw();
          //   it is very important!!! very convenient!!!
          //   here to set the range and fit on the GUI by hand
          c1->Connect("ProcessedEvent(Int_t,Int_t,Int_t,TObject*)",0,0,"SetPoints(Int_t,Int_t,Int_t,TObject*)");
@@ -124,6 +126,8 @@ void FindPedestals()
          //  对选取的范围进行拟合
          PedestalHist[i][j]->Fit("gaus","","same",limit[0],limit[1]);
 
+         gPad->Modified();
+         gPad->Update();
          //  提示输入操作选项
          cout<< "Options? 1.Save and next, 2.Retry the fit, 3.Exit"<< endl;
          cin >> Option;
