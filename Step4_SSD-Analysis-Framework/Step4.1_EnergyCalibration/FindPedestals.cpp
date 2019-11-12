@@ -9,10 +9,12 @@
 //    Date: 2019-11-06                                                            //
 //    Author: gfh                                                                 //
 ////////////////////////////////////////////////////////////////////////////////////
-
+#include <iostream>
 #include "TH1.h"
 #include "TF1.h"
 #include "TCanvas.h"
+
+using namespace std;
 
 int Index = 0;
 int NPoints;
@@ -51,8 +53,8 @@ void FindPedestals()
 
    //   在此修改输出文件路径
    ofstream FileOut(Form("output/SSD_%s_%s.dat", FileOutTag1.c_str(), FileOutTag2.c_str()));
-   FileOut << "*SSDNum" << setw(7) << "CHNum" << setw(12) << "mean"<< setw(12)<< "sigma"<< setw(17)
-           <<"mean+5sigma"<< setw(12)<<"Chi2" << setw(12) <<"Xmin"<< setw(12)<<"Xmax" << endl;
+   FileOut << "*SSDNum" << setw(7) << "CHNum" << setw(8) << "mean"<< setw(10)<< "sigma"<< setw(14)
+           <<"mean+5sigma"<< setw(10)<<"Chi2" << setw(10) <<"Xmin"<< setw(10)<<"Xmax" << endl;
 
    //    定义、读取输入文件中的 Histograms
    TH1D * PedestalHist[4][16];
@@ -85,16 +87,12 @@ void FindPedestals()
      {
        int Option = 2;   // 设置一个标志, 当Option==2时，执行后面的while(Option==2)循环
 
-
-
        // 如果某个Histogram为空,则跳过
        if(PedestalHist[i][j]==0)
        {
          printf("No data present for SSD%d_%s_CH%02d\n",(i+1),FileOutTag2.c_str(),j);
          continue;
        }
-
-
        while(Option==2)
        {
          Index = 0;
@@ -138,8 +136,9 @@ void FindPedestals()
            double Mean  = fit->GetParameter(1);      // Par[1] = Mean
            double Sigma = fit->GetParameter(2);      // Par[2] = sigma
            double Chi2  = fit->GetChisquare();
-           FileOut<<i+1<< setw(10) <<j<< setw(15)<<Mean<<setw(12)<<Sigma<< setw(17) <<Mean+5*Sigma
-                  <<setw(12)<<Chi2<<setw(12)<<limit[0]<<setw(12)<<limit[1]<<endl;
+
+           FileOut<<"    "<<i<<"     "<<setw(2)<<setfill('0')<<j<<"    ";
+           FileOut<<Mean<<"    "<<Sigma<<"    "<<Mean+5*Sigma<<"    "<<Chi2<<"    "<<limit[0]<<"    "<<limit[1]<<endl;
 
            c1->Print(Form("figures/SSD_%s_%s.pdf", FileOutTag1.c_str(), FileOutTag2.c_str()));
          }
@@ -174,7 +173,7 @@ void FindPedestals()
 void SetPoints(Int_t event, Int_t x, Int_t y, TObject *selected)
 {
 /////////////////////////////////////////////////////////////////////////////
-//    This function is to set the fit range by hand on GUI                 //
+//    This function is to set the fit range by hand on GUITObject *selected                 //
 //    Click the Central button of the mouse to get the range               //
 //                                                                         //
 //    Function parameters:                                                 //

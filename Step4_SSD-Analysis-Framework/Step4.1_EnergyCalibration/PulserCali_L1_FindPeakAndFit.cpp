@@ -3,7 +3,7 @@
 //    Here, we use TSpectrum to find the peaks candidates              //
 //                                                                     //
 //    Author gfh                                                       //
-//    Date Nov.7, 2019                                                 //
+//    Date Nov 11, 2019                                                 //
 /////////////////////////////////////////////////////////////////////////
 
 #include "TCanvas.h"
@@ -30,7 +30,6 @@ Double_t Switch8[8]   = {1.0, 1/2.0, 1/4.0, 1/5.0, 1/10.0, 1/20.0, 1/40.0, 1/50.
 Double_t Height10[10] = {10.0, 9.0, 8.0, 7.0, 6.0, 5.0, 4.0, 3.0, 2.0, 1.0};
 Double_t Height11[11] = {10.0, 9.0, 8.0, 7.0, 6.0, 5.0, 4.0, 3.0, 2.0, 1.0, 0.5};
 
-
 //_______________________________________________
 //  实现数组的降序排序
 bool compare(Int_t a, Int_t b)
@@ -39,7 +38,7 @@ bool compare(Int_t a, Int_t b)
 }
 
 //______________________________________________________________________________
-void PulserCali_AutoFindPeak(const char* LayerTag, const char* FileTag, FILE* FileOut, TCanvas* cans[4][16]);
+void PulserCali_AutoFindPeak(const char* LayerTag, const char* FileTag, TCanvas* cans[4][16]);
 
 //______________________________________________________________________________
 void PulserCali_L1_FindPeakAndFit()
@@ -49,11 +48,7 @@ void PulserCali_L1_FindPeakAndFit()
   std::string LayerTag("L1");
   std::string FileTag("Height");   // "Height" or "Switch"
   std::string pdfpath(Form("figures/SSD_%s_PulserCali_%s.pdf",LayerTag.c_str(),FileTag.c_str()));
-  std::string FileOutTag(Form("output/SSD_%s_PulserCali_%s.dat",LayerTag.c_str(),FileTag.c_str()));
-  FILE *FileOut = fopen(FileOutTag.c_str(),"w+");
-  fprintf(FileOut,"# Fiiting funtion = par[0] + par[1]*x && y=a*x+b, so a = par[1], b = par[0];  0.0 isn't a peak\n");
-  fprintf(FileOut,"# SSDNum CHNum    par1(a)   err_par0     par0(b)      err_par1      peak1     peak2      peak3      peak4     peak5     peak6     peak7     peak8     peak9     peak10   peak11 \n");
-  fflush(FileOut);
+
   TCanvas *cans[4][16];
   for(Int_t SSDNum=0; SSDNum<4; SSDNum++)
   {
@@ -63,7 +58,7 @@ void PulserCali_L1_FindPeakAndFit()
       cans[SSDNum][CHNum]->Close();
     }
   }
-  PulserCali_AutoFindPeak(LayerTag.c_str(),FileTag.c_str(),FileOut,cans);
+  PulserCali_AutoFindPeak(LayerTag.c_str(),FileTag.c_str(),cans);
 
   std::string pdfpath_begin = pdfpath;
   pdfpath_begin += '[';
@@ -83,13 +78,12 @@ void PulserCali_L1_FindPeakAndFit()
     }
   }
   c_end->Print(pdfpath_end.c_str());
-  fclose(FileOut);
   return;
 }
 
 
 //______________________________________________________________________________
-void PulserCali_AutoFindPeak(const char* LayerTag, const char* FileTag, FILE* FileOut, TCanvas* cans[4][16])
+void PulserCali_AutoFindPeak(const char* LayerTag, const char* FileTag, TCanvas* cans[4][16])
 {
 /////////////////////////////////////////////////////////////////////////////////
 //                        自动寻峰步骤                                           //
@@ -110,6 +104,11 @@ void PulserCali_AutoFindPeak(const char* LayerTag, const char* FileTag, FILE* Fi
 //   sigma    : sigma of searched peaks， search                              //
 //   threshold: peaks with amplitude < threshold*highest_peak are discarded   //
 ////////////////////////////////////////////////////////////////////////////////
+  std::string outputpath(Form("output/SSD_%s_PulserCali_%s.dat",LayerTag,FileTag));
+  FILE * FileOut = fopen(outputpath.c_str(),"w");
+  fprintf(FileOut,"# Fiiting funtion = par[0] + par[1]*x && y=a*x+b, so a = par[1], b = par[0];  0.0 isn't a peak\n");
+  fprintf(FileOut,"# SSDNum CHNum    par1(a)   err_par0     par0(b)      err_par1      peak1     peak2      peak3      peak4     peak5     peak6     peak7     peak8     peak9     peak10   peak11 \n");
+
   TH1D * PulserPeaks[4][16];
   for(Int_t SSDNum=0; SSDNum<4; SSDNum++)
   {
@@ -189,13 +188,13 @@ void PulserCali_AutoFindPeak(const char* LayerTag, const char* FileTag, FILE* Fi
       Double_t par1     = fit->GetParameter(0);
       Double_t err_par1 = fit->GetParError(0);
       fprintf(FileOut," %5d    %02d   %10.4f  %10.4f  %10.4f   %10.4f   %8.1f   %8.1f   %8.1f   %8.1f  %8.1f  %8.1f  %8.1f  %8.1f  %8.1f  %8.1f  %8.1f\n",
-      SSDNum,CHNum,par0,err_par0,par1,err_par1,xpeaks[0],xpeaks[1],xpeaks[2],xpeaks[3],xpeaks[4],xpeaks[5],xpeaks[6],xpeaks[7],xpeaks[8],xpeaks[9],xpeaks[10]);
-  //    fflush(FileOut); // 需要加上这句！！！ 否则由于缓存问题，内容不被写入
-
+      SSDNum,CHNum,par0,err_par0,par1,err_par1,xpeaks[0],xpeaks[1],xpeaks[2],xpeaks[3],xpeaks[4],xpeaks[5],xpeaks[6],xpeaks[7],xpeaks[8],xpeaks[9],(npeaks>10 ? xpeaks[10]:0.0));
+      fflush(FileOut);
       gPad->Modified();
       gPad->Update();
   //    getchar();
     }// ====  close loop of strip number
   } // =====  close loop of SSDNum
+  fclose(FileOut);
   return;
 }
