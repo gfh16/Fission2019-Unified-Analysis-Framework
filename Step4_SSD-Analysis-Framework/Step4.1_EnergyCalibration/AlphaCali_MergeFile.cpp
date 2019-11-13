@@ -7,33 +7,58 @@
 //     Date Nov 11, 2019                                                      //
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
-const char L1  = "L1";
-const char L2 = "L2";
+int Index = 0;
+int NPoints;
+TMarker *m[6];
+TLine   *l[6];
+
+//_____________________________________________________
+void WriteHist(TH1D *hist[16], TFile * FileOut);
+
 
 //______________________________________________________________________________
 void AlphaCali_MergeFile()
 {
-  const int FirstRun = 0;
-  const int LastRun  = 5;
-  std::string LayerTag("L1");
-  std::string FileTag("../../../Fission2019_Data/MapRoot/MapSS");
-  TFile *FileOut = new TFile(Form("data/SSD"));
+  const char *L1 = "L1";
+  const char *L2 = "L2";
+  const int FirstRun = 33;   // 0-32, 3-48 for L2
+  const int LastRun  = 48;
+  std::string LayerTag("L2");
+  TFile * FileOut = new TFile(Form("../../../Fission2019_Data/MapRoot/MapSSD_%s_AlphaCali%02d_%02d.root",LayerTag.c_str(),FirstRun,LastRun),"RECREATE");
+
   auto * myData = new TChain("KrPb");
 
-  for(int i=FirstRun; i<LastRun; i++)
+  for(int i=FirstRun; i<=LastRun; i++)
   {
-    myData->Add(Form("../../../Fission2019_Data/MapRoot/%s_%s_AlphaCali%04d.root",FileTag.c_str(),i));
-  //  myData->Add(Form("%s_L2_AlphaCali%04d.root",FileTag.c_str(),i));
+    myData->Add(Form("../../../Fission2019_Data/MapRoot/MapSSD_%s_AlphaCali%04d.root",LayerTag.c_str(),i));
+    printf("MapSSD_%s_AlphaCali%04d.root Loaded\n",LayerTag.c_str(),i);
   }
-
   // I disable all the branches
   myData->SetBranchStatus("*",false);
+
+  Int_t SSD1_L1S_E[16];
+  Int_t SSD2_L1S_E[16];
+  Int_t SSD3_L1S_E[16];
+  Int_t SSD4_L1S_E[16];
+  Int_t SSD1_L2F_E[16];
+  Int_t SSD1_L2B_E[16];
+  Int_t SSD2_L2F_E[16];
+  Int_t SSD2_L2B_E[16];
+  Int_t SSD3_L2F_E[16];
+  Int_t SSD3_L2B_E[16];
+  Int_t SSD4_L2F_E[16];
+  Int_t SSD4_L2B_E[16];
   if(strcmp(L1,LayerTag.c_str())==0)
   {
+    // I enable only the branches I need
     myData->SetBranchStatus("SSD1_L1S_E",true);
     myData->SetBranchStatus("SSD2_L1S_E",true);
     myData->SetBranchStatus("SSD3_L1S_E",true);
     myData->SetBranchStatus("SSD4_L1S_E",true);
+    myData->SetBranchAddress("SSD1_L1S_E",SSD1_L1S_E);
+    myData->SetBranchAddress("SSD2_L1S_E",SSD2_L1S_E);
+    myData->SetBranchAddress("SSD3_L1S_E",SSD3_L1S_E);
+    myData->SetBranchAddress("SSD4_L1S_E",SSD4_L1S_E);
   }
   if(strcmp(L2,LayerTag.c_str())==0)
   {
@@ -45,63 +70,89 @@ void AlphaCali_MergeFile()
     myData->SetBranchStatus("SSD3_L2B_E",true);
     myData->SetBranchStatus("SSD4_L2F_E",true);
     myData->SetBranchStatus("SSD4_L2B_E",true);
+    myData->SetBranchAddress("SSD1_L2F_E",SSD1_L2F_E);
+    myData->SetBranchAddress("SSD1_L2B_E",SSD1_L2B_E);
+    myData->SetBranchAddress("SSD2_L2F_E",SSD2_L2F_E);
+    myData->SetBranchAddress("SSD2_L2B_E",SSD2_L2B_E);
+    myData->SetBranchAddress("SSD3_L2F_E",SSD3_L2F_E);
+    myData->SetBranchAddress("SSD3_L2B_E",SSD3_L2B_E);
+    myData->SetBranchAddress("SSD4_L2F_E",SSD4_L2F_E);
+    myData->SetBranchAddress("SSD4_L2B_E",SSD4_L2B_E);
   }
 
-
-}
-
-//______________________________________________________________________________
-void MergeFile(TChain *myData, const char *LayerTag)
-{
-
-}
-
-//______________________________________________________________________________
-void SetPoints(Int_t event, Int_t x, Int_t y, TObject *selected)
-{
-/////////////////////////////////////////////////////////////////////////////
-//    This function is to set the fit range by hand on GUI                 //
-//    Click the Central button of the mouse to get the range               //
-//                                                                         //
-//    Function parameters:                                                 //
-//       event :   number of click points                                  //
-//           x :   x value of the point                                    //
-//           y :   y value of the point                                    //
-//    selected :   a pointer to the curent point                           //
-/////////////////////////////////////////////////////////////////////////////
-  if(event == 2)
+  TH1D * Hist_L1S[4][16];
+  TH1D * Hist_L2F[4][16];
+  TH1D * Hist_L2B[4][16];
+  for(int SSDNum=0; SSDNum<4; SSDNum++)
   {
-    float px = gPad->AbsPixeltoX(x); // Conversion of absolute pixel to X
-    float py = gPad->AbsPixeltoX(y); // CoYversion of absolute pixel to Y
-    py = gPad->PadtoY(py);           // Convert y from pad to Y
-    float Uymin = gPad->GetUymin();  // Returns the minimum/maximum y-coordinate
-    float Uymax = gPad->GetUymax();  // value visible on the pad
-
-    //  save the clicks as a marker
-    if(px>=gPad->GetUxmin() && px<=gPad->GetUxmax())
+    for(int CHNum=0; CHNum<16; CHNum++)
     {
-      m[NPoints] = new TMarker(px,py,3);          // marker style = 3, means “*”
-      l[NPoints] = new TLine(px,Uymin,px,Uymax);
-      l[NPoints] -> SetLineColor(kYellow);
-      l[NPoints] -> SetLineWidth(2);
-      l[NPoints] -> Draw();
-      for(int i=0; i<NPoints; i++)
-      {
-        l[i] -> Draw();
-      }
-      gPad->Modified();    // Tell the canvas that an object it is displaying have changed
-      gPad->Update();      //  Force the canvas to refresh
-      printf("x=%f\n", px);
-      NPoints++;
+      Hist_L1S[SSDNum][CHNum] = new TH1D(Form("SSD%d_L1S_E_CH%02d",SSDNum+1,CHNum),Form("SSD%d_L1S_E_CH%02d",SSDNum+1,CHNum),4096,0,4096);
+      Hist_L2F[SSDNum][CHNum] = new TH1D(Form("SSD%d_L2F_E_CH%02d",SSDNum+1,CHNum),Form("SSD%d_L2F_E_CH%02d",SSDNum+1,CHNum),4096,0,4096);
+      Hist_L2B[SSDNum][CHNum] = new TH1D(Form("SSD%d_L2B_E_CH%02d",SSDNum+1,CHNum),Form("SSD%d_L2B_E_CH%02d",SSDNum+1,CHNum),4096,0,4096);
+    }
+  }
+  // Loop on the data to fill the histograms. (event by event)
+  unsigned long nentries = myData->GetEntries();
+  cout<< "Found " << nentries <<" entries\n";
+  for(unsigned long j=0; j<nentries; j++)
+  {
+    myData->GetEntry(j);
 
-      //  I get 6 points and then I return
-      if(NPoints==6)
+    if(strcmp(L1,LayerTag.c_str())==0)
+    {
+       for(int CHNum=0; CHNum<16; CHNum++)
+       {
+         Hist_L1S[0][CHNum]->Fill(SSD1_L1S_E[CHNum],1.0);
+         Hist_L1S[1][CHNum]->Fill(SSD2_L1S_E[CHNum],1.0);
+         Hist_L1S[2][CHNum]->Fill(SSD3_L1S_E[CHNum],1.0);
+         Hist_L1S[3][CHNum]->Fill(SSD4_L1S_E[CHNum],1.0);
+       }
+    }
+    if(strcmp(L2,LayerTag.c_str())==0)
+    {
+      for(int CHNum=0; CHNum<16; CHNum++)
       {
-        Index = 1;   // Index
-        return;
+        Hist_L2F[0][CHNum]->Fill(SSD1_L2F_E[CHNum],1.0);
+        Hist_L2B[0][CHNum]->Fill(SSD1_L2B_E[CHNum],1.0);
+        Hist_L2F[1][CHNum]->Fill(SSD2_L2F_E[CHNum],1.0);
+        Hist_L2B[1][CHNum]->Fill(SSD2_L2B_E[CHNum],1.0);
+        Hist_L2F[2][CHNum]->Fill(SSD3_L2F_E[CHNum],1.0);
+        Hist_L2B[2][CHNum]->Fill(SSD3_L2B_E[CHNum],1.0);
+        Hist_L2F[3][CHNum]->Fill(SSD4_L2F_E[CHNum],1.0);
+        Hist_L2B[3][CHNum]->Fill(SSD4_L2B_E[CHNum],1.0);
       }
-      cout<< "Click next point"<< endl;
-    } // ==== close  if(px>=gPad->GetUxmin() && px<=gPad->GetUxmax())
-  }   // ==== close if(event==2)
-  return;
+    }
+  } //==== close for(unsigned long j=0; j<nentries; j++)
+  // Write the data into .root file
+  if(strcmp(L1,LayerTag.c_str())==0)
+  {
+     WriteHist(Hist_L1S[0],FileOut);
+     WriteHist(Hist_L1S[1],FileOut);
+     WriteHist(Hist_L1S[2],FileOut);
+     WriteHist(Hist_L1S[3],FileOut);
+  }
+  if(strcmp(L2,LayerTag.c_str())==0)
+  {
+    WriteHist(Hist_L2F[0],FileOut);
+    WriteHist(Hist_L2B[0],FileOut);
+    WriteHist(Hist_L2F[1],FileOut);
+    WriteHist(Hist_L2B[1],FileOut);
+    WriteHist(Hist_L2F[2],FileOut);
+    WriteHist(Hist_L2B[2],FileOut);
+    WriteHist(Hist_L2F[3],FileOut);
+    WriteHist(Hist_L2B[3],FileOut);
+  }
+  FileOut->Close();
+  delete myData;
+}
+
+//______________________________________________________________________________
+// WriteHist is to Write the histograms
+void WriteHist(TH1D *hist[16], TFile * FileOut)
+{
+  for(int CHNum=0; CHNum<16; CHNum++)
+  {
+    FileOut->WriteTObject(hist[CHNum],hist[CHNum]->GetName());
+  }
 }
