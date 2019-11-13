@@ -65,7 +65,7 @@ void PulserCali_AutoFindPeaks()
 
   //  here to change the output data file
   FILE * FileOut = fopen(Form("output/SSD%d_%s_PulserCali_%s.dat", SSDNum,FileTag1.c_str(),FileTag3.c_str()),"w");
-  fprintf(FileOut,"# SSDNum   CHNum    peak1    peak2    peak3    peak4    peak5    peak6     peak7    peak8     peak9     peak10  (0.0 isn't a peak)\n");
+  fprintf(FileOut,"* SSDNum   CHNum    peak1    peak2    peak3    peak4    peak5    peak6     peak7    peak8     peak9     peak10  (0.0 isn't a peak)\n");
 
   // 读取root文件中的 Histograms
   TH1D * PulserPeaks[16];

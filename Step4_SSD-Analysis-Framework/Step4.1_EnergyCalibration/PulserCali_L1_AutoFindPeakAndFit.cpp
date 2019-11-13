@@ -41,7 +41,7 @@ bool compare(Int_t a, Int_t b)
 void PulserCali_AutoFindPeak(const char* LayerTag, const char* FileTag, TCanvas* cans[4][16]);
 
 //______________________________________________________________________________
-void PulserCali_L1_FindPeakAndFit()
+void PulserCali_L1_AutoFindPeakAndFit()
 {
   gStyle->SetOptStat(0);
 
@@ -106,8 +106,8 @@ void PulserCali_AutoFindPeak(const char* LayerTag, const char* FileTag, TCanvas*
 ////////////////////////////////////////////////////////////////////////////////
   std::string outputpath(Form("output/SSD_%s_PulserCali_%s.dat",LayerTag,FileTag));
   FILE * FileOut = fopen(outputpath.c_str(),"w");
-  fprintf(FileOut,"# Fiiting funtion = par[0] + par[1]*x && y=a*x+b, so a = par[1], b = par[0];  0.0 isn't a peak\n");
-  fprintf(FileOut,"# SSDNum CHNum    par1(a)   err_par0     par0(b)      err_par1      peak1     peak2      peak3      peak4     peak5     peak6     peak7     peak8     peak9     peak10   peak11 \n");
+  fprintf(FileOut,"* Fiiting funtion = par[0] + par[1]*x && y=a*x+b, so a = par[1], b = par[0];  0.0 isn't a peak\n");
+  fprintf(FileOut,"* SSDNum CHNum    par1(a)   err_par0     par0(b)      err_par1      peak1     peak2      peak3      peak4     peak5     peak6     peak7     peak8     peak9     peak10   peak11 \n");
 
   TH1D * PulserPeaks[4][16];
   for(Int_t SSDNum=0; SSDNum<4; SSDNum++)

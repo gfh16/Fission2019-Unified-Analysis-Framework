@@ -43,7 +43,7 @@ bool compare(Int_t a, Int_t b)
 void PulserCali_AutoFindPeak(const char* LayerTag, const char* FileTag, TCanvas* cans[4][16]);
 
 //______________________________________________________________________________
-void PulserCali_L2_FindPeakAndFit()
+void PulserCali_L2_AutoFindPeakAndFit()
 {
   gStyle->SetOptStat(0);
 
@@ -110,10 +110,10 @@ void PulserCali_AutoFindPeak(const char* LayerTag, const char* FileTag, TCanvas*
   std::string L2B_outputpath(Form("output/SSD_%sB_PulserCali_%s.dat",LayerTag,FileTag));
   FILE * FileOutF = fopen(L2F_outputpath.c_str(),"w");
   FILE * FileOutB = fopen(L2B_outputpath.c_str(),"w");
-  fprintf(FileOutF,"# Fiiting funtion = par[0] + par[1]*x && y=a*x+b, so a = par[1], b = par[0];  0.0 isn't a peak\n");
-  fprintf(FileOutF,"# SSDNum CHNum    par1(a)   err_par0     par0(b)      err_par1      peak1     peak2      peak3      peak4     peak5     peak6     peak7     peak8     peak9     peak10   peak11 \n");
-  fprintf(FileOutB,"# Fiiting funtion = par[0] + par[1]*x && y=a*x+b, so a = par[1], b = par[0];  0.0 isn't a peak\n");
-  fprintf(FileOutB,"# SSDNum CHNum    par1(a)   err_par0     par0(b)      err_par1      peak1     peak2      peak3      peak4     peak5     peak6     peak7     peak8     peak9     peak10   peak11 \n");
+  fprintf(FileOutF,"* Fiiting funtion = par[0] + par[1]*x && y=a*x+b, so a = par[1], b = par[0];  0.0 isn't a peak\n");
+  fprintf(FileOutF,"* SSDNum CHNum    par1(a)   err_par0     par0(b)      err_par1      peak1     peak2      peak3      peak4     peak5     peak6     peak7     peak8     peak9     peak10   peak11 \n");
+  fprintf(FileOutB,"* Fiiting funtion = par[0] + par[1]*x && y=a*x+b, so a = par[1], b = par[0];  0.0 isn't a peak\n");
+  fprintf(FileOutB,"* SSDNum CHNum    par1(a)   err_par0     par0(b)      err_par1      peak1     peak2      peak3      peak4     peak5     peak6     peak7     peak8     peak9     peak10   peak11 \n");
 
   TH1D * L2F_PulserPeaks[4][16];
   TH1D * L2B_PulserPeaks[4][16];

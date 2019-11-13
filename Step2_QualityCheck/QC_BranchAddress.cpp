@@ -233,11 +233,11 @@ int main(int argc, char *argv[])
 
     for(int i=0; i<4; i++)
     {
-      sprintf(SSD_L2F_T_name[i],"SSD%d_L2F_T",(i+1));
-      sprintf(SSD_L1S_E_name[i],"SSD%d_L1S_E",(i+1));
-      sprintf(SSD_L2F_E_name[i],"SSD%d_L2F_E",(i+1));
-      sprintf(SSD_L2B_E_name[i],"SSD%d_L2B_E",(i+1));
-      sprintf(SSD_L3A_E_name[i],"SSD%d_L3A_E",(i+1));
+      sprintf(SSD_L2F_T_name[i],"SSD%d_L2F_T",i));
+      sprintf(SSD_L1S_E_name[i],"SSD%d_L1S_E",i);
+      sprintf(SSD_L2F_E_name[i],"SSD%d_L2F_E",i);
+      sprintf(SSD_L2B_E_name[i],"SSD%d_L2B_E",i);
+      sprintf(SSD_L3A_E_name[i],"SSD%d_L3A_E",i);
     }
 
 
@@ -325,7 +325,7 @@ int main(int argc, char *argv[])
       }
       for(int j=0; j<9; j++)
       {
-        sprintf(SSD_L3A_E_nameCH[i][j], "SSD%d_L3A_E_CH%d",(i+1), j);
+        sprintf(SSD_L3A_E_nameCH[i][j], "SSD%d_L3A_E_CH%d",i, j);
       }
     }
 

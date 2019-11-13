@@ -13,8 +13,10 @@
 #include "TH1.h"
 #include "TF1.h"
 #include "TCanvas.h"
-// double Ealpha[3] = {5.14718， 5.48038， 5.79521}; // 239Pu, 241Am, 244Cm alpha加权能量
-double Ealpha[3] = {4.90407, 5.24768, 5.57147};  //MeV 考虑alpha在 2um Mylar, 0.06um Al中的能损
+
+const double Alpha_E1 =0;
+const double Alpha_E2 =0;
+const double Alpha_E3 =0;
 
 int Index = 0;
 int NPoints;
@@ -60,10 +62,6 @@ void AlphaCali_FindPeaks()
            <<"Chi21" << setw(10)<<"Chi22" <<setw(10)<<"Chi23" <<setw(10)
            <<"Xmin1"<< setw(10)<<"Xmax1"<<setw(10)<<"Xmin2"<< setw(10)<<"Xmax2"<<setw(10)<<"Xmin3"<<setw(10)<<"Xmax3"<<endl;
 
-   ofstream FileOutFit(Form("output/Fitpara_SSD_%s_%s.dat", FileOutTag1.c_str(), FileOutTag2.c_str()));
-   FileOutFit<<" Fit function = par[0]+par[1]*x && y = a*x + b ;  so I define a = par[1], b = par[0]\n";
-   FileOutFit<<" *SSDNum"<<setw(7)<<"CHNum"<<setw(10)<<"par_a"<<setw(15)<<"Errpar_a"<<setw(15)<<"par_b"<<setw(17)<<"Errpar_b\n";
-
    //    定义、读取输入文件中的 Histograms
    TH1D * PedestalHist[4][16];
    for(int SSDNum=0; SSDNum<4; SSDNum++)
@@ -76,8 +74,7 @@ void AlphaCali_FindPeaks()
    printf("Histograms loaded\n");
 
    //    定义 Canvas
-   TCanvas *c1 = new TCanvas("c1","c1",1200,700);
-   c1->Divide(2,1);
+   TCanvas *c1 = new TCanvas("c1","c1",800,600);
 
    TCanvas *c_begin = new TCanvas("c_begin","");
    c_begin->Close();
@@ -109,7 +106,7 @@ void AlphaCali_FindPeaks()
          Index = 0;
          NPoints = 0;
 
-         c1->cd(1);
+         c1->cd();
          gPad->Modified();
          gPad->Update();
          PedestalHist[SSDNum][CHNum]->GetXaxis()->SetRangeUser(180,330);
@@ -142,36 +139,6 @@ void AlphaCali_FindPeaks()
          PedestalHist[SSDNum][CHNum]->Fit(FitPeak2,"R+");
          PedestalHist[SSDNum][CHNum]->Fit(FitPeak3,"R+");
 
-         double Peak1_Height = FitPeak1->GetParameter(0);  // Par[1] = Height
-         double Peak1_Mean   = FitPeak1->GetParameter(1);  // Par[1] = Mean
-         double Peak1_Sigma  = FitPeak1->GetParameter(2);  // Par[2] = sigma
-         double Peak1_Chi2   = FitPeak1->GetChisquare();
-
-         double Peak2_Height = FitPeak2->GetParameter(0);  // Par[1] = Height
-         double Peak2_Mean   = FitPeak2->GetParameter(1);  // Par[1] = Mean
-         double Peak2_Sigma  = FitPeak2->GetParameter(2);  // Par[2] = sigma
-         double Peak2_Chi2   = FitPeak2->GetChisquare();
-
-         double Peak3_Height = FitPeak3->GetParameter(0);  // Par[1] = Height
-         double Peak3_Mean   = FitPeak3->GetParameter(1);  // Par[1] = Mean
-         double Peak3_Sigma  = FitPeak3->GetParameter(2);  // Par[2] = sigma
-         double Peak3_Chi2   = FitPeak3->GetChisquare();
-
-         c1->cd(2);
-         double peaks[3] = {Peak1_Mean,Peak2_Mean,Peak3_Mean};
-         TGraph * grap = new TGraph(3,peaks,Ealpha);
-         grap->SetMarkerStyle(20);
-         grap->SetMarkerSize(1.5);
-         grap->SetMarkerColor(kBlue);
-         grap->SetTitle(Form("AlphaFit_SSD%d_%s_E_CH%02d",SSDNum+1,FileOutTag2.c_str(),CHNum));
-         grap->Draw("AP*");
-         TF1 * fit = new TF1("fit","pol1",100,4096);
-         grap->Fit("fit");
-         double par0     = fit->GetParameter(0);
-         double err_par0 = fit->GetParError(0);
-         double par1     = fit->GetParameter(1);
-         double err_par1 = fit->GetParError(1);
-
          gPad->Modified();
          gPad->Update();
          //  提示输入操作选项
@@ -181,13 +148,26 @@ void AlphaCali_FindPeaks()
          //  Option ==1，保存拟合结果
          if(Option==1)
          {
-           FileOut << SSDNum << setw(10) << Form("%02d",CHNum) << setw(12)
+           double Peak1_Height = FitPeak1->GetParameter(0);  // Par[1] = Height
+           double Peak1_Mean   = FitPeak1->GetParameter(1);  // Par[1] = Mean
+           double Peak1_Sigma  = FitPeak1->GetParameter(2);  // Par[2] = sigma
+           double Peak1_Chi2   = FitPeak1->GetChisquare();
+
+           double Peak2_Height = FitPeak2->GetParameter(0);  // Par[1] = Height
+           double Peak2_Mean   = FitPeak2->GetParameter(1);  // Par[1] = Mean
+           double Peak2_Sigma  = FitPeak2->GetParameter(2);  // Par[2] = sigma
+           double Peak2_Chi2   = FitPeak2->GetChisquare();
+
+           double Peak3_Height = FitPeak3->GetParameter(0);  // Par[1] = Height
+           double Peak3_Mean   = FitPeak3->GetParameter(1);  // Par[1] = Mean
+           double Peak3_Sigma  = FitPeak3->GetParameter(2);  // Par[2] = sigma
+           double Peak3_Chi2   = FitPeak3->GetChisquare();
+
+           FileOut << SSDNum << setw(10) << CHNum << setw(12)
                    << Peak1_Mean <<setw(10)<<Peak2_Mean <<setw(10)<<Peak3_Mean <<setw(10)
                    << Peak1_Sigma<<setw(10)<<Peak2_Sigma<<setw(10)<<Peak3_Sigma<<setw(10)
                    << Peak1_Chi2 <<setw(10)<<Peak2_Chi2 <<setw(10)<<Peak3_Chi2 <<setw(10)
                    <<limit[0]<< setw(10)<<limit[1]<<setw(10)<<limit[2]<< setw(10)<<limit[3]<<setw(10)<<limit[4]<<setw(10)<<limit[5]<<endl;
-
-           FileOutFit<<setw(5)<<SSDNum<<setw(7)<<Form("%02d",CHNum)<<setw(15)<<par1<<setw(15)<<err_par1<<setw(15)<<par0<<setw(15)<<err_par0<<endl;
 
            c1->Print(Form("figures/SSD_%s_%s.pdf", FileOutTag1.c_str(), FileOutTag2.c_str()));
          }

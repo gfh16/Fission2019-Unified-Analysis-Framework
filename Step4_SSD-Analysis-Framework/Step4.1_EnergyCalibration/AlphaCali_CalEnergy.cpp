@@ -46,10 +46,10 @@ void AlphaCali_CalEnergy()
 
   double Ealpha[3] = {E1, E2, E3};  // MeV
   double MylarThickness = 2.0;      // um
-  double AlThickness    = 0.1;      // um
+  double AlThickness    = 0.06;      // um
 
   ofstream FileOut("output/SSD_Alpha_Energy.dat");
-  FileOut<<"# SSDNum"<<setw(7)<<"CHNum"<<setw(7)<<"E1"<<setw(10)<<"E2"<<setw(10)<<"E3"<<"  "<<"(MeV)\n";
+  FileOut<<"* SSDNum"<<setw(7)<<"CHNum"<<setw(7)<<"E1"<<setw(10)<<"E2"<<setw(10)<<"E3"<<"  "<<"(MeV)\n";
 
   double Eloss1[3];
   double Eloss2[3];
