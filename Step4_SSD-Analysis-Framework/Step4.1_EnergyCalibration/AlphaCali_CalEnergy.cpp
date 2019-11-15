@@ -68,11 +68,12 @@ void AlphaCali_CalEnergy()
   {
     for(int CHNum=0; CHNum<16; CHNum++)
     {
-      FileOut<<"    "<<SSDNum <<"     "<<setw(2)<<setfill('0')<<CHNum<<"    "
+      FileOut<<"    "<<SSDNum <<"     "<<CHNum<<"    "
              <<Eresidual2[0]<<"    "
              <<Eresidual2[1]<<"    "
              <<Eresidual2[2]<<endl;
     }
   }
+  FileOut.close();
   return;
 }

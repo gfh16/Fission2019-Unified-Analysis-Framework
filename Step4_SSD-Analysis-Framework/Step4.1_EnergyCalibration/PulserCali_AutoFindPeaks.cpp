@@ -144,7 +144,7 @@ void PulserCali_AutoFindPeaks()
     getchar();
   }// ====  close loop of strip number i
   c_end->Print(Form("figures/SSD%d_%s_PulserCali_%s.pdf]", SSDNum,FileTag1.c_str(),FileTag3.c_str()));
-
+  fclose(FileOut);
   delete c1;
   delete s;
   return;

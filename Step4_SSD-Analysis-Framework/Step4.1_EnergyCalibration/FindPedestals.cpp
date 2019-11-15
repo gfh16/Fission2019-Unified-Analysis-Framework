@@ -137,7 +137,7 @@ void FindPedestals()
            double Sigma = fit->GetParameter(2);      // Par[2] = sigma
            double Chi2  = fit->GetChisquare();
 
-           FileOut<<"    "<<i<<"     "<<setw(2)<<setfill('0')<<j<<"    ";
+           FileOut<<"    "<<i<<"     "<<j<<"    ";
            FileOut<<Mean<<"    "<<Sigma<<"    "<<Mean+5*Sigma<<"    "<<Chi2<<"    "<<limit[0]<<"    "<<limit[1]<<endl;
 
            c1->Print(Form("figures/SSD_%s_%s.pdf", FileOutTag1.c_str(), FileOutTag2.c_str()));

@@ -187,7 +187,7 @@ void PulserCali_AutoFindPeak(const char* LayerTag, const char* FileTag, TCanvas*
       Double_t err_par0 = fit->GetParError(1);
       Double_t par1     = fit->GetParameter(0);
       Double_t err_par1 = fit->GetParError(0);
-      fprintf(FileOut," %5d    %02d   %10.4f  %10.4f  %10.4f   %10.4f   %8.1f   %8.1f   %8.1f   %8.1f  %8.1f  %8.1f  %8.1f  %8.1f  %8.1f  %8.1f  %8.1f\n",
+      fprintf(FileOut," %5d    %2d   %10.4f  %10.4f  %10.4f   %10.4f   %8.1f   %8.1f   %8.1f   %8.1f  %8.1f  %8.1f  %8.1f  %8.1f  %8.1f  %8.1f  %8.1f\n",
       SSDNum,CHNum,par0,err_par0,par1,err_par1,xpeaks[0],xpeaks[1],xpeaks[2],xpeaks[3],xpeaks[4],xpeaks[5],xpeaks[6],xpeaks[7],xpeaks[8],xpeaks[9],(npeaks>10 ? xpeaks[10]:0.0));
       fflush(FileOut);
       gPad->Modified();

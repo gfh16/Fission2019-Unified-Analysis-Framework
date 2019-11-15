@@ -76,8 +76,8 @@ void AlphaCali_FindPeaks()
    printf("Histograms loaded\n");
 
    //    定义 Canvas
-   TCanvas *c1 = new TCanvas("c1","c1",1200,700);
-   c1->Divide(2,1);
+   TCanvas *c1 = new TCanvas("c1","c1",1000,1200);
+   c1->Divide(1,2);
 
    TCanvas *c_begin = new TCanvas("c_begin","");
    c_begin->Close();
@@ -112,8 +112,8 @@ void AlphaCali_FindPeaks()
          c1->cd(1);
          gPad->Modified();
          gPad->Update();
-         PedestalHist[SSDNum][CHNum]->GetXaxis()->SetRangeUser(180,330);
-         PedestalHist[SSDNum][CHNum]->GetYaxis()->SetRangeUser(0,100);
+         PedestalHist[SSDNum][CHNum]->GetXaxis()->SetRangeUser(100,350);
+         PedestalHist[SSDNum][CHNum]->GetYaxis()->SetRangeUser(0,150);
          PedestalHist[SSDNum][CHNum]->Draw();
          //   it is very important!!! very convenient!!!
          //   here to set the range and fit on the GUI by hand
@@ -159,7 +159,7 @@ void AlphaCali_FindPeaks()
 
          c1->cd(2);
          double peaks[3] = {Peak1_Mean,Peak2_Mean,Peak3_Mean};
-         TGraph * grap = new TGraph(3,peaks,Ealpha);
+         TGraph * grap = new TGraph(3,Ealpha,peaks);
          grap->SetMarkerStyle(20);
          grap->SetMarkerSize(1.5);
          grap->SetMarkerColor(kBlue);
@@ -181,13 +181,13 @@ void AlphaCali_FindPeaks()
          //  Option ==1，保存拟合结果
          if(Option==1)
          {
-           FileOut << SSDNum << setw(10) << Form("%02d",CHNum) << setw(12)
+           FileOut << SSDNum << setw(10) << CHNum << setw(12)
                    << Peak1_Mean <<setw(10)<<Peak2_Mean <<setw(10)<<Peak3_Mean <<setw(10)
                    << Peak1_Sigma<<setw(10)<<Peak2_Sigma<<setw(10)<<Peak3_Sigma<<setw(10)
                    << Peak1_Chi2 <<setw(10)<<Peak2_Chi2 <<setw(10)<<Peak3_Chi2 <<setw(10)
                    <<limit[0]<< setw(10)<<limit[1]<<setw(10)<<limit[2]<< setw(10)<<limit[3]<<setw(10)<<limit[4]<<setw(10)<<limit[5]<<endl;
 
-           FileOutFit<<setw(5)<<SSDNum<<setw(7)<<Form("%02d",CHNum)<<setw(15)<<par1<<setw(15)<<err_par1<<setw(15)<<par0<<setw(15)<<err_par0<<endl;
+           FileOutFit<<setw(5)<<SSDNum<<setw(7)<<CHNum<<setw(15)<<par1<<setw(15)<<err_par1<<setw(15)<<par0<<setw(15)<<err_par0<<endl;
 
            c1->Print(Form("figures/SSD_%s_%s.pdf", FileOutTag1.c_str(), FileOutTag2.c_str()));
          }
@@ -209,6 +209,7 @@ void AlphaCali_FindPeaks()
    //  the pdf file ends here !!!
    c_end->Print(Form("figures/SSD_%s_%s.pdf]", FileOutTag1.c_str(), FileOutTag2.c_str()));
    FileOut.close();
+   FileOutFit.close();
    cout<<"File .dat closed"<<endl;
 
    delete c1;

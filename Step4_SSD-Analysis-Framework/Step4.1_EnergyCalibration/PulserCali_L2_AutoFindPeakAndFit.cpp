@@ -243,9 +243,9 @@ void PulserCali_AutoFindPeak(const char* LayerTag, const char* FileTag, TCanvas*
       Double_t par1_B     = fitB->GetParameter(0);
       Double_t err_par1_B = fitB->GetParError(0);
 
-      fprintf(FileOutF," %5d    %02d   %10.4f  %10.4f  %10.4f   %10.4f   %8.1f   %8.1f   %8.1f   %8.1f  %8.1f  %8.1f  %8.1f  %8.1f  %8.1f  %8.1f  %8.1f\n",
+      fprintf(FileOutF," %5d    %2d   %10.4f  %10.4f  %10.4f   %10.4f   %8.1f   %8.1f   %8.1f   %8.1f  %8.1f  %8.1f  %8.1f  %8.1f  %8.1f  %8.1f  %8.1f\n",
       SSDNum,CHNum,par0_F,err_par0_F,par1_F,err_par1_F,xpeaksF[0],xpeaksF[1],xpeaksF[2],xpeaksF[3],xpeaksF[4],xpeaksF[5],xpeaksF[6],xpeaksF[7],xpeaksF[8],xpeaksF[9],xpeaksF[10]);
-      fprintf(FileOutB," %5d    %02d   %10.4f  %10.4f  %10.4f   %10.4f   %8.1f   %8.1f   %8.1f   %8.1f  %8.1f  %8.1f  %8.1f  %8.1f  %8.1f  %8.1f  %8.1f\n",
+      fprintf(FileOutB," %5d    %2d   %10.4f  %10.4f  %10.4f   %10.4f   %8.1f   %8.1f   %8.1f   %8.1f  %8.1f  %8.1f  %8.1f  %8.1f  %8.1f  %8.1f  %8.1f\n",
       SSDNum,CHNum,par0_B,err_par0_B,par1_B,err_par1_B,xpeaksB[0],xpeaksB[1],xpeaksB[2],xpeaksB[3],xpeaksB[4],xpeaksB[5],xpeaksB[6],xpeaksB[7],xpeaksB[8],xpeaksB[9],xpeaksB[10]);
       fflush(FileOutF); // 需要加上这句！！！ 否则由于缓存问题，内容不被写入
       fflush(FileOutB);
