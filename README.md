@@ -88,21 +88,21 @@ $ root -l FindPedestals.cpp
 ````````
 2. PulserCali_AutoFindPeaks
 3. PulserCali_LinearFit
-* 写了一个自动寻峰的程序. 使用ROOT中TSpectrum类中的Search()方法实现自动寻峰.
-* 将自动寻峰得到的每个峰的Ch作为Y值，每个峰对应的输入的pulser的相对幅度作为X值，画出一系列点  
-* 对这些pulser点进行用 y = a * x +b 进行线性拟合，将拟合参数以及数据点保存到.dat文件中
-* 将拟合结果保存成pdf，以便检查
+   3.1 写了一个自动寻峰的程序. 使用ROOT中TSpectrum类中的Search()方法实现自动寻峰.
+   3.2 将自动寻峰得到的每个峰的Ch作为Y值，每个峰对应的输入的pulser的相对幅度作为X值，画出一系列点  
+   3.3 对这些pulser点进行用 y = a * x +b 进行线性拟合，将拟合参数以及数据点保存到.dat文件中
+   3.4 将拟合结果保存成pdf，以便检查
 ````````
 $ root -l PulserCali_L1_AutoFindPeaksAndFit.cpp
 $ root -l PulserCali_L2_AutoFindPeaksAndFit.cpp
 ````````
 4. AlphaCali_FindPeak
-* 使用TChain方法合并刻度文件：本次实验获得了多个alpha刻度文件，合并文件是为了增加统计量
-* 利用从MSU拷贝回来的EnergyLossModule计算alpha穿过2um镀铝Mylar膜后的能量. 三组分alpha  
+   4.1 使用TChain方法合并刻度文件：本次实验获得了多个alpha刻度文件，合并文件是为了增加统计量
+   4.2 利用从MSU拷贝回来的EnergyLossModule计算alpha穿过2um镀铝Mylar膜后的能量. 三组分alpha  
 源的三个峰分别来源于 239Pu, 241Am, 244Cm, 将三者发射alpha粒子的加权平均能量作为alpha的  
 出射能量
-* 写了一个手动寻峰的程序，手动选取拟合范围，对三组分alpha源的三个alpha峰分别进行了拟合
-* 将三个alpha峰的拟合结果保存到.dat文件中
+   4.3 写了一个手动寻峰的程序，手动选取拟合范围，对三组分alpha源的三个alpha峰分别进行了拟合
+   4.4 将三个alpha峰的拟合结果保存到.dat文件中
 
 ````````
 $ root -l AlphaCali_MergeFiles.cpp
