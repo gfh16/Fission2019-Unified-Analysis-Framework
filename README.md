@@ -78,17 +78,20 @@ $ ./QC_ReadTree listfilename
 ### 数据刻度
 #### Energy Calibration
 1. FindPedestal  
-* Pedestal是探测系统的零点道，是系统没有能量输入，ADC中记录的道址. 理论上，ADC中探测到的所有
-能量信号都应该在对应的Pedestal以上. 因此Pedestal可以作为ADC能量的Cut值  
-* 这是一个手动选取拟合范围的的程序. 基本操作是：单击鼠标中间键(滚轮)来取点，单击两次选择拟合范围,  
-最后将拟合结果保存到pdf中，并将拟合参数保存到.dat文件中
+* Pedestal是探测系统的零点道，是系统没有能量输入情况下，ADC中记录的道址. 理论上，ADC中探测到
+的所有能量信号都应该在对应的Pedestal以上. 因此Pedestal可以作为ADC能量的Cut值  
+* 写了一个手动选取拟合范围的的程序. 基本操作是：单击鼠标中间键(滚轮)来取点，单击两次选择拟合范
+围，最后将拟合结果保存到pdf中，并将拟合参数保存到.dat文件中
 
 ````````
 $ root -l FindPedestals.cpp  
 ````````
 2. PulserCali_AutoFindPeaks
-
 3. PulserCali_LinearFit
+* 写了一个自动寻峰的程序. 使用ROOT中TSpectrum类中的Search()方法实现自动寻峰.
+* 将自动寻峰得到的每个峰的Ch作为Y值，每个峰对应的输入的pulser的相对幅度作为X值，画出一系列点  
+* 对这些pulser点进行用 y = a * x +b 进行线性拟合，将拟合参数以及数据点保存到.dat文件中
+* 将拟合结果保存成pdf，以便人眼检查
 ````````
 $ root -l PulserCali_L1_AutoFindPeaksAndFit.cpp
 $ root -l PulserCali_L2_AutoFindPeaksAndFit.cpp
