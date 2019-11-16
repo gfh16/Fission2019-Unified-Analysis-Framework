@@ -84,7 +84,7 @@ $ ./QC_ReadTree listfilename
 围，最后将拟合结果保存到pdf中，并将拟合参数保存到.dat文件中
 
 ````````
-$ root -l FindPedestals.cpp  
+$ root -l FindPedestals.cpp
 ````````
 2. PulserCali_AutoFindPeaks
 3. PulserCali_LinearFit
@@ -97,12 +97,12 @@ $ root -l PulserCali_L1_AutoFindPeaksAndFit.cpp
 $ root -l PulserCali_L2_AutoFindPeaksAndFit.cpp
 ````````
 4. AlphaCali_FindPeak
-   4.1 使用TChain方法合并刻度文件：本次实验获得了多个alpha刻度文件，合并文件是为了增加统计量
-   4.2 利用从MSU拷贝回来的EnergyLossModule计算alpha穿过2um镀铝Mylar膜后的能量. 三组分alpha  
-源的三个峰分别来源于 239Pu, 241Am, 244Cm, 将三者发射alpha粒子的加权平均能量作为alpha的  
-出射能量
-   4.3 写了一个手动寻峰的程序，手动选取拟合范围，对三组分alpha源的三个alpha峰分别进行了拟合
-   4.4 将三个alpha峰的拟合结果保存到.dat文件中
+   4.1 使用TChain方法合并刻度文件：本次实验获得了多个alpha刻度文件，合并文件是为了增加统计量  
+   4.2 利用从MSU拷贝回来的EnergyLossModule计算alpha穿过2um镀铝Mylar膜后的能量. 三组分  
+       alpha源的三个峰分别来源于 239Pu, 241Am, 244Cm, 将三者发射alpha粒子的加权平均能  
+       量作为alpha的出射能量  
+   4.3 写了一个手动寻峰的程序，手动选取拟合范围，对三组分alpha源的三个alpha峰分别进行了拟合  
+   4.4 将三个alpha峰的拟合结果保存到.dat文件中  
 
 ````````
 $ root -l AlphaCali_MergeFiles.cpp
