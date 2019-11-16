@@ -69,9 +69,7 @@ https://github.com/gfh16/Fission2019-Unified-Analysis-Framework
 ### 数据刻度
 #### Energy Calibration
 1. FindPedestal
-````
 $ root -l FindPedestals.cpp  
-````
 2. PulserCali_AutoFindPeak
 3. PulserCali_LinearFit
 4. AlphaCali_FindPeak
