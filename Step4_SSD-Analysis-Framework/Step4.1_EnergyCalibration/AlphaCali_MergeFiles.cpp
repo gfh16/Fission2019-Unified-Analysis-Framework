@@ -17,7 +17,7 @@ void WriteHist(TH1D *hist[16], TFile * FileOut);
 
 
 //______________________________________________________________________________
-void AlphaCali_MergeFile()
+void AlphaCali_MergeFiles()
 {
   const char *L1 = "L1";
   const char *L2 = "L2";

@@ -73,14 +73,23 @@ https://github.com/gfh16/Fission2019-Unified-Analysis-Framework
 $ root -l FindPedestals.cpp  
 ````````
 2. PulserCali_AutoFindPeaks
+
+3. PulserCali_LinearFit
 ````````
 $ root -l PulserCali_L1_AutoFindPeaksAndFit.cpp
-
 $ root -l PulserCali_L2_AutoFindPeaksAndFit.cpp
 ````````
-3. PulserCali_LinearFit
 4. AlphaCali_FindPeak
+````````
+$ root -l AlphaCali_MergeFiles.cpp
+$ root -l AlphaCali_FindPeaks.cpp
+$ root -l AlphaCali_CalEnergy.cpp
+````````
 5. Energy_Calibration
+````````
+$ root -l SiEnergyCali.cpp  
+````````
+
 #### Hit Multiplicity
 #### CsI Energy Calibration
 #### Hit Pixellation
