@@ -40,16 +40,18 @@ void SiEnergyCali()
    std::string pathPuserIn(Form("output/SSD_%s_PulserCali_%s.dat",LayerTag.c_str(),FileTag.c_str()));
    std::string pathAlphaEIn("output/SSD_Alpha_Energy.dat");
    std::string pathAlphaChIn(Form("output/SSD_Alpha_%sS_E.dat",LayerTag.c_str()));
-
+   std::string pathFitParAlpha(Form("output/Fitpara_SSD_Alpha_%sS_E.dat",LayerTag.c_str()));
    int SSDNum = 4;
    int CHNum  = 16;
    int numpar_PulserIn  = 4;
    int numpar_AlphaEIn  = 3;
    int numpar_AlphaChIn = 3;
+   int numpar_AlphaFit  = 3;
 
-   double*** PulserIn  = ReadData(pathPuserIn.c_str(),   SSDNum, CHNum, numpar_PulserIn);
-   double*** AlphaEIn  = ReadData(pathAlphaEIn.c_str(),SSDNum, CHNum, numpar_AlphaEIn);
-   double*** AlphaChIn = ReadData(pathAlphaChIn.c_str(), SSDNum, CHNum, numpar_AlphaChIn);
+   double*** PulserIn  = ReadData(pathPuserIn.c_str(),  SSDNum, CHNum, numpar_PulserIn);
+   double*** AlphaEIn  = ReadData(pathAlphaEIn.c_str(), SSDNum, CHNum, numpar_AlphaEIn);
+   double*** AlphaChIn = ReadData(pathAlphaChIn.c_str(),SSDNum, CHNum, numpar_AlphaChIn);
+   double*** AlphaFit  = ReadData(pathFitParAlpha.c_str(), SSDNum, CHNum, numpar_AlphaFit);
 
    TCanvas * c1 = new TCanvas("c1","Energy Linearity",600,600);
    for(int i=0; i<SSDNum; i++)
@@ -67,8 +69,15 @@ void SiEnergyCali()
        double h = c * b;
        cout<<"Slope  = "<< k <<"    "<<"Ch0 = "<< h <<endl;
 
+       double a_alphafit = AlphaFit[i][j][0];
+       double b_alphafit = AlphaFit[i][j][2];
+
        //  画出刻度曲线, 比较3-alpha峰拟合 与 1-alpha峰 + Pulser 两种拟合结果
-      // TF1 * f3alpha = new TF1("f3alpha",Form("%"),0,4096);
+       TF1 * falphapulser = new TF1("falphapulser",Form("%.4f*x+%.4f",k,h),0,4096);
+       TF1 * f3alpha = new TF1("f3alpha",Form("%.4f*x+%.4f",a_alphafit,b_alphafit),0,4096);
+       falphapulser->Draw();
+       f3alpha->Draw("SAME");
+
 
      }
    }
