@@ -43,7 +43,7 @@ bool compare(Int_t a, Int_t b)
 void PulserCali_AutoFindPeak(const char* LayerTag, const char* FileTag, TCanvas* cans[4][16]);
 
 //______________________________________________________________________________
-void PulserCali_L2_AutoFindPeakAndFit()
+void PulserCali_L2_AutoFindPeaksAndFit()
 {
   gStyle->SetOptStat(0);
 
