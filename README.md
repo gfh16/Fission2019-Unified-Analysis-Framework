@@ -78,6 +78,9 @@ $ ./QC_ReadTree listfilename
 ### 数据刻度
 #### Energy Calibration
 1. FindPedestal
+Pedestal是探测系统的零点道，是系统没有能量输入，ADC中记录的道址. 理论上，ADC中探测到的所有
+能量信号都应该在对应的Pedestal以上. 因此Pedestal可以作为ADC能量的Cut值
+
 ````````
 $ root -l FindPedestals.cpp  
 ````````
