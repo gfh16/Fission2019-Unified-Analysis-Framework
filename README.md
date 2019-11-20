@@ -16,23 +16,7 @@ https://github.com/gfh16/Fission2019-Unified-Analysis-Framework
 
 目录
 =====
-<!--ts-->
-* [数据转换](#数据转换)
-  * [将原始数据二进制文件转换成.root文件](#将原始数据二进制文件转换成.root文件)
-  * [将RawRoot数据转换成MapRoot数据](#将RawRoot数据转换成MapRoot数据)
-* [数据质检](#数据质检)
-  * [SetBranchAddress方法](#SetBranchAddress方法)
-  * [TTreeReader方法](#TTreeReader方法)
-* [PPAC数据处理](#PPAC数据处理)
-* [SSD数据处理](#SSD数据处理)
-  * [数据刻度](#数据刻度)
-    * [Energy Calibration](#Energy-Calibration)
-    * [Hit Multiplicity](#Hit-Multiplicity)
-    * [CsI Energy Calibration](#CsI-Energy-Calibration)
-    * [Hit Pixellation](#Hit-Pixellatio)
-    * [Particle Identification](#Particle-Identification)
-  * [物理分析](#物理分析)
-<!--te-->
+[toc]
 
 
 ## 数据转换
@@ -84,7 +68,7 @@ $ ./QC_ReadTree listfilename
 围，最后将拟合结果保存到pdf中，并将拟合参数保存到.dat文件中
 
 ````````
-$ root -l FindPedestals.cpp
+$ root -l FindPedestals.C
 ````````
 2. PulserCali_AutoFindPeaks
 3. PulserCali_LinearFit  
@@ -93,8 +77,8 @@ $ root -l FindPedestals.cpp
    3.3 对这些pulser点进行用 y = a * x +b 进行线性拟合，将拟合参数以及数据点保存到.dat文件中  
    3.4 将拟合结果保存成pdf，以便检查  
 ````````
-$ root -l PulserCali_L1_AutoFindPeaksAndFit.cpp
-$ root -l PulserCali_L2_AutoFindPeaksAndFit.cpp
+$ root -l PulserCali_L1_AutoFindPeaksAndFit.C
+$ root -l PulserCali_L2_AutoFindPeaksAndFit.C
 ````````
 4. AlphaCali_FindPeak  
    4.1 使用TChain方法合并刻度文件：本次实验获得了多个alpha刻度文件，合并文件是为了增加统计量  
@@ -104,14 +88,14 @@ $ root -l PulserCali_L2_AutoFindPeaksAndFit.cpp
    4.4 将三个alpha峰的拟合结果保存到.dat文件中  
 
 ````````
-$ root -l AlphaCali_MergeFiles.cpp
-$ root -l AlphaCali_FindPeaks.cpp
-$ root -l AlphaCali_CalEnergy.cpp
+$ root -l AlphaCali_MergeFiles.C
+$ root -l AlphaCali_FindPeaks.C
+$ root -l AlphaCali_CalEnergy.C
 ````````
 5. Energy_Calibration
 * 待续。。。
 ````````
-$ root -l SiEnergyCali.cpp  
+$ root -l SiEnergyCali.C
 ````````
 
 #### Hit Multiplicity
