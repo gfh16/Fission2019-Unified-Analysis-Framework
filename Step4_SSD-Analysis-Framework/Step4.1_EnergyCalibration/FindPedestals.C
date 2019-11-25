@@ -1,8 +1,7 @@
 ////////////////////////////////////////////////////////////////////////////////////
 //    THIS MACRO IS USED TO FIND THE PEDESATLS FOR ENERGY CHANNEL OF SSD          //
 //    This macro enable us to set the fit range of each histogram by hand         //
-//    Then the histogram is fitted using the user-defined function                //
-//    The canva is saved as pdf                                                   //
+//    Then the histogram is fitted using the user-defined function                //                                                 //
 //                                                                                //
 //    Run this macro: root -l FindPedestals.cpp                                   //
 //                                                                                //
@@ -38,11 +37,10 @@ void FindPedestals()
 //         <3> 输入 3，中断跳出                                              //
 /////////////////////////////////////////////////////////////////////////////
 
-   //   在此修改输入文件路径、文件名称
    std::string path_to_file("data/QC_MapSSD_PulserCali_Pedestal0000.root");
 
    std::string FileOutTag1("Pedestals");  // here to change "Pedestals" or "Pulser" or "Alpha"
-   std::string FileOutTag2("L1S_E");      // here to change "L1S_E" or "L2F_E" or "L2B_E" or "L3A_E"
+   std::string FileOutTag2("L2B_E");      // here to change "L1S_E" or "L2F_E" or "L2B_E" or "L3A_E"
 
    TFile * FileIn = new TFile(path_to_file.c_str());
    if(!FileIn->IsOpen())
@@ -51,23 +49,20 @@ void FindPedestals()
      return;
    }
 
-   //   在此修改输出文件路径
    ofstream FileOut(Form("output/SSD_%s_%s.dat", FileOutTag1.c_str(), FileOutTag2.c_str()));
    FileOut << "*SSDNum" << setw(7) << "CHNum" << setw(8) << "mean"<< setw(10)<< "sigma"<< setw(14)
            <<"mean+5sigma"<< setw(10)<<"Chi2" << setw(10) <<"Xmin"<< setw(10)<<"Xmax" << endl;
 
-   //    定义、读取输入文件中的 Histograms
    TH1D * PedestalHist[4][16];
-   for(int i=0; i<4; i++)
+   for(Int_t i=0; i<4; i++)
    {
-     for(int j=0; j<16; j++)
+     for(Int_t j=0; j<16; j++)
      {
        PedestalHist[i][j]=(TH1D*)FileIn->Get(Form("SSD%d_%s_CH%02d",(i+1),FileOutTag2.c_str(),j));
      }
    }
    printf("Histograms loaded\n");
 
-   //    定义 Canvas
    TCanvas *c1 = new TCanvas("c1","c1",800,600);
    TCanvas *c_begin = new TCanvas("c_begin","");
    c_begin->Close();
@@ -81,14 +76,13 @@ void FindPedestals()
    c_begin->Print(Form("figures/SSD_%s_%s.pdf[", FileOutTag1.c_str(), FileOutTag2.c_str()));
 
    float limit[2] = {0};   //定义limit[2]用于存储拟合范围
-   for(int i=0; i<4; i++)
+   for(Int_t i=0; i<4; i++)
    {
-     for(int j=0; j<16; j++)
+     for(Int_t j=0; j<16; j++)
      {
        int Option = 2;   // 设置一个标志, 当Option==2时，执行后面的while(Option==2)循环
 
-       // 如果某个Histogram为空,则跳过
-       if(PedestalHist[i][j]==0)
+       if (PedestalHist[i][j]==0)
        {
          printf("No data present for SSD%d_%s_CH%02d\n",(i+1),FileOutTag2.c_str(),j);
          continue;
@@ -101,9 +95,10 @@ void FindPedestals()
          c1->cd();
          gPad->Modified();
          gPad->Update();
-         PedestalHist[i][j]->GetXaxis()->SetRangeUser(50,150);
-         PedestalHist[i][j]->GetYaxis()->SetRangeUser(0,7000);
+         PedestalHist[i][j]->GetXaxis()->SetRangeUser(50,160);
+         PedestalHist[i][j]->GetYaxis()->SetRangeUser(0,10000);
          PedestalHist[i][j]->Draw();
+         //____________________________________________________
          //   it is very important!!! very convenient!!!
          //   here to set the range and fit on the GUI by hand
          c1->Connect("ProcessedEvent(Int_t,Int_t,Int_t,TObject*)",0,0,"SetPoints(Int_t,Int_t,Int_t,TObject*)");
@@ -114,7 +109,7 @@ void FindPedestals()
          }
          c1->Disconnect("ProcessedEvent(Int_t,Int_t,Int_t,TObject*)");
 
-         if(Index==1)
+         if (Index==1)
          {
            for(int ip=0; ip<NPoints; ip++)
            {
@@ -126,11 +121,11 @@ void FindPedestals()
 
          gPad->Modified();
          gPad->Update();
-         //  提示输入操作选项
+
          cout<< "Options? 1.Save and next, 2.Retry the fit, 3.Exit"<< endl;
          cin >> Option;
          //  Option ==1，保存拟合结果
-         if(Option==1)
+         if (Option==1)
          {
            TF1 *fit = PedestalHist[i][j]->GetFunction("gaus");
            double Mean  = fit->GetParameter(1);      // Par[1] = Mean
@@ -143,7 +138,7 @@ void FindPedestals()
            c1->Print(Form("figures/SSD_%s_%s.pdf", FileOutTag1.c_str(), FileOutTag2.c_str()));
          }
          // Option == 3, 中断跳出程序
-         if(Option==3)
+         if (Option==3)
          {
            c_end->Print(Form("figures/SSD_%s_%s.pdf]", FileOutTag1.c_str(), FileOutTag2.c_str()));
            FileOut.close();
@@ -172,16 +167,16 @@ void FindPedestals()
 //______________________________________________________________________________
 void SetPoints(Int_t event, Int_t x, Int_t y, TObject *selected)
 {
-/////////////////////////////////////////////////////////////////////////////
-//    This function is to set the fit range by hand on GUITObject *selected                 //
-//    Click the Central button of the mouse to get the range               //
-//                                                                         //
-//    Function parameters:                                                 //
-//       event :   number of click points                                  //
-//           x :   x value of the point                                    //
-//           y :   y value of the point                                    //
-//    selected :   a pointer to the curent point                           //
-/////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////
+//    This function is to set the fit range by hand on GUITObject *selected //
+//    Click the Central button of the mouse to get the range                //
+//                                                                          //
+//    Function parameters:                                                  //
+//       event :                                                            //
+//           x :   x value of the point                                     //
+//           y :   y value of the point                                     //
+//    selected :   a pointer to the curent point                            //
+//////////////////////////////////////////////////////////////////////////////
   if(event == 2)
   {
     float px = gPad->AbsPixeltoX(x); // Conversion of absolute pixel to X
@@ -198,23 +193,23 @@ void SetPoints(Int_t event, Int_t x, Int_t y, TObject *selected)
       l[NPoints] -> SetLineColor(2);
       l[NPoints] -> SetLineWidth(2);
       l[NPoints] -> Draw();
-      for(int i=0; i<NPoints; i++)
+      for(Int_t i=0; i<NPoints; i++)
       {
         l[i] -> Draw();
       }
-      gPad->Modified();    // Tell the canvas that an object it is displaying have changed
-      gPad->Update();      //  Force the canvas to refresh
+      gPad->Modified();
+      gPad->Update();
       printf("x=%f\n", px);
       NPoints++;
 
-      //  I get only 2 points and then I return
-      if(NPoints==2)
+      // !!! I get only 2 points and then I return
+      if (NPoints==2)
       {
         Index = 1;   // Index
         return;
       }
       cout<< "Click next point"<< endl;
-    } // ==== close  if(px>=gPad->GetUxmin() && px<=gPad->GetUxmax())
-  }   // ==== close if(event==2)
+    }
+  }
   return;
 }

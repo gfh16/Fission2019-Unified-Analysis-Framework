@@ -20,15 +20,25 @@
 
 Int_t npeaks = 30;
 
-//______________________________________________________________________________
-Double_t SwitchFactor[] = {0};
-Double_t Switch6[6] =                     {1.0/20.0, 1.0/10.0, 1.0/5.0, 1.0/4.0, 1.0/2.0, 1.0};
-Double_t Switch7[7] =           {1.0/40.0, 1.0/20.0, 1.0/10.0, 1.0/5.0, 1.0/4.0, 1.0/2.0, 1.0};
-Double_t Switch8[8] = {1.0/50.0, 1.0/40.0, 1.0/20.0, 1.0/10.0, 1.0/5.0, 1.0/4.0, 1.0/2.0, 1.0};
 
-Double_t HeightFactor[] = {0};
-Double_t Switch10[10] =     {1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0};
-Double_t Switch11[11] ={0.5, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0};
+//______________________________________________________________________________
+Double_t SwitchFactor[9] = {0};     //衰减因子
+Double_t Switch5[5]   = {1., 1/2., 1/4., 1/5., 1/10.};
+Double_t Switch6[6]   = {1., 1/2., 1/4., 1/5., 1/10., 1/20.};
+Double_t Switch7[7]   = {    1/2., 1/4., 1/5., 1/10., 1/20., 1/40., 1/50.};
+Double_t Switch8[8]   = {1., 1/2., 1/4., 1/5., 1/10., 1/20., 1/40., 1/50.};
+Double_t Switch9[9]   = {1., 1/2., 1/4., 1/5., 1/10., 1/20., 1/40., 1/50., 1/100.};
+
+Double_t Height10[10] = {10., 9., 8., 7., 6., 5., 4., 3., 2., 1.};
+Double_t Height11[11] = {10., 9., 8., 7., 6., 5., 4., 3., 2., 1., 0.5};
+
+//_______________________________________________
+//  实现数组的降序排序
+bool compare(Int_t a, Int_t b)
+{
+  return a>b;
+}
+
 
 //______________________________________________________________________________
 void PulserCali_AutoFindPeaks()
@@ -69,9 +79,11 @@ void PulserCali_AutoFindPeaks()
 
   // 读取root文件中的 Histograms
   TH1D * PulserPeaks[16];
-  for(int i=0; i<16; i++)
+  for(Int_t i=0; i<16; i++)
   {
     PulserPeaks[i] = (TH1D*)FileIn->Get(Form("SSD%d_%s_E_CH%02d",SSDNum,FileTag2.c_str(),i));
+    PulserPeaks[i]->GetXaxis()->SetRangeUser(120, 3500);
+
     cout << Form("SSD%d_%s_E_CH%d",SSDNum,FileTag2.c_str(),i) << endl;
   }
   printf("Histograms loaded\n");
@@ -88,9 +100,9 @@ void PulserCali_AutoFindPeaks()
   c_begin->Print(Form("figures/SSD%d_%s_PulserCali_%s.pdf[", SSDNum,FileTag1.c_str(),FileTag3.c_str()));
 
   TSpectrum * s = new TSpectrum();
-  for(int i=0; i<16; i++)
+  for(Int_t i=0; i<16; i++)
   {
-    if(PulserPeaks[i]==0)
+    if (PulserPeaks[i]==0)
     {
       printf("No data present for SSD%d_%s_E_CH%02d\n",SSDNum,FileTag2.c_str(),i);
       continue;
@@ -124,9 +136,10 @@ void PulserCali_AutoFindPeaks()
 
     for(Int_t i=0; i<npeaks; i++)
     {
+      if(npeaks==5)  SwitchFactor[i] = Switch5[i];
       if(npeaks==6)  SwitchFactor[i] = Switch6[i];
-      if(npeaks==7)  SwitchFactor[i] = Switch7[i];
       if(npeaks==8)  SwitchFactor[i] = Switch8[i];
+      if(npeaks==9)  SwitchFactor[i] = Switch9[i];
     }
     c1->cd(2);
     TGraph *grap = new TGraph(npeaks,SwitchFactor,xpeaks);

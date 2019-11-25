@@ -21,14 +21,14 @@ void AlphaCali_MergeFiles()
 {
   const char *L1 = "L1";
   const char *L2 = "L2";
-  const int FirstRun = 33;   // 0-32, 3-48 for L2
-  const int LastRun  = 48;
-  std::string LayerTag("L2");
+  const int FirstRun = 5;   // 0-32, 3-48 for L2
+  const int LastRun  = 8;
+  std::string LayerTag("L1");
   TFile * FileOut = new TFile(Form("../../../Fission2019_Data/MapRoot/MapSSD_%s_AlphaCali%02d_%02d.root",LayerTag.c_str(),FirstRun,LastRun),"RECREATE");
 
   auto * myData = new TChain("KrPb");
 
-  for(int i=FirstRun; i<=LastRun; i++)
+  for(Int_t i=FirstRun; i<=LastRun; i++)
   {
     myData->Add(Form("../../../Fission2019_Data/MapRoot/MapSSD_%s_AlphaCali%04d.root",LayerTag.c_str(),i));
     printf("MapSSD_%s_AlphaCali%04d.root Loaded\n",LayerTag.c_str(),i);
@@ -48,7 +48,7 @@ void AlphaCali_MergeFiles()
   Int_t SSD3_L2B_E[16];
   Int_t SSD4_L2F_E[16];
   Int_t SSD4_L2B_E[16];
-  if(strcmp(L1,LayerTag.c_str())==0)
+  if (strcmp(L1,LayerTag.c_str())==0)
   {
     // I enable only the branches I need
     myData->SetBranchStatus("SSD1_L1S_E",true);
@@ -60,7 +60,7 @@ void AlphaCali_MergeFiles()
     myData->SetBranchAddress("SSD3_L1S_E",SSD3_L1S_E);
     myData->SetBranchAddress("SSD4_L1S_E",SSD4_L1S_E);
   }
-  if(strcmp(L2,LayerTag.c_str())==0)
+  if (strcmp(L2,LayerTag.c_str())==0)
   {
     myData->SetBranchStatus("SSD1_L2F_E",true);
     myData->SetBranchStatus("SSD1_L2B_E",true);
@@ -83,9 +83,9 @@ void AlphaCali_MergeFiles()
   TH1D * Hist_L1S[4][16];
   TH1D * Hist_L2F[4][16];
   TH1D * Hist_L2B[4][16];
-  for(int SSDNum=0; SSDNum<4; SSDNum++)
+  for(Int_t SSDNum=0; SSDNum<4; SSDNum++)
   {
-    for(int CHNum=0; CHNum<16; CHNum++)
+    for(Int_t CHNum=0; CHNum<16; CHNum++)
     {
       Hist_L1S[SSDNum][CHNum] = new TH1D(Form("SSD%d_L1S_E_CH%02d",SSDNum+1,CHNum),Form("SSD%d_L1S_E_CH%02d",SSDNum+1,CHNum),4096,0,4096);
       Hist_L2F[SSDNum][CHNum] = new TH1D(Form("SSD%d_L2F_E_CH%02d",SSDNum+1,CHNum),Form("SSD%d_L2F_E_CH%02d",SSDNum+1,CHNum),4096,0,4096);
@@ -101,7 +101,7 @@ void AlphaCali_MergeFiles()
 
     if(strcmp(L1,LayerTag.c_str())==0)
     {
-       for(int CHNum=0; CHNum<16; CHNum++)
+       for(Int_t CHNum=0; CHNum<16; CHNum++)
        {
          Hist_L1S[0][CHNum]->Fill(SSD1_L1S_E[CHNum],1.0);
          Hist_L1S[1][CHNum]->Fill(SSD2_L1S_E[CHNum],1.0);
@@ -111,7 +111,7 @@ void AlphaCali_MergeFiles()
     }
     if(strcmp(L2,LayerTag.c_str())==0)
     {
-      for(int CHNum=0; CHNum<16; CHNum++)
+      for(Int_t CHNum=0; CHNum<16; CHNum++)
       {
         Hist_L2F[0][CHNum]->Fill(SSD1_L2F_E[CHNum],1.0);
         Hist_L2B[0][CHNum]->Fill(SSD1_L2B_E[CHNum],1.0);
@@ -148,7 +148,6 @@ void AlphaCali_MergeFiles()
 }
 
 //______________________________________________________________________________
-// WriteHist is to Write the histograms
 void WriteHist(TH1D *hist[16], TFile * FileOut)
 {
   for(int CHNum=0; CHNum<16; CHNum++)

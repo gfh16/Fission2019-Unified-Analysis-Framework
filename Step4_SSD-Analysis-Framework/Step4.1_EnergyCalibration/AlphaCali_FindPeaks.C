@@ -13,11 +13,15 @@
 #include "TH1.h"
 #include "TF1.h"
 #include "TCanvas.h"
-// double Ealpha[3] = {5.14718， 5.48038， 5.79521}; // 239Pu, 241Am, 244Cm alpha加权能量
-double Ealpha[3] = {4.90407, 5.24768, 5.57147};  //MeV 考虑alpha在 2um Mylar, 0.06um Al中的能损
 
-int Index = 0;
-int NPoints;
+// 不考虑Mylar膜的能损,   239Pu, 241Am, 244Cm alpha加权能量
+//double Ealpha[3] = {5.14718， 5.48038， 5.79521};
+
+// 考虑alpha在 2um Mylar, 0.06um Al中的能损
+double Ealpha[3] = {4.90407, 5.24768, 5.57147};  //MeV
+
+Int_t Index = 0;
+Int_t NPoints;
 TMarker *m[6];
 TLine   *l[6];
 
@@ -42,8 +46,8 @@ void AlphaCali_FindPeaks()
    //   在此修改输入文件路径、文件名称
    std::string path_to_file("data/QC_MapSSD_L1_AlphaCali0003.root");
 
-   std::string FileOutTag1("Alpha");  // here to change "Pedestals" or "Pulser" or "Alpha"
-   std::string FileOutTag2("L1S_E");      // here to change "L1S_E" or "L2F_E" or "L2B_E" or "L3A_E"
+   std::string FileOutTag1("Alpha");
+   std::string FileOutTag2("L1S_E");  // "L1S_E" or "L2F_E" or "L2B_E"
 
    TFile * FileIn = new TFile(path_to_file.c_str());
    if(!FileIn->IsOpen())
@@ -66,19 +70,17 @@ void AlphaCali_FindPeaks()
 
    //    定义、读取输入文件中的 Histograms
    TH1D * PedestalHist[4][16];
-   for(int SSDNum=0; SSDNum<4; SSDNum++)
+   for(Int_t SSDNum=0; SSDNum<4; SSDNum++)
    {
-     for(int CHNum=0; CHNum<16; CHNum++)
+     for(Int_t CHNum=0; CHNum<16; CHNum++)
      {
        PedestalHist[SSDNum][CHNum]=(TH1D*)FileIn->Get(Form("SSD%d_%s_CH%02d",(SSDNum+1),FileOutTag2.c_str(),CHNum));
      }
    }
    printf("Histograms loaded\n");
 
-   //    定义 Canvas
    TCanvas *c1 = new TCanvas("c1","c1",1000,1200);
    c1->Divide(1,2);
-
    TCanvas *c_begin = new TCanvas("c_begin","");
    c_begin->Close();
    TCanvas *c_end   = new TCanvas("c_end","");
@@ -91,14 +93,14 @@ void AlphaCali_FindPeaks()
 
    Double_t limit[6] = {0};   //定义limit[2]用于存储拟合范围
    Double_t par[9] = {40,250,15,20,260,15,10,270,15};
-   for(int SSDNum=0; SSDNum<4; SSDNum++)
+   for(Int_t SSDNum=0; SSDNum<4; SSDNum++)
    {
-     for(int CHNum=0; CHNum<16; CHNum++)
+     for(Int_t CHNum=0; CHNum<16; CHNum++)
      {
-       int Option = 2;   // 设置一个标志, 当Option==2时，执行后面的while(Option==2)循环
+       Int_t Option = 2;   // 设置一个标志, 当Option==2时，执行后面的while(Option==2)循环
 
        // 如果某个Histogram为空,则跳过
-       if(PedestalHist[SSDNum][CHNum]==0)
+       if (PedestalHist[SSDNum][CHNum]==0)
        {
          printf("No data present for SSD%d_%s_CH%02d\n",(SSDNum+1),FileOutTag2.c_str(),CHNum);
          continue;
@@ -115,6 +117,7 @@ void AlphaCali_FindPeaks()
          PedestalHist[SSDNum][CHNum]->GetXaxis()->SetRangeUser(100,350);
          PedestalHist[SSDNum][CHNum]->GetYaxis()->SetRangeUser(0,150);
          PedestalHist[SSDNum][CHNum]->Draw();
+         //________________________________________________________
          //   it is very important!!! very convenient!!!
          //   here to set the range and fit on the GUI by hand
          c1->Connect("ProcessedEvent(Int_t,Int_t,Int_t,TObject*)",0,0,"SetPoints(Int_t,Int_t,Int_t,TObject*)");
@@ -125,9 +128,9 @@ void AlphaCali_FindPeaks()
          }
          c1->Disconnect("ProcessedEvent(Int_t,Int_t,Int_t,TObject*)");
 
-         if(Index==1)
+         if (Index==1)
          {
-           for(int ip=0; ip<NPoints; ip++)
+           for(Int_t ip=0; ip<NPoints; ip++)
            {
              limit[ip] = m[ip]->GetX();
              cout<< limit[ip] <<endl;
@@ -142,23 +145,23 @@ void AlphaCali_FindPeaks()
          PedestalHist[SSDNum][CHNum]->Fit(FitPeak2,"R+");
          PedestalHist[SSDNum][CHNum]->Fit(FitPeak3,"R+");
 
-         double Peak1_Height = FitPeak1->GetParameter(0);  // Par[1] = Height
-         double Peak1_Mean   = FitPeak1->GetParameter(1);  // Par[1] = Mean
-         double Peak1_Sigma  = FitPeak1->GetParameter(2);  // Par[2] = sigma
-         double Peak1_Chi2   = FitPeak1->GetChisquare();
+         Double_t Peak1_Height = FitPeak1->GetParameter(0);  // Par[1] = Height
+         Double_t Peak1_Mean   = FitPeak1->GetParameter(1);  // Par[1] = Mean
+         Double_t Peak1_Sigma  = FitPeak1->GetParameter(2);  // Par[2] = sigma
+         Double_t Peak1_Chi2   = FitPeak1->GetChisquare();
 
-         double Peak2_Height = FitPeak2->GetParameter(0);  // Par[1] = Height
-         double Peak2_Mean   = FitPeak2->GetParameter(1);  // Par[1] = Mean
-         double Peak2_Sigma  = FitPeak2->GetParameter(2);  // Par[2] = sigma
-         double Peak2_Chi2   = FitPeak2->GetChisquare();
+         Double_t Peak2_Height = FitPeak2->GetParameter(0);  // Par[1] = Height
+         Double_t Peak2_Mean   = FitPeak2->GetParameter(1);  // Par[1] = Mean
+         Double_t Peak2_Sigma  = FitPeak2->GetParameter(2);  // Par[2] = sigma
+         Double_t Peak2_Chi2   = FitPeak2->GetChisquare();
 
-         double Peak3_Height = FitPeak3->GetParameter(0);  // Par[1] = Height
-         double Peak3_Mean   = FitPeak3->GetParameter(1);  // Par[1] = Mean
-         double Peak3_Sigma  = FitPeak3->GetParameter(2);  // Par[2] = sigma
-         double Peak3_Chi2   = FitPeak3->GetChisquare();
+         Double_t Peak3_Height = FitPeak3->GetParameter(0);  // Par[1] = Height
+         Double_t Peak3_Mean   = FitPeak3->GetParameter(1);  // Par[1] = Mean
+         Double_t Peak3_Sigma  = FitPeak3->GetParameter(2);  // Par[2] = sigma
+         Double_t Peak3_Chi2   = FitPeak3->GetChisquare();
 
          c1->cd(2);
-         double peaks[3] = {Peak1_Mean,Peak2_Mean,Peak3_Mean};
+         Double_t peaks[3] = {Peak1_Mean,Peak2_Mean,Peak3_Mean};
          TGraph * grap = new TGraph(3,peaks,Ealpha); // Energy vs Channel
          grap->SetMarkerStyle(20);
          grap->SetMarkerSize(1.5);
@@ -167,10 +170,10 @@ void AlphaCali_FindPeaks()
          grap->Draw("AP*");
          TF1 * fit = new TF1("fit","pol1",100,4096);
          grap->Fit("fit");
-         double par0     = fit->GetParameter(0);
-         double err_par0 = fit->GetParError(0);
-         double par1     = fit->GetParameter(1);
-         double err_par1 = fit->GetParError(1);
+         Double_t par0     = fit->GetParameter(0);
+         Double_t err_par0 = fit->GetParError(0);
+         Double_t par1     = fit->GetParameter(1);
+         Double_t err_par1 = fit->GetParError(1);
 
          gPad->Modified();
          gPad->Update();
@@ -179,7 +182,7 @@ void AlphaCali_FindPeaks()
          cin >> Option;
 
          //  Option ==1，保存拟合结果
-         if(Option==1)
+         if (Option==1)
          {
            FileOut << SSDNum << setw(10) << CHNum << setw(12)
                    << Peak1_Mean <<setw(10)<<Peak2_Mean <<setw(10)<<Peak3_Mean <<setw(10)
@@ -191,7 +194,7 @@ void AlphaCali_FindPeaks()
 
            c1->Print(Form("figures/SSD_%s_%s.pdf", FileOutTag1.c_str(), FileOutTag2.c_str()));
          }
-         if(Option==3)
+         if (Option==3)
          {
            c_end->Print(Form("figures/SSD_%s_%s.pdf]", FileOutTag1.c_str(), FileOutTag2.c_str()));
            FileOut.close();
@@ -233,37 +236,37 @@ void SetPoints(Int_t event, Int_t x, Int_t y, TObject *selected)
 /////////////////////////////////////////////////////////////////////////////
   if(event == 2)
   {
-    float px = gPad->AbsPixeltoX(x); // Conversion of absolute pixel to X
-    float py = gPad->AbsPixeltoX(y); // CoYversion of absolute pixel to Y
+    Float_t px = gPad->AbsPixeltoX(x); // Conversion of absolute pixel to X
+    Float_t py = gPad->AbsPixeltoX(y); // CoYversion of absolute pixel to Y
     py = gPad->PadtoY(py);           // Convert y from pad to Y
-    float Uymin = gPad->GetUymin();  // Returns the minimum/maximum y-coordinate
-    float Uymax = gPad->GetUymax();  // value visible on the pad
+    Float_t Uymin = gPad->GetUymin();  // Returns the minimum/maximum y-coordinate
+    Float_t Uymax = gPad->GetUymax();  // value visible on the pad
 
     //  save the clicks as a marker
-    if(px>=gPad->GetUxmin() && px<=gPad->GetUxmax())
+    if (px>=gPad->GetUxmin() && px<=gPad->GetUxmax())
     {
       m[NPoints] = new TMarker(px,py,3);          // marker style = 3, means “*”
       l[NPoints] = new TLine(px,Uymin,px,Uymax);
       l[NPoints] -> SetLineColor(kYellow);
       l[NPoints] -> SetLineWidth(2);
       l[NPoints] -> Draw();
-      for(int i=0; i<NPoints; i++)
+      for(Int_t i=0; i<NPoints; i++)
       {
         l[i] -> Draw();
       }
-      gPad->Modified();    // Tell the canvas that an object it is displaying have changed
-      gPad->Update();      //  Force the canvas to refresh
+      gPad->Modified();
+      gPad->Update();
       printf("x=%f\n", px);
       NPoints++;
 
-      //  I get 6 points and then I return
-      if(NPoints==6)
+      //  Important!!!  I get 6 points and then I return
+      if (NPoints==6)
       {
         Index = 1;   // Index
         return;
       }
       cout<< "Click next point"<< endl;
-    } // ==== close  if(px>=gPad->GetUxmin() && px<=gPad->GetUxmax())
-  }   // ==== close if(event==2)
+    }
+  }
   return;
 }

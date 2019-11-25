@@ -21,14 +21,14 @@
 #include "TFile.h"
 
 //______________________________________________________________________________
-//  const number definition
 Double_t AttenFactor[11] = {0};     //衰减因子
-Double_t Switch5[5]   = {1.0, 1/2.0, 1/4.0, 1/5.0, 1/10.0};
-Double_t Switch6[6]   = {1.0, 1/2.0, 1/4.0, 1/5.0, 1/10.0, 1/20.0};
-Double_t Switch7[7]   = {1.0, 1/2.0, 1/4.0, 1/5.0, 1/10.0, 1/20.0, 1/40.0};
-Double_t Switch8[8]   = {1.0, 1/2.0, 1/4.0, 1/5.0, 1/10.0, 1/20.0, 1/40.0, 1/50.0};
-Double_t Height10[10] = {10.0, 9.0, 8.0, 7.0, 6.0, 5.0, 4.0, 3.0, 2.0, 1.0};
-Double_t Height11[11] = {10.0, 9.0, 8.0, 7.0, 6.0, 5.0, 4.0, 3.0, 2.0, 1.0, 0.5};
+Double_t Switch5[5]   = {1., 1/2., 1/4., 1/5., 1/10.};
+Double_t Switch6[6]   = {1., 1/2., 1/4., 1/5., 1/10., 1/20.};
+Double_t Switch8[8]   = {1., 1/2., 1/4., 1/5., 1/10., 1/20., 1/40., 1/50.};
+Double_t Switch9[9]   = {1., 1/2., 1/4., 1/5., 1/10., 1/20., 1/40., 1/50., 1/100.};
+
+Double_t Height10[10] = {10., 9., 8., 7., 6., 5., 4., 3., 2., 1.};
+Double_t Height11[11] = {10., 9., 8., 7., 6., 5., 4., 3., 2., 1., 0.5};
 
 //_______________________________________________
 //  实现数组的降序排序
@@ -39,6 +39,7 @@ bool compare(Int_t a, Int_t b)
 
 //______________________________________________________________________________
 void PulserCali_AutoFindPeak(const char* LayerTag, const char* FileTag, TCanvas* cans[4][16]);
+
 
 //______________________________________________________________________________
 void PulserCali_L1_AutoFindPeaksAndFit()
@@ -114,13 +115,13 @@ void PulserCali_AutoFindPeak(const char* LayerTag, const char* FileTag, TCanvas*
   {
     std::string path_to_file(Form("data/QC_MapSSD%d_%s_PulserCali_%s0000.root", SSDNum+1,LayerTag,FileTag));
     TFile * FileIn = new TFile(path_to_file.c_str());
-    if(!FileIn->IsOpen())
+    if (!FileIn->IsOpen())
     {  //  cans[SSDNum][i]->Close();
       cout<<"Open file "<< path_to_file.c_str() << " failed"<<endl;
       return;
     }
     // 读取root文件中的 Histograms
-    for(int CHNum=0; CHNum<16; CHNum++)
+    for(Int_t CHNum=0; CHNum<16; CHNum++)
     {
       PulserPeaks[SSDNum][CHNum] = (TH1D*)FileIn->Get(Form("SSD%d_%sS_E_CH%02d",SSDNum+1,LayerTag,CHNum));
       PulserPeaks[SSDNum][CHNum]->GetXaxis()->SetRangeUser(120,4095);
@@ -134,7 +135,7 @@ void PulserCali_AutoFindPeak(const char* LayerTag, const char* FileTag, TCanvas*
     TSpectrum * s = new TSpectrum();
     for(Int_t CHNum=0; CHNum<16; CHNum++)
     {
-      if(PulserPeaks[SSDNum][CHNum]==0)
+      if (PulserPeaks[SSDNum][CHNum]==0)
       {
         printf("No data present for SSD%d_%s_E_CH%02d\n",SSDNum+1,LayerTag,CHNum);
         continue;
@@ -166,12 +167,12 @@ void PulserCali_AutoFindPeak(const char* LayerTag, const char* FileTag, TCanvas*
 
       for(Int_t i=0; i<npeaks; i++)
       {
-        if(npeaks==5)  AttenFactor[i] = Switch5[i];
-        if(npeaks==6)  AttenFactor[i] = Switch6[i];
-        if(npeaks==7)  AttenFactor[i] = Switch7[i];
-        if(npeaks==8)  AttenFactor[i] = Switch8[i];
-        if(npeaks==10) AttenFactor[i] = Height10[i];
-        if(npeaks==11) AttenFactor[i] = Height11[i];
+        if (npeaks==5)  AttenFactor[i] = Switch5[i];
+        if (npeaks==6)  AttenFactor[i] = Switch6[i];
+        if (npeaks==8)  AttenFactor[i] = Switch8[i];
+        if (npeaks==9)  AttenFactor[i] = Switch9[i];
+        if (npeaks==10) AttenFactor[i] = Height10[i];
+        if (npeaks==11) AttenFactor[i] = Height11[i];
       }
       cans[SSDNum][CHNum]->cd(2);
       TGraph *grap = new TGraph(npeaks,xpeaks,AttenFactor);  // Energy vs Ch (y = Enegry, x = channel)
