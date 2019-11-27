@@ -42,7 +42,7 @@ void AlphaCali_FindPeaks()
   //         <3> 输入 3，中断跳出                                               //
   //  4. 三组分alpha源有3个能量峰,需要6个点来拟合                                  //
   /////////////////////////////////////////////////////////////////////////////
-   std::string InputTag("00_04");
+   std::string InputTag("00_08");
    std::string FileOutTag1("Alpha");
    std::string FileOutTag2("L1S_E");  // "L1S_E" or "L2F_E" or "L2B_E"
    std::string path_to_file(Form("data/MapSSD_L1_AlphaCali%s.root", InputTag.c_str()));
