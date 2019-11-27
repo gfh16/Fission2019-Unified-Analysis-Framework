@@ -44,10 +44,10 @@ Fission2019 实验数据说明文档
 
 | Alpha刻度  |   刻度条件说明    | 备注 |
 |:------------|:--------------|:---------|
-|SSD_L1_AlphaCali.0005| 主要刻度SSD3_L1,SSD4_L1| 第一次Alpha刻度部分无计数|
-|SSD_L1_AlphaCali.0006| 主要刻度SSD3_L1,SSD4_L1| 第一次Alpha刻度部分无计数|
-|SSD_L1_AlphaCali.0007| 主要刻度SSD3_L1,SSD4_L1| 第一次Alpha刻度部分无计数|
-|SSD_L1_AlphaCali.0008| 主要刻度SSD3_L1,SSD4_L1| 第一次Alpha刻度部分无计数|
+|SSD_L1_AlphaCali.0005| 主要刻度SSD3_L1,SSD4_L1| 第一次Alpha刻度部分无计数,开靶盖第二次刻度|
+|SSD_L1_AlphaCali.0006| 主要刻度SSD3_L1,SSD4_L1| 第一次Alpha刻度部分无计数,开靶盖第二次刻度|
+|SSD_L1_AlphaCali.0007| 主要刻度SSD3_L1,SSD4_L1| 第一次Alpha刻度部分无计数,开靶盖第二次刻度|
+|SSD_L1_AlphaCali.0008| 主要刻度SSD3_L1,SSD4_L1| 第一次Alpha刻度部分无计数,开靶盖第二次刻度|
 
 | Alpha刻度  |   刻度条件说明    | 备注 |
 |:------------|:--------------|:---------|

@@ -47,13 +47,13 @@ $ ./ReadRootFile2D listfilename
 ## 数据质检
 ### SetBranchAddress方法
 ### TTreeReader方法
-1. QC_BranchAdress.cpp, QC_ReadTree.cpp
+1. QC_BranchAdress.C, QC_ReadTree.C
 2. 定义、填充直方图
 3. 存储所有的Hist，输出pdf到文件, 方便肉眼进行质检
 4. 存储所有的Hist,写入.root文件. 这一步是为了:一旦pdf文件中的谱有问题，马上可以查看.root文件中对应的直方图
-5. 编译 QC_ReadTree.cpp 后执行, ./QC_ReadTree listfilename
+5. 编译 QC_ReadTree.C 后执行, ./QC_ReadTree listfilename
 ````````
-$ g++ QC_ReadTree.cpp -o QC_ReadTree
+$ make
 $ ./QC_ReadTree listfilename
 ````````
 ## PPAC数据处理

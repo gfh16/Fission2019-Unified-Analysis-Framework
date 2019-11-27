@@ -15,20 +15,16 @@ CRFLAG = $(shell root-config --cflags)
 ROOTBIN = $(shell root-config --bindir)
 
 
-PROG: QC_ReadTree  QC_BranchAddress
+PROG: QC_ReadTree
 
-
-QC_BranchAddress: QC_BranchAddress.o
-	$(CPP) -o $@ QC_BranchAddress.o $(OBJS) $(CFLAG) $(ROOTLIB) $(SYSLIB)
 
 QC_ReadTree: QC_ReadTree.o
 	$(CPP) -o $@ QC_ReadTree.o $(OBJS) $(CFLAG) $(ROOTLIB) $(SYSLIB)
 
-%.o: %.cpp
+%.o: %.C
 	$(CPP) -c $(CFLAG) $(CRFLAG) -o $@ $<
-
 
 
 clean:
 	-rm *.o
-	-rm QC_ReadTree  QC_BranchAddress
+	-rm QC_ReadTree

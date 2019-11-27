@@ -44,7 +44,7 @@ void AlphaCali_FindPeaks()
   /////////////////////////////////////////////////////////////////////////////
 
    //   在此修改输入文件路径、文件名称
-   std::string path_to_file("data/QC_MapSSD_L1_AlphaCali0003.root");
+   std::string path_to_file("data/MapSSD_L1_AlphaCali00_04.root");
 
    std::string FileOutTag1("Alpha");
    std::string FileOutTag2("L1S_E");  // "L1S_E" or "L2F_E" or "L2B_E"
@@ -114,8 +114,8 @@ void AlphaCali_FindPeaks()
          c1->cd(1);
          gPad->Modified();
          gPad->Update();
-         PedestalHist[SSDNum][CHNum]->GetXaxis()->SetRangeUser(100,350);
-         PedestalHist[SSDNum][CHNum]->GetYaxis()->SetRangeUser(0,150);
+         PedestalHist[SSDNum][CHNum]->GetXaxis()->SetRangeUser(150,350);
+         PedestalHist[SSDNum][CHNum]->GetYaxis()->SetRangeUser(0,PedestalHist[SSDNum][CHNum]->GetMaximum()+20);
          PedestalHist[SSDNum][CHNum]->Draw();
          //________________________________________________________
          //   it is very important!!! very convenient!!!
