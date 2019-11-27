@@ -24,10 +24,10 @@ void AlphaCali_MergeFiles()
   const int FirstRun = 5;   // 0-32, 3-48 for L2
   const int LastRun  = 8;
   std::string LayerTag("L1");
-  TFile * FileOut = new TFile(Form("../../../Fission2019_Data/MapRoot/MapSSD_%s_AlphaCali%02d_%02d.root",LayerTag.c_str(),FirstRun,LastRun),"RECREATE");
+  std::string FileOutpath(Form("../../../Fission2019_Data/MapRoot/MapSSD_%s_AlphaCali%02d_%02d.root",LayerTag.c_str(),FirstRun,LastRun));
+  TFile * FileOut = new TFile(FileOutpath.c_str(),"RECREATE");
 
   auto * myData = new TChain("KrPb");
-
   for(Int_t i=FirstRun; i<=LastRun; i++)
   {
     myData->Add(Form("../../../Fission2019_Data/MapRoot/MapSSD_%s_AlphaCali%04d.root",LayerTag.c_str(),i));
