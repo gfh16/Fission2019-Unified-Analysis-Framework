@@ -18,20 +18,21 @@
 #include <vector>
 #include <map>
 
-
 using namespace std;
 
-void PrintUsage(char *name);
-void ReadTree( TChain* myChain, const char* rootpath, const char* pdfpath);
+
+//______________________________________________________________________________
+void PrintUsage(Char_t *name);
+void WriteHistforSSD(TFile* FileOut, TH1D* hist[],  const Int_t numtel);
+void DrawSSD(const Char_t* pdfpath, TCanvas* canvas[], TH1D* hist[], const Int_t numtel);
+void DrawSSDLogy(const Char_t* pdfpath, TCanvas* canvas[], TH1D* hist[], const Int_t numtel);
+void ReadTree(TChain* myChain, const Char_t* rootpath, const Char_t* pdfpath);
 
 
-//==============================================================================
+//_________________________________________________________________________
 //   主函数从这里开始
 int main(int argc, char *argv[])
 {
-
-  //=====================
-  //  一些参数的声明
   string dfname;
   string rawlist, rawfile;
   bool inter = false;
@@ -39,8 +40,7 @@ int main(int argc, char *argv[])
   fstream listf;
 
   string datapath = "../../Fission2019_Data/MapRoot"; // 设置读取的.root文件的路径
-
-  //=============================================================================
+  //________________________________________________________________________________
   // 设置读取文件的方式：argc == 1 单个文件处理； argc == 2 按listfilename列举的文件批量处理
   if(argc == 1)
   {
@@ -59,8 +59,7 @@ int main(int argc, char *argv[])
     PrintUsage(argv[0]);
     return 0;
   }
-
-  //==============================================
+  //____________________________________________
   // 将listfilename文件中的文件名存储到 vector 容器中
   if(inter)
   {
@@ -94,8 +93,7 @@ int main(int argc, char *argv[])
     }
     listf.close();
   }
-
-  //===================================
+  //________________________________
   //  逐个文件读取，作循环，进行数据处理
   for(int i=0; i<rawdfname.size(); i++)
   {
@@ -104,18 +102,17 @@ int main(int argc, char *argv[])
     pathrdfn += "/";
     pathrdfn += rdfname;
     cout << pathrdfn << endl;
-
-    //====================================
+    //________________________________
     //      设置输出 .root 文件路径 与 命名
     TString outrootpath = "./QC_HistRoot";  //输出.root文件保存在 QC_HistRoot文件夹下
     outrootpath += "/QC_";
     outrootpath += rdfname;
     cout << outrootpath << endl;
-
-    //====================================
+    //______________________________
     //      设置输出 .pdf 文件路径 与 命名
     TString pdf_name(rdfname);
     pdf_name.ReplaceAll(".root", "");
+    //___________________________
     TString outpdfpath = "QC_pdf"; //输出.pdf文件保存在 QC_pdf_ReadTree文件夹下
     outpdfpath += "/QC_";	                  //QC_标记是质检文件
     outpdfpath += pdf_name;
@@ -133,11 +130,8 @@ int main(int argc, char *argv[])
   return 0;
 } // int main() 函数到此结束
 
-//==============================================================================
 
-
-
-//==============================================================================
+//______________________________________________________________________________
 void PrintUsage(char *name)
 {
 	cout<<"Usage: "<<name<<"  "<<endl;
@@ -146,9 +140,9 @@ void PrintUsage(char *name)
 	cout<<"\t 'listfilename' is a text file contains the 'raw data file names'.";
 	cout<<endl;
 }
-//==============================================================================
 
-//==============================================================================
+
+//__________________________________________________________________
 //      从这里开始编辑 ReadTree() 函数
 void ReadTree( TChain* myChain, const char* rootpath, const char* pdfpath)
 {
@@ -156,12 +150,8 @@ void ReadTree( TChain* myChain, const char* rootpath, const char* pdfpath)
   int LOW_CH  = 0;
   int HIGH_CH = 4096;
 
+  TFile* FileOut = new TFile(rootpath, "RECREATE");
 
-  TFile FileOut(rootpath, "RECREATE");
-
-  //===========================
-  //       定义直方图
-  //===========================
   TH1D *Hist_PPAC1_T   = new TH1D("PPAC1_T",  "PPAC1_T",  BIN_NUM-100, LOW_CH+100, HIGH_CH);
   TH1D *Hist_PPAC1_X1  = new TH1D("PPAC1_X1", "PPAC1_X1", BIN_NUM-100, LOW_CH+100, HIGH_CH);
   TH1D *Hist_PPAC1_X2  = new TH1D("PPAC1_X2", "PPAC1_X2", BIN_NUM-100, LOW_CH+100, HIGH_CH);
@@ -293,6 +283,7 @@ void ReadTree( TChain* myChain, const char* rootpath, const char* pdfpath)
 
   //=======================
   //   填充直方图
+  Int_t nentries = 0;
   while(myReader.Next())
   {
     Hist_PPAC1_T   ->Fill(*PPAC1_T);
@@ -350,131 +341,62 @@ void ReadTree( TChain* myChain, const char* rootpath, const char* pdfpath)
       Hist_SSD3_L3A_E[i] ->Fill(SSD3_L3A_E[i]);
       Hist_SSD4_L3A_E[i] ->Fill(SSD4_L3A_E[i]);
     }
+    nentries++;
   }   // close for while(myReader.Next())
-
+  cout<< nentries <<"  "<<"entries analyzed" <<endl;
     //===========================================================
     //     将所有的直方图写入到 FileOut 文件中
-    FileOut.WriteTObject(Hist_PPAC1_T,   Hist_PPAC1_T->GetName());
-    FileOut.WriteTObject(Hist_PPAC1_X1,  Hist_PPAC1_X1->GetName());
-    FileOut.WriteTObject(Hist_PPAC1_X2,  Hist_PPAC1_X2->GetName());
-    FileOut.WriteTObject(Hist_PPAC1_Y1,  Hist_PPAC1_Y1->GetName());
-    FileOut.WriteTObject(Hist_PPAC1_Y2,  Hist_PPAC1_Y2->GetName());
-    FileOut.WriteTObject(Hist_PPAC1_T_E, Hist_PPAC1_T_E->GetName());
-    FileOut.WriteTObject(Hist_PPAC2_T,   Hist_PPAC2_T->GetName());
-    FileOut.WriteTObject(Hist_PPAC2_X1,  Hist_PPAC2_X1->GetName());
-    FileOut.WriteTObject(Hist_PPAC2_X2,  Hist_PPAC2_X2->GetName());
-    FileOut.WriteTObject(Hist_PPAC2_Y1,  Hist_PPAC2_Y1->GetName());
-    FileOut.WriteTObject(Hist_PPAC2_Y2,  Hist_PPAC2_Y2->GetName());
-    FileOut.WriteTObject(Hist_PPAC2_T_E, Hist_PPAC2_T_E->GetName());
-    FileOut.WriteTObject(Hist_PPAC3_T,   Hist_PPAC3_T->GetName());
-    FileOut.WriteTObject(Hist_PPAC3_X1,  Hist_PPAC3_X1->GetName());
-    FileOut.WriteTObject(Hist_PPAC3_X2,  Hist_PPAC3_X2->GetName());
-    FileOut.WriteTObject(Hist_PPAC3_Y1,  Hist_PPAC3_Y1->GetName());
-    FileOut.WriteTObject(Hist_PPAC3_Y2,  Hist_PPAC3_Y2->GetName());
-    FileOut.WriteTObject(Hist_PPAC3_T_E, Hist_PPAC3_T_E->GetName());
+    FileOut->WriteTObject(Hist_PPAC1_T,   Hist_PPAC1_T->GetName());
+    FileOut->WriteTObject(Hist_PPAC1_X1,  Hist_PPAC1_X1->GetName());
+    FileOut->WriteTObject(Hist_PPAC1_X2,  Hist_PPAC1_X2->GetName());
+    FileOut->WriteTObject(Hist_PPAC1_Y1,  Hist_PPAC1_Y1->GetName());
+    FileOut->WriteTObject(Hist_PPAC1_Y2,  Hist_PPAC1_Y2->GetName());
+    FileOut->WriteTObject(Hist_PPAC1_T_E, Hist_PPAC1_T_E->GetName());
+    FileOut->WriteTObject(Hist_PPAC2_T,   Hist_PPAC2_T->GetName());
+    FileOut->WriteTObject(Hist_PPAC2_X1,  Hist_PPAC2_X1->GetName());
+    FileOut->WriteTObject(Hist_PPAC2_X2,  Hist_PPAC2_X2->GetName());
+    FileOut->WriteTObject(Hist_PPAC2_Y1,  Hist_PPAC2_Y1->GetName());
+    FileOut->WriteTObject(Hist_PPAC2_Y2,  Hist_PPAC2_Y2->GetName());
+    FileOut->WriteTObject(Hist_PPAC2_T_E, Hist_PPAC2_T_E->GetName());
+    FileOut->WriteTObject(Hist_PPAC3_T,   Hist_PPAC3_T->GetName());
+    FileOut->WriteTObject(Hist_PPAC3_X1,  Hist_PPAC3_X1->GetName());
+    FileOut->WriteTObject(Hist_PPAC3_X2,  Hist_PPAC3_X2->GetName());
+    FileOut->WriteTObject(Hist_PPAC3_Y1,  Hist_PPAC3_Y1->GetName());
+    FileOut->WriteTObject(Hist_PPAC3_Y2,  Hist_PPAC3_Y2->GetName());
+    FileOut->WriteTObject(Hist_PPAC3_T_E, Hist_PPAC3_T_E->GetName());
 
-    FileOut.WriteTObject(Hist_AuSi1_L1T, Hist_AuSi1_L1T->GetName());
-    FileOut.WriteTObject(Hist_AuSi1_L1E, Hist_AuSi1_L1E->GetName());
-    FileOut.WriteTObject(Hist_AuSi1_L2E, Hist_AuSi1_L2E->GetName());
-    FileOut.WriteTObject(Hist_AuSi2_L1T, Hist_AuSi2_L1T->GetName());
-    FileOut.WriteTObject(Hist_AuSi2_L1E, Hist_AuSi2_L1E->GetName());
-    FileOut.WriteTObject(Hist_AuSi2_L2E, Hist_AuSi2_L2E->GetName());
+    FileOut->WriteTObject(Hist_AuSi1_L1T, Hist_AuSi1_L1T->GetName());
+    FileOut->WriteTObject(Hist_AuSi1_L1E, Hist_AuSi1_L1E->GetName());
+    FileOut->WriteTObject(Hist_AuSi1_L2E, Hist_AuSi1_L2E->GetName());
+    FileOut->WriteTObject(Hist_AuSi2_L1T, Hist_AuSi2_L1T->GetName());
+    FileOut->WriteTObject(Hist_AuSi2_L1E, Hist_AuSi2_L1E->GetName());
+    FileOut->WriteTObject(Hist_AuSi2_L2E, Hist_AuSi2_L2E->GetName());
 
-    FileOut.WriteTObject(Hist_RF1, Hist_RF1->GetName());
-    FileOut.WriteTObject(Hist_RF2, Hist_RF2->GetName());
+    FileOut->WriteTObject(Hist_RF1, Hist_RF1->GetName());
+    FileOut->WriteTObject(Hist_RF2, Hist_RF2->GetName());
 
     //=====================
     //  for SSD1
-    for(int i=0; i<16; i++)
-    {
-      FileOut.WriteTObject(Hist_SSD1_L2F_T[i], Hist_SSD1_L2F_T[i]->GetName());
-    }
-    for(int i=0; i<16; i++)
-    {
-      FileOut.WriteTObject(Hist_SSD1_L1S_E[i], Hist_SSD1_L1S_E[i]->GetName());
-    }
-    for(int i=0; i<16; i++)
-    {
-      FileOut.WriteTObject(Hist_SSD1_L2F_E[i], Hist_SSD1_L2F_E[i]->GetName());
-    }
-    for(int i=0; i<16; i++)
-    {
-      FileOut.WriteTObject(Hist_SSD1_L2B_E[i], Hist_SSD1_L2B_E[i]->GetName());
-    }
-    for(int i=0; i<9; i++)
-    {
-      FileOut.WriteTObject(Hist_SSD1_L3A_E[i], Hist_SSD1_L3A_E[i]->GetName());
-    }
-
-    //=====================
-    //    for SSD2
-    for(int i=0; i<16; i++)
-    {
-      FileOut.WriteTObject(Hist_SSD2_L2F_T[i], Hist_SSD2_L2F_T[i]->GetName());
-    }
-    for(int i=0; i<16; i++)
-    {
-      FileOut.WriteTObject(Hist_SSD2_L1S_E[i], Hist_SSD2_L1S_E[i]->GetName());
-    }
-    for(int i=0; i<16; i++)
-    {
-      FileOut.WriteTObject(Hist_SSD2_L2F_E[i], Hist_SSD2_L2F_E[i]->GetName());
-    }
-    for(int i=0; i<16; i++)
-    {
-      FileOut.WriteTObject(Hist_SSD2_L2B_E[i], Hist_SSD2_L2B_E[i]->GetName());
-    }
-    for(int i=0; i<9; i++)
-    {
-      FileOut.WriteTObject(Hist_SSD2_L3A_E[i], Hist_SSD2_L3A_E[i]->GetName());
-    }
-
-    //=====================
-    //      for SSD3
-    for(int i=0; i<16; i++)
-    {
-      FileOut.WriteTObject(Hist_SSD3_L2F_T[i], Hist_SSD3_L2F_T[i]->GetName());
-    }
-    for(int i=0; i<16; i++)
-    {
-      FileOut.WriteTObject(Hist_SSD3_L1S_E[i], Hist_SSD3_L1S_E[i]->GetName());
-    }
-    for(int i=0; i<16; i++)
-    {
-      FileOut.WriteTObject(Hist_SSD3_L2F_E[i], Hist_SSD3_L2F_E[i]->GetName());
-    }
-    for(int i=0; i<16; i++)
-    {
-      FileOut.WriteTObject(Hist_SSD3_L2B_E[i], Hist_SSD3_L2B_E[i]->GetName());
-    }
-    for(int i=0; i<9; i++)
-    {
-      FileOut.WriteTObject(Hist_SSD3_L3A_E[i], Hist_SSD3_L3A_E[i]->GetName());
-    }
-
-    //====================
-    //      for SSD4
-    for(int i=0; i<16; i++)
-    {
-      FileOut.WriteTObject(Hist_SSD4_L2F_T[i], Hist_SSD4_L2F_T[i]->GetName());
-    }
-    for(int i=0; i<16; i++)
-    {
-      FileOut.WriteTObject(Hist_SSD4_L1S_E[i], Hist_SSD4_L1S_E[i]->GetName());
-    }
-    for(int i=0; i<16; i++)
-    {
-      FileOut.WriteTObject(Hist_SSD4_L2F_E[i], Hist_SSD4_L2F_E[i]->GetName());
-    }
-    for(int i=0; i<16; i++)
-    {
-      FileOut.WriteTObject(Hist_SSD4_L2B_E[i], Hist_SSD4_L2B_E[i]->GetName());
-    }
-    for(int i=0; i<9; i++)
-    {
-      FileOut.WriteTObject(Hist_SSD4_L3A_E[i], Hist_SSD4_L3A_E[i]->GetName());
-    }
-
+    WriteHistforSSD(FileOut, Hist_SSD1_L1S_E, 16);
+    WriteHistforSSD(FileOut, Hist_SSD1_L1S_E, 16);
+    WriteHistforSSD(FileOut, Hist_SSD1_L2F_E, 16);
+    WriteHistforSSD(FileOut, Hist_SSD1_L2B_E, 16);
+    WriteHistforSSD(FileOut, Hist_SSD1_L3A_E, 9);
+    WriteHistforSSD(FileOut, Hist_SSD2_L2F_T, 16);
+    WriteHistforSSD(FileOut, Hist_SSD2_L1S_E, 16);
+    WriteHistforSSD(FileOut, Hist_SSD2_L2F_E, 16);
+    WriteHistforSSD(FileOut, Hist_SSD2_L2B_E, 16);
+    WriteHistforSSD(FileOut, Hist_SSD2_L3A_E, 9);
+    WriteHistforSSD(FileOut, Hist_SSD3_L2F_T, 16);
+    WriteHistforSSD(FileOut, Hist_SSD3_L1S_E, 16);
+    WriteHistforSSD(FileOut, Hist_SSD3_L2F_E, 16);
+    WriteHistforSSD(FileOut, Hist_SSD3_L2B_E, 16);
+    WriteHistforSSD(FileOut, Hist_SSD3_L3A_E, 9);
+    WriteHistforSSD(FileOut, Hist_SSD4_L2F_T, 16);
+    WriteHistforSSD(FileOut, Hist_SSD4_L1S_E, 16);
+    WriteHistforSSD(FileOut, Hist_SSD4_L2F_E, 16);
+    WriteHistforSSD(FileOut, Hist_SSD4_L2B_E, 16);
+    WriteHistforSSD(FileOut, Hist_SSD4_L3A_E, 9);
 
     //=========================================================================
     //     定义Canvas
@@ -557,7 +479,6 @@ void ReadTree( TChain* myChain, const char* rootpath, const char* pdfpath)
       Canvas_SSD4_L3A_E[i] = new TCanvas(Form("SSD4_L3A_E_CH%d",i), Form("SSD4_L3A_E_CH%d",i));
     }
 
-
     //=====================================================
     //  Draw and Save the Canvas
     //  注意：在void ReadTree()中，pdfpath是 const char* 类型
@@ -598,102 +519,55 @@ void ReadTree( TChain* myChain, const char* rootpath, const char* pdfpath)
     Canvas_RF1 ->cd(); Hist_RF1 ->Draw(); Canvas_RF1 ->Print(pdfpath);
     Canvas_RF2 ->cd(); Hist_RF2 ->Draw(); Canvas_RF2 ->Print(pdfpath);
 
-    //====================
-    //    for SSD1
-    for(int i=0; i<16; i++)
-    {
-      Canvas_SSD1_L2F_T[i] ->cd(); Hist_SSD1_L2F_T[i] ->Draw(); Canvas_SSD1_L2F_T[i] ->Print(pdfpath);
-    }
-    for(int i=0; i<16; i++)
-    {
-      Canvas_SSD1_L1S_E[i] ->cd(); gPad->SetLogy(); Hist_SSD1_L1S_E[i] ->Draw(); Canvas_SSD1_L1S_E[i] ->Print(pdfpath);
-    }
-    for(int i=0; i<16; i++)
-    {
-      Canvas_SSD1_L2F_E[i] ->cd(); gPad->SetLogy(); Hist_SSD1_L2F_E[i] ->Draw(); Canvas_SSD1_L2F_E[i] ->Print(pdfpath);
-    }
-    for(int i=0; i<16; i++)
-    {
-      Canvas_SSD1_L2B_E[i] ->cd(); gPad->SetLogy(); Hist_SSD1_L2B_E[i] ->Draw(); Canvas_SSD1_L2B_E[i] ->Print(pdfpath);
-    }
-    for(int i=0; i<9; i++)
-    {
-      Canvas_SSD1_L3A_E[i] ->cd(); gPad->SetLogy(); Hist_SSD1_L3A_E[i] ->Draw(); Canvas_SSD1_L3A_E[i] ->Print(pdfpath);
-    }
-
-    //====================
-    //    for SSD2
-    for(int i=0; i<16; i++)
-    {
-      Canvas_SSD2_L2F_T[i] ->cd(); Hist_SSD2_L2F_T[i] ->Draw(); Canvas_SSD2_L2F_T[i] ->Print(pdfpath);
-    }
-    for(int i=0; i<16; i++)
-    {
-      Canvas_SSD2_L1S_E[i] ->cd(); gPad->SetLogy(); Hist_SSD2_L1S_E[i] ->Draw(); Canvas_SSD2_L1S_E[i] ->Print(pdfpath);
-    }
-    for(int i=0; i<16; i++)
-    {
-      Canvas_SSD2_L2F_E[i] ->cd(); gPad->SetLogy(); Hist_SSD2_L2F_E[i] ->Draw(); Canvas_SSD2_L2F_E[i] ->Print(pdfpath);
-    }
-    for(int i=0; i<16; i++)
-    {
-      Canvas_SSD2_L2B_E[i] ->cd(); gPad->SetLogy(); Hist_SSD2_L2B_E[i] ->Draw(); Canvas_SSD2_L2B_E[i] ->Print(pdfpath);
-    }
-    for(int i=0; i<9; i++)
-    {
-      Canvas_SSD2_L3A_E[i] ->cd(); gPad->SetLogy(); Hist_SSD2_L3A_E[i] ->Draw(); Canvas_SSD2_L3A_E[i] ->Print(pdfpath);
-    }
-
-    //====================
-    //    for SSD3
-    for(int i=0; i<16; i++)
-    {
-      Canvas_SSD3_L2F_T[i] ->cd(); Hist_SSD3_L2F_T[i] ->Draw(); Canvas_SSD3_L2F_T[i] ->Print(pdfpath);
-    }
-    for(int i=0; i<16; i++)
-    {
-      Canvas_SSD3_L1S_E[i] ->cd(); gPad->SetLogy(); Hist_SSD3_L1S_E[i] ->Draw(); Canvas_SSD3_L1S_E[i] ->Print(pdfpath);
-    }
-    for(int i=0; i<16; i++)
-    {
-      Canvas_SSD3_L2F_E[i] ->cd(); gPad->SetLogy(); Hist_SSD3_L2F_E[i] ->Draw(); Canvas_SSD3_L2F_E[i] ->Print(pdfpath);
-    }
-    for(int i=0; i<16; i++)
-    {
-      Canvas_SSD3_L2B_E[i] ->cd(); gPad->SetLogy(); Hist_SSD3_L2B_E[i] ->Draw(); Canvas_SSD3_L2B_E[i] ->Print(pdfpath);
-    }
-    for(int i=0; i<9; i++)
-    {
-      Canvas_SSD3_L3A_E[i] ->cd(); gPad->SetLogy(); Hist_SSD3_L3A_E[i] ->Draw(); Canvas_SSD3_L3A_E[i] ->Print(pdfpath);
-    }
-
-    //====================
-    //    for SSD4
-    for(int i=0; i<16; i++)
-    {
-      Canvas_SSD4_L2F_T[i] ->cd(); Hist_SSD4_L2F_T[i] ->Draw(); Canvas_SSD4_L2F_T[i] ->Print(pdfpath);
-    }
-    for(int i=0; i<16; i++)
-    {
-      Canvas_SSD4_L1S_E[i] ->cd(); gPad->SetLogy(); Hist_SSD4_L1S_E[i] ->Draw(); Canvas_SSD4_L1S_E[i] ->Print(pdfpath);
-    }
-    for(int i=0; i<16; i++)
-    {
-      Canvas_SSD4_L2F_E[i] ->cd(); gPad->SetLogy(); Hist_SSD4_L2F_E[i] ->Draw(); Canvas_SSD4_L2F_E[i] ->Print(pdfpath);
-    }
-    for(int i=0; i<16; i++)
-    {
-      Canvas_SSD4_L2B_E[i] ->cd(); gPad->SetLogy(); Hist_SSD4_L2B_E[i] ->Draw(); Canvas_SSD4_L2B_E[i] ->Print(pdfpath);
-    }
-    for(int i=0; i<9; i++)
-    {
-      Canvas_SSD4_L3A_E[i] ->cd(); gPad->SetLogy(); Hist_SSD4_L3A_E[i] ->Draw(); Canvas_SSD4_L3A_E[i] ->Print(pdfpath);
-    }
+    DrawSSD(pdfpath,     Canvas_SSD1_L2F_T, Hist_SSD1_L2F_T, 16);
+    DrawSSDLogy(pdfpath, Canvas_SSD1_L1S_E, Hist_SSD1_L1S_E, 16);
+    DrawSSDLogy(pdfpath, Canvas_SSD1_L2F_E, Hist_SSD1_L2F_E, 16);
+    DrawSSDLogy(pdfpath, Canvas_SSD1_L2B_E, Hist_SSD1_L2B_E, 16);
+    DrawSSDLogy(pdfpath, Canvas_SSD1_L3A_E, Hist_SSD1_L3A_E, 9);
+    DrawSSD(pdfpath,     Canvas_SSD2_L2F_T, Hist_SSD2_L2F_T, 16);
+    DrawSSDLogy(pdfpath, Canvas_SSD2_L1S_E, Hist_SSD2_L1S_E, 16);
+    DrawSSDLogy(pdfpath, Canvas_SSD2_L2F_E, Hist_SSD2_L2F_E, 16);
+    DrawSSDLogy(pdfpath, Canvas_SSD2_L2B_E, Hist_SSD2_L2B_E, 16);
+    DrawSSDLogy(pdfpath, Canvas_SSD2_L3A_E, Hist_SSD2_L3A_E, 9);
+    DrawSSD(pdfpath,     Canvas_SSD3_L2F_T, Hist_SSD3_L2F_T, 16);
+    DrawSSDLogy(pdfpath, Canvas_SSD3_L1S_E, Hist_SSD3_L1S_E, 16);
+    DrawSSDLogy(pdfpath, Canvas_SSD3_L2F_E, Hist_SSD3_L2F_E, 16);
+    DrawSSDLogy(pdfpath, Canvas_SSD3_L2B_E, Hist_SSD3_L2B_E, 16);
+    DrawSSDLogy(pdfpath, Canvas_SSD3_L3A_E, Hist_SSD3_L3A_E, 9);
+    DrawSSD(pdfpath,     Canvas_SSD4_L2F_T, Hist_SSD4_L2F_T, 16);
+    DrawSSDLogy(pdfpath, Canvas_SSD4_L1S_E, Hist_SSD4_L1S_E, 16);
+    DrawSSDLogy(pdfpath, Canvas_SSD4_L2F_E, Hist_SSD4_L2F_E, 16);
+    DrawSSDLogy(pdfpath, Canvas_SSD4_L2B_E, Hist_SSD4_L2B_E, 16);
+    DrawSSDLogy(pdfpath, Canvas_SSD4_L3A_E, Hist_SSD4_L3A_E, 9);
 
     TString string_pfgpath_end = pdfpath;
     string_pfgpath_end +=']';
     Canvas_end->Print(string_pfgpath_end);
 
-    FileOut.Close();
+    FileOut->Close();
     return;
+}
+
+//______________________________________________________________________________
+void WriteHistforSSD(TFile* FileOut, TH1D* hist[], const Int_t numtel)
+{
+  for(Int_t i=0; i<numtel; i++){
+    FileOut->WriteTObject(hist[i], hist[i]->GetName());
+  }
+}
+
+//______________________________________________________________________________
+void DrawSSD(const Char_t* pdfpath, TCanvas* canvas[], TH1D* hist[], const Int_t numtel)
+{
+  for(Int_t i=0; i<numtel; i++){
+    canvas[i]->cd(); hist[i] ->Draw(); canvas[i] ->Print(pdfpath);
+  }
+}
+
+//______________________________________________________________________________
+void DrawSSDLogy(const Char_t* pdfpath, TCanvas* canvas[], TH1D* hist[], const Int_t numtel)
+{
+  for(Int_t i=0; i<numtel; i++){
+    canvas[i]->cd(); gPad->SetLogy(); hist[i] ->Draw(); canvas[i] ->Print(pdfpath);
+  }
 }
