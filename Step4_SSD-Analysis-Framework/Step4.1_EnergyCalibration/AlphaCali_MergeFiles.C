@@ -21,10 +21,15 @@ void AlphaCali_MergeFiles()
 {
   const char *L1 = "L1";
   const char *L2 = "L2";
-  const int FirstRun = 5;   // 0-32, 3-48 for L2
-  const int LastRun  = 8;
+  const int FirstRun = 0;   // 0-32, 3-48 for L2
+  const int LastRun  = 1;
   std::string LayerTag("L1");
-  std::string FileOutpath(Form("../../../Fission2019_Data/MapRoot/MapSSD_%s_AlphaCali%02d_%02d.root",LayerTag.c_str(),FirstRun,LastRun));
+
+  // ***** for 本地ubuntu
+  std::string FileOutpath(Form("/home/sea/Fission2019_Data/MapRoot/MapSSD_%s_AlphaCali%02d_%02d.root",LayerTag.c_str(),FirstRun,LastRun));
+
+  // ***** for 服务器
+  // std::string FileOutpath(Form("/data/EXPdata/Fission2019_Data/MapRoot/MapSSD_%s_AlphaCali%02d_%02d.root",LayerTag.c_str(),FirstRun,LastRun));
   TFile * FileOut = new TFile(FileOutpath.c_str(),"RECREATE");
 
   auto * myData = new TChain("KrPb");
@@ -97,6 +102,17 @@ void AlphaCali_MergeFiles()
   cout<< "Found " << nentries <<" entries\n";
   for(unsigned long j=0; j<nentries; j++)
   {
+    // 显示数据处理进度!
+    Int_t jentry = j;
+    if (jentry%1000000 == 0) {
+      std::cout << "  Percentage = " << std::fixed << std::setprecision(1) << std::setw(5) << (100*Double_t(jentry)/nentries) << " %";
+      std::cout << "   [";
+      Int_t printindex=0;
+      for(; printindex < int(100*Double_t(jentry)/nentries); printindex += 5) std::cout << "=";
+      for(; printindex < 100; printindex += 5) std::cout << " ";
+      std::cout << "]\r"; std::cout.flush();
+    }
+
     myData->GetEntry(j);
 
     if(strcmp(L1,LayerTag.c_str())==0)
