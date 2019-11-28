@@ -111,24 +111,47 @@ Fission2019 实验数据说明文档
 
 
 
-
-
-
-
-
 ----------------------------------------------------------------------------------------
-## 刻度时遇到的问题
+## SSD能量刻度总结
 
-### $\alpha$ 刻度文件中存在的问题
+### 一. Pulser刻度总结
+
+#### 硅条的 Layer1 
+1. SSD1_L1 在高能端偏离直线, 拨档刻度与等间隔刻度都有同样的问题
+   <img src = "pictures/11.PNG" width = "80%" height = "80%" align = center>
+   <img src = "pictures/12.PNG" width = "80%" height = "80%" align = center>
+
+
+
+2. 其余SDD表现正常
+
+#### 硅条的 Layer2
+1. 目前，每块SSD均表现正常！
+
+
+
+### 二. $\alpha$ 刻度总结
 #### 硅条的Layer1
 1. 合并 SSD_L1_AlphaCali.0000 - 0004:
-   1.1 SSD3、SSD4部分统计较低
+   1.1 SSD4_L1_CH00 能谱为空 (实验中也是空谱)
+   1.2 SSD3、SSD4部分统计较低，且3-$\alpha$峰相对计数异常
+    <img src = "pictures/1.PNG" width = "80%" height = "80%" align = center>
+    <img src = "pictures/2.PNG" width = "80%" height = "80%" align = center>
+    <img src = "pictures/3.PNG" width = "80%" height = "80%" align = center>
+>
 2. 合并 SSD_L1_AlphaCali.0005 - 0008:
-   2.1 SSD2_L1S_E_CH10, CH12, CH13 在低能端有一个小峰，估计是噪声
-   ![SSD2_L1S_E_CH10](pictures/1.PNG)
-   ![SSD2_L1S_E_CH12](pictures/2.PNG)
-   ![SSD2_L1S_E_CH13](pictures/3.PNG)
-
-   
+   2.1 SSD4_L1_CH00 能谱为空 (实验中也是空谱)
+   2.2 SSD2_L1S_E_CH10, CH12, CH13 在低能端有一个小峰，估计是噪声
+   <img src = "pictures/4.PNG" width = "80%" height = "80%" align = center>
+   <img src = "pictures/5.PNG" width = "80%" height = "80%" align = center>
+   <img src = "pictures/6.PNG" width = "80%" height = "80%" align = center>
+>
+3. 合并 SSD_L1_AlphaCali.0000 - 0008:
+   3.1 SSD4_L1_CH00 能谱为空 (实验中也是空谱)
+   3.2 SSD4_L1 CH1, CH2,  CH4,CH6-CH15 出现两组 "3-$\alpha$"峰，两组峰之间有约 10CH 的偏移
+   <img src = "pictures/7.PNG" width = "80%" height = "80%" align = center>
+   <img src = "pictures/8.PNG" width = "80%" height = "80%" align = center>
+   <img src = "pictures/9.PNG" width = "80%" height = "80%" align = center>
+   <img src = "pictures/10.PNG" width = "80%" height= "80%" align = center>
 
 
