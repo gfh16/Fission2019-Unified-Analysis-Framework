@@ -4,7 +4,7 @@ void ReadHistToDraw(Int_t runnumber);
 //__________________________________________________________________
 void QC_ReadHistToDraw()
 {
-  for(Int_t i=0; i<9; i++)
+  for(Int_t i=0; i<=8; i++)
   {
     ReadHistToDraw(i);
   }
