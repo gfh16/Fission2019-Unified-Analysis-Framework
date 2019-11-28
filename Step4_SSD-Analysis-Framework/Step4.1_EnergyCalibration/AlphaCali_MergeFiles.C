@@ -21,15 +21,15 @@ void AlphaCali_MergeFiles()
 {
   const char *L1 = "L1";
   const char *L2 = "L2";
-  const int FirstRun = 0;   // 0-32, 3-48 for L2
+  const int FirstRun = 5;   // 0-32, 3-48 for L2
   const int LastRun  = 1;
   std::string LayerTag("L1");
 
   // ***** for 本地ubuntu
-  std::string FileOutpath(Form("/home/sea/Fission2019_Data/MapRoot/MapSSD_%s_AlphaCali%02d_%02d.root",LayerTag.c_str(),FirstRun,LastRun));
+ // std::string FileOutpath(Form("/home/sea/Fission2019_Data/MapRoot/MapSSD_%s_AlphaCali%02d_%02d.root",LayerTag.c_str(),FirstRun,LastRun));
 
   // ***** for 服务器
-  // std::string FileOutpath(Form("/data/EXPdata/Fission2019_Data/MapRoot/MapSSD_%s_AlphaCali%02d_%02d.root",LayerTag.c_str(),FirstRun,LastRun));
+  std::string FileOutpath(Form("/data/EXPdata/Fission2019_Data/MapRoot/MapSSD_%s_AlphaCali%02d_%02d.root",LayerTag.c_str(),FirstRun,LastRun));
   TFile * FileOut = new TFile(FileOutpath.c_str(),"RECREATE");
 
   auto * myData = new TChain("KrPb");
