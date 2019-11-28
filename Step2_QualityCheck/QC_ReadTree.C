@@ -39,7 +39,8 @@ int main(int argc, char *argv[])
   vector<string> rawdfname;
   fstream listf;
 
-  string datapath = "../../Fission2019_Data/MapRoot"; // 设置读取的.root文件的路径
+  string datapath = "/data/EXPdata/Fission2019_Data/MapRoot";
+ // string datapath = "../../Fission2019_Data/MapRoot"; // 设置读取的.root文件的路径
   //________________________________________________________________________________
   // 设置读取文件的方式：argc == 1 单个文件处理； argc == 2 按listfilename列举的文件批量处理
   if(argc == 1)
@@ -377,7 +378,7 @@ void ReadTree( TChain* myChain, const char* rootpath, const char* pdfpath)
 
     //=====================
     //  for SSD1
-    WriteHistforSSD(FileOut, Hist_SSD1_L1S_E, 16);
+    WriteHistforSSD(FileOut, Hist_SSD1_L2F_T, 16);
     WriteHistforSSD(FileOut, Hist_SSD1_L1S_E, 16);
     WriteHistforSSD(FileOut, Hist_SSD1_L2F_E, 16);
     WriteHistforSSD(FileOut, Hist_SSD1_L2B_E, 16);
