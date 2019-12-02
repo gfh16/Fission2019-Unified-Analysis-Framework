@@ -3,7 +3,7 @@
 //    Here, we use TSpectrum to find the peaks candidates              //
 //                                                                     //
 //    Author gfh                                                       //
-//    Date Nov 11, 2019                                                 //
+//    Date Nov 11, 2019                                                //
 /////////////////////////////////////////////////////////////////////////
 
 #include "TCanvas.h"
@@ -31,11 +31,12 @@ Double_t Height10[10] = {10., 9., 8., 7., 6., 5., 4., 3., 2., 1.};
 Double_t Height11[11] = {10., 9., 8., 7., 6., 5., 4., 3., 2., 1., 0.5};
 
 //_______________________________________________
-//  实现数组的降序排序
+//   实现数组的降序排序
 bool compare(Int_t a, Int_t b)
 {
   return a>b;
 }
+
 
 //______________________________________________________________________________
 void PulserCali_AutoFindPeak(const char* LayerTag, const char* FileTag, TCanvas* cans[4][16]);
@@ -47,7 +48,7 @@ void PulserCali_L1_AutoFindPeaksAndFit()
   gStyle->SetOptStat(0);
 
   std::string LayerTag("L1");
-  std::string FileTag("Height");   // "Height" or "Switch"
+  std::string FileTag("Switch");   // "Height" or "Switch"
   std::string pdfpath(Form("figures/SSD_%s_PulserCali_%s.pdf",LayerTag.c_str(),FileTag.c_str()));
 
   TCanvas *cans[4][16];
@@ -108,7 +109,9 @@ void PulserCali_AutoFindPeak(const char* LayerTag, const char* FileTag, TCanvas*
   std::string outputpath(Form("output/SSD_%s_PulserCali_%s.dat",LayerTag,FileTag));
   FILE * FileOut = fopen(outputpath.c_str(),"w");
   fprintf(FileOut,"* Fiiting funtion = par[0] + par[1]*x && y=a*x+b (y=Energy, x=Ch), so a = par[1], b = par[0];  0.0 isn't a peak\n");
-  fprintf(FileOut,"* SSDNum CHNum    par1(a)   err_par0     par0(b)      err_par1      peak1     peak2      peak3      peak4     peak5     peak6     peak7     peak8     peak9     peak10   peak11 \n");
+  fprintf(FileOut,"* SSDNum CHNum    par0(a)   err_par0     par1(b)      err_par1      "
+	    	  " peak1     peak2     peak3      peak4     peak5  "    
+		  " peak6     peak7     peak8      peak9     peak10    peak11 \n");
 
   TH1D * PulserPeaks[4][16];
   for(Int_t SSDNum=0; SSDNum<4; SSDNum++)
@@ -188,8 +191,14 @@ void PulserCali_AutoFindPeak(const char* LayerTag, const char* FileTag, TCanvas*
       Double_t err_par0 = fit->GetParError(1);
       Double_t par1     = fit->GetParameter(0);
       Double_t err_par1 = fit->GetParError(0);
-      fprintf(FileOut," %5d    %2d   %10.4f  %10.4f  %10.4f   %10.4f   %8.1f   %8.1f   %8.1f   %8.1f  %8.1f  %8.1f  %8.1f  %8.1f  %8.1f  %8.1f  %8.1f\n",
-      SSDNum,CHNum,par0,err_par0,par1,err_par1,xpeaks[0],xpeaks[1],xpeaks[2],xpeaks[3],xpeaks[4],xpeaks[5],xpeaks[6],xpeaks[7],xpeaks[8],xpeaks[9],(npeaks>10 ? xpeaks[10]:0.0));
+      fprintf(FileOut,"%-5d    %-2d    %-10.8f  %-10.8f  %-10.8f  %-10.8f   "
+		      "%-8.1f  %-8.1f  %-8.1f   %-8.1f   %-8.1f   %-8.1f   "
+		      "%-8.1f  %-8.1f  %-8.1f   %-8.1f   %-8.1f \n ",
+                      SSDNum,CHNum,par0,err_par0,par1,err_par1,
+                      xpeaks[0],xpeaks[1],xpeaks[2],xpeaks[3],xpeaks[4],
+                      (npeaks>5 ? xpeaks[5]:0.), (npeaks>6  ? xpeaks[6]:0.), 
+                      (npeaks>7 ? xpeaks[7]:0.), (npeaks>8  ? xpeaks[8]:0.),
+                      (npeaks>9 ? xpeaks[9]:0.), (npeaks>10 ? xpeaks[10]:0.));
       fflush(FileOut);
       gPad->Modified();
       gPad->Update();

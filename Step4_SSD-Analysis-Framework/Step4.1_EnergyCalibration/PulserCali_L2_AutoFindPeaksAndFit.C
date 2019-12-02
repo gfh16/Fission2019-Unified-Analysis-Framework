@@ -48,7 +48,7 @@ void PulserCali_L2_AutoFindPeaksAndFit()
   gStyle->SetOptStat(0);
 
   std::string LayerTag("L2");
-  std::string FileTag("Switch");   // "Height" or "Switch"
+  std::string FileTag("Height");   // "Height" or "Switch"
   std::string pdfpath(Form("figures/SSD_%s_PulserCali_%s.pdf",LayerTag.c_str(),FileTag.c_str()));
 
   TCanvas *cans[4][16];
@@ -111,10 +111,14 @@ void PulserCali_AutoFindPeak(const char* LayerTag, const char* FileTag, TCanvas*
   std::string L2B_outputpath(Form("output/SSD_%sB_PulserCali_%s.dat",LayerTag,FileTag));
   FILE * FileOutF = fopen(L2F_outputpath.c_str(),"w");
   FILE * FileOutB = fopen(L2B_outputpath.c_str(),"w");
-  fprintf(FileOutF,"* Fiiting funtion = par[0] + par[1]*x && y=a*x+b (y=Energy, x=Ch), so a = par[1], b = par[0];  0.0 isn't a peak\n");
-  fprintf(FileOutF,"* SSDNum CHNum    par1(a)   err_par0     par0(b)      err_par1      peak1     peak2      peak3      peak4     peak5     peak6     peak7     peak8     peak9     peak10   peak11 \n");
-  fprintf(FileOutB,"* Fiiting funtion = par[0] + par[1]*x && y=a*x+b, so a = par[1], b = par[0];  0.0 isn't a peak\n");
-  fprintf(FileOutB,"* SSDNum CHNum    par1(a)   err_par0     par0(b)      err_par1      peak1     peak2      peak3      peak4     peak5     peak6     peak7     peak8     peak9     peak10   peak11 \n");
+  fprintf(FileOutF,"* Fiiting funtion = par[0] + par[1]*x && y=a*x+b (y=Energy, x=Ch), so a = par[1], b = par[0]\n");
+  fprintf(FileOutF,"* SSDNum CHNum    par1(a)   err_par0     par0(b)      err_par1     "
+	           "  peak1     peak2      peak3      peak4     peak5  "  
+		   "  peak6     peak7     peak8     peak9     peak10   peak11 \n");
+  fprintf(FileOutB,"* Fiiting funtion = par[0] + par[1]*x && y=a*x+b, so a = par[1], b = par[0]\n");
+  fprintf(FileOutB,"* SSDNum CHNum    par1(a)   err_par0     par0(b)      err_par1    "
+	           "  peak1     peak2     peak3     peak4     peak5  "
+	           "  peak6     peak7     peak8     peak9     peak10    peak11 \n");
 
   TH1D * L2F_PulserPeaks[4][16];
   TH1D * L2B_PulserPeaks[4][16];
@@ -243,16 +247,27 @@ void PulserCali_AutoFindPeak(const char* LayerTag, const char* FileTag, TCanvas*
       Double_t par1_B     = fitB->GetParameter(0);
       Double_t err_par1_B = fitB->GetParError(0);
 
-      fprintf(FileOutF," %5d    %2d   %10.4f  %10.4f  %10.4f   %10.4f   %8.1f   %8.1f   %8.1f   %8.1f  %8.1f  %8.1f  %8.1f  %8.1f  %8.1f  %8.1f  %8.1f\n",
-      SSDNum,CHNum,par0_F,err_par0_F,par1_F,err_par1_F,xpeaksF[0],xpeaksF[1],xpeaksF[2],xpeaksF[3],xpeaksF[4],xpeaksF[5],xpeaksF[6],xpeaksF[7],xpeaksF[8],xpeaksF[9],xpeaksF[10]);
-      fprintf(FileOutB," %5d    %2d   %10.4f  %10.4f  %10.4f   %10.4f   %8.1f   %8.1f   %8.1f   %8.1f  %8.1f  %8.1f  %8.1f  %8.1f  %8.1f  %8.1f  %8.1f\n",
-      SSDNum,CHNum,par0_B,err_par0_B,par1_B,err_par1_B,xpeaksB[0],xpeaksB[1],xpeaksB[2],xpeaksB[3],xpeaksB[4],xpeaksB[5],xpeaksB[6],xpeaksB[7],xpeaksB[8],xpeaksB[9],xpeaksB[10]);
+      fprintf(FileOutF," %5d    %2d   %10.8f  %10.8f  %10.8f   %10.8f "
+		       " %8.1f   %8.1f   %8.1f   %8.1f  %8.1f  %8.1f  "
+		       " %8.1f  %8.1f  %8.1f  %8.1f  %8.1f\n",
+                       SSDNum,CHNum,par0_F,err_par0_F,par1_F,err_par1_F,
+		        xpeaksF[0],xpeaksF[1],xpeaksF[2],xpeaksF[3],xpeaksF[4],
+		       (npeaksF>5 ? xpeaksF[5]:0.), (npeaksF>6 ? xpeaksF[6]:0.),
+		       (npeaksF>7 ? xpeaksF[7]:0.), (npeaksF>8 ? xpeaksF[8]:0.),
+		       (npeaksF>9 ? xpeaksF[9]:0.), (npeaksF>10? xpeaksF[10]:0.));
+      fprintf(FileOutB," %5d    %2d   %10.8f  %10.8f  %10.8f   %10.8f  "
+		       " %8.1f   %8.1f   %8.1f   %8.1f  %8.1f  %8.1f  "
+		       " %8.1f  %8.1f  %8.1f  %8.1f  %8.1f\n",
+                       SSDNum,CHNum,par0_B,err_par0_B,par1_B,err_par1_B,
+		       xpeaksB[0],xpeaksB[1],xpeaksB[2],xpeaksB[3],xpeaksB[4],
+		       (npeaksB>5 ? xpeaksB[5]:0.), (npeaksB>6 ? xpeaksB[6]:0.),
+		       (npeaksB>7 ? xpeaksB[7]:0.), (npeaksB>8 ? xpeaksB[8]:0.),
+		       (npeaksB>9 ? xpeaksB[9]:0.), (npeaksB>10? xpeaksB[10]:0.));
       fflush(FileOutF); // 需要加上这句！！！ 否则由于缓存问题，内容不被写入
       fflush(FileOutB);
 
       gPad->Modified();
       gPad->Update();
-  //    getchar();    */
     }// ====  close loop of strip number
   } // =====  close loop of SSDNum
   fclose(FileOutF);
