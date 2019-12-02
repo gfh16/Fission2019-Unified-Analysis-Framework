@@ -30,17 +30,17 @@ void AlphaCali_FindPeaks()
 {
   /////////////////////////////////////////////////////////////////////////////
   //                                                                         //
-  //   1. 读取Histograms                                                      //
-  //   2. 通过c1->Connect("ProcessedEvent(Int_t,Int_t,Int_t,TObject*)",0,0,   //
-  //                     "SetPoints(Int_t,Int_t,Int_t,TObject*)")调用GUI      //
-  //   3. 定义一个正数Option，作为操作选项：                                      //
-  //     (1) Option 初始化为 2                                                 //
-  //     (2) Option = 2: 调用 SetPoints(), 手动选点                             //
-  //     (3) 提示输入Option：                                                  //
-  //         <1> 输入 1, 进行拟合并保存;                                         //
-  //         <2> 输入 2, 在此执行while(Option==2)                               //
-  //         <3> 输入 3，中断跳出                                               //
-  //  4. 三组分alpha源有3个能量峰,需要6个点来拟合                                  //
+  //   1. 读取Histograms                                                     //
+  //   2. 通过c1->Connect("ProcessedEvent(Int_t,Int_t,Int_t,TObject*)",0,0,  //
+  //                     "SetPoints(Int_t,Int_t,Int_t,TObject*)")调用GUI     //
+  //   3. 定义一个正数Option，作为操作选项：                                 //
+  //     (1) Option 初始化为 2                                               //
+  //     (2) Option = 2: 调用 SetPoints(), 手动选点                          //
+  //     (3) 提示输入Option：                                                //
+  //         <1> 输入 1, 进行拟合并保存;                                     //
+  //         <2> 输入 2, 在此执行while(Option==2)                            //
+  //         <3> 输入 3，中断跳出                                            //
+  //  4. 三组分alpha源有3个能量峰,需要6个点来拟合                            //
   /////////////////////////////////////////////////////////////////////////////
    std::string InputTag("00_08");
    std::string FileOutTag1("Alpha");
