@@ -88,20 +88,20 @@ void PulserCali_L1_AutoFindPeaksAndFit()
 void PulserCali_AutoFindPeak(const char* LayerTag, const char* FileTag, TCanvas* cans[4][16])
 {
 /////////////////////////////////////////////////////////////////////////////////
-//                        自动寻峰步骤                                           //
-//   1.从文件中读取已有的的 hitograms                                             //
-//   2.新建TSpectrum：TSpectrum * s = new TSpectrum();                          //
-//   3.寻峰(寻找候选峰): Int_t nfound  = s->Search(PulserPeaks[i],3,"",0.2);     //
-//   4.对所有峰进行排序                                                          //
-//   5.遍历所有找到的峰，提取峰值的 X值、Y值，拟合                                   //
-//   6.将寻峰得到的数据点画出来, 作线性拟合                                         //
+//                        自动寻峰步骤                                          //
+//   1.从文件中读取已有的的 hitograms                                            //
+//   2.新建TSpectrum：TSpectrum * s = new TSpectrum();                         //
+//   3.寻峰(寻找候选峰): Int_t nfound  = s->Search(PulserPeaks[i],3,"",0.2);    //
+//   4.对所有峰进行排序                                                         //
+//   5.遍历所有找到的峰，提取峰值的 X值、Y值，拟合                                 //
+//   6.将寻峰得到的数据点画出来, 作线性拟合                                       //
 //                                                                            //
 //   PulserCali_AutoFindPeak()参数说明                                         //
 //   LayerTag   : L1 or L2                                                    //
 //   FileTag    : Switch / Height，We use this two methods for pulser cali    //
 //   cans[4][16]: Canvas for to save all the figures                          //
 //                                                                            //
-//   Search()参数说明：                                                         //
+//   Search()参数说明：                                                        //
 //   Search(hist, sigma, option, threshold) \\ 0 < threshold < 1              //
 //   sigma    : sigma of searched peaks， search                              //
 //   threshold: peaks with amplitude < threshold*highest_peak are discarded   //
@@ -113,11 +113,11 @@ void PulserCali_AutoFindPeak(const char* LayerTag, const char* FileTag, TCanvas*
 	    	  " peak1     peak2     peak3      peak4     peak5  "    
 		  " peak6     peak7     peak8      peak9     peak10    peak11 \n");
 
-  TH1D * PulserPeaks[4][16];
+  TH1D* PulserPeaks[4][16];
   for(Int_t SSDNum=0; SSDNum<4; SSDNum++)
   {
     std::string path_to_file(Form("data/QC_MapSSD%d_%s_PulserCali_%s0000.root", SSDNum+1,LayerTag,FileTag));
-    TFile * FileIn = new TFile(path_to_file.c_str());
+    TFile* FileIn = new TFile(path_to_file.c_str());
     if (!FileIn->IsOpen())
     {  //  cans[SSDNum][i]->Close();
       cout<<"Open file "<< path_to_file.c_str() << " failed"<<endl;
@@ -135,7 +135,7 @@ void PulserCali_AutoFindPeak(const char* LayerTag, const char* FileTag, TCanvas*
     //============================================================================
     //                        BEGIN ANALYZE HERE !!!
     //============================================================================
-    TSpectrum * s = new TSpectrum();
+    TSpectrum* s = new TSpectrum();
     for(Int_t CHNum=0; CHNum<16; CHNum++)
     {
       if (PulserPeaks[SSDNum][CHNum]==0)
@@ -152,7 +152,7 @@ void PulserCali_AutoFindPeak(const char* LayerTag, const char* FileTag, TCanvas*
       printf("SSD%d_%sS_E_CH%d is analyzed,%2d peaks found\n",SSDNum+1,LayerTag,CHNum,nfound);
       //  Loop on all found peaks
       Int_t npeaks = 0;
-      Double_t *xpeaks = s->GetPositionX();
+      Double_t* xpeaks = s->GetPositionX();
       // 对寻找到的峰值降序排序
       std::sort(xpeaks,xpeaks+nfound,compare);   // sort默认升序,compare使之变成降序
       for(Int_t p=0; p<nfound; p++)
