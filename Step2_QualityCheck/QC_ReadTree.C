@@ -105,7 +105,7 @@ int main(int argc, char *argv[])
     cout << pathrdfn << endl;
     //________________________________
     //      设置输出 .root 文件路径 与 命名
-    TString outrootpath = "./QC_HistRoot";  //输出.root文件保存在 QC_HistRoot文件夹下
+    TString outrootpath = "/data/EXPdata/Fission2019_Data/QualityCheck_MapRoot";  //输出.root文件保存
     outrootpath += "/QC_";
     outrootpath += rdfname;
     cout << outrootpath << endl;
@@ -114,7 +114,7 @@ int main(int argc, char *argv[])
     TString pdf_name(rdfname);
     pdf_name.ReplaceAll(".root", "");
     //___________________________
-    TString outpdfpath = "QC_pdf"; //输出.pdf文件保存在 QC_pdf_ReadTree文件夹下
+    TString outpdfpath = "figures"; //输出.pdf文件保存在 QC_pdf_ReadTree文件夹下
     outpdfpath += "/QC_";	                  //QC_标记是质检文件
     outpdfpath += pdf_name;
     outpdfpath += ".pdf";

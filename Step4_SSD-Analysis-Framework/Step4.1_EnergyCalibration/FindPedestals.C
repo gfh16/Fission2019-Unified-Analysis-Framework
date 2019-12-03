@@ -37,7 +37,7 @@ void FindPedestals()
 //         <3> 输入 3，中断跳出                                              //
 /////////////////////////////////////////////////////////////////////////////
 
-   std::string path_to_file("data/QC_MapSSD_PulserCali_Pedestal0000.root");
+   std::string path_to_file("/data/EXPdata/Fission2019_Data/QualityCheck_MapRoot/QC_MapSSD_PulserCali_Pedestal0000.root");
    std::string FileOutTag1("Pedestals");  // here to change "Pedestals" or "Pulser" or "Alpha"
    std::string FileOutTag2("L2B_E");      // here to change "L1S_E" or "L2F_E" or "L2B_E" or "L3A_E"
    std::string FileOutpath(Form("output/SSD_%s_%s.dat", FileOutTag1.c_str(), FileOutTag2.c_str()));

@@ -116,7 +116,7 @@ void PulserCali_AutoFindPeak(const char* LayerTag, const char* FileTag, TCanvas*
   TH1D* PulserPeaks[4][16];
   for(Int_t SSDNum=0; SSDNum<4; SSDNum++)
   {
-    std::string path_to_file(Form("data/QC_MapSSD%d_%s_PulserCali_%s0000.root", SSDNum+1,LayerTag,FileTag));
+    std::string path_to_file(Form("/data/EXPdata/Fission2019/QualityCheck/QC_MapSSD%d_%s_PulserCali_%s0000.root", SSDNum+1,LayerTag,FileTag));
     TFile* FileIn = new TFile(path_to_file.c_str());
     if (!FileIn->IsOpen())
     {  //  cans[SSDNum][i]->Close();

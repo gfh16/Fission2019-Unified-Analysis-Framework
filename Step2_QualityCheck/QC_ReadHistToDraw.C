@@ -15,10 +15,10 @@ void ReadHistToDraw(Int_t runnumber)
 {
  // Int_t runnumber = 0;
   std::string LayerTag("L1");
-  std::string fileinpath(Form("QC_HistRoot/QC_MapSSD_%s_AlphaCali%04d.root",LayerTag.c_str(),runnumber));
-  std::string pdfpath(Form("QC_pdf/QC_MapSSD_%s_AlphaCali%04d.pdf", LayerTag.c_str(),runnumber));
-  std::string pdfbegin(Form("QC_pdf/QC_MapSSD_%s_AlphaCali%04d.pdf[", LayerTag.c_str(),runnumber));
-  std::string pdfend(Form("QC_pdf/QC_MapSSD_%s_AlphaCali%04d.pdf]", LayerTag.c_str(),runnumber)); 
+  std::string fileinpath(Form("/data/EXPdata/Fission2019_Data/QualityCheck_MapRoot/QC_MapSSD_%s_AlphaCali%04d.root",LayerTag.c_str(),runnumber));
+  std::string pdfpath(Form("figures/QC_MapSSD_%s_AlphaCali%04d.pdf", LayerTag.c_str(),runnumber));
+  std::string pdfbegin(Form("figures/QC_MapSSD_%s_AlphaCali%04d.pdf[", LayerTag.c_str(),runnumber));
+  std::string pdfend(Form("figures/QC_MapSSD_%s_AlphaCali%04d.pdf]", LayerTag.c_str(),runnumber)); 
   
   TCanvas* c1      = new TCanvas("c1","c1",800,600);
   TCanvas* c_begin = new TCanvas("c_begin", "c_begin");

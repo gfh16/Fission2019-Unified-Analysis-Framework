@@ -45,7 +45,7 @@ void AlphaCali_FindPeaks()
    std::string InputTag("00_08");
    std::string FileOutTag1("Alpha");
    std::string FileOutTag2("L1S_E");  // "L1S_E" or "L2F_E" or "L2B_E"
-   std::string path_to_file(Form("data/MapSSD_L1_AlphaCali%s.root", InputTag.c_str()));
+   std::string path_to_file(Form("/data/EXPdata/Fission2019_Data/MapRoot/MapSSD_L1_AlphaCali%s.root", InputTag.c_str()));
    std::string FileOutdatapath(Form("output/SSD_%s_%s_%s.dat", FileOutTag1.c_str(), FileOutTag2.c_str(), InputTag.c_str()));
    std::string FileOutfitresult(Form("output/Fitpara_SSD_%s_%s_%s.dat", FileOutTag1.c_str(), FileOutTag2.c_str(), InputTag.c_str()));
    std::string FileOutpdfpath(Form("figures/SSD_%s_%s_%s.pdf", FileOutTag1.c_str(), FileOutTag2.c_str(), InputTag.c_str()));
