@@ -1,1 +1,11 @@
+###-------------------- 
+# ignore swap files
+
 *.swp
+
+
+
+###----------------------
+# ignore Step2_QualityCheck/figues
+
+Step2_QualityCheck/figures/
