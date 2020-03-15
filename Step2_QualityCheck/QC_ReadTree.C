@@ -39,7 +39,7 @@ int main(int argc, char *argv[])
   vector<string> rawdfname;
   fstream listf;
 
-  string datapath = "/data/EXPdata/Fission2019_Data/MapRoot";
+  string datapath = "/data/EXPdata/Fission2019/MapRoot";
  // string datapath = "../../Fission2019_Data/MapRoot"; // 设置读取的.root文件的路径
   //________________________________________________________________________________
   // 设置读取文件的方式：argc == 1 单个文件处理； argc == 2 按listfilename列举的文件批量处理
@@ -105,7 +105,7 @@ int main(int argc, char *argv[])
     cout << pathrdfn << endl;
     //________________________________
     //      设置输出 .root 文件路径 与 命名
-    TString outrootpath = "/data/EXPdata/Fission2019_Data/QualityCheck_MapRoot";  //输出.root文件保存
+    TString outrootpath = "/data/EXPdata/Fission2019/QualityCheck";  //输出.root文件保存
     outrootpath += "/QC_";
     outrootpath += rdfname;
     cout << outrootpath << endl;
