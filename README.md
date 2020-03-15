@@ -93,11 +93,11 @@ $ root -l PulserCali_L2_AutoFindPeaksAndFit.C
 
 
 > **(4) AlphaCali_FindPeak**  
-   4.1 使用TChain方法合并刻度文件：本次实验获得了多个alpha刻度文件，合并文件是为了增加统计量  
-   4.2 利用从MSU拷贝回来的EnergyLossModule计算alpha穿过2um镀铝Mylar膜后的能量. 三组分alpha源的三个
-       峰分别来源于239Pu, 241Am, 244Cm, 将三者发射alpha粒子的加权平均能量作为alpha的出射能量  
-   4.3 写了一个手动寻峰的程序，手动选取拟合范围，对三组分alpha源的三个alpha峰分别进行了拟合  
-   4.4 将三个alpha峰的拟合结果保存到.dat文件中  
+>+ 使用TChain方法合并刻度文件：本次实验获得了多个alpha刻度文件，合并文件是为了增     加统计量  
+>+ 利用从MSU拷贝回来的EnergyLossModule计算alpha穿过2um镀铝Mylar膜后的能量.      三组分alpha源的三个峰分别来源于239Pu, 241Am, 244Cm, 将三者发射alpha粒子
+   的加权平均能量作为alpha的出射能量  
+>+ 写了一个手动寻峰的程序，手动选取拟合范围，对三组分alpha源的三个alpha峰分别进行    了拟合  
+>+ 将三个alpha峰的拟合结果保存到.dat文件中  
 
 ````````
 $ root -l AlphaCali_MergeFiles.C
