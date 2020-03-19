@@ -167,7 +167,7 @@ void SiEnergyCali()
 
        canvas->cd(1);
        Double_t y1_max = k1 * 4096 + h1;
-       fPeak1Fit->SetTitle(Form("SSD%d_%sS_%s_CH%02d",i+1,LayerTag.c_str(),FileTag.c_str(),j));
+       fPeak1Fit->SetTitle(Form("SSD%d_%s_%s_%s_CH%02d",i+1,LayerTag.c_str(),FileTag.c_str(),AlphaCaliTag.c_str(),j));
        fPeak1Fit->GetXaxis()->SetRangeUser(0,4096);
        fPeak1Fit->GetYaxis()->SetRangeUser(0,y1_max);
        fPeak1Fit->GetXaxis()->SetNdivisions(505,"true");
@@ -197,7 +197,7 @@ void SiEnergyCali()
        Double_t x2_max = E3_CH + 10;
        Double_t y2_max = k1 * x2_max + h1;
 //       printf("x2_max=%.4f\n", x2_max);
-       fPeak1FitClone1->SetTitle(Form("SSD%d_%sS_%s_CH%02d",i+1,LayerTag.c_str(),FileTag.c_str(),j));
+       fPeak1FitClone1->SetTitle(Form("SSD%d_%s_%s_%s_CH%02d",i+1,LayerTag.c_str(),FileTag.c_str(),AlphaCaliTag.c_str(),j));
        fPeak1FitClone1->GetXaxis()->SetRangeUser(0,x2_max);
        fPeak1FitClone1->GetYaxis()->SetRangeUser(0,y2_max);
        fPeak1FitClone1->GetXaxis()->SetNdivisions(510,"true");
@@ -244,7 +244,7 @@ void SiEnergyCali()
        Double_t y3_min = k1 * x3_min + h1;
        Double_t y3_max = k1 * x3_max + h1;
   //     printf("x3_min=%.4f  x3_max=%.4f", x3_min, x3_max);
-       fPeak1FitClone2->SetTitle(Form("SSD%d_%sS_%s_CH%02d",i+1,LayerTag.c_str(),FileTag.c_str(),j));
+       fPeak1FitClone2->SetTitle(Form("SSD%d_%s_%s_%s_CH%02d",i+1,LayerTag.c_str(),FileTag.c_str(),AlphaCaliTag.c_str(),j));
        fPeak1FitClone2->GetXaxis()->SetRangeUser(x3_min, x3_max);
        fPeak1FitClone2->GetYaxis()->SetRangeUser(4.5, 6);
        fPeak1FitClone2->GetXaxis()->SetNdivisions(510,"true");
@@ -299,7 +299,7 @@ void SiEnergyCali()
    {
      TGraph* graph = new TGraph(Num_PedestalOffset[i], SSDCHNum[i], PedestalOffset[i]);
      cans_grap->cd(i+1);
-     graph->SetTitle(Form("SSD%d_PedestalOffset_Alpha%s",i+1,AlphaCaliTag.c_str()));
+     graph->SetTitle(Form("SSD%d_%s_PedestalOffset_%s_%s",i+1, LayerTag.c_str(), FileTag.c_str(), AlphaCaliTag.c_str()));
      graph->SetMarkerStyle(20);
      graph->SetMarkerColor(kBlue);
      graph->GetXaxis()->SetTitle("CH");
