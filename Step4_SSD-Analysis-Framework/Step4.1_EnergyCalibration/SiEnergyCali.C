@@ -35,20 +35,21 @@ void SiEnergyCali()
 {
    std::string LayerTag("L1S");
    std::string FileTag("Switch");
-   std::string AlphaCaliTag("00_08");
+   std::string AlphaCaliTag("Alpha00_08");
 
    std::string pathPuserIn(Form("output/SSD_%s_PulserCali_%s.dat",LayerTag.c_str(),FileTag.c_str())); // Pulser fitting parameters
-   std::string pathAlphaEIn("output/SSD_Alpha_Energy.dat");   // Alpha enegies in MeV
-   std::string pathAlphaChIn(Form("output/SSD_Alpha_%s_E_%s.dat",LayerTag.c_str(), AlphaCaliTag.c_str())); // Channel of the alpha peaks
-   std::string pathPedestalIn(Form("output/SSD_Pedestals_%s_E.dat",LayerTag.c_str()));
-   std::string path3AlphaFitParIn(Form("output/Fitpara_SSD_Alpha_%s_E_%s.dat",LayerTag.c_str(), AlphaCaliTag.c_str()));
+   std::string pathAlphaEIn("output/SSD_AlphaEnergies.dat");   // Alpha enegies in MeV
+   std::string pathAlphaChIn(Form("output/SSD_%s_AlphaPeaks_%s.dat",LayerTag.c_str(), AlphaCaliTag.c_str())); // Channel of the alpha peaks
+   std::string pathPedestalIn(Form("output/SSD_%s_Pedestals.dat",LayerTag.c_str()));
+   std::string path3AlphaFitParIn(Form("output/SSD_%s_3AlphaFitPars_%s.dat",LayerTag.c_str(), AlphaCaliTag.c_str()));
 
-   std::string pathSiEnergyCaliFitParOut(Form("output/EnergyCaliPar_SSD_%s_E_%s_Alpha%s.dat",LayerTag.c_str(), FileTag.c_str(), AlphaCaliTag.c_str()));
-   std::string pathSiEnergyCaliFitPDF(Form("figures/SSD_%s_EnergyCali_%s_Alpha%s.pdf",LayerTag.c_str(), FileTag.c_str(), AlphaCaliTag.c_str()));
-   std::string pathSiEnergyCaliFitPDFbegin(Form("figures/SSD_%s_EnergyCali_%s_Alpha%s.pdf[",LayerTag.c_str(), FileTag.c_str(), AlphaCaliTag.c_str()));
-   std::string pathSiEnergyCaliFitPDFend(Form("figures/SSD_%s_EnergyCali_%s_Alpha%s.pdf]", LayerTag.c_str(), FileTag.c_str(), AlphaCaliTag.c_str()));
-   std::string pathPedestalOffsetPDF(Form("figures/SSD_%s_PedestalOffset_%s_Alpha%s.pdf",LayerTag.c_str(), FileTag.c_str(), AlphaCaliTag.c_str()));
-   std::string pathPedestalOffsetPNG(Form("figures/SSD_%s_PedestalOffset_%s_Alpha%s.png",LayerTag.c_str(), FileTag.c_str(), AlphaCaliTag.c_str()));
+   std::string pathSiEnergyCaliFitParOut(Form("output/SSD_%s_SiEnergyCaliPars_%s_%s.dat",LayerTag.c_str(), FileTag.c_str(), AlphaCaliTag.c_str()));
+
+   std::string pathSiEnergyCaliFitPDF(Form("figures/SSD_%s_EnergyCali_%s_%s.pdf",LayerTag.c_str(), FileTag.c_str(), AlphaCaliTag.c_str()));
+   std::string pathSiEnergyCaliFitPDFbegin(Form("figures/SSD_%s_EnergyCali_%s_%s.pdf[",LayerTag.c_str(), FileTag.c_str(), AlphaCaliTag.c_str()));
+   std::string pathSiEnergyCaliFitPDFend(Form("figures/SSD_%s_EnergyCali_%s_%s.pdf]", LayerTag.c_str(), FileTag.c_str(), AlphaCaliTag.c_str()));
+   std::string pathPedestalOffsetPDF(Form("figures/SSD_%s_PedestalOffset_%s_%s.pdf",LayerTag.c_str(), FileTag.c_str(), AlphaCaliTag.c_str()));
+   std::string pathPedestalOffsetPNG(Form("figures/SSD_%s_PedestalOffset_%s_%s.png",LayerTag.c_str(), FileTag.c_str(), AlphaCaliTag.c_str()));
 
    ofstream EnergyCaliParOut(pathSiEnergyCaliFitParOut.c_str());
    EnergyCaliParOut<<"* Fit function: E_MeV = a * E_CH + b, then E_CH = 1/a * E_MeV - a/b \n";

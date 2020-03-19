@@ -40,7 +40,7 @@ bool compare(Int_t a, Int_t b)
 
 
 //______________________________________________________________________________
-void PulserCali_AutoFindPeak(const char* LayerTag, const char* LayerTagInput, const char* FileTag, TCanvas* cans[4][16]);
+void PulserCali_AutoFindPeak(const char* L1Tag, const char* FileTag, TCanvas* cans[4][16]);
 
 
 //______________________________________________________________________________
@@ -48,10 +48,13 @@ void PulserCali_L1_AutoFindPeaksAndFit()
 {
   gStyle->SetOptStat(0);
 
-  std::string LayerTagInput("L1");
-  std::string LayerTag("L1S");
-  std::string FileTag("Height");   // "Height" or "Switch"
-  std::string pdfpath(Form("figures/SSD_%s_PulserCali_%s.pdf",LayerTag.c_str(),FileTag.c_str()));
+  std::string L1Tag("L1");
+  std::string L1STag("L1S");
+  std::string FileTag("Switch");   // "Height" or "Switch"
+
+  std::string pathPDFOutput(Form("figures/SSD_%s_PulserCali_%s.pdf", L1STag.c_str(),FileTag.c_str()));
+  std::string pathPDFbegin(Form("figures/SSD_%s_PulserCali_%s.pdf[", L1STag.c_str(),FileTag.c_str()));
+  std::string pathPDFend(Form("figures/SSD_%s_PulserCali_%s.pdf]", L1STag.c_str(),FileTag.c_str()));
 
   TCanvas *cans[4][16];
   for(Int_t SSDNum=0; SSDNum<4; SSDNum++)
@@ -62,32 +65,28 @@ void PulserCali_L1_AutoFindPeaksAndFit()
       cans[SSDNum][CHNum]->Close();
     }
   }
-  PulserCali_AutoFindPeak(LayerTag.c_str(), LayerTagInput.c_str(), FileTag.c_str(),cans);
-
-  std::string pdfpath_begin = pdfpath;
-  pdfpath_begin += '[';
-  std::string pdfpath_end = pdfpath;
-  pdfpath_end += ']';
+  PulserCali_AutoFindPeak(L1Tag.c_str(), FileTag.c_str(),cans);
 
   TCanvas *c_begin = new TCanvas("c_begin","");
   TCanvas *c_end   = new TCanvas("c_end","");
   c_end->Close();
   c_begin->Close();
-  c_begin->Print(pdfpath_begin.c_str());
+  c_begin->Print(pathPDFbegin.c_str());
+
   for(Int_t SSDNum=0; SSDNum<4; SSDNum++)
   {
     for(int CHNum=0; CHNum<16; CHNum++)
     {
-        cans[SSDNum][CHNum]->Print(pdfpath.c_str());
+        cans[SSDNum][CHNum]->Print(pathPDFOutput.c_str());
     }
   }
-  c_end->Print(pdfpath_end.c_str());
+  c_end->Print(pathPDFend.c_str());
   return;
 }
 
 
 //______________________________________________________________________________
-void PulserCali_AutoFindPeak(const char* LayerTag, const char* LayerTagInput, const char* FileTag, TCanvas* cans[4][16])
+void PulserCali_AutoFindPeak(const char* L1Tag, const char* FileTag, TCanvas* cans[4][16])
 {
 /////////////////////////////////////////////////////////////////////////////////
 //                        自动寻峰步骤                                          //
@@ -99,7 +98,7 @@ void PulserCali_AutoFindPeak(const char* LayerTag, const char* LayerTagInput, co
 //   6.将寻峰得到的数据点画出来, 作线性拟合                                       //
 //                                                                            //
 //   PulserCali_AutoFindPeak()参数说明                                         //
-//   LayerTag   : L1 or L2                                                    //
+//   L1Tag   : L1 or L2                                                    //
 //   FileTag    : Switch / Height，We use this two methods for pulser cali    //
 //   cans[4][16]: Canvas for to save all the figures                          //
 //                                                                            //
@@ -108,8 +107,10 @@ void PulserCali_AutoFindPeak(const char* LayerTag, const char* LayerTagInput, co
 //   sigma    : sigma of searched peaks， search                              //
 //   threshold: peaks with amplitude < threshold*highest_peak are discarded   //
 ////////////////////////////////////////////////////////////////////////////////
-  std::string outputpath(Form("output/SSD_%s_PulserCali_%s.dat",LayerTag,FileTag));
-  FILE * FileOut = fopen(outputpath.c_str(),"w");
+
+  std::string pathPulserCaliParsOutput(Form("output/SSD_%sS_PulserCali_%s.dat",L1Tag,FileTag));
+
+  FILE * FileOut = fopen(pathPulserCaliParsOutput.c_str(),"w");
   fprintf(FileOut,"* Fiiting funtion = par[0] + par[1]*x && y=a*x+b (y=Energy, x=Ch), so a = par[1], b = par[0];  0.0 isn't a peak\n");
   fprintf(FileOut,"* SSDNum CHNum    par0(a)   err_par0     par1(b)      err_par1      "
 	    	  " peak1     peak2     peak3      peak4     peak5  "
@@ -118,21 +119,21 @@ void PulserCali_AutoFindPeak(const char* LayerTag, const char* LayerTagInput, co
   TH1D* PulserPeaks[4][16];
   for(Int_t SSDNum=0; SSDNum<4; SSDNum++)
   {
-    //std::string path_to_file(Form("/data/EXPdata/Fission2019/QualityCheck/QC_MapSSD%d_%s_PulserCali_%s0000.root", SSDNum+1,LayerTagInput,FileTag));
-    std::string path_to_file(Form("rootinput/QC_MapSSD%d_%s_PulserCali_%s0000.root", SSDNum+1,LayerTagInput,FileTag));
+    //std::string pathRootInput(Form("/data/EXPdata/Fission2019/QualityCheck/QC_MapSSD%d_%s_PulserCali_%s0000.root", SSDNum+1, L1Tag, FileTag));
+    std::string pathRootInput(Form("rootinput/QC_MapSSD%d_%s_PulserCali_%s0000.root", SSDNum+1, L1Tag, FileTag));
 
-    TFile* FileIn = new TFile(path_to_file.c_str());
+    TFile* FileIn = new TFile(pathRootInput.c_str());
     if (!FileIn->IsOpen())
     {  //  cans[SSDNum][i]->Close();
-      cout<<"Open file "<< path_to_file.c_str() << " failed"<<endl;
+      cout<<"Open file "<< pathRootInput.c_str() << " failed"<<endl;
       return;
     }
     // 读取root文件中的 Histograms
     for(Int_t CHNum=0; CHNum<16; CHNum++)
     {
-      PulserPeaks[SSDNum][CHNum] = (TH1D*)FileIn->Get(Form("SSD%d_%s_E_CH%02d",SSDNum+1,LayerTag,CHNum));
+      PulserPeaks[SSDNum][CHNum] = (TH1D*)FileIn->Get(Form("SSD%d_%sS_E_CH%02d",SSDNum+1,L1Tag,CHNum));
       PulserPeaks[SSDNum][CHNum]->GetXaxis()->SetRangeUser(120,4095);
-      cout << Form("SSD%d_%sS_E_CH%d",SSDNum+1,LayerTag,CHNum) << endl;
+      cout << Form("SSD%d_%sS_E_CH%d",SSDNum+1,L1Tag,CHNum) << endl;
     }
     printf("Histograms loaded\n");
 
@@ -144,7 +145,7 @@ void PulserCali_AutoFindPeak(const char* LayerTag, const char* LayerTagInput, co
     {
       if (PulserPeaks[SSDNum][CHNum]==0)
       {
-        printf("No data present for SSD%d_%s_E_CH%02d\n",SSDNum+1,LayerTag,CHNum);
+        printf("No data present for SSD%d_%sS_E_CH%02d\n",SSDNum+1,L1Tag,CHNum);
         continue;
       }
       // find peaks candidates
@@ -153,7 +154,7 @@ void PulserCali_AutoFindPeak(const char* LayerTag, const char* LayerTagInput, co
       cans[SSDNum][CHNum]->Divide(1,2);
       cans[SSDNum][CHNum]->cd(1);
       Int_t nfound  = s->Search(PulserPeaks[SSDNum][CHNum],3,"",0.4);
-      printf("SSD%d_%sS_E_CH%d is analyzed,%2d peaks found\n",SSDNum+1,LayerTag,CHNum,nfound);
+      printf("SSD%d_%sS_E_CH%d is analyzed,%2d peaks found\n",SSDNum+1,L1Tag,CHNum,nfound);
       //  Loop on all found peaks
       Int_t npeaks = 0;
       Double_t* xpeaks = s->GetPositionX();
@@ -166,7 +167,7 @@ void PulserCali_AutoFindPeak(const char* LayerTag, const char* LayerTagInput, co
         Int_t   bin = PulserPeaks[SSDNum][CHNum]->GetXaxis()->FindBin(xp);
         Double_t yp = PulserPeaks[SSDNum][CHNum]->GetBinContent(bin);
 
-        printf(" SSD%d_%sS_E_CH%d peak %d is %.1f\n",SSDNum+1,LayerTag,CHNum,p,xp);
+        printf(" SSD%d_%sS_E_CH%d peak %d is %.1f\n",SSDNum+1,L1Tag,CHNum,p,xp);
         npeaks++;
       }
       cout<<"有效的peak数目为:"<< npeaks << endl;
@@ -186,7 +187,7 @@ void PulserCali_AutoFindPeak(const char* LayerTag, const char* LayerTagInput, co
       grap->SetMarkerStyle(20);
       grap->SetMarkerSize(1.5);
       grap->SetMarkerColor(kBlue);
-      grap->SetTitle(Form("PulserFit_SSD%d_%sS_E_CH%02d",SSDNum+1,LayerTag,CHNum));
+      grap->SetTitle(Form("PulserFit_SSD%d_%sS_E_CH%02d",SSDNum+1,L1Tag,CHNum));
       grap->Draw("AP*");
 
       TF1 * fit = new TF1("fit","pol1",100,4096);

@@ -38,12 +38,15 @@ void FindPedestals()
 /////////////////////////////////////////////////////////////////////////////
 
    std::string path_to_file("/data/EXPdata/Fission2019_Data/QualityCheck_MapRoot/QC_MapSSD_PulserCali_Pedestal0000.root");
-   std::string FileOutTag1("Pedestals");  // here to change "Pedestals" or "Pulser" or "Alpha"
-   std::string FileOutTag2("L2B_E");      // here to change "L1S_E" or "L2F_E" or "L2B_E" or "L3A_E"
-   std::string FileOutpath(Form("output/SSD_%s_%s.dat", FileOutTag1.c_str(), FileOutTag2.c_str()));
-   std::string pdfpath(Form("figures/SSD_%s_%s.pdf", FileOutTag1.c_str(), FileOutTag2.c_str()));
-   std::string pdfbegin(Form("figures/SSD_%s_%s.pdf[", FileOutTag1.c_str(), FileOutTag2.c_str()));
-   std::string pdfend(Form("figures/SSD_%s_%s.pdf]", FileOutTag1.c_str(), FileOutTag2.c_str()));
+
+   std::string LayerTag("L2B");         // here to change "L1S" or "L2F" or "L2B" or "L3A"
+   std::string FileOutTag("Pedestals");  // here to change "Pedestals" or "Pulser" or "Alpha"
+
+   std::string pathPedestalsOutput(Form("output/SSD_%s_%s.dat", LayerTag.c_str(), FileOutTag.c_str()));
+
+   std::string pathPDFOutput(Form("figures/SSD_%s_%s.pdf", LayerTag.c_str(), FileOutTag.c_str()));
+   std::string pathPDFbegin(Form("figures/SSD_%s_%s.pdf[", LayerTag.c_str(), FileOutTag.c_str()));
+   std::string pathPDFend(Form("figures/SSD_%s_%s.pdf]", LayerTag.c_str(), FileOutTag.c_str()));
 
    TFile * FileIn = new TFile(path_to_file.c_str());
    if(!FileIn->IsOpen())
@@ -52,7 +55,7 @@ void FindPedestals()
      return;
    }
 
-   ofstream FileOut(FileOutpath.c_str()));
+   ofstream FileOut(pathPedestalsOutput.c_str()));
    FileOut << "*SSDNum" << setw(7) << "CHNum" << setw(8) << "mean"<< setw(10)<< "sigma"<< setw(14)
            <<"mean+5sigma"<< setw(10)<<"Chi2" << setw(10) <<"Xmin"<< setw(10)<<"Xmax" << endl;
 
@@ -76,7 +79,7 @@ void FindPedestals()
    //                            BEGIN ANALYZE HERE !!!
    //====================================================================================
    // the pdf file begins here !!!
-   c_begin->Print(pdfbegin.c_str());
+   c_begin->Print(pathPDFbegin.c_str());
 
    float limit[2] = {0};   //定义limit[2]用于存储拟合范围
    for(Int_t i=0; i<4; i++)
@@ -138,12 +141,12 @@ void FindPedestals()
            FileOut<<"    "<<i<<"     "<<j<<"    ";
            FileOut<<Mean<<"    "<<Sigma<<"    "<<Mean+5*Sigma<<"    "<<Chi2<<"    "<<limit[0]<<"    "<<limit[1]<<endl;
 
-           c1->Print(pdfpath.c_str());
+           c1->Print(pathPDFOutput.c_str());
          }
          // Option == 3, 中断跳出程序
          if (Option==3)
          {
-           c_end->Print(pdfend.c_str());
+           c_end->Print(pathPDFend.c_str());
            FileOut.close();
            cout<<"File .dat closed"<<endl;
 
@@ -157,7 +160,7 @@ void FindPedestals()
    }     // close silicon number (i)
 
    //  the pdf file ends here !!!
-   c_end->Print(pdfend.c_str());
+   c_end->Print(pathPDFend.c_str());
    FileOut.close();
    cout<<"File .dat closed"<<endl;
 

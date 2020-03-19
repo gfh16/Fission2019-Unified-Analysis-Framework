@@ -42,17 +42,20 @@ void AlphaCali_FindPeaks()
   //         <3> 输入 3，中断跳出                                            //
   //  4. 三组分alpha源有3个能量峰,需要6个点来拟合                            //
   /////////////////////////////////////////////////////////////////////////////
-   std::string AlphaFileTag("00_08");
-   std::string AlphaTag("Alpha");
-   std::string LayerTag("L1S");  // "L1S_E" or "L2F_E" or "L2B_E"
 
    std::string pathFileInput(Form("/data/EXPdata/Fission2019_Data/MapRoot/MapSSD_L1_AlphaCali%s.root", AlphaFileTag.c_str()));
-   std::string FileOutdatapath(Form("output/SSD_%s_%s_%s.dat", AlphaTag.c_str(), LayerTag.c_str(), AlphaFileTag.c_str()));
-   
-   std::string path3AlphaFitResult(Form("output/SSD_%s_3AlphaFitPar_%s%s.dat",LayerTag.c_str(), AlphaTag.c_str(), AlphaFileTag.c_str()));
-   std::string pathPDFOutput(Form("figures/SSD_%s_%s_%s.pdf", AlphaTag.c_str(), LayerTag.c_str(), AlphaFileTag.c_str()));
-   std::string pathPDFbegin(Form("figures/SSD_%s_%s_%s.pdf[", AlphaTag.c_str(), LayerTag.c_str(), AlphaFileTag.c_str()));
-   std::string pathPDFend(Form("figures/SSD_%s_%s_%s.pdf]", AlphaTag.c_str(), LayerTag.c_str(), AlphaFileTag.c_str()));
+
+   std::string LayerTag("L1S");  // "L1S_E" or "L2F_E" or "L2B_E"
+   std::string AlphaFitTag("3AlphaFitPars");
+   std::string AlphaPeaksTag("AlphaPeaks");
+   std::string AlphaFileTag("Alpha00_08");
+
+   std::string pathAlphaPeaksOutput(Form("output/SSD_%s_%s_%s.dat", LayerTag.c_str(), AlphaPeaksTag.c_str(), AlphaFileTag.c_str()));
+   std::string pathAlphaFitResultsOutput(Form("output/SSD_%s_3AlphaFitPar_%s%s.dat",LayerTag.c_str(), AlphaFitTag.c_str(), AlphaFileTag.c_str()));
+
+   std::string pathPDFOutput(Form("figures/SSD_%s_%s_%s.pdf", LayerTag.c_str(), AlphaPeaksTag.c_str(), AlphaFileTag.c_str()));
+   std::string pathPDFbegin(Form("figures/SSD_%s_%s_%s.pdf[", LayerTag.c_str(), AlphaPeaksTag.c_str(), AlphaFileTag.c_str()));
+   std::string pathPDFend(Form("figures/SSD_%s_%s_%s.pdf]", LayerTag.c_str(), AlphaPeaksTag.c_str(), AlphaFileTag.c_str()));
 
    TFile* FileIn = new TFile(pathFileInput.c_str());
    if (!FileIn->IsOpen()) {
@@ -61,14 +64,14 @@ void AlphaCali_FindPeaks()
    }
 
    //   在此修改输出文件路径
-   ofstream FileOut(FileOutdatapath.c_str());
+   ofstream FileOut(pathAlphaPeaksOutput.c_str());
    FileOut <<"*SSDNum" <<setw(7)<<"CHNum"<<setw(8)
            <<"mean1" << setw(10)<<"mean2" <<setw(10)<<"mean3" <<setw(10)
            <<"sigma1"<< setw(10)<<"sigma2"<<setw(10)<<"sigma3"<<setw(10)
            <<"Chi21" << setw(10)<<"Chi22" <<setw(10)<<"Chi23" <<setw(10)
            <<"Xmin1"<< setw(10)<<"Xmax1"<<setw(10)<<"Xmin2"<< setw(10)<<"Xmax2"<<setw(10)<<"Xmin3"<<setw(10)<<"Xmax3"<<endl;
 
-   ofstream FileOutFit(path3AlphaFitResult.c_str());
+   ofstream FileOutFit(pathAlphaFitResultsOutput.c_str());
    FileOutFit<<" *Fit function = par[0]+par[1]*x && y = a*x + b (y=Energy, x=Ch);  so I define a = par[1], b = par[0]\n";
    FileOutFit<<" *SSDNum"<<setw(7)<<"CHNum"<<setw(10)<<"par_a"<<setw(15)<<"Errpar_a"<<setw(15)<<"par_b"<<setw(17)<<"Errpar_b\n";
 
