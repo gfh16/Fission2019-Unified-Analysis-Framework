@@ -47,7 +47,7 @@ void PulserCali_L1_AutoFindPeaksAndFit()
 {
   gStyle->SetOptStat(0);
 
-  std::string LayerTag("L1");
+  std::string LayerTag("L1S");
   std::string FileTag("Switch");   // "Height" or "Switch"
   std::string pdfpath(Form("figures/SSD_%s_PulserCali_%s.pdf",LayerTag.c_str(),FileTag.c_str()));
 
@@ -71,7 +71,7 @@ void PulserCali_L1_AutoFindPeaksAndFit()
   TCanvas *c_end   = new TCanvas("c_end","");
   c_end->Close();
   c_begin->Close();
-  c_end->Print(pdfpath_begin.c_str());
+  c_begin->Print(pdfpath_begin.c_str());
   for(Int_t SSDNum=0; SSDNum<4; SSDNum++)
   {
     for(int CHNum=0; CHNum<16; CHNum++)
@@ -110,8 +110,8 @@ void PulserCali_AutoFindPeak(const char* LayerTag, const char* FileTag, TCanvas*
   FILE * FileOut = fopen(outputpath.c_str(),"w");
   fprintf(FileOut,"* Fiiting funtion = par[0] + par[1]*x && y=a*x+b (y=Energy, x=Ch), so a = par[1], b = par[0];  0.0 isn't a peak\n");
   fprintf(FileOut,"* SSDNum CHNum    par0(a)   err_par0     par1(b)      err_par1      "
-	    	  " peak1     peak2     peak3      peak4     peak5  "    
-		  " peak6     peak7     peak8      peak9     peak10    peak11 \n");
+	    	  " peak1     peak2     peak3      peak4     peak5  "
+		      " peak6     peak7     peak8      peak9     peak10    peak11 \n");
 
   TH1D* PulserPeaks[4][16];
   for(Int_t SSDNum=0; SSDNum<4; SSDNum++)
@@ -196,7 +196,7 @@ void PulserCali_AutoFindPeak(const char* LayerTag, const char* FileTag, TCanvas*
 		      "%-8.1f  %-8.1f  %-8.1f   %-8.1f   %-8.1f \n ",
                       SSDNum,CHNum,par0,err_par0,par1,err_par1,
                       xpeaks[0],xpeaks[1],xpeaks[2],xpeaks[3],xpeaks[4],
-                      (npeaks>5 ? xpeaks[5]:0.), (npeaks>6  ? xpeaks[6]:0.), 
+                      (npeaks>5 ? xpeaks[5]:0.), (npeaks>6  ? xpeaks[6]:0.),
                       (npeaks>7 ? xpeaks[7]:0.), (npeaks>8  ? xpeaks[8]:0.),
                       (npeaks>9 ? xpeaks[9]:0.), (npeaks>10 ? xpeaks[10]:0.));
       fflush(FileOut);

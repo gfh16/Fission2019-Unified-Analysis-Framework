@@ -72,7 +72,7 @@ void PulserCali_L2_AutoFindPeaksAndFit()
   TCanvas *c_end   = new TCanvas("c_end","");
   c_end->Close();
   c_begin->Close();
-  c_end->Print(pdfpath_begin.c_str());
+  c_begin->Print(pdfpath_begin.c_str());
   for(Int_t SSDNum=0; SSDNum<4; SSDNum++)
   {
     for(Int_t CHNum=0; CHNum<16; CHNum++)
@@ -113,7 +113,7 @@ void PulserCali_AutoFindPeak(const char* LayerTag, const char* FileTag, TCanvas*
   FILE * FileOutB = fopen(L2B_outputpath.c_str(),"w");
   fprintf(FileOutF,"* Fiiting funtion = par[0] + par[1]*x && y=a*x+b (y=Energy, x=Ch), so a = par[1], b = par[0]\n");
   fprintf(FileOutF,"* SSDNum CHNum    par1(a)   err_par0     par0(b)      err_par1     "
-	           "  peak1     peak2      peak3      peak4     peak5  "  
+	           "  peak1     peak2      peak3      peak4     peak5  "
 		   "  peak6     peak7     peak8     peak9     peak10   peak11 \n");
   fprintf(FileOutB,"* Fiiting funtion = par[0] + par[1]*x && y=a*x+b, so a = par[1], b = par[0]\n");
   fprintf(FileOutB,"* SSDNum CHNum    par1(a)   err_par0     par0(b)      err_par1    "

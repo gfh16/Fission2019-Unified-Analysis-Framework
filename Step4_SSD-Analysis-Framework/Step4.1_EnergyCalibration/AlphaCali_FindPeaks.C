@@ -67,7 +67,7 @@ void AlphaCali_FindPeaks()
            <<"Xmin1"<< setw(10)<<"Xmax1"<<setw(10)<<"Xmin2"<< setw(10)<<"Xmax2"<<setw(10)<<"Xmin3"<<setw(10)<<"Xmax3"<<endl;
 
    ofstream FileOutFit(FileOutfitresult.c_str());
-   FileOutFit<<" Fit function = par[0]+par[1]*x && y = a*x + b (y=Energy, x=Ch);  so I define a = par[1], b = par[0]\n";
+   FileOutFit<<" *Fit function = par[0]+par[1]*x && y = a*x + b (y=Energy, x=Ch);  so I define a = par[1], b = par[0]\n";
    FileOutFit<<" *SSDNum"<<setw(7)<<"CHNum"<<setw(10)<<"par_a"<<setw(15)<<"Errpar_a"<<setw(15)<<"par_b"<<setw(17)<<"Errpar_b\n";
 
    //    定义、读取输入文件中的 Histograms
