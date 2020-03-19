@@ -64,7 +64,9 @@ void PulserCali_AutoFindPeaks()
   std::string FileTag2("L1S");
   std::string FileTag3("Switch"); // here to change Switch or Height
 
-  std::string path_to_file(Form("data/QC_MapSSD%d_%s_PulserCali_%s0000.root", SSDNum,FileTag1.c_str(),FileTag3.c_str()));
+  //std::string path_to_file(Form("data/QC_MapSSD%d_%s_PulserCali_%s0000.root", SSDNum,FileTag1.c_str(),FileTag3.c_str()));
+  std::string path_to_file(Form("/data/EXPdata/Fission2019/QualityCheck/QC_MapSSD%d_%s_PulserCali_%s0000.root", SSDNum,FileTag1.c_str(),FileTag3.c_str()));
+
 
   TFile * FileIn = new TFile(path_to_file.c_str());
   if(!FileIn->IsOpen())

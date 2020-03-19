@@ -1,3 +1,4 @@
+
 /////////////////////////////////////////////////////////////////////////
 //    This macro is used to find the peaks in pulser calibration data  //
 //    Here, we use TSpectrum to find the peaks candidates              //
@@ -39,7 +40,7 @@ bool compare(Int_t a, Int_t b)
 
 
 //______________________________________________________________________________
-void PulserCali_AutoFindPeak(const char* LayerTag, const char* FileTag, TCanvas* cans[4][16]);
+void PulserCali_AutoFindPeak(const char* LayerTag, const char* LayerTagInput, const char* FileTag, TCanvas* cans[4][16]);
 
 
 //______________________________________________________________________________
@@ -47,6 +48,7 @@ void PulserCali_L1_AutoFindPeaksAndFit()
 {
   gStyle->SetOptStat(0);
 
+  std::string LayerTagInput("L1");
   std::string LayerTag("L1S");
   std::string FileTag("Switch");   // "Height" or "Switch"
   std::string pdfpath(Form("figures/SSD_%s_PulserCali_%s.pdf",LayerTag.c_str(),FileTag.c_str()));
@@ -60,7 +62,7 @@ void PulserCali_L1_AutoFindPeaksAndFit()
       cans[SSDNum][CHNum]->Close();
     }
   }
-  PulserCali_AutoFindPeak(LayerTag.c_str(),FileTag.c_str(),cans);
+  PulserCali_AutoFindPeak(LayerTag.c_str(), LayerTagInput.c_str(), FileTag.c_str(),cans);
 
   std::string pdfpath_begin = pdfpath;
   pdfpath_begin += '[';
@@ -85,7 +87,7 @@ void PulserCali_L1_AutoFindPeaksAndFit()
 
 
 //______________________________________________________________________________
-void PulserCali_AutoFindPeak(const char* LayerTag, const char* FileTag, TCanvas* cans[4][16])
+void PulserCali_AutoFindPeak(const char* LayerTag, const char* LayerTagInput, const char* FileTag, TCanvas* cans[4][16])
 {
 /////////////////////////////////////////////////////////////////////////////////
 //                        自动寻峰步骤                                          //
@@ -116,7 +118,7 @@ void PulserCali_AutoFindPeak(const char* LayerTag, const char* FileTag, TCanvas*
   TH1D* PulserPeaks[4][16];
   for(Int_t SSDNum=0; SSDNum<4; SSDNum++)
   {
-    std::string path_to_file(Form("/data/EXPdata/Fission2019/QualityCheck/QC_MapSSD%d_%s_PulserCali_%s0000.root", SSDNum+1,LayerTag,FileTag));
+    std::string path_to_file(Form("/data/EXPdata/Fission2019/QualityCheck/QC_MapSSD%d_%s_PulserCali_%s0000.root", SSDNum+1,LayerTagInput,FileTag));
     TFile* FileIn = new TFile(path_to_file.c_str());
     if (!FileIn->IsOpen())
     {  //  cans[SSDNum][i]->Close();
