@@ -43,12 +43,12 @@ void AlphaCali_FindPeaks()
   //  4. 三组分alpha源有3个能量峰,需要6个点来拟合                            //
   /////////////////////////////////////////////////////////////////////////////
 
-   std::string pathFileInput(Form("/data/EXPdata/Fission2019_Data/MapRoot/MapSSD_L1_AlphaCali%s.root", AlphaFileTag.c_str()));
-
-   std::string LayerTag("L1S");  // "L1S_E" or "L2F_E" or "L2B_E"
+   std::string LayerTag("L2F");  // "L1S" or "L2F" or "L2B"
    std::string AlphaFitTag("3AlphaFitPars");
    std::string AlphaPeaksTag("AlphaPeaks");
    std::string AlphaFileTag("Alpha00_08");
+
+   std::string pathFileInput(Form("/data/EXPdata/Fission2019_Data/MapRoot/MapSSD_L2_AlphaCali%s.root", AlphaFileTag.c_str()));
 
    std::string pathAlphaPeaksOutput(Form("output/SSD_%s_%s_%s.dat", LayerTag.c_str(), AlphaPeaksTag.c_str(), AlphaFileTag.c_str()));
    std::string pathAlphaFitResultsOutput(Form("output/SSD_%s_3AlphaFitPar_%s%s.dat",LayerTag.c_str(), AlphaFitTag.c_str(), AlphaFileTag.c_str()));
