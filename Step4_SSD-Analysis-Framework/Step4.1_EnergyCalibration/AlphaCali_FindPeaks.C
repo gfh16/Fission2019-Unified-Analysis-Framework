@@ -46,9 +46,9 @@ void AlphaCali_FindPeaks()
    std::string LayerTag("L2F");  // "L1S" or "L2F" or "L2B"
    std::string AlphaFitTag("3AlphaFitPars");
    std::string AlphaPeaksTag("AlphaPeaks");
-   std::string AlphaFileTag("Alpha00_08");
+   std::string AlphaFileTag("AlphaCali00_08");
 
-   std::string pathFileInput(Form("/data/EXPdata/Fission2019_Data/MapRoot/MapSSD_L2_AlphaCali%s.root", AlphaFileTag.c_str()));
+   std::string pathFileInput(Form("/data/EXPdata/Fission2019_Data/MapRoot/MapSSD_L2_%s.root", AlphaFileTag.c_str()));
 
    std::string pathAlphaPeaksOutput(Form("output/SSD_%s_%s_%s.dat", LayerTag.c_str(), AlphaPeaksTag.c_str(), AlphaFileTag.c_str()));
    std::string pathAlphaFitResultsOutput(Form("output/SSD_%s_3AlphaFitPar_%s%s.dat",LayerTag.c_str(), AlphaFitTag.c_str(), AlphaFileTag.c_str()));
