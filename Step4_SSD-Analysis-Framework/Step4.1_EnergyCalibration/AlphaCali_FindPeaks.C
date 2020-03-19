@@ -42,19 +42,21 @@ void AlphaCali_FindPeaks()
   //         <3> 输入 3，中断跳出                                            //
   //  4. 三组分alpha源有3个能量峰,需要6个点来拟合                            //
   /////////////////////////////////////////////////////////////////////////////
-   std::string InputTag("00_08");
-   std::string FileOutTag1("Alpha");
-   std::string FileOutTag2("L1S_E");  // "L1S_E" or "L2F_E" or "L2B_E"
-   std::string path_to_file(Form("/data/EXPdata/Fission2019_Data/MapRoot/MapSSD_L1_AlphaCali%s.root", InputTag.c_str()));
-   std::string FileOutdatapath(Form("output/SSD_%s_%s_%s.dat", FileOutTag1.c_str(), FileOutTag2.c_str(), InputTag.c_str()));
-   std::string FileOutfitresult(Form("output/Fitpara_SSD_%s_%s_%s.dat", FileOutTag1.c_str(), FileOutTag2.c_str(), InputTag.c_str()));
-   std::string FileOutpdfpath(Form("figures/SSD_%s_%s_%s.pdf", FileOutTag1.c_str(), FileOutTag2.c_str(), InputTag.c_str()));
-   std::string pdfbegin(Form("figures/SSD_%s_%s_%s.pdf[", FileOutTag1.c_str(), FileOutTag2.c_str(), InputTag.c_str()));
-   std::string pdfend(Form("figures/SSD_%s_%s_%s.pdf]", FileOutTag1.c_str(), FileOutTag2.c_str(), InputTag.c_str()));
+   std::string AlphaFileTag("00_08");
+   std::string AlphaTag("Alpha");
+   std::string LayerTag("L1S");  // "L1S_E" or "L2F_E" or "L2B_E"
 
-   TFile* FileIn = new TFile(path_to_file.c_str());
+   std::string pathFileInput(Form("/data/EXPdata/Fission2019_Data/MapRoot/MapSSD_L1_AlphaCali%s.root", AlphaFileTag.c_str()));
+   std::string FileOutdatapath(Form("output/SSD_%s_%s_%s.dat", AlphaTag.c_str(), LayerTag.c_str(), AlphaFileTag.c_str()));
+   
+   std::string path3AlphaFitResult(Form("output/SSD_%s_3AlphaFitPar_%s%s.dat",LayerTag.c_str(), AlphaTag.c_str(), AlphaFileTag.c_str()));
+   std::string pathPDFOutput(Form("figures/SSD_%s_%s_%s.pdf", AlphaTag.c_str(), LayerTag.c_str(), AlphaFileTag.c_str()));
+   std::string pathPDFbegin(Form("figures/SSD_%s_%s_%s.pdf[", AlphaTag.c_str(), LayerTag.c_str(), AlphaFileTag.c_str()));
+   std::string pathPDFend(Form("figures/SSD_%s_%s_%s.pdf]", AlphaTag.c_str(), LayerTag.c_str(), AlphaFileTag.c_str()));
+
+   TFile* FileIn = new TFile(pathFileInput.c_str());
    if (!FileIn->IsOpen()) {
-     cout<<"Open file "<< path_to_file.c_str() << " failed"<<endl;
+     cout<<"Open file "<< pathFileInput.c_str() << " failed"<<endl;
      return;
    }
 
@@ -66,7 +68,7 @@ void AlphaCali_FindPeaks()
            <<"Chi21" << setw(10)<<"Chi22" <<setw(10)<<"Chi23" <<setw(10)
            <<"Xmin1"<< setw(10)<<"Xmax1"<<setw(10)<<"Xmin2"<< setw(10)<<"Xmax2"<<setw(10)<<"Xmin3"<<setw(10)<<"Xmax3"<<endl;
 
-   ofstream FileOutFit(FileOutfitresult.c_str());
+   ofstream FileOutFit(path3AlphaFitResult.c_str());
    FileOutFit<<" *Fit function = par[0]+par[1]*x && y = a*x + b (y=Energy, x=Ch);  so I define a = par[1], b = par[0]\n";
    FileOutFit<<" *SSDNum"<<setw(7)<<"CHNum"<<setw(10)<<"par_a"<<setw(15)<<"Errpar_a"<<setw(15)<<"par_b"<<setw(17)<<"Errpar_b\n";
 
@@ -74,7 +76,7 @@ void AlphaCali_FindPeaks()
    TH1D* PedestalHist[4][16];
    for (Int_t SSDNum=0; SSDNum<4; SSDNum++) {
      for (Int_t CHNum=0; CHNum<16; CHNum++) {
-       PedestalHist[SSDNum][CHNum]=(TH1D*)FileIn->Get(Form("SSD%d_%s_CH%02d",(SSDNum+1),FileOutTag2.c_str(),CHNum));
+       PedestalHist[SSDNum][CHNum]=(TH1D*)FileIn->Get(Form("SSD%d_%s_CH%02d",(SSDNum+1),LayerTag.c_str(),CHNum));
      }
    }
    printf("Histograms loaded\n");
@@ -85,7 +87,7 @@ void AlphaCali_FindPeaks()
    TCanvas* c_end   = new TCanvas("c_end","");
    //====================================================================================
    //                            BEGIN ANALYZE HERE !!!
-   c_begin->Print(pdfbegin.c_str());
+   c_begin->Print(pathPDFbegin.c_str());
 
    Double_t limit[6] = {0};   //定义limit[2]用于存储拟合范围
    Double_t par[9] = {40,250,15,20,260,15,10,270,15};
@@ -95,7 +97,7 @@ void AlphaCali_FindPeaks()
        Int_t Option = 2;   // 设置一个标志, 当Option==2时，执行后面的while(Option==2)循环
 
        if (PedestalHist[SSDNum][CHNum]==0) {
-         printf("No data present for SSD%d_%s_CH%02d\n",(SSDNum+1),FileOutTag2.c_str(),CHNum);
+         printf("No data present for SSD%d_%s_CH%02d\n",(SSDNum+1),LayerTag.c_str(),CHNum);
          continue;
        }
        while (Option==2) {
@@ -154,7 +156,7 @@ void AlphaCali_FindPeaks()
          grap->SetMarkerStyle(20);
          grap->SetMarkerSize(1.5);
          grap->SetMarkerColor(kBlue);
-         grap->SetTitle(Form("AlphaFits_SSD%d_%s_E_CH%02d",SSDNum+1,FileOutTag2.c_str(),CHNum));
+         grap->SetTitle(Form("AlphaFits_SSD%d_%s_E_CH%02d",SSDNum+1,LayerTag.c_str(),CHNum));
          grap->Draw("AP*");
          TF1* fit = new TF1("fit","pol1",100,4096);
          grap->Fit("fit");
@@ -179,10 +181,10 @@ void AlphaCali_FindPeaks()
 
            FileOutFit<<setw(5)<<SSDNum<<setw(7)<<CHNum<<setw(15)<<par1<<setw(15)<<err_par1<<setw(15)<<par0<<setw(15)<<err_par0<<endl;
 
-           c1->Print(FileOutpdfpath.c_str());
+           c1->Print(pathPDFOutput.c_str());
          }
          if (Option==3) {
-           c_end->Print(pdfend.c_str());
+           c_end->Print(pathPDFend.c_str());
            FileOut.close();
            cout<<"File .dat closed"<<endl;
 
@@ -195,7 +197,7 @@ void AlphaCali_FindPeaks()
      }   // close silicon strip  (j)
    }     // close silicon number (i)
    //  the pdf file ends here !!!
-   c_end->Print(pdfend.c_str());
+   c_end->Print(pathPDFend.c_str());
    FileOut.close();
    FileOutFit.close();
    cout<<"File .dat closed"<<endl;

@@ -44,9 +44,9 @@ void AlphaCali_FindPedestals()
 //   threshold: peaks with amplitude < threshold*highest_peak are discarded   //
 ////////////////////////////////////////////////////////////////////////////////
   Int_t lowrange  = 0;
-  Int_t highrange = 200; 
+  Int_t highrange = 200;
   std::string FileTag("05_08");
-  std::string LayerTag("L1");
+  std::string LayerTag("L1S");
   /*
   std::string inputpath(Form("data/MapSSD_%s_AlphaCali%s.root", LayerTag.c_str(), FileTag.c_str()));
   std::string pdfpath(Form("figures/SSD_%s_AlphaCaliPedestals_%s.pdf",LayerTag.c_str(), FileTag.c_str()));
@@ -60,7 +60,7 @@ void AlphaCali_FindPedestals()
     std::string pdfpathbegin(Form("figures/MapSSD_%s_AlphaCali%04d.pdf[", LayerTag.c_str(), i));
     std::string pdfpathend(Form("figures/MapSSD_%s_AlphaCali%04d.pdf]", LayerTag.c_str(), i));
     std::string outputpath(Form("output/MapSSD_%s_AlphaCali%04d.dat", LayerTag.c_str(), i));
-  
+
 /*
   std::string inputpath("data/QC_MapSSD_PulserCali_Pedestal0000.root");
   std::string pdfpath("figures/SSD_Pedestals.pdf");
@@ -73,7 +73,7 @@ void AlphaCali_FindPedestals()
 
   TFile* FileIn = new TFile(inputpath.c_str());
   if (!FileIn->IsOpen())
-  {  
+  {
     cout<<"Open file "<< inputpath.c_str() << " failed"<<endl;
     return;
   }
@@ -84,11 +84,11 @@ void AlphaCali_FindPedestals()
   c_begin->Print(pdfpathbegin.c_str());
   TH1D* Pedestals[4][16];
   for (Int_t SSDNum=0; SSDNum<4; SSDNum++)
-  {  
+  {
     // 读取root文件中的 Histograms
     for (Int_t CHNum=0; CHNum<16; CHNum++)
     {
-      Pedestals[SSDNum][CHNum] = (TH1D*)FileIn->Get(Form("SSD%d_%sS_E_CH%02d",SSDNum+1,LayerTag.c_str(),CHNum));
+      Pedestals[SSDNum][CHNum] = (TH1D*)FileIn->Get(Form("SSD%d_%s_E_CH%02d",SSDNum+1,LayerTag.c_str(),CHNum));
       Pedestals[SSDNum][CHNum]->GetXaxis()->SetRangeUser(lowrange, highrange);
       cout << Form("SSD%d_%sS_E_CH%d",SSDNum+1, LayerTag.c_str(), CHNum) << endl;
     }
@@ -105,7 +105,7 @@ void AlphaCali_FindPedestals()
         printf("No data present for SSD%d_%s_E_CH%02d\n",SSDNum+1,LayerTag.c_str(),CHNum);
         continue;
       }
-  
+
       c1->cd();
       Int_t nfound  = s->Search(Pedestals[SSDNum][CHNum],3,"",0.4);
       printf("SSD%d_%sS_E_CH%d is analyzed,%2d peaks found\n",SSDNum+1,LayerTag.c_str(),CHNum,nfound);

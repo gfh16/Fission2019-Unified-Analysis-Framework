@@ -50,7 +50,7 @@ void PulserCali_L1_AutoFindPeaksAndFit()
 
   std::string LayerTagInput("L1");
   std::string LayerTag("L1S");
-  std::string FileTag("Switch");   // "Height" or "Switch"
+  std::string FileTag("Height");   // "Height" or "Switch"
   std::string pdfpath(Form("figures/SSD_%s_PulserCali_%s.pdf",LayerTag.c_str(),FileTag.c_str()));
 
   TCanvas *cans[4][16];
@@ -118,7 +118,9 @@ void PulserCali_AutoFindPeak(const char* LayerTag, const char* LayerTagInput, co
   TH1D* PulserPeaks[4][16];
   for(Int_t SSDNum=0; SSDNum<4; SSDNum++)
   {
-    std::string path_to_file(Form("/data/EXPdata/Fission2019/QualityCheck/QC_MapSSD%d_%s_PulserCali_%s0000.root", SSDNum+1,LayerTagInput,FileTag));
+    //std::string path_to_file(Form("/data/EXPdata/Fission2019/QualityCheck/QC_MapSSD%d_%s_PulserCali_%s0000.root", SSDNum+1,LayerTagInput,FileTag));
+    std::string path_to_file(Form("rootinput/QC_MapSSD%d_%s_PulserCali_%s0000.root", SSDNum+1,LayerTagInput,FileTag));
+
     TFile* FileIn = new TFile(path_to_file.c_str());
     if (!FileIn->IsOpen())
     {  //  cans[SSDNum][i]->Close();
@@ -128,7 +130,7 @@ void PulserCali_AutoFindPeak(const char* LayerTag, const char* LayerTagInput, co
     // 读取root文件中的 Histograms
     for(Int_t CHNum=0; CHNum<16; CHNum++)
     {
-      PulserPeaks[SSDNum][CHNum] = (TH1D*)FileIn->Get(Form("SSD%d_%sS_E_CH%02d",SSDNum+1,LayerTag,CHNum));
+      PulserPeaks[SSDNum][CHNum] = (TH1D*)FileIn->Get(Form("SSD%d_%s_E_CH%02d",SSDNum+1,LayerTag,CHNum));
       PulserPeaks[SSDNum][CHNum]->GetXaxis()->SetRangeUser(120,4095);
       cout << Form("SSD%d_%sS_E_CH%d",SSDNum+1,LayerTag,CHNum) << endl;
     }
