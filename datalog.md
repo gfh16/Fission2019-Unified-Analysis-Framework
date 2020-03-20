@@ -5,12 +5,53 @@ Fission2019 实验数据说明文档
 -----
 [toc]
 
-----------------------------------------------------------------------------------------
-## 刻度文件说明
+
+
+-----------------------------------------------
+## <font color=#DC143C> 一. SSD能量刻度总结 </font>
+
+
+### 1. 硅条 Layer1
+#### 1.1 Pulser 刻度
+
+#### 1.2 $\alpha$ 刻度
+
+#### 1.3 能量线性刻度
+
+
+
+
+
+### 2. 硅条 Layer2F
+#### 2.1 Pulser 刻度
+
+#### 2.2 $\alpha$ 刻度
+
+#### 2.3 能量线性刻度
+
+
+
+
+
+### 3. 硅条 Layer2B
+#### 3.1 Pulser 刻度
+
+#### 3.2 $\alpha$ 刻度
+
+#### 3.3 能量线性刻度
+------------------------------------------------------------------
+
+
+
+
+
+
+
+-------------------------------------------------------------------
+## 硅条刻度文件日志
 > 探测器刻度分硅条探测器(SSD)刻度与PPAC刻度
 
-### 硅条刻度 
-#### Pulser刻度
+### 硅条 Pulser 刻度
 | Pulser刻度  |   刻度条件说明  |   刻度点数目    | 备注|
 |:------------|:--------------|:-----------:|:---------|
 |SSD1_L1_PulserCali_Switch.0000|衰减因子: 1,2,4,5,10,20,40,50| 8 |衰减100倍CO4020闪亮|
@@ -30,7 +71,7 @@ Fission2019 实验数据说明文档
 |SSD3_L2_PulserCali_Height.0000|相对幅度: 10,9,8,7,6,5,4,3,2,1,0.5| 11 |
 |SSD4_L2_PulserCali_Height.0000|相对幅度: 10,9,8,7,6,5,4,3,2,1,0.5| 11 |
 
-#### Alpha刻度
+### 硅条 $\alpha$ 刻度
 > SSD的Layer1刻度时,作了以下改变: 
 >+ SSD1_L1主放gain修改: 由 2 × 4   变成 <font color=#DC143C> 2 × 20 </font>
 >+ SSD2_L1主放gain修改: 由 2 × 7.4 变成 <font color=#DC143C> 2 × 20 </font>
@@ -39,7 +80,6 @@ Fission2019 实验数据说明文档
 |:------------|:--------------|:---------|
 |SSD_L1_AlphaCali.0000| 同时刻度4块SSD的Layer1 | SSD1_L1计数正常 |
 |SSD_L1_AlphaCali.0001| 同时刻度4块SSD的Layer1 | SSD2_L1计数正常 |
-|SSD_L1_AlphaCali.0002| 同时刻度4块SSD的Layer1 | SSD3_L1部分无计数,需进行二次刻度  |
 |SSD_L1_AlphaCali.0003| 同时刻度4块SSD的Layer1 | SSD4_L1 CH0无计数(实验中也无计数) |
 |SSD_L1_AlphaCali.0004| 同时刻度4块SSD的Layer1 |
 
@@ -111,47 +151,6 @@ Fission2019 实验数据说明文档
 
 
 
-----------------------------------------------------------------------------------------
-## SSD能量刻度总结
 
-### 一. Pulser刻度总结
-
-#### 硅条的 Layer1 
-1. SSD1_L1 在高能端偏离直线, 拨档刻度与等间隔刻度都有同样的问题
-   <img src = "pictures/11.PNG" width = "80%" height = "80%" align = center>
-   <img src = "pictures/12.PNG" width = "80%" height = "80%" align = center>
-
-
-
-2. 其余SDD表现正常
-
-#### 硅条的 Layer2
-1. 目前，每块SSD均表现正常！
-
-
-
-### 二. $\alpha$ 刻度总结
-#### 硅条的Layer1
-1. 合并 SSD_L1_AlphaCali.0000 - 0004:
-   1.1 SSD4_L1_CH00 能谱为空 (实验中也是空谱)
-   1.2 SSD3、SSD4部分统计较低，且3-$\alpha$峰相对计数异常
-    <img src = "pictures/1.PNG" width = "80%" height = "80%" align = center>
-    <img src = "pictures/2.PNG" width = "80%" height = "80%" align = center>
-    <img src = "pictures/3.PNG" width = "80%" height = "80%" align = center>
->
-2. 合并 SSD_L1_AlphaCali.0005 - 0008:
-   2.1 SSD4_L1_CH00 能谱为空 (实验中也是空谱)
-   2.2 SSD2_L1S_E_CH10, CH12, CH13 在低能端有一个小峰，估计是噪声
-   <img src = "pictures/4.PNG" width = "80%" height = "80%" align = center>
-   <img src = "pictures/5.PNG" width = "80%" height = "80%" align = center>
-   <img src = "pictures/6.PNG" width = "80%" height = "80%" align = center>
->
-3. 合并 SSD_L1_AlphaCali.0000 - 0008:
-   3.1 SSD4_L1_CH00 能谱为空 (实验中也是空谱)
-   3.2 SSD4_L1 CH1, CH2,  CH4,CH6-CH15 出现两组 "3-$\alpha$"峰，两组峰之间有约 10CH 的偏移
-   <img src = "pictures/7.PNG" width = "80%" height = "80%" align = center>
-   <img src = "pictures/8.PNG" width = "80%" height = "80%" align = center>
-   <img src = "pictures/9.PNG" width = "80%" height = "80%" align = center>
-   <img src = "pictures/10.PNG" width = "80%" height= "80%" align = center>
-
-
+------------------------------------------
+## <font color=#DC143C> 实验数据日志 </font>
