@@ -43,15 +43,16 @@ void AlphaCali_FindPeaks()
   //  4. 三组分alpha源有3个能量峰,需要6个点来拟合                            //
   /////////////////////////////////////////////////////////////////////////////
 
-   std::string pathFileInput(Form("/data/EXPdata/Fission2019_Data/MapRoot/MapSSD_L1_AlphaCali%s.root", AlphaFileTag.c_str()));
-
-   std::string LayerTag("L1S");  // "L1S_E" or "L2F_E" or "L2B_E"
+   std::string LayerTag("L2F");  // "L1S" or "L2F" or "L2B"
    std::string AlphaFitTag("3AlphaFitPars");
    std::string AlphaPeaksTag("AlphaPeaks");
-   std::string AlphaFileTag("Alpha00_08");
+   std::string AlphaFileTag("AlphaCali00_32");
+
+   //std::string pathFileInput(Form("/data/EXPdata/Fission2019_Data/MapRoot/MapSSD_L2_%s.root", AlphaFileTag.c_str()));
+   std::string pathFileInput(Form("rootinput/QC_MapSSD_L2_%s.root", AlphaFileTag.c_str()));
 
    std::string pathAlphaPeaksOutput(Form("output/SSD_%s_%s_%s.dat", LayerTag.c_str(), AlphaPeaksTag.c_str(), AlphaFileTag.c_str()));
-   std::string pathAlphaFitResultsOutput(Form("output/SSD_%s_3AlphaFitPar_%s%s.dat",LayerTag.c_str(), AlphaFitTag.c_str(), AlphaFileTag.c_str()));
+   std::string pathAlphaFitResultsOutput(Form("output/SSD_%s_%s_%s.dat",LayerTag.c_str(), AlphaFitTag.c_str(), AlphaFileTag.c_str()));
 
    std::string pathPDFOutput(Form("figures/SSD_%s_%s_%s.pdf", LayerTag.c_str(), AlphaPeaksTag.c_str(), AlphaFileTag.c_str()));
    std::string pathPDFbegin(Form("figures/SSD_%s_%s_%s.pdf[", LayerTag.c_str(), AlphaPeaksTag.c_str(), AlphaFileTag.c_str()));
@@ -79,7 +80,7 @@ void AlphaCali_FindPeaks()
    TH1D* PedestalHist[4][16];
    for (Int_t SSDNum=0; SSDNum<4; SSDNum++) {
      for (Int_t CHNum=0; CHNum<16; CHNum++) {
-       PedestalHist[SSDNum][CHNum]=(TH1D*)FileIn->Get(Form("SSD%d_%s_CH%02d",(SSDNum+1),LayerTag.c_str(),CHNum));
+       PedestalHist[SSDNum][CHNum]=(TH1D*)FileIn->Get(Form("SSD%d_%s_E_CH%02d",(SSDNum+1),LayerTag.c_str(),CHNum));
      }
    }
    printf("Histograms loaded\n");
@@ -100,7 +101,7 @@ void AlphaCali_FindPeaks()
        Int_t Option = 2;   // 设置一个标志, 当Option==2时，执行后面的while(Option==2)循环
 
        if (PedestalHist[SSDNum][CHNum]==0) {
-         printf("No data present for SSD%d_%s_CH%02d\n",(SSDNum+1),LayerTag.c_str(),CHNum);
+         printf("No data present for SSD%d_%s_E_CH%02d\n",(SSDNum+1),LayerTag.c_str(),CHNum);
          continue;
        }
        while (Option==2) {

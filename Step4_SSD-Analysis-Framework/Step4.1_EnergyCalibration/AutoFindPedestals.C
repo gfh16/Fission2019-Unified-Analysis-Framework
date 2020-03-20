@@ -46,7 +46,7 @@ void AutoFindPedestals()
 
   Int_t lowrange  = 0;
   Int_t highrange = 200;
-  std::string AlphaTag("Alpha05_08");
+  std::string AlphaTag("AlphaCali05_08");
   std::string L1Tag("L1");
   std::string L1STag("L1S");
 
@@ -62,7 +62,7 @@ void AutoFindPedestals()
 
   // Getting pedestals from merged alphacali files
   /*
-  std::string pathRootInput(Form("rootinput/MapSSD_%s_AlphaCali%s.root", L1Tag.c_str(), AlphaTag.c_str()));
+  std::string pathRootInput(Form("rootinput/MapSSD_%s_%s.root", L1Tag.c_str(), AlphaTag.c_str()));
 
   std::string pathAlphaCaliPedestalsOutput(Form("output/SSD_%s_AlphaCaliPedestals_%s.dat",L1STag.c_str(), AlphaTag.c_str()));
 
