@@ -25,13 +25,6 @@ Int_t NPoints;
 TMarker* m[6];
 TLine* l[6];
 
-
-//______________________________________________________________________________
-Double_t*** ReadData(const Char_t* datapath, Int_t& SSDNum, Int_t& CHNum, Int_t& ParNum);
-
-//______________________________________________________________________________
-void DeleteData(Double_t*** p, Int_t& SSDNum, Int_t& CHNum, Int_t& ParNum);
-
 //___________________________________________________________________________
 void AlphaCali_FindPeaks()
 {
@@ -50,30 +43,15 @@ void AlphaCali_FindPeaks()
   //  4. 三组分alpha源有3个能量峰,需要6个点来拟合                            //
   /////////////////////////////////////////////////////////////////////////////
 
-   std::string LayerTag("L2F");  // "L1S" or "L2F" or "L2B"
-   std::string LayerTagWithoutLabel("L2"); // L1 or L2
-   std::string AlphaFileTag("AlphaCali00_32"); // for L1:00_04,00_08,05_08;  for L2: 00_32,33_48
-
-   std::string L1Tag("L1");
-   std::string L2Tag("L2");
-   Double_t HistXLowRange;
-   Double_t HistXUpRange;
-   if(strcmp(L1Tag.c_str(), LayerTagWithoutLabel.c_str())==0)
-   {
-     HistXLowRange = 80.;
-     HistXUpRange  = 220.;
-   } else{
-     HistXLowRange = 50.;
-     HistXUpRange  = 100.;
-   }
+   std::string LayerTag("L1S");  // "L1S" or "L2F" or "L2B"
+   std::string AlphaFileTag("AlphaCali05_08");
 
    std::string AlphaFitTag("3AlphaFitPars");
    std::string AlphaPeaksTag("AlphaPeaks");
-
+   
    //std::string pathFileInput(Form("/data/EXPdata/Fission2019_Data/MapRoot/MapSSD_L2_%s.root", AlphaFileTag.c_str()));
    //std::string pathFileInput(Form("rootinput/QC_MapSSD_L2_%s.root", AlphaFileTag.c_str()));
-   std::string pathFileInput(Form("/home/sea/Fission2019_Data/MapRoot/MapSSD_%s_%s.root", LayerTagWithoutLabel.c_str(), AlphaFileTag.c_str()));
-   std::string pathPedestalInput(Form("output/SSD_%s_Pedestals.dat",LayerTag.c_str()));
+   std::string pathFileInput(Form("/home/sea/Fission2019_Data/MapRoot/MapSSD_L1_%s.root", AlphaFileTag.c_str()));
 
    std::string pathAlphaPeaksOutput(Form("output/SSD_%s_%s_%s.dat", LayerTag.c_str(), AlphaPeaksTag.c_str(), AlphaFileTag.c_str()));
    std::string pathAlphaFitResultsOutput(Form("output/SSD_%s_%s_%s.dat",LayerTag.c_str(), AlphaFitTag.c_str(), AlphaFileTag.c_str()));
@@ -110,28 +88,18 @@ void AlphaCali_FindPeaks()
      }
    }
 
-   // read pedestal from pedestal file
-   Int_t SSDNum = 4;
-   Int_t CHNum  = 16;
-   Int_t numpar_PedestalIn = 3; // mean, sigma, mean+5*sigma
-   Double_t*** PedestalIn = ReadData(pathPedestalInput.c_str(), SSDNum, CHNum, numpar_PedestalIn);
-
-
    TCanvas* c1 = new TCanvas("c1","c1",1000,1200);
    c1->Divide(1,2);
    TCanvas* c_begin = new TCanvas("c_begin","");
    TCanvas* c_end   = new TCanvas("c_end","");
    c_begin->Close();
    c_end->Close();
-   c_begin->Print(pathPDFbegin.c_str());
-
-
    //====================================================================================
    //                            BEGIN ANALYZE HERE !!!
+   c_begin->Print(pathPDFbegin.c_str());
 
    Double_t limit[6] = {0};   //定义limit[2]用于存储拟合范围
-   Double_t par[9] = {40,250,15,20,260,15,10,270,15}; // 拟合参数初始化
-
+   Double_t par[9] = {40,250,15,20,260,15,10,270,15};
    for (Int_t SSDNum=0; SSDNum<4; SSDNum++) {
      for (Int_t CHNum=0; CHNum<16; CHNum++) {
 
@@ -148,8 +116,7 @@ void AlphaCali_FindPeaks()
          c1->cd(1);
          gPad->Modified();
          gPad->Update();
-         Double_t Pedestal_CH = PedestalIn[SSDNum][CHNum][2];
-         AlphaCaliHist[SSDNum][CHNum]->GetXaxis()->SetRangeUser(Pedestal_CH+HistXLowRange, Pedestal_CH+HistXUpRange);
+         AlphaCaliHist[SSDNum][CHNum]->GetXaxis()->SetRangeUser(150,400);
          AlphaCaliHist[SSDNum][CHNum]->GetYaxis()->SetRangeUser(0,(AlphaCaliHist[SSDNum][CHNum]->GetMaximum())*1.1);
          AlphaCaliHist[SSDNum][CHNum]->Draw();
          //________________________________________________________
@@ -295,75 +262,4 @@ void SetPoints(Int_t event, Int_t x, Int_t y, TObject* selected)
     }
   }
   return;
-}
-
-
-
-
-//_______________________________________________
-Double_t*** ReadData(const Char_t* datapath, Int_t& SSDNum, Int_t& CHNum, Int_t& ParNum)
-{
-///////////////////////////////////////////////////////
-//     构建一个函数，返回类型是 三维数组(三级指针)          //
-//     注意多级指针的使用！！！                          //
-///////////////////////////////////////////////////////
-   Double_t*** readpar = NULL;
-   readpar = new Double_t** [SSDNum];
-   for(Int_t i=0; i<SSDNum; i++)
-   {
-     readpar[i] = new Double_t* [CHNum];
-     for(Int_t j=0; j<CHNum; j++)
-     {
-       readpar[i][j]= new Double_t[ParNum];
-     }
-   }
-   ifstream in;
-   in.open(datapath);
-   if(!in.is_open())
-   {
-     printf("Error: file %s not found\n",datapath);
-     return NULL;
-   }
-   while(in.good())
-   {
-     // 按行读取数据
-     std::string LineRead;
-     std::getline(in, LineRead);
-     LineRead.assign(LineRead.substr(0, LineRead.find('*')));
-     if(LineRead.empty()) continue;
-     if(LineRead.find_first_not_of(' ')==std::string::npos) continue;
-     std::istringstream LineStream(LineRead);
-
-     Int_t ssdnum;
-     Int_t chnum;
-
-     LineStream >> ssdnum >> chnum;
-     for(Int_t i=0; i<ParNum; i++)
-     {
-       LineStream >>readpar[ssdnum][chnum][i];
-     }
-   }
-   in.close();
-   return readpar;
-}
-
-//______________________________________________________________________________
-void DeleteData(Double_t*** p, Int_t& SSDNum, Int_t& CHNum, Int_t& ParNum)
-{
-/////////////////////////////////////////////////////////////
-//    释放前面用 new方法给 Double_t*** p 动态分配的内存         //
-//    多级指针需要逐层释放内存！！！                            //
-/////////////////////////////////////////////////////////////
-  for(Int_t i=0; i<SSDNum; i++)
-  {
-    for(Int_t j=0; j<CHNum; j++)
-    {
-      delete [] p[i][j];
-    }
-  }
-  for(Int_t i=0; i<SSDNum; i++)
-  {
-    delete [] p[i];
-  }
-  delete [] p;
 }
