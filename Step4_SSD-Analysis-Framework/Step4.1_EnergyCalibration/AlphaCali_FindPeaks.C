@@ -20,6 +20,9 @@
 // 考虑alpha在 2um Mylar, 0.06um Al中的能损
 double Ealpha[3] = {4.90407, 5.24768, 5.57147};  //MeV
 
+Int_t SSDNum = 4;
+Int_t CHNum  = 16;
+
 Int_t Index = 0;
 Int_t NPoints;
 TMarker* m[6];
@@ -50,21 +53,30 @@ void AlphaCali_FindPeaks()
   //  4. 三组分alpha源有3个能量峰,需要6个点来拟合                            //
   /////////////////////////////////////////////////////////////////////////////
 
-   std::string LayerTag("L2F");  // "L1S" or "L2F" or "L2B"
-   std::string LayerTagWithoutLabel("L2"); // L1 or L2
-   std::string AlphaFileTag("AlphaCali00_32"); // for L1:00_04,00_08,05_08;  for L2: 00_32,33_48
+   std::string LayerTag("L1S");                // "L1S" or "L2F" or "L2B"
+   std::string LayerTagWithoutLabel("L1");     //  L1 or L2
+   std::string AlphaFileTag("AlphaCali00_08"); //  for L1:00_04,00_08,05_08;  for L2: 00_32,33_48
 
    std::string L1Tag("L1");
-   std::string L2Tag("L2");
-   Double_t HistXLowRange;
-   Double_t HistXUpRange;
-   if(strcmp(L1Tag.c_str(), LayerTagWithoutLabel.c_str())==0)
-   {
-     HistXLowRange = 80.;
-     HistXUpRange  = 220.;
-   } else{
-     HistXLowRange = 50.;
-     HistXUpRange  = 100.;
+   std::string L2FTag("L2F");
+   std::string L2BTag("L2B");
+   Double_t HistXLowRange[SSDNum];
+   Double_t HistXUpRange[SSDNum];
+   if (strcmp(L1Tag.c_str(), LayerTagWithoutLabel.c_str())==0) {
+       HistXLowRange[0] = 90.,  HistXUpRange[0] = 230.;
+       HistXLowRange[1] = 90,   HistXUpRange[1] = 230.;
+       HistXLowRange[2] = 110., HistXUpRange[2] = 210.;
+       HistXLowRange[3] = 160., HistXUpRange[3] = 310.;
+   } else if (strcmp(L2FTag.c_str(), LayerTag.c_str())==0) {     // for L2F
+       HistXLowRange[0] = 30.,  HistXUpRange[0] = 70.;
+       HistXLowRange[1] = 60.,  HistXUpRange[1] = 130.;
+       HistXLowRange[2] = 100., HistXUpRange[2] = 200.;
+       HistXLowRange[3] = 250., HistXUpRange[3] = 350.;
+   } else {
+       HistXLowRange[0] = 40.,  HistXUpRange[0] = 100.; // for L2B
+       HistXLowRange[1] = 60.,  HistXUpRange[1] = 130.;
+       HistXLowRange[2] = 100., HistXUpRange[2] = 200.;
+       HistXLowRange[3] = 250., HistXUpRange[3] = 360.;
    }
 
    std::string AlphaFitTag("3AlphaFitPars");
@@ -111,8 +123,6 @@ void AlphaCali_FindPeaks()
    }
 
    // read pedestal from pedestal file
-   Int_t SSDNum = 4;
-   Int_t CHNum  = 16;
    Int_t numpar_PedestalIn = 3; // mean, sigma, mean+5*sigma
    Double_t*** PedestalIn = ReadData(pathPedestalInput.c_str(), SSDNum, CHNum, numpar_PedestalIn);
 
@@ -149,7 +159,7 @@ void AlphaCali_FindPeaks()
          gPad->Modified();
          gPad->Update();
          Double_t Pedestal_CH = PedestalIn[SSDNum][CHNum][2];
-         AlphaCaliHist[SSDNum][CHNum]->GetXaxis()->SetRangeUser(Pedestal_CH+HistXLowRange, Pedestal_CH+HistXUpRange);
+         AlphaCaliHist[SSDNum][CHNum]->GetXaxis()->SetRangeUser(Pedestal_CH+HistXLowRange[SSDNum], Pedestal_CH+HistXUpRange[SSDNum]);
          AlphaCaliHist[SSDNum][CHNum]->GetYaxis()->SetRangeUser(0,(AlphaCaliHist[SSDNum][CHNum]->GetMaximum())*1.1);
          AlphaCaliHist[SSDNum][CHNum]->Draw();
          //________________________________________________________
