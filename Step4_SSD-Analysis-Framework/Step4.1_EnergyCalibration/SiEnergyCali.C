@@ -327,7 +327,7 @@ void SiEnergyCali()
      graph_AlphaCaliOffset->SetMarkerStyle(21);
      graph_AlphaCaliOffset->SetMarkerColor(kRed);
 
-     TLegend* legend = new TLegend(0.55,0.75,0.9,0.9);
+     TLegend* legend = new TLegend(0.55,0.75,0.9 ,0.9);
      legend->AddEntry(graph_PulserOffset,"PulserOffset","p");
      legend->AddEntry(graph_AlphaCaliOffset,"AlphaCaliOffset","p");
 
