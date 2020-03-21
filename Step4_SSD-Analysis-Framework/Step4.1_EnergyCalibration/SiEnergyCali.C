@@ -36,9 +36,9 @@ void DeleteData(Double_t*** p, Int_t& SSDNum, Int_t& CHNum, Int_t& ParNum);
 //___________________________________________________________
 void SiEnergyCali()
 {
-   std::string LayerTag("L1S");
-   std::string FileTag("Switch");
-   std::string AlphaCaliTag("AlphaCali00_04");
+   std::string LayerTag("L2F");
+   std::string FileTag("Height");
+   std::string AlphaCaliTag("AlphaCali00_32");
 
    std::string pathPuserIn(Form("output/SSD_%s_PulserCali_%s.dat",LayerTag.c_str(),FileTag.c_str())); // Pulser fitting parameters
    std::string pathAlphaEIn("output/SSD_AlphaEnergies.dat");   // Alpha enegies in MeV
@@ -301,9 +301,9 @@ void SiEnergyCali()
    cans_end->Print(pathSiEnergyCaliFitPDFend.c_str());
 
 
-   Double_t graphYmin[4] = {-15.,-25., -20, -10.};
-   Double_t graphYmax[4] = { 0., -10., -5.,  5. };
-
+   Double_t graphYmin[4] = {-10.,-25., -20, -10.};
+   Double_t graphYmax[4] = { 10., -10., -5.,  5. };
+   Double_t graphYbins[4] = {20, 15, 15, 15};
    TCanvas* cans_grap = new TCanvas("PedestalOffset","PedestalOffset", 1200,1000);
    cans_grap->Divide(2,2);
    for(int i=0; i<SSDNum; i++)
@@ -312,7 +312,7 @@ void SiEnergyCali()
      gPad->SetGridx();
 
      // for Zooming the graph
-     TH2D* HistforZoomedGraph = new TH2D("HistforZoomedGraph","HistforZoomedGraph",17,0,17,15,graphYmin[i],graphYmax[i]);
+     TH2D* HistforZoomedGraph = new TH2D("HistforZoomedGraph","HistforZoomedGraph",17,0,17,graphYbins[i],graphYmin[i],graphYmax[i]);
      HistforZoomedGraph->SetStats(0);
      HistforZoomedGraph->Draw();
 

@@ -31,7 +31,7 @@ Double_t*** ReadData(const Char_t* datapath, Int_t& SSDNum, Int_t& CHNum, Int_t&
 void DeleteData(Double_t*** p, Int_t& SSDNum, Int_t& CHNum, Int_t& ParNum);
 
 //___________________________________________________________
-void SiEnergyCali()
+void SiEnergyCaliWithoutAlphaCaliPedestals()
 {
    std::string LayerTag("L2B");
    std::string FileTag("Switch");
@@ -40,7 +40,7 @@ void SiEnergyCali()
    std::string pathPuserIn(Form("output/SSD_%s_PulserCali_%s.dat",LayerTag.c_str(),FileTag.c_str())); // Pulser fitting parameters
    std::string pathAlphaEIn("output/SSD_AlphaEnergies.dat");   // Alpha enegies in MeV
    std::string pathAlphaChIn(Form("output/SSD_%s_AlphaPeaks_%s.dat",LayerTag.c_str(), AlphaCaliTag.c_str())); // Channel of the alpha peaks
-   std::string pathPedestalIn(Form("output/SSD_%s_Pedestals.dat",LayerTag.c_str()));
+   std::string pathPedestalIn(Form("output/SSD_%s_PulserPedestals.dat",LayerTag.c_str()));
    std::string path3AlphaFitParIn(Form("output/SSD_%s_3AlphaFitPars_%s.dat",LayerTag.c_str(), AlphaCaliTag.c_str()));
 
    std::string pathSiEnergyCaliFitParOut(Form("output/SSD_%s_SiEnergyCaliPars_%s_%s.dat",LayerTag.c_str(), FileTag.c_str(), AlphaCaliTag.c_str()));
