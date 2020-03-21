@@ -24,9 +24,6 @@
 
 using namespace std;
 
-Int_t SSDNum = 4;
-Int_t CHNum  = 16;
-
 //______________________________________________________________________________
 Double_t*** ReadData(const Char_t* datapath, Int_t& SSDNum, Int_t& CHNum, Int_t& ParNum);
 
@@ -36,15 +33,14 @@ void DeleteData(Double_t*** p, Int_t& SSDNum, Int_t& CHNum, Int_t& ParNum);
 //___________________________________________________________
 void SiEnergyCali()
 {
-   std::string LayerTag("L1S");
+   std::string LayerTag("L2B");
    std::string FileTag("Switch");
-   std::string AlphaCaliTag("AlphaCali00_04");
+   std::string AlphaCaliTag("AlphaCali00_32");
 
    std::string pathPuserIn(Form("output/SSD_%s_PulserCali_%s.dat",LayerTag.c_str(),FileTag.c_str())); // Pulser fitting parameters
    std::string pathAlphaEIn("output/SSD_AlphaEnergies.dat");   // Alpha enegies in MeV
    std::string pathAlphaChIn(Form("output/SSD_%s_AlphaPeaks_%s.dat",LayerTag.c_str(), AlphaCaliTag.c_str())); // Channel of the alpha peaks
-   std::string pathPulserPedestalIn(Form("output/SSD_%s_PulserPedestals.dat",LayerTag.c_str()));
-   std::string pathAlphaCaliPedestalIn(Form("output/SSD_%s_AlphaCaliPedestals_%s.dat",LayerTag.c_str(),AlphaCaliTag.c_str()));
+   std::string pathPedestalIn(Form("output/SSD_%s_Pedestals.dat",LayerTag.c_str()));
    std::string path3AlphaFitParIn(Form("output/SSD_%s_3AlphaFitPars_%s.dat",LayerTag.c_str(), AlphaCaliTag.c_str()));
 
    std::string pathSiEnergyCaliFitParOut(Form("output/SSD_%s_SiEnergyCaliPars_%s_%s.dat",LayerTag.c_str(), FileTag.c_str(), AlphaCaliTag.c_str()));
@@ -62,23 +58,22 @@ void SiEnergyCali()
                    <<"-a1/b1"<<setw(10)<<"a2"<<setw(10)<<"b2"<<setw(10)<<"1./a2"<<setw(12)<<"-a2/b2"<<setw(10)
                    <<"a3"<<setw(10)<<"b3"<<setw(10)<<"1./a3"<<setw(12)<<"-a3/b3\n";
 
+   Int_t SSDNum = 4;
+   Int_t CHNum  = 16;
    Int_t numpar_PulserIn  = 4;  // 4 pars: a, err_a, b, err_b        (E = a*ch + b)
    Int_t numpar_AlphaEIn  = 3;  // 3 alpha energies: E1, E2, E3
    Int_t numpar_AlphaChIn = 3;  // 3 alpha channels: CH1, CH2, CH3
    Int_t numpar_3AlphaFit = 4;  // 4 pars: a', err_a', b', err_b'    (E' = a'*ch + b')
-   Int_t numpar_PulserPedestalIn = 1; // 1 par
-   Int_t numpar_AlphaCaliPedestalIn = 1; // 1 par
+   Int_t numpar_PedestalIn = 1; // 1 par
 
    Double_t*** PulserIn  = ReadData(pathPuserIn.c_str(),  SSDNum, CHNum, numpar_PulserIn);
    Double_t*** AlphaEIn  = ReadData(pathAlphaEIn.c_str(), SSDNum, CHNum, numpar_AlphaEIn);
    Double_t*** AlphaChIn = ReadData(pathAlphaChIn.c_str(),SSDNum, CHNum, numpar_AlphaChIn);
    Double_t*** AlphaFit  = ReadData(path3AlphaFitParIn.c_str(), SSDNum, CHNum, numpar_3AlphaFit);
-   Double_t*** PulserPedestalIn = ReadData(pathPulserPedestalIn.c_str(), SSDNum, CHNum, numpar_PulserPedestalIn);
-   Double_t*** AlphaCaliPedestalIn = ReadData(pathAlphaCaliPedestalIn.c_str(), SSDNum, CHNum, numpar_AlphaCaliPedestalIn);
+   Double_t*** PedestalIn = ReadData(pathPedestalIn.c_str(), SSDNum, CHNum, numpar_PedestalIn);
 
    Int_t Num_PedestalOffset[SSDNum]; // TGrap* grap = new TGrap(Num_PedestalOffset, SSDCHNum, PedestalOffset);
-   Double_t PulserPedestalOffset[SSDNum][CHNum];
-   Double_t AlphaCaliPedestalOffset[SSDNum][CHNum];
+   Double_t PedestalOffset[SSDNum][CHNum];
    Double_t SSDCHNum[SSDNum][CHNum];
    for(Int_t i=0; i<SSDNum; i++)
    {
@@ -86,8 +81,7 @@ void SiEnergyCali()
      for(Int_t j=0; j<CHNum; j++)
      {
        SSDCHNum[i][j] = j+1;
-       PulserPedestalOffset[i][j] = 0;
-       AlphaCaliPedestalOffset[i][j] = 0;
+       PedestalOffset[i][j] = 0;
      }
    }
 
@@ -113,8 +107,7 @@ void SiEnergyCali()
        Double_t E1_MeV = AlphaEIn[i][j][0];
        Double_t E2_MeV = AlphaEIn[i][j][1];
        Double_t E3_MeV = AlphaEIn[i][j][2];
-       Double_t PulserPedestal_CH = PulserPedestalIn[i][j][0];
-       Double_t AlphaCaliPedestal_CH = AlphaCaliPedestalIn[i][j][0];
+       Double_t Pedestal_CH = PedestalIn[i][j][0];
 
       // if(E1_CH<50.0) continue
 
@@ -144,8 +137,7 @@ void SiEnergyCali()
        Double_t a1_3AlphaFit = 1./a_3AlphaFit;
        Double_t b1_3AlphaFit = -b_3AlphaFit/a_3AlphaFit;
 
-       PulserPedestalOffset[i][j] = h11 - PulserPedestal_CH; // Estimate the offset of pedestal
-       AlphaCaliPedestalOffset[i][j] = h11 - AlphaCaliPedestal_CH; // Estimate the offset of pedestal
+       PedestalOffset[i][j] = h11 - Pedestal_CH; // Estimate the offset of pedestal
 
        EnergyCaliParOut<<setw(7)<< i <<setw(5)<< j <<setw(15)<< k1 <<setw(10)<< h1 <<setw(10)<< k11 <<setw(10)
                        << h11 <<setw(12)<< k2 <<setw(10)<< h2 <<setw(10)<< k22 <<setw(10)<< h22 <<setw(12)
@@ -169,9 +161,9 @@ void SiEnergyCali()
        TF1* f3AlphaFitClone1 = (TF1*)f3AlphaFit->Clone();
        TF1* f3AlphaFitClone2 = (TF1*)f3AlphaFit->Clone();
 
-       TLegend* legend1 = new TLegend(0.1,0.7,0.5,0.9);
-       TLegend* legend2 = new TLegend(0.1,0.7,0.5,0.9);
-       TLegend* legend3 = new TLegend(0.1,0.6,0.5,0.9);
+       TLegend * legend1 = new TLegend(0.1,0.7,0.5,0.9);
+       TLegend * legend2 = new TLegend(0.1,0.7,0.5,0.9);
+       TLegend * legend3 = new TLegend(0.1,0.6,0.5,0.9);
 
        canvas->cd(1);
        Double_t y1_max = k1 * 4096 + h1;
@@ -217,9 +209,9 @@ void SiEnergyCali()
        fPeak3FitClone1->SetLineColor(kBlue);
        f3AlphaFitClone1->SetLineColor(kBlack);
 
-       TMarker* m0 = new TMarker(PulserPedestal_CH, 0, 20);
-       TMarker* m1 = new TMarker(h11, 0, 20);
-       TMarker* m2 = new TMarker(b1_3AlphaFit, 0, 20);
+       TMarker *m0 = new TMarker(Pedestal_CH, 0, 20);
+       TMarker *m1 = new TMarker(h11, 0, 20);
+       TMarker *m2 = new TMarker(b1_3AlphaFit, 0, 20);
        m0->SetMarkerSize(1.5);
        m1->SetMarkerSize(1.5);
        m2->SetMarkerSize(1.5);
@@ -301,43 +293,23 @@ void SiEnergyCali()
    cans_end->Print(pathSiEnergyCaliFitPDFend.c_str());
 
 
-   Double_t graphYmin[4] = {-15.,-25., -20, -10.};
-   Double_t graphYmax[4] = { 0., -10., -5.,  5. };
-
    TCanvas* cans_grap = new TCanvas("PedestalOffset","PedestalOffset", 1200,1000);
    cans_grap->Divide(2,2);
-   for(int i=0; i<SSDNum; i++)
+   for(int i=0; i<4; i++)
    {
+     TGraph* graph = new TGraph(Num_PedestalOffset[i], SSDCHNum[i], PedestalOffset[i]);
      cans_grap->cd(i+1);
+     graph->SetTitle(Form("SSD%d_%s_PedestalOffset_%s_%s",i+1, LayerTag.c_str(), FileTag.c_str(), AlphaCaliTag.c_str()));
+     graph->SetMarkerStyle(20);
+     graph->SetMarkerColor(kBlue);
+     graph->GetXaxis()->SetTitle("CH");
+     graph->GetYaxis()->SetTitle("PedestalOffset");
      gPad->SetGridx();
-
-     // for Zooming the graph
-     TH2D* HistforZoomedGraph = new TH2D("HistforZoomedGraph","HistforZoomedGraph",17,0,17,15,graphYmin[i],graphYmax[i]);
-     HistforZoomedGraph->SetStats(0);
-     HistforZoomedGraph->Draw();
-
-     TGraph* graph_PulserOffset = new TGraph(Num_PedestalOffset[i], SSDCHNum[i], PulserPedestalOffset[i]);
-     TGraph* graph_AlphaCaliOffset = new TGraph(Num_PedestalOffset[i], SSDCHNum[i], AlphaCaliPedestalOffset[i]);
-
-     graph_PulserOffset->SetTitle(Form("SSD%d_%s_PedestalOffset_%s_%s",i+1, LayerTag.c_str(), FileTag.c_str(), AlphaCaliTag.c_str()));
-     graph_PulserOffset->GetXaxis()->SetTitle("CH");
-     graph_PulserOffset->GetYaxis()->SetTitle("PedestalOffset");
-     graph_PulserOffset->SetMarkerStyle(20);
-     graph_PulserOffset->SetMarkerColor(kBlue);
-     graph_AlphaCaliOffset->SetMarkerStyle(21);
-     graph_AlphaCaliOffset->SetMarkerColor(kRed);
-
-     TLegend* legend = new TLegend(0.55,0.75,0.9,0.9);
-     legend->AddEntry(graph_PulserOffset,"PulserOffset","p");
-     legend->AddEntry(graph_AlphaCaliOffset,"AlphaCaliOffset","p");
-
-     graph_AlphaCaliOffset->Draw("PL");
-     graph_PulserOffset->Draw("PL");
-     legend->Draw("SAME");
-
+     graph->Draw();
    }
    cans_grap->Print(pathPedestalOffsetPDF.c_str());
    cans_grap->Print(pathPedestalOffsetPNG.c_str());
+
 
    DeleteData(PulserIn,SSDNum, CHNum, numpar_PulserIn);
    DeleteData(AlphaEIn,SSDNum, CHNum, numpar_AlphaEIn);
