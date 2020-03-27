@@ -13,6 +13,17 @@
 
 #include "include/EnergyLossModule.h"
 
+Double_t Energy1[3] = {5.155, 5.143, 5.103};   // Unit: MeV
+Double_t Ratio1 [3] = {0.730, 0.151, 0.115};   // branch ratio
+Double_t Energy2[2] = {5.486, 5.443};
+Double_t Ratio2 [2] = {0.852, 0.128};
+Double_t Energy3[2] = {5.805, 5.763};
+Double_t Ratio3 [2] = {0.767, 0.233};
+Double_t E1 = Eaverage(Energy1, Ratio1, 3);
+Double_t E2 = Eaverage(Energy2, Ratio2, 2);
+Double_t E3 = Eaverage(Energy3, Ratio3, 2);
+
+
 //______________________________________________________________________________
 // 定义一个函数,用于计算两个数组元素乘积的求和
 Double_t Eaverage(double *arr1, double *arr2, int size)
@@ -29,15 +40,6 @@ Double_t Eaverage(double *arr1, double *arr2, int size)
   return average;
 }
 
-Double_t Energy1[3] = {5.155, 5.143, 5.103};   // Unit: MeV
-Double_t Ratio1 [3] = {0.730, 0.151, 0.115};   // branch ratio
-Double_t Energy2[2] = {5.486, 5.443};
-Double_t Ratio2 [2] = {0.852, 0.128};
-Double_t Energy3[2] = {5.805, 5.763};
-Double_t Ratio3 [2] = {0.767, 0.233};
-Double_t E1 = Eaverage(Energy1, Ratio1, 3);
-Double_t E2 = Eaverage(Energy2, Ratio2, 2);
-Double_t E3 = Eaverage(Energy3, Ratio3, 2);
 
 //______________________________________________________________________________
 void AlphaCali_CalEnergy()
