@@ -53,11 +53,11 @@ void AlphaCali_AutoFindPedestals()
 //  std::string pathRootInput(Form("/data/EXPdata/Fission2019_Data/MapRoot/MapSSD_%s_AlphaCali%04d.root", LayerTagWithOutLabel.c_str(), i));
   std::string pathRootInput(Form("/home/sea/Fission2019_Data/MapRoot/MapSSD_%s_%s.root", LayerTagWithOutLabel.c_str(), AlphaFileTag.c_str()));
 
-  std::string pathAlphaCaliPedestalsOutput(Form("output/SSD_%s_AlphaCaliPedestals_AlphaCali%s.dat", LayerTag.c_str(), AlphaFileTag.c_str()));
+  std::string pathAlphaCaliPedestalsOutput(Form("output/SSD_%s_AlphaCaliPedestals_%s.dat", LayerTag.c_str(), AlphaFileTag.c_str()));
 
-  std::string pathPDFOutput(Form("figures/SSD_%s_AlphaCaliPedestals_AlphaCali%s.pdf", LayerTag.c_str(), AlphaFileTag.c_str()));
-  std::string pathPDFbegin(Form("figures/SSD_%s_AlphaCaliPedestals_AlphaCali%s.pdf[", LayerTag.c_str(), AlphaFileTag.c_str()));
-  std::string pathPDFend(Form("figures/SSD_%s_AlphaCaliPedestals_AlphaCali%s.pdf]", LayerTag.c_str(), AlphaFileTag.c_str()));
+  std::string pathPDFOutput(Form("figures/SSD_%s_AlphaCaliPedestals_%s.pdf", LayerTag.c_str(), AlphaFileTag.c_str()));
+  std::string pathPDFbegin(Form("figures/SSD_%s_AlphaCaliPedestals_%s.pdf[", LayerTag.c_str(), AlphaFileTag.c_str()));
+  std::string pathPDFend(Form("figures/SSD_%s_AlphaCaliPedestals_%s.pdf]", LayerTag.c_str(), AlphaFileTag.c_str()));
 
 
   FILE * FileOut = fopen(pathAlphaCaliPedestalsOutput.c_str(),"w");

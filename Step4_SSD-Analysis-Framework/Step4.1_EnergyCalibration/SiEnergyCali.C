@@ -36,9 +36,13 @@ void DeleteData(Double_t*** p, Int_t& SSDNum, Int_t& CHNum, Int_t& ParNum);
 //___________________________________________________________
 void SiEnergyCali()
 {
-   std::string LayerTag("L2F");
-   std::string FileTag("Switch");
-   std::string AlphaCaliTag("AlphaCali00_32");
+   std::string LayerTag("L2B");
+   std::string FileTag("Switch");  // Switch or Height
+   std::string AlphaCaliTag("AlphaCali33_48");
+
+   std::string L1STag("L1S");
+   std::string L2FTag("L2F");
+   std::string L2BTag("L2B");
 
    std::string pathPuserIn(Form("output/SSD_%s_PulserCali_%s.dat",LayerTag.c_str(),FileTag.c_str())); // Pulser fitting parameters
    std::string pathAlphaEIn("output/SSD_AlphaEnergies.dat");   // Alpha enegies in MeV
@@ -300,19 +304,51 @@ void SiEnergyCali()
    }
    cans_end->Print(pathSiEnergyCaliFitPDFend.c_str());
 
+   Double_t graphYminL1S[4] = {-20.,-25., -20, -10.};
+   Double_t graphYmaxL1S[4] = { 20.,-10., -5.,  5. };
+   Double_t graphYbinsL1S[4]= { 40, 15,   15,   15 };
+   Double_t graphYminL2F[4] = {-25.,-30.,-30, -15.};
+   Double_t graphYmaxL2F[4] = {-10.,-15.,-15., 0. };
+   Double_t graphYbinsL2F[4]= { 15,  15,  15,  15 };
+   Double_t graphYminL2B[4] = {-15.,-15.,-30, -15.};
+   Double_t graphYmaxL2B[4] = { 0.,   0.,-15., -5.};
+   Double_t graphYbinsL2B[4]= { 15,  15,  15,  10 };
 
-   Double_t graphYmin[4] = {-10.,-25., -20, -10.};
-   Double_t graphYmax[4] = { 10., -10., -5.,  5. };
-   Double_t graphYbins[4] = {20, 15, 15, 15};
+   Double_t graphYmin[4];
+   Double_t graphYmax[4];
+   Double_t graphYbins[4];
+   for (Int_t i=0; i<SSDNum; i++)
+   {
+     if (strcmp(L1STag.c_str(), LayerTag.c_str())==0)
+     {
+       graphYmin[i]  = graphYminL1S[i];
+       graphYmax[i]  = graphYmaxL1S[i];
+       graphYbins[i] = graphYbinsL1S[i];
+     }
+     else if (strcmp(L2FTag.c_str(), LayerTag.c_str())==0)
+     {
+       graphYmin[i]  = graphYminL2F[i];
+       graphYmax[i]  = graphYmaxL2F[i];
+       graphYbins[i] = graphYbinsL2F[i];
+     }
+     else  // L2B
+     {
+       graphYmin[i]  = graphYminL2B[i];
+       graphYmax[i]  = graphYmaxL2B[i];
+       graphYbins[i] = graphYbinsL2B[i];
+     }
+   }
+
    TCanvas* cans_grap = new TCanvas("PedestalOffset","PedestalOffset", 1200,1000);
    cans_grap->Divide(2,2);
-   for(int i=0; i<SSDNum; i++)
+   for (int i=0; i<SSDNum; i++)
    {
      cans_grap->cd(i+1);
      gPad->SetGridx();
 
      // for Zooming the graph
-     TH2D* HistforZoomedGraph = new TH2D("HistforZoomedGraph","HistforZoomedGraph",17,0,17,graphYbins[i],graphYmin[i],graphYmax[i]);
+     TH2D* HistforZoomedGraph = new TH2D("HistforZoomedGraph",Form("SSD%d_%s_PedestalOffset_%s_%s",i+1,LayerTag.c_str(),
+                                          FileTag.c_str(), AlphaCaliTag.c_str()),17,0,17,graphYbins[i],graphYmin[i],graphYmax[i]);
      HistforZoomedGraph->SetStats(0);
      HistforZoomedGraph->Draw();
 

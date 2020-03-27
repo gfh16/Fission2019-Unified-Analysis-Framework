@@ -73,9 +73,9 @@ void PulserCali_L1_AutoFindPeaksAndFit()
   c_begin->Close();
   c_begin->Print(pathPDFbegin.c_str());
 
-  for(Int_t SSDNum=0; SSDNum<4; SSDNum++)
+  for (Int_t SSDNum=0; SSDNum<4; SSDNum++)
   {
-    for(int CHNum=0; CHNum<16; CHNum++)
+    for (int CHNum=0; CHNum<16; CHNum++)
     {
         cans[SSDNum][CHNum]->Print(pathPDFOutput.c_str());
     }
