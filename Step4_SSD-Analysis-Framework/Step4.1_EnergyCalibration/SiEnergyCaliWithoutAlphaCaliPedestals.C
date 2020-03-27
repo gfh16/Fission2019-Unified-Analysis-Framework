@@ -314,6 +314,8 @@ void SiEnergyCaliWithoutAlphaCaliPedestals()
    DeleteData(PulserIn,SSDNum, CHNum, numpar_PulserIn);
    DeleteData(AlphaEIn,SSDNum, CHNum, numpar_AlphaEIn);
    DeleteData(AlphaChIn,SSDNum,CHNum, numpar_AlphaChIn);
+   DeleteData(AlphaFit,SSDNum, CHNum, numpar_3AlphaFit);
+   DeleteData(PedestalIn,SSDNum,CHNum, numpar_PedestalIn);
 
    return;
 }
