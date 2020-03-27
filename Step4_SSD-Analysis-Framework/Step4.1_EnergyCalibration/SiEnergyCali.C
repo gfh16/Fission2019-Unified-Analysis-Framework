@@ -37,11 +37,7 @@ void DeleteData(Double_t*** p, Int_t& SSDNum, Int_t& CHNum, Int_t& ParNum);
 void SiEnergyCali()
 {
    std::string LayerTag("L2F");
-<<<<<<< HEAD
    std::string FileTag("Switch");
-=======
-   std::string FileTag("Height");
->>>>>>> 4f7323428d79a0597520822b82b336292a42d3db
    std::string AlphaCaliTag("AlphaCali00_32");
 
    std::string pathPuserIn(Form("output/SSD_%s_PulserCali_%s.dat",LayerTag.c_str(),FileTag.c_str())); // Pulser fitting parameters

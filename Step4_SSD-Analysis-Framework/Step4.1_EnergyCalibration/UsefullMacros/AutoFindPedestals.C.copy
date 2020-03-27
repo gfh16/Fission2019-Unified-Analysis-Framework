@@ -34,7 +34,7 @@ void AutoFindPedestals()
 //   6.将寻峰得到的数据点画出来, 作线性拟合                                       //
 //                                                                            //
 //   PulserCali_AutoFindPeak()参数说明                                         //
-//   LayerTagWithOutLabel   : L1 or L2                                                    //
+//   LayerTag   : L1 or L2                                                    //
 //   AlphaTag    : Switch / Height，We use this two methods for pulser cali    //
 //   cans[4][16]: Canvas for to save all the figures                          //
 //                                                                            //
@@ -46,18 +46,42 @@ void AutoFindPedestals()
 
   Int_t lowrange  = 0;
   Int_t highrange = 200;
-  std::string AlphaFileTag("AlphaCali33_48");
-  std::string LayerTagWithOutLabel("L2");
-  std::string LayerTag("L2F");
+  std::string AlphaTag("AlphaCali05_08");
+  std::string L1Tag("L1");
+  std::string L1STag("L1S");
 
-//  std::string pathRootInput(Form("/data/EXPdata/Fission2019_Data/MapRoot/MapSSD_%s_AlphaCali%04d.root", LayerTagWithOutLabel.c_str(), i));
-  std::string pathRootInput(Form("/home/sea/Fission2019_Data/MapRoot/MapSSD_%s_%s.root", LayerTagWithOutLabel.c_str(), AlphaFileTag.c_str()));
 
-  std::string pathAlphaCaliPedestalsOutput(Form("output/SSD_%s_AlphaCaliPedestals_AlphaCali%s.dat", LayerTag.c_str(), AlphaFileTag.c_str()));
+// Getting pedestals from file QC_MapSSD_PulserCali_Pedestal0000.root
+ /*
+  std::string pathRootInput("rootinput/QC_MapSSD_PulserCali_Pedestal0000.root");
+  std::string pathPDF("figures/SSD_Pedestals.pdf");
+  std::string pathPDFbegin("figures/SSD_Pedestals.pdf[");
+  std::string pathPDFend("figures/SSD_Pedestals.pdf]");
+  std::string pathAlphaCaliPedestalsOutput("output/SSD_Pedestals.dat");
+*/
 
-  std::string pathPDFOutput(Form("figures/SSD_%s_AlphaCaliPedestals_AlphaCali%s.pdf", LayerTag.c_str(), AlphaFileTag.c_str()));
-  std::string pathPDFbegin(Form("figures/SSD_%s_AlphaCaliPedestals_AlphaCali%s.pdf[", LayerTag.c_str(), AlphaFileTag.c_str()));
-  std::string pathPDFend(Form("figures/SSD_%s_AlphaCaliPedestals_AlphaCali%s.pdf]", LayerTag.c_str(), AlphaFileTag.c_str()));
+  // Getting pedestals from merged alphacali files
+  /*
+  std::string pathRootInput(Form("rootinput/MapSSD_%s_%s.root", L1Tag.c_str(), AlphaTag.c_str()));
+
+  std::string pathAlphaCaliPedestalsOutput(Form("output/SSD_%s_AlphaCaliPedestals_%s.dat",L1STag.c_str(), AlphaTag.c_str()));
+
+  std::string pathPDFOutput(Form("figures/SSD_%s_AlphaCaliPedestals_%s.pdf",L1STag.c_str(), AlphaTag.c_str()));
+  std::string pathPDFbegin(Form("figures/SSD_%s_AlphaCaliPedestals_%s.pdf[",L1S.c_str(), AlphaTag.c_str()));
+  std::string pathPDFend(Form("figures/SSD_%s_AlphaCaliPedestals_%s.pdf]",L1S.c_str(), AlphaTag.c_str()));
+  */
+
+
+  // Getting pedestals from individual alphacali file
+  for (Int_t i=0; i<9; i++) {
+
+    std::string pathRootInput(Form("/data/EXPdata/Fission2019_Data/MapRoot/MapSSD_%s_AlphaCali%04d.root", L1Tag.c_str(), i));
+
+    std::string pathAlphaCaliPedestalsOutput(Form("output/SSD_%s_AlphaCaliPedestals_Alpha%04d.dat", L1STag.c_str(), i));
+
+    std::string pathPDFOutput(Form("figures/SSD_%s_AlphaCaliPedestals_Alpha%04d.pdf", L1STag.c_str(), i));
+    std::string pathPDFbegin(Form("figures/SSD_%s_AlphaCaliPedestals_Alpha%04d.pdf[", L1STag.c_str(), i));
+    std::string pathPDFend(Form("figures/SSD_%s_AlphaCaliPedestals_Alpha%04d.pdf]", L1STag.c_str(), i));
 
 
   FILE * FileOut = fopen(pathAlphaCaliPedestalsOutput.c_str(),"w");
@@ -73,8 +97,6 @@ void AutoFindPedestals()
   TCanvas* c1 = new TCanvas("c1","c1");
   TCanvas* c_begin = new TCanvas();
   TCanvas* c_end   = new TCanvas();
-  c_begin->Close();
-  c_end->Close();
   c_begin->Print(pathPDFbegin.c_str());
 
   TH1D* Pedestals[4][16];
@@ -83,9 +105,9 @@ void AutoFindPedestals()
     // 读取root文件中的 Histograms
     for (Int_t CHNum=0; CHNum<16; CHNum++)
     {
-      Pedestals[SSDNum][CHNum] = (TH1D*)FileIn->Get(Form("SSD%d_%s_E_CH%02d",SSDNum+1,LayerTag.c_str(),CHNum));
+      Pedestals[SSDNum][CHNum] = (TH1D*)FileIn->Get(Form("SSD%d_%s_E_CH%02d",SSDNum+1,L1STag.c_str(),CHNum));
       Pedestals[SSDNum][CHNum]->GetXaxis()->SetRangeUser(lowrange, highrange);
-      cout << Form("SSD%d_%s_E_CH%d",SSDNum+1, LayerTag.c_str(), CHNum) << endl;
+      cout << Form("SSD%d_%s_E_CH%d",SSDNum+1, L1STag.c_str(), CHNum) << endl;
     }
     printf("Histograms loaded\n");
 
@@ -96,13 +118,13 @@ void AutoFindPedestals()
     {
       if (Pedestals[SSDNum][CHNum]==0)
       {
-        printf("No data present for SSD%d_%s_E_CH%02d\n",SSDNum+1,LayerTag.c_str(),CHNum);
+        printf("No data present for SSD%d_%s_E_CH%02d\n",SSDNum+1,L1STag.c_str(),CHNum);
         continue;
       }
 
       c1->cd();
       Int_t nfound  = s->Search(Pedestals[SSDNum][CHNum],3,"",0.4);
-      printf("SSD%d_%s_E_CH%d is analyzed,%2d peaks found\n",SSDNum+1,LayerTag.c_str(),CHNum,nfound);
+      printf("SSD%d_%s_E_CH%d is analyzed,%2d peaks found\n",SSDNum+1,L1STag.c_str(),CHNum,nfound);
       c1->Print(pathPDFOutput.c_str());
 
       Int_t npeaks = 0;
@@ -119,4 +141,5 @@ void AutoFindPedestals()
 
   fclose(FileOut);
   return;
+  }
 }
