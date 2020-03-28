@@ -39,10 +39,14 @@ void DeleteData(Double_t*** p, Int_t& SSDNum, Int_t& CHNum, Int_t& ParNum);
 //___________________________________________________________
 void SiEnergyCali_ModifyDeadLayer()
 {
-   std::string LayerTag("L2F");
+   std::string LayerTag("L2B");
    std::string FileTag("Switch");  // Switch or Height
-   std::string AlphaCaliTag("AlphaCali00_32");
+   std::string AlphaCaliTag("AlphaCali33_48");
    std::string DeadLayerTag("ChangingDeadLayer");
+
+   std::string L1STag("L1S");
+   std::string L2FTag("L2F");
+   std::string L2BTag("L2B");
 
    std::string pathPuserIn(Form("output/SSD_%s_PulserCali_%s.dat",LayerTag.c_str(),FileTag.c_str())); // Pulser fitting parameters
    std::string pathAlphaChIn(Form("output/SSD_%s_AlphaPeaks_%s.dat",LayerTag.c_str(), AlphaCaliTag.c_str())); // Channel of the alpha peaks

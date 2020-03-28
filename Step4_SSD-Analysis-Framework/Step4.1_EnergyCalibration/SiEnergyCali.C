@@ -36,9 +36,9 @@ void DeleteData(Double_t*** p, Int_t& SSDNum, Int_t& CHNum, Int_t& ParNum);
 //___________________________________________________________
 void SiEnergyCali()
 {
-   std::string LayerTag("L2B");
+   std::string LayerTag("L1S");
    std::string FileTag("Switch");  // Switch or Height
-   std::string AlphaCaliTag("AlphaCali33_48");
+   std::string AlphaCaliTag("AlphaCali00_04");
 
    std::string L1STag("L1S");
    std::string L2FTag("L2F");
@@ -46,10 +46,12 @@ void SiEnergyCali()
 
    std::string pathPuserIn(Form("output/SSD_%s_PulserCali_%s.dat",LayerTag.c_str(),FileTag.c_str())); // Pulser fitting parameters
    std::string pathAlphaEIn("output/SSD_AlphaEnergies.dat");   // Alpha enegies in MeV
+//   std::string pathAlphaEIn("output/Check_SSD_AlphaEnergies.dat");   // Alpha enegies in MeV
    std::string pathAlphaChIn(Form("output/SSD_%s_AlphaPeaks_%s.dat",LayerTag.c_str(), AlphaCaliTag.c_str())); // Channel of the alpha peaks
    std::string pathPulserPedestalIn(Form("output/SSD_%s_PulserPedestals.dat",LayerTag.c_str()));
    std::string pathAlphaCaliPedestalIn(Form("output/SSD_%s_AlphaCaliPedestals_%s.dat",LayerTag.c_str(),AlphaCaliTag.c_str()));
    std::string path3AlphaFitParIn(Form("output/SSD_%s_3AlphaFitPars_%s.dat",LayerTag.c_str(), AlphaCaliTag.c_str()));
+
 
    std::string pathSiEnergyCaliFitParOut(Form("output/SSD_%s_SiEnergyCaliPars_%s_%s.dat",LayerTag.c_str(), FileTag.c_str(), AlphaCaliTag.c_str()));
 
@@ -59,6 +61,15 @@ void SiEnergyCali()
    std::string pathPedestalOffsetPDF(Form("figures/SSD_%s_PedestalOffset_%s_%s.pdf",LayerTag.c_str(), FileTag.c_str(), AlphaCaliTag.c_str()));
    std::string pathPedestalOffsetPNG(Form("figures/SSD_%s_PedestalOffset_%s_%s.png",LayerTag.c_str(), FileTag.c_str(), AlphaCaliTag.c_str()));
 
+/*
+   std::string pathSiEnergyCaliFitParOut(Form("output/Check_SSD_%s_SiEnergyCaliPars_%s_%s.dat",LayerTag.c_str(), FileTag.c_str(), AlphaCaliTag.c_str()));
+
+   std::string pathSiEnergyCaliFitPDF(Form("figures/Check_SSD_%s_EnergyCali_%s_%s.pdf",LayerTag.c_str(), FileTag.c_str(), AlphaCaliTag.c_str()));
+   std::string pathSiEnergyCaliFitPDFbegin(Form("figures/Check_SSD_%s_EnergyCali_%s_%s.pdf[",LayerTag.c_str(), FileTag.c_str(), AlphaCaliTag.c_str()));
+   std::string pathSiEnergyCaliFitPDFend(Form("figures/Check_SSD_%s_EnergyCali_%s_%s.pdf]", LayerTag.c_str(), FileTag.c_str(), AlphaCaliTag.c_str()));
+   std::string pathPedestalOffsetPDF(Form("figures/Check_SSD_%s_PedestalOffset_%s_%s.pdf",LayerTag.c_str(), FileTag.c_str(), AlphaCaliTag.c_str()));
+   std::string pathPedestalOffsetPNG(Form("figures/Check_SSD_%s_PedestalOffset_%s_%s.png",LayerTag.c_str(), FileTag.c_str(), AlphaCaliTag.c_str()));
+*/
    ofstream EnergyCaliParOut(pathSiEnergyCaliFitParOut.c_str());
    EnergyCaliParOut<<"* Fit function: E_MeV = a * E_CH + b, then E_CH = 1/a * E_MeV - a/b \n";
    EnergyCaliParOut<<"* 1,2,3 represent using alpha peak1,peak2, and peak3 to calibrate the energy,respectively. \n";

@@ -18,27 +18,11 @@
 #include "include/EnergyLossModule.h"
 
 
+
 //______________________________________________________________________________
-Double_t Energy1[3] = {5.155, 5.143, 5.103};   // Unit: MeV
-Double_t Ratio1 [3] = {0.730, 0.151, 0.115};   // branch ratio
-Double_t Energy2[2] = {5.486, 5.443};
-Double_t Ratio2 [2] = {0.852, 0.128};
-Double_t Energy3[2] = {5.805, 5.763};
-Double_t Ratio3 [2] = {0.767, 0.233};
-Double_t E1 = Eaverage(Energy1, Ratio1, 3);
-Double_t E2 = Eaverage(Energy2, Ratio2, 2);
-Double_t E3 = Eaverage(Energy3, Ratio3, 2);
+void ToGenerateFileOutHead(ofstream& FileOut);
 
-const Int_t SSDNum = 4;
-const Int_t CHNum = 16;
-const Int_t PeaksNum = 3;
-Double_t Ealpha[PeaksNum] = {E1, E2, E3};  // MeV
-
-
-Double_t MylarThickness = 2.0;      // um
-Double_t AlThicknessStep = 0.1;    // AlThickness = AlThicknessStep * j;
-Int_t NumofAlThickness = 10;
-
+void ToWriteFileOut(ofstream& FileOut, const Double_t Energies[], const Int_t size);
 
 //______________________________________________________________________________
 // 定义一个函数,用于计算两个数组元素乘积的求和
@@ -57,9 +41,26 @@ Double_t Eaverage(double *arr1, double *arr2, int size)
 }
 
 //______________________________________________________________________________
-void ToGenerateFileOutHead(ofstream& FileOut);
+Double_t Energy1[3] = {5.155, 5.143, 5.103};   // Unit: MeV
+Double_t Ratio1 [3] = {0.730, 0.151, 0.115};   // branch ratio
+Double_t Energy2[2] = {5.486, 5.443};
+Double_t Ratio2 [2] = {0.852, 0.128};
+Double_t Energy3[2] = {5.805, 5.763};
+Double_t Ratio3 [2] = {0.767, 0.233};
+Double_t E1 = Eaverage(Energy1, Ratio1, 3);
+Double_t E2 = Eaverage(Energy2, Ratio2, 2);
+Double_t E3 = Eaverage(Energy3, Ratio3, 2);
 
-void ToWriteFileOut(ofstream& FileOut, const Double_t Energies[], const Int_t size);
+const Int_t SSDNum = 4;
+const Int_t CHNum = 16;
+const Int_t PeaksNum = 3;
+Double_t Ealpha[PeaksNum] = {E1, E2, E3};  // MeV
+
+
+Double_t MylarThickness = 2.0;      // um
+Double_t AlThicknessStep = 0.5;    // AlThickness = AlThicknessStep * j;
+Int_t NumofAlThickness = 10;
+
 
 //______________________________________________________________________________
 void AlphaCali_CalEnergyChangingDeadLayer()
