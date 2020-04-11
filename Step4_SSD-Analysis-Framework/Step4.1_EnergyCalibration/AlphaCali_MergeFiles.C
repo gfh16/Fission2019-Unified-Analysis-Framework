@@ -21,7 +21,8 @@ void AlphaCali_MergeFiles()
   const int LastRun  = 48;
 
   std::string LayerTag("L2");
-  std::string pathFolderRootInput("/data/EXPdata/Fission2019/MapRoot/");
+  //std::string pathFolderRootInput("/data/EXPdata/Fission2019/MapRoot/");
+  std::string pathFolderRootInput("/home/sea/Fission2019_Data/MapRoot/");
 
   std::string L1Tag("L1");
   std::string L2Tag("L2");
@@ -38,18 +39,18 @@ void AlphaCali_MergeFiles()
   // I disable all the branches
   myData->SetBranchStatus("*",false);
 
-  Int_t SSD1_L1S_E[16];
-  Int_t SSD2_L1S_E[16];
-  Int_t SSD3_L1S_E[16];
-  Int_t SSD4_L1S_E[16];
-  Int_t SSD1_L2F_E[16];
-  Int_t SSD1_L2B_E[16];
-  Int_t SSD2_L2F_E[16];
-  Int_t SSD2_L2B_E[16];
-  Int_t SSD3_L2F_E[16];
-  Int_t SSD3_L2B_E[16];
-  Int_t SSD4_L2F_E[16];
-  Int_t SSD4_L2B_E[16];
+  Double_t SSD1_L1S_E[16];
+  Double_t SSD2_L1S_E[16];
+  Double_t SSD3_L1S_E[16];
+  Double_t SSD4_L1S_E[16];
+  Double_t SSD1_L2F_E[16];
+  Double_t SSD1_L2B_E[16];
+  Double_t SSD2_L2F_E[16];
+  Double_t SSD2_L2B_E[16];
+  Double_t SSD3_L2F_E[16];
+  Double_t SSD3_L2B_E[16];
+  Double_t SSD4_L2F_E[16];
+  Double_t SSD4_L2B_E[16];
   if (strcmp(L1Tag.c_str(), LayerTag.c_str())==0)
   {
     // I enable only the branches I need

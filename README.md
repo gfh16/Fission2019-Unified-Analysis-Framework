@@ -17,31 +17,33 @@ https://github.com/gfh16/Fission2019-Unified-Analysis-Framework
 ## Step1. 数据转换
 
 ### <font color=#DC143C> 1.1 将原始数据二进制文件转换成.root文件 </font>
->+ **修改文件:** /RIBLLVMEDAQ/Raw2ROOT.cpp  
->+ **目的:** 将原始数据(二进制文件)转换成.root文件  
->+ **操作:** 批量转换  
-   (1) 输入文件(原始文件)都在 /vmedata/文件夹下  
-   (2) 在 /vmedata/中 添加 listfilename 文件，将需要格式转换的原始文件名一一写出，每个文件名占一行  
-   (3) 修改 /RIBLLVMEDAQ/下的 Raw2ROOT.cpp文件：目的是修改输出文件的位置输出文件(.root文件)都在 /rootdata/文件加下 (原因：个人更倾向于将输出文件放在/rootdata/文件夹下)  
-   (4) 编译成功后, 执行 ./raw2roo.sh listfilename
 ````````
 $ make
 $ ./raw2roo.sh listfilename
 ````````
+>+ **目的:** 将原始数据(二进制文件)转换成.root文件 
+>+ **文件:** /RIBLLVMEDAQ/Raw2ROOT.cpp  
+>+ **操作:** 批量转换  
+   (1) 输入文件(原始文件)都在 /vmedata/文件夹下.  
+   (2) 在 /vmedata/中 添加 listfilename 文件. 将需要格式转换的原始文件名一一写出，每个文件名占一行  
+   (3) 修改 /RIBLLVMEDAQ/Raw2ROOT.cpp文件：修改输出文件的位置  <font color=#FF00FF>(string rootpath = "./rootdata")</font>
+   (4) 编译成功后, 执行 ./raw2roo.sh listfilename
+
 
 
 ### <font color=#DC143C> 1.2 将RawRoot数据转换成MapRoot数据 </font>
->+ **修改文件:** /RIBLLVMEDAQ/ReadRootFile2D.cpp
+````````
+$ make
+$ ./ReadRootFile2D listfilename
+````````
 >+ **目的:** 第一步得到的.root文件数据以 T103000 等命名，第二步需要利用探测器Map将每个插件对应的探测器还原出来, 以PPAC1_T 等命名
+>+ **文件:** /RIBLLVMEDAQ/ReadRootFile2D.cpp
 >+ **操作**
    (1) 修改/RIBLLVMEDAQ/ReadRootFile2D.cpp 文件
    (2) 假定输入文件都在 /rootdata/中，在/rootdata/下添加listfilename 文件,将需要转换的文件名称一一列出，每个文件名占一行
    (3) 为避免与原始的.root文件混淆，转换后的.root文件需要另起名称，且最好输出到不同的文件夹下
    (4) 执行: 编译成功后, ./ReadRootFile2D listfilename
-````````
-$ make
-$ ./ReadRootFile2D listfilename
-````````
+
 
 
 
@@ -50,15 +52,17 @@ $ ./ReadRootFile2D listfilename
 ### <font color=#DC143C> 2.1 SetBranchAddress方法 </font>
 
 ### <font color=#DC143C> 2.2 TTreeReader方法 </font>
+````````
+$ make
+$ ./QC_ReadTree listfilename
+````````
+
 >+ QC_BranchAdress.C, QC_ReadTree.C
 >+ 定义、填充直方图
 >+ 存储所有的Hist，输出pdf到文件, 方便肉眼进行质检
 >+ 存储所有的Hist,写入.root文件. 这一步是为了:一旦pdf文件中的谱有问题，马上可以查看.root文件中对应的直方图
 >+ 编译 QC_ReadTree.C 后执行, ./QC_ReadTree listfilename
-````````
-$ make
-$ ./QC_ReadTree listfilename
-````````
+
 
 
 
