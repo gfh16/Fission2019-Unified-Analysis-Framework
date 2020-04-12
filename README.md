@@ -14,16 +14,17 @@ https://github.com/gfh16/Fission2019-Unified-Analysis-Framework
 [toc]
 
 
-## Step1. 数据转换
+## <font color=#DC143C> Step1. 数据转换 </font>
 
-### <font color=#DC143C> 1.1 将原始数据二进制文件转换成.root文件 </font>
-````````
+### <font color=#00BBDD> 1.1 将原始数据二进制文件转换成.root文件 </font>
+````````C++
+// 运行代码
 $ make
 $ ./raw2roo.sh listfilename
 ````````
 >+ **目的:** 将原始数据(二进制文件)转换成.root文件 
 >+ **文件:** /RIBLLVMEDAQ/Raw2ROOT.cpp  
->+ **操作:** 批量转换  
+>+ **说明:** 批量转换  
    (1) 输入文件(原始文件)都在 /vmedata/文件夹下.  
    (2) 在 /vmedata/中 添加 listfilename 文件. 将需要格式转换的原始文件名一一写出，每个文件名占一行  
    (3) 修改 /RIBLLVMEDAQ/Raw2ROOT.cpp文件：修改输出文件的位置  <font color=#FF00FF>(string rootpath = "./rootdata")</font>
@@ -31,14 +32,15 @@ $ ./raw2roo.sh listfilename
 
 
 
-### <font color=#DC143C> 1.2 将RawRoot数据转换成MapRoot数据 </font>
-````````
+### <font color=#00BBDD> 1.2 将RawRoot数据转换成MapRoot数据 </font>
+````````C++
+// 运行代码
 $ make
 $ ./ReadRootFile2D listfilename
 ````````
 >+ **目的:** 第一步得到的.root文件数据以 T103000 等命名，第二步需要利用探测器Map将每个插件对应的探测器还原出来, 以PPAC1_T 等命名
 >+ **文件:** /RIBLLVMEDAQ/ReadRootFile2D.cpp
->+ **操作**
+>+ **说明:**
    (1) 修改/RIBLLVMEDAQ/ReadRootFile2D.cpp 文件
    (2) 假定输入文件都在 /rootdata/中，在/rootdata/下添加listfilename 文件,将需要转换的文件名称一一列出，每个文件名占一行
    (3) 为避免与原始的.root文件混淆，转换后的.root文件需要另起名称，且最好输出到不同的文件夹下
@@ -47,80 +49,185 @@ $ ./ReadRootFile2D listfilename
 
 
 
-## Step2. 数据质检
+## <font color=#DC143C> Step2. 数据质检 </font>
 
-### <font color=#DC143C> 2.1 SetBranchAddress方法 </font>
+### <font color=#00BBDD> 2.1 SetBranchAddress方法 </font>
+* <font color=#FF00FF> 见 2.2 TTreeReader方法 </font>
 
-### <font color=#DC143C> 2.2 TTreeReader方法 </font>
-````````
+### <font color=#00BBDD> 2.2 TTreeReader方法 </font>
+````````C++
+// 运行代码
 $ make
 $ ./QC_ReadTree listfilename
 ````````
-
->+ QC_BranchAdress.C, QC_ReadTree.C
->+ 定义、填充直方图
->+ 存储所有的Hist，输出pdf到文件, 方便肉眼进行质检
->+ 存储所有的Hist,写入.root文件. 这一步是为了:一旦pdf文件中的谱有问题，马上可以查看.root文件中对应的直方图
->+ 编译 QC_ReadTree.C 后执行, ./QC_ReadTree listfilename
-
-
-
-
-
-## Step3. PPAC数据处理
+>+ **目的:** 将所有能谱输出为pdf, 便于人眼检查
+>+ **文件:** QC_BranchAdress.C, QC_ReadTree.C
+>+ **说明:**
+   (1) 定义、填充直方图
+   (2) 存储所有的Hist，输出pdf到文件, 方便人眼进行质检
+   (3) 存储所有的Hist,写入.root文件. 这一步是为了:一旦pdf文件中的谱有问题，马上可以查看.root文件中对应的直方图
+   (4) 编译 QC_ReadTree.C 后执行, ./QC_ReadTree listfilename
 
 
 
 
-## Step4. SSD数据处理
 
-### <font color=#DC143C>  4.1 SSD Energy Calibration </font>
-
-> **(1) FindPedestal**  
->+ Pedestal是探测系统的零点道，是系统没有能量输入情况下，ADC中记录的道址. 理论上，ADC中探测到的所有能量信号都应该在对应的Pedestal以上. 因此Pedestal可以作为ADC能量的Cut值  
->+ 写了一个手动选取拟合范围的的程序. 基本操作是：单击鼠标中间键(滚轮)来取点，单击两次选择拟合范围，最后将拟合结果保存到pdf中，并将拟合参数保存到.dat文件中
-````````
-$ root -l FindPedestals.C
-````````
+## <font color=#DC143C> Step3. PPAC数据处理 </font>
+### <font color=#00BBDD>  待定... </font>
 
 
-> **(2) PulserCali_AutoFindPeaks**
-> **(3) PulserCali_LinearFit**  
->+ 写了一个自动寻峰的程序. 使用ROOT中TSpectrum类中的Search()方法实现自动寻峰.  
->+ 将自动寻峰得到的每个峰的Ch作为Y值，每个峰对应的输入的pulser的相对幅度作为X值，画出一系列点  
->+ 对这些pulser点进行用 y = a * x +b 进行线性拟合，将拟合参数以及数据点保存到.dat文件中  
->+ 将拟合结果保存成pdf，以便检查  
-````````
-$ root -l PulserCali_L1_AutoFindPeaksAndFit.C
-$ root -l PulserCali_L2_AutoFindPeaksAndFit.C
+
+
+## <font color=#DC143C> Step4. SSD数据处理 </font>
+
+### <font color=#00BBDD>  4.1 SSD Energy Calibration </font>
+>+ [硅条能量刻度总结文档](https://cloud.tsinghua.edu.cn/f/00535cc5dcaa4663b8c4/)
+````````C++
+// 运行代码
+$ root -l ClickToFindPedestals.C                  //手动拟合 pedestal
+$ root -l PulserCali_L1_AutoFindPeaksAndFit.C     //自动寻峰
+$ root -l PulserCali_L2_AutoFindPeaksAndFit.C     //自动寻峰
+$ root -l AlphaCali_CalEnergy.C                   //考虑Mylar膜,计算入射 alpha 的能量
+$ root -l AlphaCali_CalEnergyChangingDeadLayer.C  // 计算不同死层下 alpha 的能量
+$ root -l AlphaCali_MergeFiles.C                  // 合并 alpha 刻度文件
+$ root -l AlphaCali_AutoFindPedestals.C           // 拟合 alpha 刻度文件中的 pedestal 
+$ root -l AlphaCali_FindPeaks.C                   // 手动拟合 alpha 峰 
+$ root -l SiEnergyCali.C                          // 以alpha刻度文件中的 pedestal作为cut,拟合
+$ root -l SiEnergyCali_ModifyDeadLayer.C          // 考虑死层的修正对能量刻度的影响
 ````````
 
+#### <font color=#FF00FF> (1) Find Pedestal </font>
+>+ **目的:** 后续的分析中需要以此作Cut 
+>+ **文件:** ClickToFindPedestals.C
+>+ **说明:**
+   (1) Pedestal是探测系统的零点道，是系统没有能量输入情况下，ADC中记录的道址. 理论上，ADC中探测到的所有能量信号都应该在对应的Pedestal以上. 因此Pedestal可以作为ADC能量的Cut值  
+   (2) 写了一个手动选取拟合范围的的程序. 基本操作是: 单击鼠标中间键(滚轮)来取点，单击两次选择拟合范围，最后将拟合结果保存到pdf中，并将拟合参数保存到.dat文件中
 
-> **(4) AlphaCali_FindPeak**  
->+ 使用TChain方法合并刻度文件：本次实验获得了多个alpha刻度文件，合并文件是为了增     加统计量  
->+ 利用从MSU拷贝回来的EnergyLossModule计算alpha穿过2um镀铝Mylar膜后的能量.      三组分alpha源的三个峰分别来源于239Pu, 241Am, 244Cm, 将三者发射alpha粒子
-   的加权平均能量作为alpha的出射能量  
->+ 写了一个手动寻峰的程序，手动选取拟合范围，对三组分alpha源的三个alpha峰分别进行    了拟合  
->+ 将三个alpha峰的拟合结果保存到.dat文件中  
+```C++
+// 函数 void SetPoints() 用于手动选点
+void SetPoints(Int_t event, Int_t x, Int_t y, TObject *selected){}
+```
 
-````````
-$ root -l AlphaCali_MergeFiles.C
-$ root -l AlphaCali_FindPeaks.C
-$ root -l AlphaCali_CalEnergy.C
-````````
-
-> **(5) Energy_Calibration**
-* 待续。。。
-````````
-$ root -l SiEnergyCali.C
-````````
-
-### <font color=#DC143C> 4.2 Hit Multiplicity </font>
-### <font color=#DC143C> 4.3 CsI Energy Calibration </font>
-### <font color=#DC143C> 4.4 Hit Pixellation </font>
-### <font color=#DC143C> 4.5 Particle Identification </font>
+#### <font color=#FF00FF> (2) Pulser 线性刻度 </font>
+>+ **目的:** 脉冲线性刻度
+>+ **文件:** 
+PulserCali_L1_AutoFindPeaksAndFit.C
+PulserCali_L2_AutoFindPeaksAndFit.C
+>+ **说明:**
+   (1) 写了一个自动寻峰的函数 *void PulserCali_AutoFindPea()*. 使用ROOT中TSpectrum类中的Search()方法实现自动寻峰.  
+   (2) 将自动寻峰得到的每个峰的Ch作为X值，每个峰对应的输入的pulser的相对幅度作为Y值，画出一系列点  
+   (3) 对这些pulser点进行用 y = a * x +b 进行线性拟合，将拟合参数以及数据点保存到.dat文件中  
+   (4) 将拟合结果保存成pdf，以便检查  
 
 
+#### <font color=#FF00FF> (3) $\alpha$ 源刻度 </font>
+>+ **目的:** 利用已知能量的 $\alpha$ 刻度  
+>+ **文件:** 
+AlphaCali_CalEnergy.C 
+AlphaCali_MergeFiles.C                        
+AlphaCali_FindPeaks.C
+>+ **说明:**
+   (1) **AlphaCali_CalEnergy.C:** 利用 EnergyLossModule() 函数计算 $\alpha$ 穿过2um镀铝Mylar膜后的能量. 三组分 $\alpha$ 源的三个峰分别来源于239Pu, 241Am, 244Cm, 将三者发射 $\alpha$ 粒子的加权平均能量作为 $\alpha$ 的出射能量 
+   (2) **AlphaCali_MergeFiles.C:** 合并 $\alpha$ 刻度文件. 使用TChain方法合并刻度文件, 以增加统计量 
+   (3) **AlphaCali_FindPeaks.C:** 一个手动寻峰的程序 手动选取拟合范围，对三组分$\alpha$源的三个$\alpha$峰分别进行了拟合, 并将三个alpha峰的拟合结果保存到.dat文件中  
+   (4) 同时,对 $3-\alpha$ 峰进行线性拟合, 待后续步骤作为参考. 三个区间叠加拟合
+   AlphaCaliHist[SSDNum][CHNum]->Fit(FitPeak1,"R");
+   AlphaCaliHist[SSDNum][CHNum]->Fit(FitPeak2,"R+");
+   AlphaCaliHist[SSDNum][CHNum]->Fit(FitPeak3,"R+");
+   (5) 拟合过程中, 将$3-\alpha$ 拟合结果画出, 如果拟合效果好, 则拟合下一个; 否则, 重新拟合当前的 Ch.
 
 
-## Step5. 物理分析
+#### <font color=#FF00FF> (4) 硅条能量线性刻度 </font>
+>+ **目的:** pulser 刻度 + $\alpha$ 刻度 $\rightarrow$ 硅条能量线性刻度
+>+ **文件:**
+AlphaCali_AutoFindPedestals.C 
+SiEnergyCali.C  
+AlphaCali_CalEnergyChangingDeadLayer.C                       
+SiEnergyCali_ModifyDeadLayer.C 
+>+ **说明:** 
+   (1) **AlphaCali_AutoFindPedestals.C:** 自动寻峰, 拟合 $\alpha$ 刻度文件中的 pedestal, 以背后用.
+   (2) **SiEnergyCali.C：** pulser 刻度 + 1个$\alpha$ 能量点 $\rightarrow$ 硅条能量刻度. 同时画出 $3-\alpha$ 拟合结果作为对比.
+   (3) **AlphaCali_CalEnergyChangingDeadLayer.C:** 改变死层的厚度, 计算 $\alpha$ 的能量
+   (4) **SiEnergyCali_ModifyDeadLayer.C:** 考虑死层修正后, 查看硅条能量刻度的情况是否改善
+
+
+### <font color=#00BBDD> 4.2 Hit Multiplicity && Hit Pattern </font>
+>+ [硅条粒子多重性与 HitPattern 总结文档](https://cloud.tsinghua.edu.cn/f/e2cf3b27f4fd462ba3b0/)
+
+``````C++
+// 运行代码
+$ root -l HitMultiplicity.C
+$ root -l HitPattern.C
+``````
+
+#### <font color=#FF00FF> (1) Hit Multiplicity </font>
+
+>+ **目的:** 获得单次次事件下,硅条探测到的粒子多重数 $\Bbb {M}$
+>+ **文件:** HitMultiplicity.C
+>+ **说明:**
+   1.<u>粒子多重数</u>, 是指每次触发时, 每块硅条探测到的粒子数目, 即点火的条数. 因此$0 \le \Bbb{M} \le 16$.
+   2.<u>如何判断有效的点火事件? </u> 
+     &nbsp;&nbsp;&nbsp;(1) 如果 $ E_{CH} > (Mean_{pedestal} + \sigma_{pedestal} \times N_{\sigma})$, 则认为是一个有效击中事件, 多重数$+1$   
+   3.初步分析, 取 $N_{\sigma}=5$.
+   4.进一步分析,对比不同的 $N_{\sigma}$ 值对多重数 $\Bbb{M}$ 的影响.
+``````C++
+// 判断有效击中事件
+if (SSD_E[i][j]>(PedestalMean[i][j]+PedestalSigma[i][j]*SigmaNum)) 
+{
+  SSD_E_HitMultiplicity[i]++; 
+}
+``````
+
+
+#### <font color=#FF00FF> (2) Hit Pattern </font>
+
+>+ **目的:** 查看粒子在硅条中的点火情况
+>+ **文件:** HitPattern.C
+>+ **说明:**
+   1.先获得粒子多重数 $\Bbb{M}$, 以 $\Bbb{M}$ 作为条件, 查看不同情况下硅条的点火情况. 多加这个条件, 是为以后查看 1-hit，2-hit 事件的点火情况提供方便.
+   2.设定一个多重数的Cut值 $M_{Cut}$, 当 $\Bbb{M} < M_{Cut}$时,对点火时间进行判选
+   3.对于双面硅条的二维 Hit Pattern, 需要作两重遍历;
+
+```C++
+// 硅条第一层 L1S 的 Hit Pattern 判选条件 
+if (HitMultiplicity_SSD_L1S[i]<HitMultiplicityCut) {
+  for (Int_t j=0; j<CHNum; j++)
+  {
+    if (ECh_SSD_L1S[i][j]>(PedestalMean_L1S[i][j]+PedestalSigma_L1S[i][j]*SigmaNum)) {
+        hist_HitPattern[i]->Fill(j+1, 1.0);
+    }
+  }
+}
+```
+
+```C++
+// 硅条第二层的 Hit Pattern 判选条件 
+if ((HitMultiplicity_SSD_L2F[i]<HitMultiplicityCut)||
+   (HitMultiplicity_SSD_L2B[i]<HitMultiplicityCut)) {
+   for (Int_t j=0; j<CHNum; j++) 
+   {
+      if ((ECh_SSD_L2F[i][j]>PedestalCut_L2F[i][j])) {
+        for (Int_t k=0; k<CHNum; k++)
+        {
+           if ((ECh_SSD_L2B[i][k]>PedestalCut_L2B[i][k]) {
+               hist2D_HitPattern[i]->Fill(j+1, k+1, 1.0);
+           }
+        }
+      }
+    }
+}
+```
+
+
+### <font color=#00BBDD> 4.3 CsI Energy Calibration </font>
+
+
+### <font color=#00BBDD> 4.4 Hit Pixellation </font>
+
+
+### <font color=#00BBDD> 4.5 Particle Identification </font>
+
+
+
+
+## <font color=#DC143C> Step5. 物理分析 </font>

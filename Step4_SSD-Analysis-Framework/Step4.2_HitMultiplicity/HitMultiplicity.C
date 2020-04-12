@@ -10,8 +10,8 @@
 
 using namespace std;
 
-Int_t FirstRun = 350;
-Int_t LastRun = 351;
+Int_t FirstRun = 300;
+Int_t LastRun = 350;
 
 Int_t Nbins = 17;
 Double_t Xmin = -1;
@@ -29,6 +29,8 @@ Int_t SigmaNum = 5;
 Double_t*** ReadData(const Char_t* datapath, Int_t& ssdnum, Int_t& chnum, Int_t& parnum);
 void DeleteData(Double_t*** p, Int_t& ssdnum, Int_t& chnum, Int_t& parnum);
 void HitMulti_Layer(const char* LayerTag);
+void HitMulti_CombineL2FL2B(const char* L2FTag, const char* L2BTag);
+
 
 
 //______________________________________________________________________________
@@ -41,6 +43,7 @@ void HitMultiplicity()
   HitMulti_Layer(L1STag.c_str());
   HitMulti_Layer(L2FTag.c_str());
   HitMulti_Layer(L2BTag.c_str());
+  HitMulti_CombineL2FL2B(L2FTag.c_str(), L2BTag.c_str());
 }
 
 
@@ -52,6 +55,8 @@ void HitMulti_Layer(const char* LayerTag)
   std::string pathPedestalCut(Form("../Step4.1_EnergyCalibration/output/SSD_%s_PulserPedestals.dat",
                                    LayerTag));
 
+  std::string pathFiguresMultiplicity(Form("figures/SSD_%s_HitMulti_Run%04d-%04d.png",LayerTag,FirstRun,LastRun));
+
   Int_t SSD_E_HitMultiplicity[SSDNum];
   Int_t SSD_E[SSDNum][CHNum];
   Double_t PedestalMean[SSDNum][CHNum];
@@ -60,13 +65,13 @@ void HitMulti_Layer(const char* LayerTag)
   std::string SSD_E_bname[SSDNum];
   std::string SSD_E_HitMulti_histname[SSDNum];
 
-  Double_t*** PedestalCut = ReadData(pathPedestalCut.c_str(),SSDNum,CHNum,ParNum);
-
-  auto* myChain = new TChain("KrPb");
   TH1D* hist_HitMultiplicity[SSDNum];
   TCanvas* cans = new TCanvas(Form("c_%s",LayerTag),Form("c_%s",LayerTag),CanvasWidth,CanvasHeight);
   cans->Divide(2,2);
 
+  Double_t*** PedestalCut = ReadData(pathPedestalCut.c_str(),SSDNum,CHNum,ParNum);
+
+  auto* myChain = new TChain("KrPb");
   for (Int_t i=FirstRun; i<LastRun; i++)
   {
     myChain->Add(Form("%sMapFission2019_Kr_Pb%04d.root", pathFolderRootInput.c_str(),i));
@@ -105,7 +110,7 @@ void HitMulti_Layer(const char* LayerTag)
       SSD_E_HitMultiplicity[i] = 0;
       for (Int_t j=0; j<CHNum; j++)
       {
-      //  cout<<SSD_E[i][j]<<"    "<<PedestalMean[i][j]+PedestalSigma[i][j]*SigmaNum<<endl;
+      //  cout<<SSD_L2F[i][j]<<"    "<<PedestalMean_L2F[i][j]+PedestalSigma_L2F[i][j]*SigmaNum<<endl;
         if (SSD_E[i][j]>(PedestalMean[i][j]+PedestalSigma[i][j]*SigmaNum))
         {
           SSD_E_HitMultiplicity[i]++;
@@ -119,12 +124,144 @@ void HitMulti_Layer(const char* LayerTag)
   for (Int_t i=0; i<SSDNum; i++)
   {
     cans->cd(i+1);
+    gPad->SetGridx(1);
+    hist_HitMultiplicity[i]->GetXaxis()->SetNdivisions(118);
+    hist_HitMultiplicity[i]->GetXaxis()->SetTitle("Hit_Multiplicity");
+    hist_HitMultiplicity[i]->SetLineColor(kRed);
+    hist_HitMultiplicity[i]->SetLineWidth(2);
     hist_HitMultiplicity[i]->Draw();
   }
+  cans->Print(pathFiguresMultiplicity.c_str());
 
   DeleteData(PedestalCut,SSDNum, CHNum, ParNum);
 }
 
+
+//______________________________________________________________________________
+void HitMulti_CombineL2FL2B(const char* L2FTag, const char* L2BTag)
+{
+  gStyle->SetOptStat(0);
+
+  std::string pathFolderRootInput("/home/sea/Fission2019_Data/MapRoot/");
+  std::string pathPedestalCut_L2F(Form("../Step4.1_EnergyCalibration/output/SSD_%s_PulserPedestals.dat", L2FTag));
+  std::string pathPedestalCut_L2B(Form("../Step4.1_EnergyCalibration/output/SSD_%s_PulserPedestals.dat", L2BTag));
+
+  std::string pathFiguresHitMulti_L2(Form("figures/SSD_L2_HitMulti_Run%04d-%04d.png",FirstRun,LastRun));
+
+  Int_t SSD_L2F_HitMultiplicity[SSDNum];
+  Int_t SSD_L2B_HitMultiplicity[SSDNum];
+  Int_t SSD_L2F[SSDNum][CHNum];
+  Int_t SSD_L2B[SSDNum][CHNum];
+  Double_t PedestalMean_L2F[SSDNum][CHNum];
+  Double_t PedestalMean_L2B[SSDNum][CHNum];
+  Double_t PedestalSigma_L2F[SSDNum][CHNum];
+  Double_t PedestalSigma_L2B[SSDNum][CHNum];
+
+  std::string SSD_L2F_bname[SSDNum];
+  std::string SSD_L2B_bname[SSDNum];
+  std::string SSD_L2F_HitMulti_histname[SSDNum];
+  std::string SSD_L2B_HitMulti_histname[SSDNum];
+
+  TH1D* hist_HitMultiplicity_L2F[SSDNum];
+  TH1D* hist_HitMultiplicity_L2B[SSDNum];
+  TLegend* legend[SSDNum];
+  TCanvas* cans = new TCanvas("c_L2FL2B","c_L2FL2B",CanvasWidth,CanvasHeight);
+  cans->Divide(2,2);
+
+  Double_t*** PedestalCut_L2F = ReadData(pathPedestalCut_L2F.c_str(),SSDNum,CHNum,ParNum);
+  Double_t*** PedestalCut_L2B = ReadData(pathPedestalCut_L2B.c_str(),SSDNum,CHNum,ParNum);
+
+  auto* myChain = new TChain("KrPb");
+  for (Int_t i=FirstRun; i<LastRun; i++)
+  {
+    myChain->Add(Form("%sMapFission2019_Kr_Pb%04d.root", pathFolderRootInput.c_str(),i));
+    printf("MapFission2019_Kr_Pb%04d.root loaded!\n", i);
+  }
+  myChain->SetBranchStatus("*",false);
+
+  for (Int_t i=0; i<SSDNum; i++)
+  {
+    for (Int_t j=0; j<CHNum; j++)
+    {
+      PedestalMean_L2F[i][j]  = PedestalCut_L2F[i][j][0];
+      PedestalMean_L2B[i][j]  = PedestalCut_L2B[i][j][0];
+      PedestalSigma_L2F[i][j] = PedestalCut_L2F[i][j][1];
+      PedestalSigma_L2B[i][j] = PedestalCut_L2B[i][j][1];
+      SSD_L2F[i][j] = 0;  // 初始化
+      SSD_L2B[i][j] = 0;  // 初始化
+      legend[i] = new TLegend(0.6,0.7,0.9,0.9);
+    }
+  }
+
+  for (Int_t i=0; i<SSDNum; i++)
+  {
+    SSD_L2F_bname[i] = Form("SSD%d_%s_E", i+1, L2FTag);
+    SSD_L2B_bname[i] = Form("SSD%d_%s_E", i+1, L2BTag);
+    myChain->SetBranchStatus(SSD_L2F_bname[i].c_str(), true);
+    myChain->SetBranchStatus(SSD_L2B_bname[i].c_str(), true);
+    myChain->SetBranchAddress(SSD_L2F_bname[i].c_str(), SSD_L2F[i]);
+    myChain->SetBranchAddress(SSD_L2B_bname[i].c_str(), SSD_L2B[i]);
+
+    SSD_L2F_HitMulti_histname[i] = Form("C_SSD%d_%s_HitMulti_Run%04d-%04d",i+1,L2FTag,FirstRun,LastRun);
+    SSD_L2B_HitMulti_histname[i] = Form("C_SSD%d_%s_HitMulti_Run%04d-%04d",i+1,L2BTag,FirstRun,LastRun);
+    hist_HitMultiplicity_L2F[i] = new TH1D(SSD_L2F_HitMulti_histname[i].c_str(),SSD_L2F_HitMulti_histname[i].c_str(),
+                                  Nbins,Xmin,Xmax);
+    hist_HitMultiplicity_L2B[i] = new TH1D(SSD_L2B_HitMulti_histname[i].c_str(),SSD_L2B_HitMulti_histname[i].c_str(),
+                                  Nbins,Xmin,Xmax);
+  }
+
+  unsigned long nentries = myChain->GetEntries();
+  cout<< "Found " << nentries <<" entries\n";
+  for (unsigned long entry=0; entry<nentries; entry++)
+  {
+    myChain->GetEntry(entry);
+    for (Int_t i=0; i<SSDNum; i++)
+    {
+      SSD_L2F_HitMultiplicity[i] = 0;
+      SSD_L2B_HitMultiplicity[i] = 0;
+      for (Int_t j=0; j<CHNum; j++)
+      {
+        if (SSD_L2F[i][j]>(PedestalMean_L2F[i][j]+PedestalSigma_L2F[i][j]*SigmaNum))
+        {
+          SSD_L2F_HitMultiplicity[i]++;
+        }
+        if (SSD_L2B[i][j]>(PedestalMean_L2B[i][j]+PedestalSigma_L2B[i][j]*SigmaNum))
+        {
+          SSD_L2B_HitMultiplicity[i]++;
+        }
+      }
+      hist_HitMultiplicity_L2F[i]->Fill(SSD_L2F_HitMultiplicity[i], 1.0);
+      hist_HitMultiplicity_L2B[i]->Fill(SSD_L2B_HitMultiplicity[i], 1.0);
+    }
+  }
+
+  // Draw
+  for (Int_t i=0; i<SSDNum; i++)
+  {
+    cans->cd(i+1);
+    gPad->SetGridx(1);
+    hist_HitMultiplicity_L2F[i]->GetXaxis()->SetNdivisions(118);
+    hist_HitMultiplicity_L2F[i]->GetXaxis()->SetTitle("Hit_Multiplicity");
+    hist_HitMultiplicity_L2F[i]->SetLineColor(kGreen);
+    hist_HitMultiplicity_L2F[i]->SetLineWidth(2);
+    Double_t Yrange = (hist_HitMultiplicity_L2F[i]->GetMaximum())*1.1;
+    hist_HitMultiplicity_L2F[i]->GetYaxis()->SetRangeUser(0,Yrange);
+
+    hist_HitMultiplicity_L2B[i]->SetLineColor(kRed);
+    hist_HitMultiplicity_L2B[i]->SetLineWidth(2);
+
+    legend[i]->AddEntry(hist_HitMultiplicity_L2F[i],SSD_L2F_bname[i].c_str(),"l");
+    legend[i]->AddEntry(hist_HitMultiplicity_L2B[i],SSD_L2B_bname[i].c_str(),"l");
+
+    hist_HitMultiplicity_L2F[i]->Draw();
+    hist_HitMultiplicity_L2B[i]->Draw("SAME");
+    legend[i]->Draw("SAME");
+  }
+  cans->Print(pathFiguresHitMulti_L2.c_str());
+
+  DeleteData(PedestalCut_L2F,SSDNum, CHNum, ParNum);
+  DeleteData(PedestalCut_L2B,SSDNum, CHNum, ParNum);
+}
 
 
 //_______________________________________________

@@ -11,8 +11,8 @@
 using namespace std;
 
 //_________________________________
-Int_t FirstRun = 200;
-Int_t LastRun  = 202;
+Int_t FirstRun = 300;
+Int_t LastRun  = 350;
 
 Int_t Nbins   = 18;
 Double_t Xmin = 0;
@@ -53,7 +53,7 @@ void HitPattern()
   }
   myChain->SetBranchStatus("*",false);
 
-  HitPattern_L1(myChain, L1STag.c_str());
+//  HitPattern_L1(myChain, L1STag.c_str());
   HitPattern_L2(myChain, L2FTag.c_str(), L2BTag.c_str());
 
 }
@@ -72,6 +72,7 @@ void HitPattern_L1(TChain* chain, const char* L1STag)
 
   std::string histname_HitPattern[SSDNum];
   std::string pathPedestalCut(Form("../Step4.1_EnergyCalibration/output/SSD_%s_PulserPedestals.dat", L1STag));
+  std::string pathFigureHitPattern(Form("figures/SSD_%s_HitPattern_Run%04d-%04d.png",L1STag,FirstRun,LastRun));
 
   Double_t*** PedestalCut = ReadData(pathPedestalCut.c_str(),SSDNum,CHNum,ParNum);
 
@@ -122,8 +123,12 @@ void HitPattern_L1(TChain* chain, const char* L1STag)
     gPad->SetGridx(1);
     hist_HitPattern[i]->GetXaxis()->SetNdivisions(118);
     hist_HitPattern[i]->GetXaxis()->SetTitle("ChIndex");
+    hist_HitPattern[i]->SetLineColor(kRed);
+    hist_HitPattern[i]->SetLineWidth(2);
     hist_HitPattern[i]->Draw();
   }
+  Cans_L1S->Print(pathFigureHitPattern.c_str());
+
   DeleteData(PedestalCut,SSDNum,CHNum, ParNum);
 
   cout<<Form("HitPattern for L1S done!") <<endl;
@@ -155,6 +160,8 @@ void HitPattern_L2(TChain* chain, const char* L2FTag, const char* L2BTag)
   std::string histname1D_L2B[SSDNum];
   std::string pathPedestal_L2F(Form("../Step4.1_EnergyCalibration/output/SSD_%s_PulserPedestals.dat", L2FTag));
   std::string pathPedestal_L2B(Form("../Step4.1_EnergyCalibration/output/SSD_%s_PulserPedestals.dat", L2BTag));
+
+  std::string pathFigureHitPattern(Form("L2_HitPattern_Run%04d-%04d.png",FirstRun,LastRun));
 
   Double_t*** Pedestal_L2F = ReadData(pathPedestal_L2F.c_str(),SSDNum,CHNum,ParNum);
   Double_t*** Pedestal_L2B = ReadData(pathPedestal_L2B.c_str(),SSDNum,CHNum,ParNum);
@@ -251,11 +258,17 @@ void HitPattern_L2(TChain* chain, const char* L2FTag, const char* L2BTag)
     hist2D_HitPattern[i]->GetYaxis()->SetNdivisions(118);
     hist2D_HitPattern[i]->GetYaxis()->SetTitle("BackStrip");
     hist2D_HitPattern[i]->Draw("colz");
+    gPad->Modified();
+    gPad->Update();
 
     hist1D_HitPattern_L2F[i]->GetXaxis()->SetNdivisions(118);
     hist1D_HitPattern_L2F[i]->GetXaxis()->SetTitle("FrontStrip");
+    hist1D_HitPattern_L2F[i]->SetLineColor(kGreen);
+    hist1D_HitPattern_L2F[i]->SetLineWidth(2);
     hist1D_HitPattern_L2B[i]->GetXaxis()->SetNdivisions(118);
     hist1D_HitPattern_L2B[i]->GetXaxis()->SetTitle("BackStrip");
+    hist1D_HitPattern_L2B[i]->SetLineColor(kRed);
+    hist1D_HitPattern_L2B[i]->SetLineWidth(2);
 
     Cans_1D[i]->Divide(2,2);
     Cans_1D[i]->cd(1);
@@ -266,7 +279,12 @@ void HitPattern_L2(TChain* chain, const char* L2FTag, const char* L2BTag)
     Cans_1D[i]->cd(3);
     gPad->SetGridx(1);
     hist1D_HitPattern_L2F[i]->Draw();
+
+    Cans_1D[i]->Print(Form("figures/SSD%d_%s",i+1,pathFigureHitPattern.c_str()));
   }
+  Cans_2D->Print(Form("figures/SSD_%s",pathFigureHitPattern.c_str()));
+
+
   DeleteData(Pedestal_L2F,SSDNum,CHNum, ParNum);
   DeleteData(Pedestal_L2B,SSDNum,CHNum, ParNum);
 
