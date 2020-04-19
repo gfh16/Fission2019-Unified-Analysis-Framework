@@ -11,19 +11,19 @@
 using namespace std;
 
 Int_t FirstRun = 300;
-Int_t LastRun = 350;
+Int_t LastRun  = 310;
 
-Int_t Nbins = 17;
-Double_t Xmin = -1;
-Double_t Xmax = 16;
+Int_t Nbins   = 17;
+Double_t Xmin = -0.5;
+Double_t Xmax = 16.5;
 
 Int_t CanvasWidth  = 1200;
 Int_t CanvasHeight = 800;
 
 Int_t SSDNum = 4;
-Int_t CHNum = 16;
+Int_t CHNum  = 16;
 Int_t ParNum = 2;  // par0 = mean， pea1 = sigma
-Int_t SigmaNum = 5;
+Int_t SigmaNum = 30;
 
 //_______________________________________________________________________________
 Double_t*** ReadData(const Char_t* datapath, Int_t& ssdnum, Int_t& chnum, Int_t& parnum);
@@ -50,12 +50,27 @@ void HitMultiplicity()
 //___________________________________________________
 void HitMulti_Layer(const char* LayerTag)
 {
+  gStyle->SetOptStat(0);
+
+  std::string AlphaFileTagL1("AlphaCali00_04");
+  std::string AlphaFileTagL2("AlphaCali00_32");
+  std::string L1STag("L1S");
 
   std::string pathFolderRootInput("/home/sea/Fission2019_Data/MapRoot/");
-  std::string pathPedestalCut(Form("../Step4.1_EnergyCalibration/output/SSD_%s_PulserPedestals.dat",
-                                   LayerTag));
+  std::string pathPedestalCut;
+  if (strcmp(L1STag.c_str(),LayerTag)==0) {
+    pathPedestalCut = Form("../Step4.1_EnergyCalibration/output/SSD_%s_AlphaCaliPedestals_%s.dat",
+                                     LayerTag, AlphaFileTagL1.c_str());
+  } else {
+    pathPedestalCut = Form("../Step4.1_EnergyCalibration/output/SSD_%s_AlphaCaliPedestals_%s.dat",
+                                     LayerTag, AlphaFileTagL2.c_str());
+  }
+  std::string pathFiguresMultiOutput(Form("figures/HitMultiplicity/SSD_%s_HitMulti_Run%04d-%04d_%dSigma.png",
+                                          LayerTag,FirstRun,LastRun,SigmaNum));
+  std::string pathCheckMultiOutput(Form("output/SSD_%s_CheckMulti_Run%04d-%04d_%dSigma.dat",LayerTag,FirstRun,LastRun,SigmaNum));
 
-  std::string pathFiguresMultiplicity(Form("figures/SSD_%s_HitMulti_Run%04d-%04d.png",LayerTag,FirstRun,LastRun));
+  ofstream CheckMultiOutput(pathCheckMultiOutput.c_str());
+  CheckMultiOutput<<"*EntryIndex"<<setw(15)<<"SSDNum"<<setw(10)<<"CHNum"<<setw(10)<<"ECh_Cut"<<setw(10)<<"ECh"<<endl;
 
   Int_t SSD_E_HitMultiplicity[SSDNum];
   Int_t SSD_E[SSDNum][CHNum];
@@ -110,10 +125,14 @@ void HitMulti_Layer(const char* LayerTag)
       SSD_E_HitMultiplicity[i] = 0;
       for (Int_t j=0; j<CHNum; j++)
       {
-      //  cout<<SSD_L2F[i][j]<<"    "<<PedestalMean_L2F[i][j]+PedestalSigma_L2F[i][j]*SigmaNum<<endl;
         if (SSD_E[i][j]>(PedestalMean[i][j]+PedestalSigma[i][j]*SigmaNum))
         {
           SSD_E_HitMultiplicity[i]++;
+          if (entry%100 == 0)
+          {
+            CheckMultiOutput<<entry<<setw(15)<<i+1<<setw(10)<<j+1<<setw(10)<<(PedestalMean[i][j]+PedestalSigma[i][j]*SigmaNum)
+                            <<setw(10)<<SSD_E[i][j]<<endl;
+          }
         }
       }
       hist_HitMultiplicity[i]->Fill(SSD_E_HitMultiplicity[i], 1.0);
@@ -131,7 +150,7 @@ void HitMulti_Layer(const char* LayerTag)
     hist_HitMultiplicity[i]->SetLineWidth(2);
     hist_HitMultiplicity[i]->Draw();
   }
-  cans->Print(pathFiguresMultiplicity.c_str());
+  cans->Print(pathFiguresMultiOutput.c_str());
 
   DeleteData(PedestalCut,SSDNum, CHNum, ParNum);
 }
@@ -142,11 +161,16 @@ void HitMulti_CombineL2FL2B(const char* L2FTag, const char* L2BTag)
 {
   gStyle->SetOptStat(0);
 
-  std::string pathFolderRootInput("/home/sea/Fission2019_Data/MapRoot/");
-  std::string pathPedestalCut_L2F(Form("../Step4.1_EnergyCalibration/output/SSD_%s_PulserPedestals.dat", L2FTag));
-  std::string pathPedestalCut_L2B(Form("../Step4.1_EnergyCalibration/output/SSD_%s_PulserPedestals.dat", L2BTag));
+  std::string AlphaFileTag("AlphaCali00_32");
 
-  std::string pathFiguresHitMulti_L2(Form("figures/SSD_L2_HitMulti_Run%04d-%04d.png",FirstRun,LastRun));
+  std::string pathFolderRootInput("/home/sea/Fission2019_Data/MapRoot/");
+  std::string pathPedestalCut_L2F(Form("../Step4.1_EnergyCalibration/output/SSD_%s_AlphaCaliPedestals_%s.dat",
+                                  L2FTag, AlphaFileTag.c_str()));
+  std::string pathPedestalCut_L2B(Form("../Step4.1_EnergyCalibration/output/SSD_%s_AlphaCaliPedestals_%s.dat",
+                                  L2BTag, AlphaFileTag.c_str()));
+
+  std::string pathFiguresHitMultiOutput_L2(Form("figures/HitMultiplicity/SSD_L2_HitMulti_Run%04d-%04d_%dSigma.png",
+                                              FirstRun,LastRun,SigmaNum));
 
   Int_t SSD_L2F_HitMultiplicity[SSDNum];
   Int_t SSD_L2B_HitMultiplicity[SSDNum];
@@ -257,7 +281,7 @@ void HitMulti_CombineL2FL2B(const char* L2FTag, const char* L2BTag)
     hist_HitMultiplicity_L2B[i]->Draw("SAME");
     legend[i]->Draw("SAME");
   }
-  cans->Print(pathFiguresHitMulti_L2.c_str());
+  cans->Print(pathFiguresHitMultiOutput_L2.c_str());
 
   DeleteData(PedestalCut_L2F,SSDNum, CHNum, ParNum);
   DeleteData(PedestalCut_L2B,SSDNum, CHNum, ParNum);

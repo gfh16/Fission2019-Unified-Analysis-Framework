@@ -12,13 +12,13 @@ using namespace std;
 
 //_________________________________
 Int_t FirstRun = 300;
-Int_t LastRun  = 350;
+Int_t LastRun  = 310;
 
-Int_t Nbins   = 18;
-Double_t Xmin = 0;
-Double_t Xmax = 18;
-Double_t Ymin = 0;
-Double_t Ymax = 18;
+Int_t Nbins   = 17;
+Double_t Xmin = -0.5;
+Double_t Xmax = 16.5;
+Double_t Ymin = -0.5;
+Double_t Ymax = 16.5;
 
 Int_t CanvasWidth  = 1400;
 Int_t CanvasHeight = 1000;
@@ -26,9 +26,9 @@ Int_t CanvasHeight = 1000;
 Int_t SSDNum = 4;
 Int_t CHNum  = 16;
 Int_t ParNum = 2;  // par0 = mean， pea1 = sigma
-Int_t SigmaNum = 10;
+Int_t SigmaNum = 30;
 
-Int_t HitMultiplicityCut = 2;
+Int_t HitMultiplicityCut = 1;
 
 //______________________________________________________________________________
 Double_t*** ReadData(const Char_t* datapath, Int_t& ssdnum, Int_t& chnum, Int_t& parnum);
@@ -53,7 +53,7 @@ void HitPattern()
   }
   myChain->SetBranchStatus("*",false);
 
-//  HitPattern_L1(myChain, L1STag.c_str());
+  HitPattern_L1(myChain, L1STag.c_str());
   HitPattern_L2(myChain, L2FTag.c_str(), L2BTag.c_str());
 
 }
@@ -72,7 +72,7 @@ void HitPattern_L1(TChain* chain, const char* L1STag)
 
   std::string histname_HitPattern[SSDNum];
   std::string pathPedestalCut(Form("../Step4.1_EnergyCalibration/output/SSD_%s_PulserPedestals.dat", L1STag));
-  std::string pathFigureHitPattern(Form("figures/SSD_%s_HitPattern_Run%04d-%04d.png",L1STag,FirstRun,LastRun));
+  std::string pathFigureHitPattern(Form("figures/HitPattern/SSD_%s_HitPattern_Run%04d-%04d_%dSigma.png",L1STag,FirstRun,LastRun,SigmaNum));
 
   Double_t*** PedestalCut = ReadData(pathPedestalCut.c_str(),SSDNum,CHNum,ParNum);
 
@@ -105,7 +105,7 @@ void HitPattern_L1(TChain* chain, const char* L1STag)
     }
     for (Int_t i=0; i<SSDNum; i++)
     {
-      if (HitMultiplicity_SSD_L1S[i]<HitMultiplicityCut) {
+      if (HitMultiplicity_SSD_L1S[i]==HitMultiplicityCut) {
         for (Int_t j=0; j<CHNum; j++)
         {
           if (ECh_SSD_L1S[i][j]>(PedestalMean_L1S[i][j]+PedestalSigma_L1S[i][j]*SigmaNum)) {
@@ -161,7 +161,7 @@ void HitPattern_L2(TChain* chain, const char* L2FTag, const char* L2BTag)
   std::string pathPedestal_L2F(Form("../Step4.1_EnergyCalibration/output/SSD_%s_PulserPedestals.dat", L2FTag));
   std::string pathPedestal_L2B(Form("../Step4.1_EnergyCalibration/output/SSD_%s_PulserPedestals.dat", L2BTag));
 
-  std::string pathFigureHitPattern(Form("L2_HitPattern_Run%04d-%04d.png",FirstRun,LastRun));
+  std::string pathFigureHitPattern(Form("L2_HitPattern_Run%04d-%04d_%dSigma.png",FirstRun,LastRun,SigmaNum));
 
   Double_t*** Pedestal_L2F = ReadData(pathPedestal_L2F.c_str(),SSDNum,CHNum,ParNum);
   Double_t*** Pedestal_L2B = ReadData(pathPedestal_L2B.c_str(),SSDNum,CHNum,ParNum);
@@ -215,7 +215,7 @@ void HitPattern_L2(TChain* chain, const char* L2FTag, const char* L2BTag)
       // 1D hit pattern for SSD_L2B
       for (Int_t i=0; i<SSDNum; i++)
       {
-        if (HitMultiplicity_SSD_L2F[i]<HitMultiplicityCut) {
+        if (HitMultiplicity_SSD_L2F[i]==HitMultiplicityCut) {
           for (Int_t j=0; j<CHNum; j++)
           {
             if (ECh_SSD_L2F[i][j]>PedestalCut_L2F[i][j]) {
@@ -223,7 +223,7 @@ void HitPattern_L2(TChain* chain, const char* L2FTag, const char* L2BTag)
             }
           }
         }  // 1D hit pattern for SSD_L2B
-        if (HitMultiplicity_SSD_L2B[i]<HitMultiplicityCut) {
+        if (HitMultiplicity_SSD_L2B[i]==HitMultiplicityCut) {
           for (Int_t j=0; j<CHNum; j++)
           {
             if (ECh_SSD_L2B[i][j]>PedestalCut_L2B[i][j]) {
@@ -231,7 +231,7 @@ void HitPattern_L2(TChain* chain, const char* L2FTag, const char* L2BTag)
             }
           }
         }  // 2D hit pattern for SSD_L2
-        if ((HitMultiplicity_SSD_L2F[i]<HitMultiplicityCut)||(HitMultiplicity_SSD_L2B[i]<HitMultiplicityCut)) {
+        if ((HitMultiplicity_SSD_L2F[i]==HitMultiplicityCut)&&(HitMultiplicity_SSD_L2B[i]==HitMultiplicityCut)) {
           for (Int_t j=0; j<CHNum; j++)
           {
             if ((ECh_SSD_L2F[i][j]>PedestalCut_L2F[i][j])) {
@@ -280,9 +280,9 @@ void HitPattern_L2(TChain* chain, const char* L2FTag, const char* L2BTag)
     gPad->SetGridx(1);
     hist1D_HitPattern_L2F[i]->Draw();
 
-    Cans_1D[i]->Print(Form("figures/SSD%d_%s",i+1,pathFigureHitPattern.c_str()));
+    Cans_1D[i]->Print(Form("figures/HitPattern/SSD%d_%s",i+1,pathFigureHitPattern.c_str()));
   }
-  Cans_2D->Print(Form("figures/SSD_%s",pathFigureHitPattern.c_str()));
+  Cans_2D->Print(Form("figures/HitPattern/SSD_%s",pathFigureHitPattern.c_str()));
 
 
   DeleteData(Pedestal_L2F,SSDNum,CHNum, ParNum);

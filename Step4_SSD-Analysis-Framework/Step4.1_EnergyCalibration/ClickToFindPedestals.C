@@ -21,7 +21,7 @@ TMarker *m[2];
 TLine   *l[2];
 
 //___________________________________________________________________________
-void FindPedestals()
+void ClickToFindPedestals()
 {
 /////////////////////////////////////////////////////////////////////////////
 //                                                                         //
@@ -37,16 +37,24 @@ void FindPedestals()
 //         <3> 输入 3，中断跳出                                              //
 /////////////////////////////////////////////////////////////////////////////
 
-   std::string path_to_file("/data/EXPdata/Fission2019_Data/QualityCheck_MapRoot/QC_MapSSD_PulserCali_Pedestal0000.root");
+   std::string L1STag("L2F");
+   std::string L1Tag("L2");
+   std::string AlphaFileTag("AlphaCali33_48");
+   std::string FileOutTag("AlphaCaliPedestals");
+   std::string pathRootFolder("/home/sea/Fission2019_Data/MapRoot/");
 
-   std::string LayerTag("L2B");         // here to change "L1S" or "L2F" or "L2B" or "L3A"
-   std::string FileOutTag("Pedestals");  // here to change "Pedestals" or "Pulser" or "Alpha"
+   std::string path_to_file(Form("%sMapSSD_%s_%s.root", pathRootFolder.c_str(),
+                                 L1Tag.c_str(), AlphaFileTag.c_str()));
 
-   std::string pathPedestalsOutput(Form("output/SSD_%s_%s.dat", LayerTag.c_str(), FileOutTag.c_str()));
+   std::string pathPedestalsOutput(Form("output/SSD_%s_%s_%s.dat", L1STag.c_str(),
+                                        FileOutTag.c_str(), AlphaFileTag.c_str()));
 
-   std::string pathPDFOutput(Form("figures/SSD_%s_%s.pdf", LayerTag.c_str(), FileOutTag.c_str()));
-   std::string pathPDFbegin(Form("figures/SSD_%s_%s.pdf[", LayerTag.c_str(), FileOutTag.c_str()));
-   std::string pathPDFend(Form("figures/SSD_%s_%s.pdf]", LayerTag.c_str(), FileOutTag.c_str()));
+   std::string pathPDFOutput(Form("figures/SSD_%s_%s_%s.pdf", L1STag.c_str(),
+                                  FileOutTag.c_str(), AlphaFileTag.c_str()));
+   std::string pathPDFbegin(Form("figures/SSD_%s_%s_%s.pdf[", L1STag.c_str(),
+                                 FileOutTag.c_str(), AlphaFileTag.c_str()));
+   std::string pathPDFend(Form("figures/SSD_%s_%s_%s.pdf]", L1STag.c_str(),
+                               FileOutTag.c_str(), AlphaFileTag.c_str()));
 
    TFile * FileIn = new TFile(path_to_file.c_str());
    if(!FileIn->IsOpen())
@@ -55,7 +63,7 @@ void FindPedestals()
      return;
    }
 
-   ofstream FileOut(pathPedestalsOutput.c_str()));
+   ofstream FileOut(pathPedestalsOutput.c_str());
    FileOut << "*SSDNum" << setw(7) << "CHNum" << setw(8) << "mean"<< setw(10)<< "sigma"<< setw(14)
            <<"mean+5sigma"<< setw(10)<<"Chi2" << setw(10) <<"Xmin"<< setw(10)<<"Xmax" << endl;
 
@@ -64,7 +72,7 @@ void FindPedestals()
    {
      for(Int_t j=0; j<16; j++)
      {
-       PedestalHist[i][j]=(TH1D*)FileIn->Get(Form("SSD%d_%s_CH%02d",(i+1),FileOutTag2.c_str(),j));
+       PedestalHist[i][j]=(TH1D*)FileIn->Get(Form("SSD%d_%s_E_CH%02d",(i+1),L1STag.c_str(),j));
      }
    }
    printf("Histograms loaded\n");
@@ -90,7 +98,7 @@ void FindPedestals()
 
        if (PedestalHist[i][j]==0)
        {
-         printf("No data present for SSD%d_%s_CH%02d\n",(i+1),FileOutTag2.c_str(),j);
+         printf("No data present for SSD%d_%s_CH%02d\n",(i+1),L1STag.c_str(),j);
          continue;
        }
        while(Option==2)
@@ -102,7 +110,7 @@ void FindPedestals()
          gPad->Modified();
          gPad->Update();
          PedestalHist[i][j]->GetXaxis()->SetRangeUser(50,160);
-         PedestalHist[i][j]->GetYaxis()->SetRangeUser(0,10000);
+         PedestalHist[i][j]->GetYaxis()->SetRangeUser(0,(PedestalHist[i][j]->GetMaximum())*1.1);
          PedestalHist[i][j]->Draw();
          //____________________________________________________
          //   it is very important!!! very convenient!!!

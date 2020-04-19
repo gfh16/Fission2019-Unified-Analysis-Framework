@@ -67,6 +67,8 @@ $ ./QC_ReadTree listfilename
    (2) 存储所有的Hist，输出pdf到文件, 方便人眼进行质检
    (3) 存储所有的Hist,写入.root文件. 这一步是为了:一旦pdf文件中的谱有问题，马上可以查看.root文件中对应的直方图
    (4) 编译 QC_ReadTree.C 后执行, ./QC_ReadTree listfilename
+   (5) 存储、读取 tree 的数据要注意数据类型一致. 比如, 存储数据时使用 Int_t 型, 
+       读取数据时, 也要定义成 Int_t 型; 若定义为 Double_t 型, 则可能出错.
 
 
 
@@ -157,6 +159,7 @@ SiEnergyCali_ModifyDeadLayer.C
 ``````C++
 // 运行代码
 $ root -l HitMultiplicity.C
+$ root -l HitMultiplicityChangingSigma.C
 $ root -l HitPattern.C
 ``````
 
@@ -169,7 +172,7 @@ $ root -l HitPattern.C
    2.<u>如何判断有效的点火事件? </u> 
      &nbsp;&nbsp;&nbsp;(1) 如果 $ E_{CH} > (Mean_{pedestal} + \sigma_{pedestal} \times N_{\sigma})$, 则认为是一个有效击中事件, 多重数$+1$   
    3.初步分析, 取 $N_{\sigma}=5$.
-   4.进一步分析,对比不同的 $N_{\sigma}$ 值对多重数 $\Bbb{M}$ 的影响.
+   4.进一步分析,对比不同的 $N_{\sigma}$ 值对多重数 $\Bbb{M}$ 的影响. 取 $N_{\sigma} = 3,5,10,20,30,40$
 ``````C++
 // 判断有效击中事件
 if (SSD_E[i][j]>(PedestalMean[i][j]+PedestalSigma[i][j]*SigmaNum)) 

@@ -27,7 +27,8 @@ void AlphaCali_MergeFiles()
   std::string L1Tag("L1");
   std::string L2Tag("L2");
 
-  TFile* FileOut = new TFile(Form("%sMapSSD_%s_AlphaCali%02d_%02d.root", pathFolderRootInput.c_str(), LayerTag.c_str(), FirstRun, LastRun), "RECREATE");
+  TFile* FileOut = new TFile(Form("%sMapSSD_%s_AlphaCali%02d_%02d.root", pathFolderRootInput.c_str(),
+                                   LayerTag.c_str(), FirstRun, LastRun), "RECREATE");
 
   auto* myData = new TChain("KrPb");
 
@@ -39,18 +40,18 @@ void AlphaCali_MergeFiles()
   // I disable all the branches
   myData->SetBranchStatus("*",false);
 
-  Double_t SSD1_L1S_E[16];
-  Double_t SSD2_L1S_E[16];
-  Double_t SSD3_L1S_E[16];
-  Double_t SSD4_L1S_E[16];
-  Double_t SSD1_L2F_E[16];
-  Double_t SSD1_L2B_E[16];
-  Double_t SSD2_L2F_E[16];
-  Double_t SSD2_L2B_E[16];
-  Double_t SSD3_L2F_E[16];
-  Double_t SSD3_L2B_E[16];
-  Double_t SSD4_L2F_E[16];
-  Double_t SSD4_L2B_E[16];
+  Int_t SSD1_L1S_E[16];
+  Int_t SSD2_L1S_E[16];
+  Int_t SSD3_L1S_E[16];
+  Int_t SSD4_L1S_E[16];
+  Int_t SSD1_L2F_E[16];
+  Int_t SSD1_L2B_E[16];
+  Int_t SSD2_L2F_E[16];
+  Int_t SSD2_L2B_E[16];
+  Int_t SSD3_L2F_E[16];
+  Int_t SSD3_L2B_E[16];
+  Int_t SSD4_L2F_E[16];
+  Int_t SSD4_L2B_E[16];
   if (strcmp(L1Tag.c_str(), LayerTag.c_str())==0)
   {
     // I enable only the branches I need
