@@ -26,7 +26,7 @@ Int_t CanvasHeight = 1000;
 Int_t SSDNum = 4;
 Int_t CHNum  = 16;
 Int_t ParNum = 2;  // par0 = mean， pea1 = sigma
-Int_t SigmaNum = 30;
+Int_t SigmaNum = 5;
 
 Int_t HitMultiplicityCut = 1;
 
