@@ -1,0 +1,92 @@
+./deefit.c()
+./L
+quit
+./quit
+.quit
+gSystem->Load("deefit_S.so")
+.L deefit.C+
+deefit()
+.q
+.L deefit.C+
+deefit()
+.L deefit_S.C 
+gSystem->Load("deefit_S.so")
+.a
+.q
+gSystem->Load("deefit_S")
+.q
+TFile *_file0 = TFile::Open("dee12920_13050_t224_399.root")
+.ls
+h1->GetListOfBranches()->ls()
+.q
+TFile *_file0 = TFile::Open("dee12920_13050_t224_399.root")
+h1->GetListOfBranches()->ls()
+.a
+.q
+.L deefit.C+
+deefit()
+gSystem->Load("deefit_S.so")
+deefit()
+gSystem->Load("deefit_S.so")
+deefit()
+gSystem->Load("deefit_S.so")
+deefit()
+.1
+.q
+gSystem->Load("deefit_S.so")
+deefit()
+.L deefit.C+
+deefit()
+gSystem->Load("deefit_S.so")
+.L deefit.C+
+deefit()
+TFile tf("dee12920_13050_t224_399.root")
+tf->ls()
+h1->StartViewer()
+tv__tree = (TTree *) gROOT->FindObject("h1");
+tv__tree_list->Add(tv__tree);
+.q
+.q
+deefti()
+.L deefit.C+
+.L deefit.C
+deefti()
+deefit()
+.L deefit.C++
+.L deefit.C
+deefit()
+.L deefit.C
+deefit()
+help
+gSystem
+gSystem->Load(deefit_S.so)
+.L deefit_S
+.q
+.L deefit_S.C 
+.L deefit.C++
+.q
+TFile *_file0 = TFile::Open("graphcut.root")
+_file0.ls()
+Z2A4_t500->Print()
+.q
+TFile *_file0 = TFile::Open("run539-574r1-2.root")
+.ls
+h1->Print()
+h1->Draw("desipgf:fastpg","numtel==1")
+.q
+TFile *_file0 = TFile::Open("felim_dee_r8_13078_13128.root")
+.ls
+h1->Print()
+.q
+TFile *_file0 = TFile::Open("felim_dee_r8_13078_13128.root")
+h1->Draw("desilpg:fastpg","numtel==0")
+h1->Draw("desipg:fastpg","numtel==0")
+h1->Draw("desipgf:fastpg","numtel==0")
+h1->Draw("desipgf:fastpg","numtel==1")
+h1->Print()
+h1->Draw("desipgf:fastpg","numtel==35")
+h1->Draw("desipgf:fastpg","numtel==150")
+h1->Draw("desipgf:fastpg","numtel==1000")
+h1->Draw("numtel","")
+h1->Draw("desipgf:fastpg","numtel==500")
+.q

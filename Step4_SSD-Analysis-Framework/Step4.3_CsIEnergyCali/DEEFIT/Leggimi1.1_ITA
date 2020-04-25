@@ -1,0 +1,130 @@
+Modifiche fatte :   versione 1.1
+_______________________________________________________________________
+
+[PROGRAMMA] deefit si chiama ora deefit_S ed è un programma 
+eseguibile "standalone". Non è piu necessario lanciarlo come libreria 
+o macro da Root. Questa modifica facilita il debug e la scrittura piu
+ordinata del programma (parzialmente iniziata per separare la parte di
+"fisica" da quella di interfaccia grafica). Il programma è dotato di un
+"makefile" completo per la compilazione e il link su Linux. E' ora
+costituito da molti files e dovrebbe essere copiato 
+spostando l'intera directory. E' compatibile con Rootlib v. >= 5.22 ma
+potrebbe funzionare con versioni piu vecchie. Nella directory sono
+presenti alcuni files di esempio di clicks (presi da isospin2) con cui
+sono stati fatti i test. Il main del programma è in 
+deefit_S.C 
+Per compilare:                make
+Per compilare come libreria:  make shared
+Per pulire:                   make clean 
+
+
+[PROGRAMMA] Se si preferisce, per usare il programma all'interno di ROOT
+invece che standalone (come in precedenza):
+1) Verificare che la libreria shared sia presente "deefit_S.so". Se c'è
+un cambiamento nel sorgente compilarla con "make shared" dopo aver dato
+eventualmente il "make"
+lanciare ROOT
+2) in root: dare il comando gSystem->Load("deefit_S.so")
+            dare il comando .L deefit.C+
+3) lanciare deefit() 
+Dal file principale deefit.C è possibile settare il sistema Proj + Targ
+di default. 
+
+[PROGRAMMA] (v. 1.2) Nuovo bottone USER. Questo comando permette di 
+selezionare i limiti (bin,min,max) e la percentuale di eventi 
+da fare per una matrice DE-E che verra' disegnata a colori 
+se un valido file è stato aperto. Sulla matrice si protranno tracciare i 
+clicks come su quella standard in bianco e nero. Questo tipo di matrice 
+e' utile per tracciare i clicks sulle particelle leggere dove la matrice 
+in bianco e nero e ad alta statistica impedisce di vedere le linee 
+delle particelle 
+
+[FIT] Il parametro 9 offset_fast del fit che indica il valore minimo
+della fast (prossimo al piedistallo nei dati) talvolta viene
+completamente sbagliato dalla procedura di fit che lo porta al valore
+minimo consentito = 0 (equilibration, timescale). Per ovviare a questo
+viene ora automaticamente determinato un valore minimo della fast e
+usato come valore iniziale del parametro nel fit. Il parametro viene
+minimizzato ora in modo corretto attorno al valore iniziale. 
+Il valore minimo del parametro è stato portato da 0 a 10.
+
+[FIT] Laura aveva ragione (ma non del tutto). Il chi2 peggiora se si
+fanno in sequenza vari fit con click di vari telescopi in memoria. In
+realta' il chi2 "peggiora" comunque, in modo random. Non ci sono errori
+quando la lista dei click contiene dati per molti telescopi. I dati
+vengono passati correttamente al fit. Il colpevole sembra essere la
+prima routine di fit (first step Montecarlo) che 
+minimizza la funzione con un calcolo Montecarlo. A volte si perde
+completamente (?) e rende difficile gli step successivi (fit simplex e
+migrad). Pero' se non si usa, il fit viene con un chi2 superiore di
+varie unita. 
+Soluzione: durante lo step Montecarlo viene vincolato il parametro
+(offset_fast) e poi rilasciato. Questo porta ad un comportamento piu
+ottimale. Sembra funzionare bene. Se ci sono problemi la sequenza (init
+fit, fit...) va ripetuta in piu di un tentativo.  
+
+[FIT] Quando si passa dal fit di un telescopio ad un altro in sequenza
+occorre re-inizializzare il fit (init fit) prima di eseguirlo. Per
+evitare errori quando si cambia telescopio automaticamente diventa
+grigio il comando di menu di "esegui fit" e torna ad essere attivo solo
+dopo l'inizializzazione costringendo a fare l'init fit per
+continuare.   
+
+[FIT] Vengono usati piu punti (60 bins) per tracciari i grafici dei fit 
+(Ivano)
+
+[FIT] La versione 1.1 definitivamente scrive nei parametri del fit la
+formula di massa usata 0=2*Z, 1=Charity, 2=Epax
+
+[CLICKS] E' possibile selezionare piu files di clicks mettendoli 
+simultaneamente in memoria e riscrivendoli eventualmente in un unico
+file. Viene infatti attivato il check di selezione di file multiplo
+nella finestra di selezione dei files. 
+I file multipli di solito si selezionano premendo SHIFT (tasto
+maiuscole) insieme al tasto sinistro del mouse (questo vale solo per i
+clicks e non per i files di dati). Files di clicks diversi non
+dovrebbero contenere dati per uno stesso telescopio (il controllo non è
+presente in questa versione, ma forse non da errore)
+
+
+[ANALISI] Il calcolo delle masse è stato portato fino a Z=14 da Z=9
+anche se non vi è identificazione in massa (Comunque l'ultima massa 
+identificata viene decisa con un codice di identificazione da chi 
+fa l'analisi. Anche il menu-box per graficare le distribuzioni di massa 
+va fino a Z=14. La modifica di questo parametro è ora molto semplice
+(una costante da cambiare in deefit.h) e l'aggiunta di una label per
+ogni nuova Z. Bisogna però anche che la finestra di masse per la nuova
+zeta sia definita nel metodo per il calcolo della massa.  
+
+[ANALISI] Un nuovo comando del menu analisi permette di graficare tutte
+le distribuzioni di massa fino a Z=9 in un grafico a nove finestre
+direttamente stampabile in qualsiasi formato (gif, ps, etc). 
+
+[ANALISI] Le griglie sull'asse X sono ora disegnate per default. 
+
+[ANALISI] Nuovo comando Check Z. 
+Questo comando permette di rivedere evidenziata con un altro colore
+sulla matrice DE-Fast una carica a scelta identificata per verificare la
+qualita' dell'identificazione. 
+Come funziona: 
+Quando si da il comando di identificazione un file root temporaneo
+(chiamato treeide.root) viene scritto sulla directory corrente e
+contiene la carica identificata per il telescopio corrente (0 per gli
+altri) evento per evento.
+Questo file, che viene chiamato "Tree Friend" nella rootlib verra' usato
+insieme a quello contenente i dati bruti per costruire la matrice di
+check. Il file treeide.root viene sovrascritto ogni volta. Se lo si
+vuole salvare per fare un analisi piu approfondita con Root bisogna
+copiarlo con un altro nome. La massa non viene scritta in questo file ma
+potrebbe esserlo. 
+
+*********************************************************************************  
+Da fare.....
+Alcune modifiche di Mariano (sulla scrittura dei parametri del fit ?)
+mancano. 
+Se si fa il load dei parametri del fit da file i parametri non possono
+essere usati per graficare il fit sulla matrice ma solo per l'analisi
+(difficile...)
+Portare le modifiche fatte all'identificazione nel programma isospin
+(urgente...)
+
