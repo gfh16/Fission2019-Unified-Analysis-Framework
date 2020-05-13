@@ -270,10 +270,11 @@ if ((HitMultiplicity_SSD_L2F[i]<HitMultiplicityCut)||
 >+ **文件:**
 >+ **说明:**
    1.DEEFIT 程序要求 .root 文件存成 Tree 的格式. 共有 3 个 branch:
-     numtel: 探测器编号. 按照 CsI 晶体进行标记. 
+     h1: histogram name
+     numtel: 类型为short, 探测器编号. 按照 CsI 晶体进行标记. 
       &emsp;&emsp;&emsp;&ensp;例如: 我们有4块硅条, 每块硅条有 9 块 CsI 晶体, 应该编号 $0 \sim 35$.
-     desilpgf: 带电粒子在硅条中的能能损， 以 MeV 为单位, 所以要先做完硅条能量刻度.
-     fastpg: 带电粒子在 CsI 晶体中的能损，以 ADC 道址为单位.
+     desilpgf: 类型为float, 硅条中的能能损，以 MeV 为单位, 依赖硅条能量刻度.
+     fastpg: 类型为short, CsI 晶体中的能损，以 ADC 道址为单位.
 
   
 
