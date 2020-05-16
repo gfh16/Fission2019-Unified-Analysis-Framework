@@ -1,7 +1,7 @@
-Fission2019 实验数据说明文档
-==========================
+<center>Fission2019 实验数据说明文档</center>
+===========================================
 
->+  [硅条探测器数据处理流程教程-word文档](https://cloud.tsinghua.edu.cn/f/ccdef129f9434a26b0a2/)
+
 >+ [gfh-Fission2019实验记录本](https://cloud.tsinghua.edu.cn/f/b79406dc24744e58bae7/)
 >+ [gfh-Fission2019实验值班记录表格](https://cloud.tsinghua.edu.cn/f/077701365a754ca68e11/)
 >+ [gfh-Fission2019实验文件说明-excel统计](https://cloud.tsinghua.edu.cn/f/55754e979f7845df9678/)
@@ -28,15 +28,17 @@ Fission2019 实验数据说明文档
 + **<font color=#FF00FF> SSD_L1 等间距法(Height) </font>**
   >+ 等间距法, 是指用 Ortec-419 前面板的旋钮进行等间距信号衰减！
   >+ $\alpha$ 源对 SSD_L1 进行刻度时, 发现 SSD1,SSD2 信号很小甚至看不到, 因此需要改变主放的 gain, 同时 Pulser 刻度也需要重新刻度.
-  >+  SSD1_L1主放gain修改: 由 2 × 4  $\Rightarrow$ <font color=#DC143C> 2 × 20 </font>
-   SSD2_L1主放gain修改: 由 2 × 7.4 $\Rightarrow$ <font color=#DC143C> 2 × 20 </font>
+  >+ 在 PulserReCali中:
+  1.SSD1_L1主放gain修改: 由 2 × 4  $\Rightarrow$ <font color=#DC143C> 2 × 20 </font>
+  2.SSD2_L1主放gain修改: 由 2 × 7.4 $\Rightarrow$ <font color=#DC143C> 2 × 20 </font>
+  >+ 由于在 $\alpha$ 刻度硅条第一层时,SSD1_L1, SSD2_L1 放大倍数已经改变, 因此只能用 PulserReCali 来刻度.
 
   | Pulser刻度  |   刻度条件说明  |   刻度点数目    | 备注|
   |:------------|:--------------|:-----------:|:---------|
   |SSD1_L1_PulserCali_Height.0000|相对幅度: 10,9,8,7,6,5,4,3,2,1,0.5 | 11 | 刻度文件正常 |
   |SSD2_L1_PulserCali_Height.0000|相对幅度: 10,9,8,7,6,5,4,3,2,1,0.5 | 11 | 刻度文件正常 |
   |SSD3_L1_PulserCali_Height.0000|相对幅度: 10,9,8,7,6,5,4,3,2,1     | 10 | 刻度文件正常 |
-  |SSD4_L1_PulserCali_Height.0000|相对幅度: 10,9,8,7,6,5,4,3,2,1     | 10 |SSD4_L1刻度时有噪声 |
+  |SSD4_L1_PulserCali_Height.0000|相对幅度: 10,9,8,7,6,5,4,3,2,1     | 10 | 0.5的统计低！ |
   |<font color=red>SSD1_L1_PulserReCali_Gain4_Height.0000| 相对幅度: 10,9,8,7,6,5,4,3,2,1,0.5| 11 |  刻度文件正常 |
   |<font color=red>SSD1_L1_PulserReCali_Gain20_Height.0000| 相对幅度: 10/4,9/4,8/4,7/4,6/4,5/4,4/4,3/4,2/4,1/4 | 10 | 信号先衰减4倍 |
   |<font color=red>SSD2_L1_PulserReCali_Gain7.4_Height.0000| 相对幅度: 10,9,8,7,6,5,4,3,2,1,0.5| 11 |  刻度文件正常 |
@@ -93,7 +95,7 @@ Fission2019 实验数据说明文档
 
   >+ <font color=red> 第一次开靶室: SSD_L1 $\alpha$ 刻度 </font>
    备注1: SSD3、SSD4部分 strips 计数率过低！
-   备注2：T120000 空谱, 即 SSD4_L1_CH0 为空, 实验中也是空谱！
+   备注2：T120000 空谱, 即 SSD4_L1_S_CH0 为空, 实验中也是空谱！
 
   | Alpha刻度  |   刻度条件说明    | 备注 |
   |:------------|:--------------|:---------|
@@ -192,12 +194,12 @@ Fission2019 实验数据说明文档
 
 | PPAC 束流刻度  |   刻度条件说明    | 备注 |
 |:------------|:--------------|:---------|
-|PPAC1_BeamCalibration.0000| Trigger: PPAC 单举 | 数据无效： 开DAQ时, PPAC1 噪声起来了|
+|<font color=red>PPAC1_BeamCalibration.0000| Trigger: PPAC 单举 | 数据无效： 开DAQ时, PPAC1 噪声起来了|
 |PPAC1_BeamCalibration.0001| Trigger: PPAC 单举 | PPAC1 -465V, PPAC2,3电压0 |
 |PPAC1_BeamCalibration.0002| Trigger: PPAC 单举 | PPAC1 -465V, PPAC2,3电压0 |
 |PPAC2_BeamCalibration.0000| Trigger: PPAC 单举 | PPAC2 -460V, PPAC1,3电压0 |
 |PPAC2_BeamCalibration.0001| Trigger: PPAC 单举 | PPAC2 -460V, PPAC1,3电压0 |
-|PPAC3_BeamCalibration.0000| Trigger: PPAC 单举 | 统计过低, 放弃束流刻度! |
+|<font color=red>PPAC3_BeamCalibration.0000| Trigger: PPAC 单举 | 统计过低, 放弃束流刻度! |
 
 
 #### <font color=#00BBDD>  2.2 PPAC $^{252}\rm{Cf}$ 刻度 </font>
@@ -235,11 +237,11 @@ Fission2019 实验数据说明文档
 
 
 #### <font color=#00BBDD>  3.2 含 SSD 单举 [Run0089-Run0120] </font>
->+ 实验 Trigger: AuSi单举 + <font color=red>SSD单举</font>+  PPAC两体 + SSD两体 + (PPAC两题*SSD单体)
+>+ 实验 Trigger: AuSi单举 + <font color=red>SSD单举</font>+  PPAC两体 + SSD两体 + (PPAC两体*SSD单体)
 >+ 该条件下，SSD的单举计数率最高, 是主要事件！
 
 >+ PPAC能量路设置: T104028-T104030, <font color=red>gain=8</font>, sht=3$\mu$s
->+ 前放烧了, AuSi1_L1 改用 AuSi1_L2 路, 此时 T104017 路信号为空
+>+ AuSi望远镜: 前放烧了, AuSi1_L1 改用 AuSi1_L2 路, 此时 T104017 路信号为空
 
 
 | 文件名  |  Trigger   | 备注1 | 备注2 |
@@ -284,8 +286,18 @@ Fission2019 实验数据说明文档
 >+ 此条件下的数据是本次实验的核心！
 >+ 共有效文件 312个， Fisson2019_Kr_Pb.0121 $\sim$ Fisson2019_Kr_Pb.0432
 
->+ PPAC能量路 gain 作了改变: T104028-T104030, <font color=red>gain=32</font>, sht=3$\mu$s
->+ AuSi能量路做了改变: T104016-T104019 $\Rightarrow$ T104020-T104023
+>+ **PPAC能量路:** 
+   1.改变了 gain: T104028-T104030, <font color=red>gain=32</font>, sht=3$\mu$s
+   2.T104029 路是 PPAC2_T_E, 即PPAC2的能量路，信号与 PPAC1、PPAC3不同.
+&emsp;
+>+ **AuSi能量路:** 
+   1.改变了能量路：T104016-T104019 $\Rightarrow$ T104020-T104023
+   2.AuSi望远镜的第二层，即 CsI 层信号有问题， 即 T104021, T104023
+&emsp;
+>+ **硅条能量路：**
+   1.T120000能谱为空, 即 SSD4_L1_S_CH00为空谱
+   2.T120020,T120021 即 SSD4_L3_A_CH04, SSD4_L3_CH05, 信号异常
+   3.T121013，T121014 即 SSD4_L2_F_CH13, SSD4_L2_F_CH14, 信号异常
 
 
 
@@ -336,7 +348,7 @@ Fission2019 实验数据说明文档
 |Fisson2019_Kr_Pb.0163|T120000空; T120020,T120021,T121013,T121014 异常 | T104029 | T104021,T104023| 
 |Fisson2019_Kr_Pb.0164|T120000空; T120020,T120021,T121013,T121014 异常 | T104029 | T104021,T104023| 
 |Fisson2019_Kr_Pb.0165|T120000空; T120020,T120021,T121013,T121014 异常 | T104029 | T104021,T104023| 
-|Fisson2019_Kr_Pb.0166|T120000空; T120020,T120021,T121013,T121014 异常 | T104029 | T104021,T104023| 
+|<font color=red>Fisson2019_Kr_Pb.0166| T120000空; T120020,T120021,T121013,T121014 异常 | T104029 | T104021,T104023| ppac机箱挂了| 
 |Fisson2019_Kr_Pb.0167|T120000空; T120020,T120021,T121013,T121014 异常 | T104029 | T104021,T104023| 
 |Fisson2019_Kr_Pb.0168|T120000空; T120020,T120021,T121013,T121014 异常 | T104029 | T104021,T104023| 
 |Fisson2019_Kr_Pb.0169|T120000空; T120020,T120021,T121013,T121014 异常 | T104029 | T104021,T104023| 
@@ -481,13 +493,13 @@ Fission2019 实验数据说明文档
 |Fisson2019_Kr_Pb.0308|T120000空; T120020,T120021,T121013,T121014 异常 | T104029 | T104021,T104023| 
 |Fisson2019_Kr_Pb.0309|T120000空; T120020,T120021,T121013,T121014 异常 | T104029 | T104021,T104023| 
 |Fisson2019_Kr_Pb.0310|T120000空; T120020,T120021,T121013,T121014 异常 | T104029 | T104021,T104023| 
-|<font color=blue>Fisson2019_Kr_Pb.0311|T120000空; T120020,T120021,T121013,T121014 异常 | T104029 | T104021,T104023| 弹散2过大 |
+|<font color=red>Fisson2019_Kr_Pb.0311|T120000空; T120020,T120021,T121013,T121014 异常 | T104029 | T104021,T104023| 弹散2过大，ppac机箱挂了 |
 |<font color=blue>Fisson2019_Kr_Pb.0312|T120000空; T120020,T120021,T121013,T121014 异常 | T104029 | T104021,T104023| 弹散2过大 |
 |<font color=blue>Fisson2019_Kr_Pb.0313|T120000空; T120020,T120021,T121013,T121014 异常 | T104029 | T104021,T104023| 弹散2过大 |
 |<font color=blue>Fisson2019_Kr_Pb.0314|T120000空; T120020,T120021,T121013,T121014 异常 | T104029 | T104021,T104023| 弹散2过大 |
 |<font color=blue>Fisson2019_Kr_Pb.0315|T120000空; T120020,T120021,T121013,T121014 异常 | T104029 | T104021,T104023| 弹散2过大 |
 |<font color=blue>Fisson2019_Kr_Pb.0316|T120000空; T120020,T120021,T121013,T121014 异常 | T104029 | T104021,T104023| 弹散2过大 |
-|<font color=blue>Fisson2019_Kr_Pb.0317|T120000空; T120020,T120021,T121013,T121014 异常 | T104029 | T104021,T104023| 弹散2过大 |
+|<font color=red>Fisson2019_Kr_Pb.0317|T120000空; T120020,T120021,T121013,T121014 异常 | T104029 | T104021,T104023| 弹散2过大;束斑打偏|
 |<font color=blue>Fisson2019_Kr_Pb.0318|T120000空; T120020,T120021,T121013,T121014 异常 | T104029 | T104021,T104023| 弹散2过大 |
 |<font color=blue>Fisson2019_Kr_Pb.0319|T120000空; T120020,T120021,T121013,T121014 异常 | T104029 | T104021,T104023| 弹散2过大 |
 |<font color=blue>Fisson2019_Kr_Pb.0320|T120000空; T120020,T120021,T121013,T121014 异常 | T104029 | T104021,T104023| 弹散2过大 |
@@ -525,9 +537,9 @@ Fission2019 实验数据说明文档
 |Fisson2019_Kr_Pb.0352|T120000空; T120020,T120021,T121013,T121014 异常 | T104029 | T104021,T104023| 
 |Fisson2019_Kr_Pb.0353|T120000空; T120020,T120021,T121013,T121014 异常 | T104029 | T104021,T104023| 
 |Fisson2019_Kr_Pb.0354|T120000空; T120020,T120021,T121013,T121014 异常 | T104029 | T104021,T104023| 
-|Fisson2019_Kr_Pb.0355|T120000空; T120020,T120021,T121013,T121014 异常 | T104029 | T104021,T104023| 
+|<font color=red>Fisson2019_Kr_Pb.0355|T120000空; T120020,T120021,T121013,T121014 异常 | T104029 | T104021,T104023| 束流中断 |
 |Fisson2019_Kr_Pb.0356|T120000空; T120020,T120021,T121013,T121014 异常 | T104029 | T104021,T104023| 
-|Fisson2019_Kr_Pb.0357|T120000空; T120020,T120021,T121013,T121014 异常 | T104029 | T104021,T104023| 
+|<font color=red>Fisson2019_Kr_Pb.0357|T120000空; T120020,T120021,T121013,T121014 异常 | T104029 | T104021,T104023| 束流中断 |
 |Fisson2019_Kr_Pb.0358|T120000空; T120020,T120021,T121013,T121014 异常 | T104029 | T104021,T104023| 
 |Fisson2019_Kr_Pb.0359|T120000空; T120020,T120021,T121013,T121014 异常 | T104029 | T104021,T104023| 
 |Fisson2019_Kr_Pb.0360|T120000空; T120020,T120021,T121013,T121014 异常 | T104029 | T104021,T104023| 
@@ -547,7 +559,7 @@ Fission2019 实验数据说明文档
 |Fisson2019_Kr_Pb.0374|T120000空; T120020,T120021,T121013,T121014 异常 | T104029 | T104021,T104023| 
 |Fisson2019_Kr_Pb.0375|T120000空; T120020,T120021,T121013,T121014 异常 | T104029 | T104021,T104023| 
 |Fisson2019_Kr_Pb.0376|T120000空; T120020,T120021,T121013,T121014 异常 | T104029 | T104021,T104023| 
-|Fisson2019_Kr_Pb.0377|T120000空; T120020,T120021,T121013,T121014 异常 | T104029 | T104021,T104023| 
+|<font color=red>Fisson2019_Kr_Pb.0377|T120000空; T120020,T120021,T121013,T121014 异常 | T104029 | T104021,T104023| 束流<1nA |
 |Fisson2019_Kr_Pb.0378|T120000空; T120020,T120021,T121013,T121014 异常 | T104029 | T104021,T104023| 
 |Fisson2019_Kr_Pb.0379|T120000空; T120020,T120021,T121013,T121014 异常 | T104029 | T104021,T104023| 
 |Fisson2019_Kr_Pb.0380|T120000空; T120020,T120021,T121013,T121014 异常 | T104029 | T104021,T104023| 
