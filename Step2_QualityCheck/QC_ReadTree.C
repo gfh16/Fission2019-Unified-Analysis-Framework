@@ -180,29 +180,29 @@ void ReadTree( TChain* myChain, const char* rootpath, const char* pdfpath)
   TH1D *Hist_AuSi2_L1E  = new TH1D("AuSi2_L1E", "AuSi2_L1E", BIN_NUM, LOW_CH, HIGH_CH);
   TH1D *Hist_AuSi2_L2E  = new TH1D("AuSi2_L2E", "AuSi2_L2E", BIN_NUM, LOW_CH, HIGH_CH);
 
-  TH1D * Hist_RF1 = new TH1D("RF1", "RF1", BIN_NUM, LOW_CH, HIGH_CH);
-  TH1D * Hist_RF2 = new TH1D("RF2", "RF2", BIN_NUM, LOW_CH, HIGH_CH);
+  TH1D *Hist_RF1 = new TH1D("RF1", "RF1", BIN_NUM, LOW_CH, HIGH_CH);
+  TH1D *Hist_RF2 = new TH1D("RF2", "RF2", BIN_NUM, LOW_CH, HIGH_CH);
 
-  TH1D * Hist_SSD1_L2F_T[16];
-  TH1D * Hist_SSD1_L1S_E[16];
-  TH1D * Hist_SSD1_L2F_E[16];
-  TH1D * Hist_SSD1_L2B_E[16];
-  TH1D * Hist_SSD1_L3A_E[9];
-  TH1D * Hist_SSD2_L2F_T[16];
-  TH1D * Hist_SSD2_L1S_E[16];
-  TH1D * Hist_SSD2_L2F_E[16];
-  TH1D * Hist_SSD2_L2B_E[16];
-  TH1D * Hist_SSD2_L3A_E[9];
-  TH1D * Hist_SSD3_L2F_T[16];
-  TH1D * Hist_SSD3_L1S_E[16];
-  TH1D * Hist_SSD3_L2F_E[16];
-  TH1D * Hist_SSD3_L2B_E[16];
-  TH1D * Hist_SSD3_L3A_E[9];
-  TH1D * Hist_SSD4_L2F_T[16];
-  TH1D * Hist_SSD4_L1S_E[16];
-  TH1D * Hist_SSD4_L2F_E[16];
-  TH1D * Hist_SSD4_L2B_E[16];
-  TH1D * Hist_SSD4_L3A_E[9];
+  TH1D *Hist_SSD1_L2F_T[16];
+  TH1D *Hist_SSD1_L1S_E[16];
+  TH1D *Hist_SSD1_L2F_E[16];
+  TH1D *Hist_SSD1_L2B_E[16];
+  TH1D *Hist_SSD1_L3A_E[9];
+  TH1D *Hist_SSD2_L2F_T[16];
+  TH1D *Hist_SSD2_L1S_E[16];
+  TH1D *Hist_SSD2_L2F_E[16];
+  TH1D *Hist_SSD2_L2B_E[16];
+  TH1D *Hist_SSD2_L3A_E[9];
+  TH1D *Hist_SSD3_L2F_T[16];
+  TH1D *Hist_SSD3_L1S_E[16];
+  TH1D *Hist_SSD3_L2F_E[16];
+  TH1D *Hist_SSD3_L2B_E[16];
+  TH1D *Hist_SSD3_L3A_E[9];
+  TH1D *Hist_SSD4_L2F_T[16];
+  TH1D *Hist_SSD4_L1S_E[16];
+  TH1D *Hist_SSD4_L2F_E[16];
+  TH1D *Hist_SSD4_L2B_E[16];
+  TH1D *Hist_SSD4_L3A_E[9];
   for(int i=0; i<16; i++)
   {
     Hist_SSD1_L2F_T[i] = new TH1D(Form("SSD1_L2F_T_CH%02d", i), Form("SSD1_L2F_T_CH%02d", i), BIN_NUM-100, LOW_CH+100, HIGH_CH);

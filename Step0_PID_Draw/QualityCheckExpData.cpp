@@ -1,36 +1,35 @@
 void QualityCheckExpData()
 {
-  const int FirstRun = 121;
-  const int LastRun  = 200;
+  const int FirstRun = 200;
+  const int LastRun  = 300;
 
   TChain myData("KrPb");
 
-/*
-  for(int i=FirstRun; i<LastRun; i++)
+  for(int i=FirstRun; i<=LastRun; i++)
   {
     myData.Add(Form("../../Fission2019_Data/MapRoot/MapFission2019_Kr_Pb%04d.root", i));
   }
-*/
-  myData.Add("../../Fission2019_Data/MapRoot/MapFission2019_Kr_Pb*.root");
 
   TCanvas *c1 = new TCanvas("c1","c1", 1200, 800);
+  c1->Divide(2,2);
 
-  myData.Draw("SSD4_L2B_E[4]:SSD4_L3A_E[6]>>hist1(4096,0,4096,4096,0,4096)");
-  TH2F * hist1 = (TH2F*)gDirectory->Get("hist1");
+  myData.Draw("SSD1_L2B_E[4]:SSD1_L3A_E[6]>>hist1(4096,0,4096,4096,0,4096)");
+  myData.Draw("SSD2_L2B_E[4]:SSD2_L3A_E[6]>>hist2(4096,0,4096,4096,0,4096)");
+  myData.Draw("SSD3_L2B_E[4]:SSD3_L3A_E[6]>>hist3(4096,0,4096,4096,0,4096)");
+  myData.Draw("SSD4_L2B_E[4]:SSD4_L3A_E[6]>>hist4(4096,0,4096,4096,0,4096)");
+
+  TH2D *hist1 = (TH2D*)gDirectory->Get("hist1");
+  TH2D *hist2 = (TH2D*)gDirectory->Get("hist2");
+  TH2D *hist3 = (TH2D*)gDirectory->Get("hist3");
+  TH2D *hist4 = (TH2D*)gDirectory->Get("hist4");
+
+  c1->cd(1);
   hist1->Draw("COLZ");
-/*
-  char SSD_E[200];
-  for(int i=0; i<16; i++)
-  {
-    sprintf(SSD_E,"SSD1_L1S_E[%d]",i);
-    myData.Draw(SSD_E);
-
-    gPad->Modified();
-    gPad->Update();
-    gPad->SetLogy();
-
-    getchar();
-  }
-*/
+  c1->cd(2);
+  hist2->Draw("COLZ");
+  c1->cd(3);
+  hist3->Draw("COLZ");
+  c1->cd(4);
+  hist4->Draw("COLZ");
 
 }
