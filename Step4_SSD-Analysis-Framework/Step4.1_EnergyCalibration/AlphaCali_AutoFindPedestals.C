@@ -29,16 +29,16 @@ void AlphaCali_AutoFindPedestals()
 //   1.从文件中读取已有的的 hitograms                                            //
 //   2.新建TSpectrum：TSpectrum * s = new TSpectrum();                         //
 //   3.寻峰(寻找候选峰): Int_t nfound  = s->Search(PulserPeaks[i],3,"",0.2);    //
-//   4.对所有峰进行排序                                                         //
-//   5.遍历所有找到的峰，提取峰值的 X值、Y值，拟合                                 //
-//   6.将寻峰得到的数据点画出来, 作线性拟合                                       //
+//   4.对所有峰进行排序                                                          //
+//   5.遍历所有找到的峰，提取峰值的 X值、Y值，拟合                                   //
+//   6.将寻峰得到的数据点画出来, 作线性拟合                                         //
 //                                                                            //
 //   PulserCali_AutoFindPeak()参数说明                                         //
-//   LayerTagWithOutLabel   : L1 or L2                                                    //
-//   AlphaTag    : Switch / Height，We use this two methods for pulser cali    //
+//   LayerTagWithOutLabel   : L1 or L2                                        //
+//   AlphaTag    : Switch / Height，We use this two methods for pulser cali   //
 //   cans[4][16]: Canvas for to save all the figures                          //
 //                                                                            //
-//   Search()参数说明：                                                        //
+//   Search()参数说明：                                                         //
 //   Search(hist, sigma, option, threshold) \\ 0 < threshold < 1              //
 //   sigma    : sigma of searched peaks， search                              //
 //   threshold: peaks with amplitude < threshold*highest_peak are discarded   //

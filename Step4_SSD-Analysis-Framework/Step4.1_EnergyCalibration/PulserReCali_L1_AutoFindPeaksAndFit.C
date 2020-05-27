@@ -1,11 +1,22 @@
 
 /////////////////////////////////////////////////////////////////////////
-//    This macro is used to find the peaks in pulser calibration data  //
-//    Here, we use TSpectrum to find the peaks candidates              //
-//                                                                     //
-//    Author gfh                                                       //
-//    Date Nov 11, 2019                                                //
+//    This macro is used to find the peaks in pulser calibration data
+//    Here, we use TSpectrum to find the peaks candidates
+//
+//    1.对 SSD1 与 SSD2 的第一层进行 重新刻度, 原因是放射源刻度时，这两层硅条
+//      的看不到信号，因而增大了放大倍数
+//
+//    2.需要注意以下的不同：
+//      (1) SSD1_L1: gain=4   => gain=20
+//      (2) SSD2_L1: gain=7.4 => gain=20
+//
+//    3.Pulser 与 放射源刻度完以后, 需要将刻度曲线转换回到原来的放大倍数的情况
+//
+//    Author gfh
+//    Date May 27, 2020
 /////////////////////////////////////////////////////////////////////////
+
+
 
 #include "TCanvas.h"
 #include "TH1.h"
@@ -23,13 +34,20 @@
 
 //______________________________________________________________________________
 Double_t AttenFactor[11] = {0};     //衰减因子
-Double_t Switch5[5]   = {1., 1/2., 1/4., 1/5., 1/10.};
-Double_t Switch6[6]   = {1., 1/2., 1/4., 1/5., 1/10., 1/20.};
-Double_t Switch8[8]   = {1., 1/2., 1/4., 1/5., 1/10., 1/20., 1/40., 1/50.};
+Double_t Switch5[5]   = {1./4, 1./5, 1./10, 1./20, 1./40};
+Double_t Switch8[8]   = {1., 1./2, 1./4, 1./5, 1./10, 1./20, 1./40, 1./50};
 Double_t Switch9[9]   = {1., 1/2., 1/4., 1/5., 1/10., 1/20., 1/40., 1/50., 1/100.};
+Double_t Height10[10] = {1./4, .9/4, .8/4, .7/4, .6/4, .5/4, .4/4, .3/4, .2/4, .1/4};
 
-Double_t Height10[10] = {10., 9., 8., 7., 6., 5., 4., 3., 2., 1.};
-Double_t Height11[11] = {10., 9., 8., 7., 6., 5., 4., 3., 2., 1., 0.5};
+// for SSD_L1_PulserReCali_Switch
+//Double_t Switch6[6]   = {1./4, 1./5, 1./10, 1./20, 1./40, 1./50};  // for SSD1_L1
+Double_t Switch6[6]   = {1., 1./2, 1./4, 1./5, 1./10, 1./20};    // for SSD2_L1
+
+// SSD_L1_PulserReCali_Height
+// 对 Height 进行归一, 相对幅度 10./10,9./10,8./10,....,0.5/10
+Double_t Height11[11] = {1.,.9, .8, .7, .6, .5, .4, .3, .2, .1, 0.05};
+//Double_t Height11[11] = {1./4, .9/4, .8/4, .7/4, .6/4, .5/4, .4/4, .3/4, .2/4, .1/4, 0.05/4};  // for SSD_L1_Gain20
+
 
 //_______________________________________________
 //   实现数组的降序排序
@@ -40,21 +58,22 @@ bool compare(Int_t a, Int_t b)
 
 
 //______________________________________________________________________________
-void PulserCali_AutoFindPeak(const char* L1Tag, const char* FileTag, TCanvas* cans[4][16]);
+void PulserCali_AutoFindPeak(const char* L1Tag, const char* FileTag, const char* GainTag, TCanvas* cans[4][16]);
 
 
 //______________________________________________________________________________
-void PulserCali_L1_AutoFindPeaksAndFit()
+void PulserReCali_L1_AutoFindPeaksAndFit()
 {
   gStyle->SetOptStat(0);
 
   std::string L1Tag("L1");
   std::string L1STag("L1S");
-  std::string FileTag("Switch");   // "Height" or "Switch"
+  std::string FileTag("Height");   // "Height" or "Switch"
+  std::string GainTag("Gain74");  // SSD1_L1: Gain4, Gain20; SSD2_L1: Gain7.4, Gain20
 
-  std::string pathPDFOutput(Form("figures/SSD_%s_PulserCali_%s.pdf", L1STag.c_str(),FileTag.c_str()));
-  std::string pathPDFbegin(Form("figures/SSD_%s_PulserCali_%s.pdf[", L1STag.c_str(),FileTag.c_str()));
-  std::string pathPDFend(Form("figures/SSD_%s_PulserCali_%s.pdf]", L1STag.c_str(),FileTag.c_str()));
+  std::string pathPDFOutput(Form("figures/SSD_%s_PulserCali_%s_%s.pdf", L1STag.c_str(),GainTag.c_str(),FileTag.c_str()));
+  std::string pathPDFbegin(Form("figures/SSD_%s_PulserCali_%s_%s.pdf[", L1STag.c_str(),GainTag.c_str(),FileTag.c_str()));
+  std::string pathPDFend(Form("figures/SSD_%s_PulserCali_%s_%s.pdf]",   L1STag.c_str(),GainTag.c_str(),FileTag.c_str()));
 
   TCanvas *cans[4][16];
   for(Int_t SSDNum=0; SSDNum<4; SSDNum++)
@@ -65,7 +84,7 @@ void PulserCali_L1_AutoFindPeaksAndFit()
       cans[SSDNum][CHNum]->Close();
     }
   }
-  PulserCali_AutoFindPeak(L1Tag.c_str(), FileTag.c_str(),cans);
+  PulserCali_AutoFindPeak(L1Tag.c_str(), FileTag.c_str(),GainTag.c_str(),cans);
 
   TCanvas *c_begin = new TCanvas("c_begin","");
   TCanvas *c_end   = new TCanvas("c_end","");
@@ -86,7 +105,7 @@ void PulserCali_L1_AutoFindPeaksAndFit()
 
 
 //______________________________________________________________________________
-void PulserCali_AutoFindPeak(const char* L1Tag, const char* FileTag, TCanvas* cans[4][16])
+void PulserCali_AutoFindPeak(const char* L1Tag, const char* FileTag, const char* GainTag, TCanvas* cans[4][16])
 {
 /////////////////////////////////////////////////////////////////////////////////
 //                        自动寻峰步骤                                          //
@@ -108,7 +127,7 @@ void PulserCali_AutoFindPeak(const char* L1Tag, const char* FileTag, TCanvas* ca
 //   threshold: peaks with amplitude < threshold*highest_peak are discarded   //
 ////////////////////////////////////////////////////////////////////////////////
 
-  std::string pathPulserCaliParsOutput(Form("output/SSD_%sS_PulserCali_%s.dat",L1Tag,FileTag));
+  std::string pathPulserCaliParsOutput(Form("output/SSD_%sS_PulserReCali_%s_%s.dat",L1Tag,GainTag,FileTag));
 
   FILE * FileOut = fopen(pathPulserCaliParsOutput.c_str(),"w");
   fprintf(FileOut,"* Fiiting funtion = par[0] + par[1]*x && y=a*x+b (y=Energy, x=Ch), so a = par[1], b = par[0];  0.0 isn't a peak\n");
@@ -117,10 +136,10 @@ void PulserCali_AutoFindPeak(const char* L1Tag, const char* FileTag, TCanvas* ca
 		      " peak6     peak7     peak8      peak9     peak10    peak11 \n");
 
   TH1D* PulserPeaks[4][16];
-  for(Int_t SSDNum=0; SSDNum<4; SSDNum++)
+  for(Int_t SSDNum=1; SSDNum<2; SSDNum++)
   {
     //std::string pathRootInput(Form("/data/EXPdata/Fission2019/QualityCheck/QC_MapSSD%d_%s_PulserCali_%s0000.root", SSDNum+1, L1Tag, FileTag));
-    std::string pathRootInput(Form("rootinput/QC_MapSSD%d_%s_PulserCali_%s0000.root", SSDNum+1, L1Tag, FileTag));
+    std::string pathRootInput(Form("rootinput/QC_MapSSD%d_%s_PulserReCali_%s_%s0000.root", SSDNum+1, L1Tag, GainTag, FileTag));
 
     TFile* FileIn = new TFile(pathRootInput.c_str());
     if (!FileIn->IsOpen())
@@ -132,7 +151,7 @@ void PulserCali_AutoFindPeak(const char* L1Tag, const char* FileTag, TCanvas* ca
     for(Int_t CHNum=0; CHNum<16; CHNum++)
     {
       PulserPeaks[SSDNum][CHNum] = (TH1D*)FileIn->Get(Form("SSD%d_%sS_E_CH%02d",SSDNum+1,L1Tag,CHNum));
-      PulserPeaks[SSDNum][CHNum]->GetXaxis()->SetRangeUser(120,4095);
+      PulserPeaks[SSDNum][CHNum]->GetXaxis()->SetRangeUser(150,4095);
       cout << Form("SSD%d_%sS_E_CH%d",SSDNum+1,L1Tag,CHNum) << endl;
     }
     printf("Histograms loaded\n");
@@ -153,7 +172,7 @@ void PulserCali_AutoFindPeak(const char* L1Tag, const char* FileTag, TCanvas* ca
       cans[SSDNum][CHNum] = new TCanvas(Form("C_SSD%d_CH%d",SSDNum+1,CHNum),Form("C_SSD%d_CH%d",SSDNum+1,CHNum),10,10,1000,900);
       cans[SSDNum][CHNum]->Divide(1,2);
       cans[SSDNum][CHNum]->cd(1);
-      Int_t nfound  = s->Search(PulserPeaks[SSDNum][CHNum],3,"",0.4);
+      Int_t nfound  = s->Search(PulserPeaks[SSDNum][CHNum],3,"",0.2);
       printf("SSD%d_%sS_E_CH%d is analyzed,%2d peaks found\n",SSDNum+1,L1Tag,CHNum,nfound);
       //  Loop on all found peaks
       Int_t npeaks = 0;
