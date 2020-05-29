@@ -32,8 +32,6 @@ Int_t PeakIndex = 10;
 
 //______________________________________________________________________________
 Double_t*** ReadData(const Char_t* datapath, Int_t& SSDNum, Int_t& CHNum, Int_t& ParNum);
-
-//______________________________________________________________________________
 void DeleteData(Double_t*** p, Int_t& SSDNum, Int_t& CHNum, Int_t& ParNum);
 
 //___________________________________________________________

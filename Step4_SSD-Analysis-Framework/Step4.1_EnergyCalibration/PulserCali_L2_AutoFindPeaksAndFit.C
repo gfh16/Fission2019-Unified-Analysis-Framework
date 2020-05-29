@@ -50,7 +50,7 @@ void PulserCali_L2_AutoFindPeaksAndFit()
   std::string L2Tag("L2");
   std::string L2FTag("L2F");
   std::string L2BTag("L2B");
-  std::string FileTag("Height");   // "Height" or "Switch"
+  std::string FileTag("Switch");   // "Height" or "Switch"
 
   std::string pathPDFOutput(Form("figures/SSD_%s_PulserCali_%s.pdf",L2Tag.c_str(),FileTag.c_str()));
   std::string pathPDFbegin(Form("figures/SSD_%s_PulserCali_%s.pdf[",L2Tag.c_str(),FileTag.c_str()));
@@ -172,7 +172,7 @@ void PulserCali_AutoFindPeak(const char* LayerTag, const char* FileTag, TCanvas*
       cans[SSDNum][CHNum]->Divide(2,2);
       cans[SSDNum][CHNum]->cd(1);
       Int_t nfoundF  = s_F->Search(L2F_PulserPeaks[SSDNum][CHNum],3,"",0.2);
-      cans[SSDNum][CHNum]->cd(3);
+      cans[SSDNum][CHNum]->cd(2);
       Int_t nfoundB  = s_B->Search(L2B_PulserPeaks[SSDNum][CHNum],3,"",0.2);
       printf("SSD%d_%sF_E_CH%d is analyzed,%2d peaks found\n",SSDNum+1,LayerTag,CHNum,nfoundF);
       printf("SSD%d_%sB_E_CH%d is analyzed,%2d peaks found\n",SSDNum+1,LayerTag,CHNum,nfoundB);
@@ -225,7 +225,7 @@ void PulserCali_AutoFindPeak(const char* LayerTag, const char* FileTag, TCanvas*
         if (npeaksB==10) AttenFactorB[i] = Height10[i];
         if (npeaksB==11) AttenFactorB[i] = Height11[i];
       }
-      cans[SSDNum][CHNum]->cd(2);
+      cans[SSDNum][CHNum]->cd(3);
       TGraph *grapF = new TGraph(npeaksF,xpeaksF,AttenFactorF); //Energy vs Ch (y = Enegry, x = channel)
       grapF->SetMarkerStyle(20);
       grapF->SetMarkerSize(1.5);

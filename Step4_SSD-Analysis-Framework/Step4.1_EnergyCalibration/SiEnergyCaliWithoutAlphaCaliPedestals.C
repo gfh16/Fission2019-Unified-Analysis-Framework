@@ -112,8 +112,8 @@ void SiEnergyCaliWithoutAlphaCaliPedestals()
       // if(E1_CH<50.0) continue
 
        Double_t c1 = E1_MeV /(a * E1_CH + b);   // peak1 比例系数
-       Double_t c2 = E2_MeV /(a * E2_CH + b);   // peak1 比例系数
-       Double_t c3 = E3_MeV /(a * E3_CH + b);   // peak1 比例系数
+       Double_t c2 = E2_MeV /(a * E2_CH + b);   // peak2 比例系数
+       Double_t c3 = E3_MeV /(a * E3_CH + b);   // peak3 比例系数
 
        Double_t k1 = c1 * a;  // E1_MeV = k1 * E1_CH + h1
        Double_t k2 = c2 * a;  // E2_MeV = k2 * E2_CH + h2

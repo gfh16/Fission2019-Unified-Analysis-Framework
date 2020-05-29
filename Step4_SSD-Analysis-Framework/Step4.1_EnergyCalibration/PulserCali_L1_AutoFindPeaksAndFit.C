@@ -50,7 +50,7 @@ void PulserCali_L1_AutoFindPeaksAndFit()
 
   std::string L1Tag("L1");
   std::string L1STag("L1S");
-  std::string FileTag("Switch");   // "Height" or "Switch"
+  std::string FileTag("Height");   // "Height" or "Switch"
 
   std::string pathPDFOutput(Form("figures/SSD_%s_PulserCali_%s.pdf", L1STag.c_str(),FileTag.c_str()));
   std::string pathPDFbegin(Form("figures/SSD_%s_PulserCali_%s.pdf[", L1STag.c_str(),FileTag.c_str()));
