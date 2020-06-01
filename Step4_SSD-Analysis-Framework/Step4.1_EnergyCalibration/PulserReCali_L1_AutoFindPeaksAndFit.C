@@ -17,7 +17,6 @@
 /////////////////////////////////////////////////////////////////////////
 
 
-
 #include "TCanvas.h"
 #include "TH1.h"
 #include "TF1.h"
@@ -40,15 +39,17 @@ Double_t Switch9[9]   = {1., 1/2., 1/4., 1/5., 1/10., 1/20., 1/40., 1/50., 1/100
 Double_t Height10[10] = {1./4, .9/4, .8/4, .7/4, .6/4, .5/4, .4/4, .3/4, .2/4, .1/4};
 
 // for SSD_L1_PulserReCali_Switch
-Double_t Switch6[6]   = {1./4, 1./5, 1./10, 1./20, 1./40, 1./50};  // for SSD1_L1
-//Double_t Switch6[6]   = {1., 1./2, 1./4, 1./5, 1./10, 1./20};    // for SSD2_L1
+Double_t Switch6[6]  = {1., 1./2, 1./4, 1./5, 1./10, 1./20};      // for SSD2_L1_Gain7.4_Switch
+Double_t Switch6_SSD1_Gain20[6]  = {1./4, 1./5, 1./10, 1./20, 1./40, 1./50};  // for SSD1_L1_Gain20_Switch
+
 
 // SSD_L1_PulserReCali_Height
 // 对 Height 进行归一, 相对幅度 10./10,9./10,8./10,....,0.5/10
 Double_t Height11[11] = {1.,.9, .8, .7, .6, .5, .4, .3, .2, .1, 0.05};
-//Double_t Height11[11] = {1./4, .9/4, .8/4, .7/4, .6/4, .5/4, .4/4, .3/4, .2/4, .1/4, 0.05/4};  // for SSD_L1_Gain20
+Double_t Height11_SSD2_Gain20[11] = {1./4, .9/4, .8/4, .7/4, .6/4, .5/4, .4/4, .3/4, .2/4, .1/4, 0.05/4};  // for SSD2_L1_Gain20_Hight
 
-
+Double_t RangeXLowCut = 350;   // for Gain74: Cut=120; Gain20: Cut=250(Switch) or 350(Height)
+Double_t RangeXLowCutSSD2 = 120;
 //_______________________________________________
 //   实现数组的降序排序
 bool compare(Int_t a, Int_t b)
@@ -68,7 +69,7 @@ void PulserReCali_L1_AutoFindPeaksAndFit()
 
   std::string L1Tag("L1");
   std::string L1STag("L1S");
-  std::string FileTag("Switch");   // "Height" or "Switch"
+  std::string FileTag("Height");   // "Height" or "Switch"
   std::string GainTag("Gain20");  // SSD1_L1: Gain4, Gain20; SSD2_L1: Gain7.4, Gain20
 
   std::string pathPDFOutput(Form("figures/SSD_%s_PulserCali_%s_%s.pdf", L1STag.c_str(),GainTag.c_str(),FileTag.c_str()));
@@ -127,6 +128,8 @@ void PulserCali_AutoFindPeak(const char* L1Tag, const char* FileTag, const char*
 //   threshold: peaks with amplitude < threshold*highest_peak are discarded   //
 ////////////////////////////////////////////////////////////////////////////////
 
+  std::string gain20tag("Gain20");
+
   std::string pathPulserCaliParsOutput(Form("output/SSD_%sS_PulserReCali_%s_%s.dat",L1Tag,GainTag,FileTag));
 
   FILE * FileOut = fopen(pathPulserCaliParsOutput.c_str(),"w");
@@ -151,7 +154,13 @@ void PulserCali_AutoFindPeak(const char* L1Tag, const char* FileTag, const char*
     for(Int_t CHNum=0; CHNum<16; CHNum++)
     {
       PulserPeaks[SSDNum][CHNum] = (TH1D*)FileIn->Get(Form("SSD%d_%sS_E_CH%02d",SSDNum+1,L1Tag,CHNum));
-      PulserPeaks[SSDNum][CHNum]->GetXaxis()->SetRangeUser(250,4095);
+      if ((SSDNum==1)&&(strcmp(GainTag,gain20tag.c_str())==0)) {
+        PulserPeaks[SSDNum][CHNum]->GetXaxis()->SetRangeUser(RangeXLowCutSSD2,4095);
+      } else {
+        PulserPeaks[SSDNum][CHNum]->GetXaxis()->SetRangeUser(RangeXLowCut,4095);
+      }
+
+      if (PulserPeaks[SSDNum][CHNum]==0) continue;
       cout << Form("SSD%d_%sS_E_CH%d",SSDNum+1,L1Tag,CHNum) << endl;
     }
     printf("Histograms loaded\n");
@@ -195,18 +204,34 @@ void PulserCali_AutoFindPeak(const char* L1Tag, const char* FileTag, const char*
       for(Int_t i=0; i<npeaks; i++)
       {
         if (npeaks==5)  AttenFactor[i] = Switch5[i];
-        if (npeaks==6)  AttenFactor[i] = Switch6[i];
+        if (npeaks==6)  {
+          if ((SSDNum==0)&&(strcmp(GainTag,gain20tag.c_str())==0)) {
+            AttenFactor[i] = Switch6_SSD1_Gain20[i];
+          } else {
+            AttenFactor[i] = Switch6[i];
+          }
+        }
         if (npeaks==8)  AttenFactor[i] = Switch8[i];
         if (npeaks==9)  AttenFactor[i] = Switch9[i];
         if (npeaks==10) AttenFactor[i] = Height10[i];
-        if (npeaks==11) AttenFactor[i] = Height11[i];
+        if (npeaks==11) {
+          if ((SSDNum==1)&&(strcmp(GainTag,gain20tag.c_str())==0)) {
+            AttenFactor[i] = Height11_SSD2_Gain20[i];
+          } else {
+            AttenFactor[i] = Height11[i];
+          }
+        }
       }
       cans[SSDNum][CHNum]->cd(2);
+      gPad->SetGridx();
+      gPad->SetGridy();
       TGraph *grap = new TGraph(npeaks,xpeaks,AttenFactor);  // Energy vs Ch (y = Enegry, x = channel)
       grap->SetMarkerStyle(20);
       grap->SetMarkerSize(1.5);
       grap->SetMarkerColor(kBlue);
       grap->SetTitle(Form("PulserFit_SSD%d_%sS_E_CH%02d",SSDNum+1,L1Tag,CHNum));
+      grap->GetYaxis()->SetRangeUser(0.,1.1);
+      grap->GetYaxis()->SetNdivisions(511);
       grap->Draw("AP*");
 
       TF1 * fit = new TF1("fit","pol1",100,4096);

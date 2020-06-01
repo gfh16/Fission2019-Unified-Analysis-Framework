@@ -50,7 +50,7 @@ void PulserCali_L2_AutoFindPeaksAndFit()
   std::string L2Tag("L2");
   std::string L2FTag("L2F");
   std::string L2BTag("L2B");
-  std::string FileTag("Switch");   // "Height" or "Switch"
+  std::string FileTag("Height");   // "Height" or "Switch"
 
   std::string pathPDFOutput(Form("figures/SSD_%s_PulserCali_%s.pdf",L2Tag.c_str(),FileTag.c_str()));
   std::string pathPDFbegin(Form("figures/SSD_%s_PulserCali_%s.pdf[",L2Tag.c_str(),FileTag.c_str()));
@@ -226,11 +226,15 @@ void PulserCali_AutoFindPeak(const char* LayerTag, const char* FileTag, TCanvas*
         if (npeaksB==11) AttenFactorB[i] = Height11[i];
       }
       cans[SSDNum][CHNum]->cd(3);
+      gPad->SetGridx();
+      gPad->SetGridy();
       TGraph *grapF = new TGraph(npeaksF,xpeaksF,AttenFactorF); //Energy vs Ch (y = Enegry, x = channel)
       grapF->SetMarkerStyle(20);
       grapF->SetMarkerSize(1.5);
       grapF->SetMarkerColor(kBlue);
       grapF->SetTitle(Form("PulserFit_SSD%d_%sF_E_CH%02d",SSDNum+1,LayerTag,CHNum));
+      grapF->GetYaxis()->SetRangeUser(0.,1.1);
+      grapF->GetYaxis()->SetNdivisions(511);
       grapF->Draw("AP*");
       TF1 * fitF = new TF1("fitF","pol1",100,4096);
       grapF->Fit("fitF");
@@ -240,11 +244,15 @@ void PulserCali_AutoFindPeak(const char* LayerTag, const char* FileTag, TCanvas*
       Double_t err_par1_F = fitF->GetParError(0);
 
       cans[SSDNum][CHNum]->cd(4);
+      gPad->SetGridx();
+      gPad->SetGridy();
       TGraph *grapB = new TGraph(npeaksB,xpeaksB,AttenFactorB); //Energy vs Ch (y = Enegry, x = channel)
       grapB->SetMarkerStyle(20);
       grapB->SetMarkerSize(1.5);
       grapB->SetMarkerColor(kBlue);
       grapB->SetTitle(Form("PulserFit_SSD%d_%sB_E_CH%02d",SSDNum+1,LayerTag,CHNum));
+      grapB->GetYaxis()->SetRangeUser(0.,1.1);
+      grapB->GetYaxis()->SetNdivisions(511);
       grapB->Draw("AP*");
       TF1 * fitB = new TF1("fitB","pol1",100,4096);
       grapB->Fit("fitB");

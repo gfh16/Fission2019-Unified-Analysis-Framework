@@ -7,12 +7,6 @@
 //   by gfh, 2020-05-29
 ////////////////////////////////////////////////////////////////////////////////
 
-Int_t SSDNum = 4;
-Int_t CHNum  = 16;
-Int_t ParsNum = 3;
-
-
-
 //______________________________________________________________________________
 Double_t*** ReadData(const Char_t* datapath, Int_t& SSDNum, Int_t& CHNum, Int_t& ParNum);
 void DeleteData(Double_t*** p, Int_t& SSDNum, Int_t& CHNum, Int_t& ParNum);
@@ -21,25 +15,31 @@ void DeleteData(Double_t*** p, Int_t& SSDNum, Int_t& CHNum, Int_t& ParNum);
 //___________________________________________________
 void PulserCali_EstimateErrorOfHightAndSwitch()
 {
-  std::string LayerTag("L1S");
-  std::string GainTag("Gain20");
-  std::string CaliTag("PulserReCali");  // "PulserCali" or "PulserReCali"
-  std::string HeightTag("Height");
-  std::string SwitchTag("Switch");
-  std::string FileOutTag("ErrorOfHightAndSwitch");
-/*
-  std::string pathPNGOutput(Form("figures/SSD_%s_PulserCali_%s.png",  LayerTag.c_str(),FileOutTag.c_str()));
-  std::string pathHeightFileIn(Form("output/SSD_%s_PulserCali_%s.dat",LayerTag.c_str(),HeightTag.c_str()));
-  std::string pathSwitchFileIn(Form("output/SSD_%s_PulserCali_%s.dat",LayerTag.c_str(),SwitchTag.c_str()));
-*/
-
-  std::string pathPNGOutput(Form("figures/SSD_%s_%s_%s_%s.png",  LayerTag.c_str(),CaliTag.c_str(),GainTag.c_str(),FileOutTag.c_str()));
-  std::string pathHeightFileIn(Form("output/SSD_%s_%s_%s_%s.dat",LayerTag.c_str(),CaliTag.c_str(),GainTag.c_str(),HeightTag.c_str()));
-  std::string pathSwitchFileIn(Form("output/SSD_%s_%s_%s_%s.dat",LayerTag.c_str(),CaliTag.c_str(),GainTag.c_str(),SwitchTag.c_str()));
-
+  Int_t SSDNum = 4;
+  Int_t CHNum  = 16;
   Int_t numpar_HeightIn = 3;
   Int_t numpar_SwitchIn = 3;
 
+  std::string LayerTag("L2F");
+  std::string GainTag("Gain20");
+  std::string CaliTag("PulserCali");  // "PulserCali" or "PulserReCali"
+  std::string HeightTag("Height");
+  std::string SwitchTag("Switch");
+  std::string FileOutTag("ErrorOfHightAndSwitch");
+
+  // for  PulserCali
+
+  std::string pathHeightFileIn(Form("output/SSD_%s_%s_%s.dat",LayerTag.c_str(),CaliTag.c_str(),HeightTag.c_str()));
+  std::string pathSwitchFileIn(Form("output/SSD_%s_%s_%s.dat",LayerTag.c_str(),CaliTag.c_str(),SwitchTag.c_str()));
+  std::string pathPNGOutput(Form("figures/SSD_%s_%s_%s.png",  LayerTag.c_str(),CaliTag.c_str(),FileOutTag.c_str()));
+
+
+  // for  PulserReCali
+/*
+  std::string pathHeightFileIn(Form("output/SSD_%s_%s_%s_%s.dat",LayerTag.c_str(),CaliTag.c_str(),GainTag.c_str(),HeightTag.c_str()));
+  std::string pathSwitchFileIn(Form("output/SSD_%s_%s_%s_%s.dat",LayerTag.c_str(),CaliTag.c_str(),GainTag.c_str(),SwitchTag.c_str()));
+  std::string pathPNGOutput(Form("figures/SSD_%s_%s_%s_%s.png",  LayerTag.c_str(),CaliTag.c_str(),GainTag.c_str(),FileOutTag.c_str()));
+*/
   Double_t*** HeightIn = ReadData(pathHeightFileIn.c_str(), SSDNum, CHNum, numpar_HeightIn);
   Double_t*** SwitchIn = ReadData(pathSwitchFileIn.c_str(), SSDNum, CHNum, numpar_SwitchIn);
 
@@ -53,6 +53,7 @@ void PulserCali_EstimateErrorOfHightAndSwitch()
     {
       SSDCHNum[i][j]=j+1;
 
+      if (HeightIn[i][j][0]<1e-6) continue;
       a_ErrofHightOverSwitch[i][j]=100*abs((HeightIn[i][j][0]-SwitchIn[i][j][0])/SwitchIn[i][j][0]); // 结果是百分比
       b_ErrofHightOverSwitch[i][j]=100*abs((HeightIn[i][j][2]-SwitchIn[i][j][2])/SwitchIn[i][j][2]); // 结果是百分比
 
@@ -65,7 +66,7 @@ void PulserCali_EstimateErrorOfHightAndSwitch()
 
   TCanvas* cans = new TCanvas("cansa","Error of Hight and Switch",1200,1000);
   cans->Divide(2,2);
-  for (Int_t i=0; i<2; i++)
+  for (Int_t i=0; i<4; i++)
   {
     cans->cd(i+1);
     gPad->SetGridx();
@@ -75,8 +76,8 @@ void PulserCali_EstimateErrorOfHightAndSwitch()
     TGraph* b_Error_grap_scale = new TGraph(CHNum,SSDCHNum[i],b_ErrofHightOverSwitch[i]);
 
     auto hista = a_Error_grap->GetHistogram();
-    //a_Error_grap->SetTitle(Form("SSD%d_%s_PulserCali_%s",i+1,LayerTag.c_str(),FileOutTag.c_str()));
-    a_Error_grap->SetTitle(Form("SSD%d_%s_%s_%s",i+1,LayerTag.c_str(),CaliTag.c_str(),FileOutTag.c_str()));
+    a_Error_grap->SetTitle(Form("SSD%d_%s_%s_%s_%s",i+1,LayerTag.c_str(),CaliTag.c_str(),GainTag.c_str(),FileOutTag.c_str()));
+    a_Error_grap->GetXaxis()->SetNdivisions(117);
     a_Error_grap->GetYaxis()->SetRangeUser(0.5*hista->GetMinimum(),1.2*hista->GetMaximum());
     hista->Draw();
     gPad->Update();
@@ -130,6 +131,8 @@ void PulserCali_EstimateErrorOfHightAndSwitch()
   }
   cans->Print(pathPNGOutput.c_str());
 
+  DeleteData(HeightIn, SSDNum, CHNum, numpar_HeightIn);
+  DeleteData(SwitchIn, SSDNum, CHNum, numpar_SwitchIn);
 }
 
 
