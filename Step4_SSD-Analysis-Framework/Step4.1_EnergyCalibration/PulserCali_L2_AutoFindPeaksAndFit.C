@@ -233,6 +233,12 @@ void PulserCali_AutoFindPeak(const char* LayerTag, const char* FileTag, TCanvas*
       grapF->SetMarkerSize(1.5);
       grapF->SetMarkerColor(kBlue);
       grapF->SetTitle(Form("PulserFit_SSD%d_%sF_E_CH%02d",SSDNum+1,LayerTag,CHNum));
+      grapF->GetXaxis()->SetTitle("ADC Channel");
+      grapF->GetXaxis()->CenterTitle(1);
+      grapF->GetXaxis()->SetTitleSize(0.04);
+      grapF->GetYaxis()->SetTitle("Relative_Pulser_Height");
+      grapF->GetYaxis()->CenterTitle(1);
+      grapF->GetYaxis()->SetTitleSize(0.04);
       grapF->GetYaxis()->SetRangeUser(0.,1.1);
       grapF->GetYaxis()->SetNdivisions(511);
       grapF->Draw("AP*");
@@ -251,6 +257,12 @@ void PulserCali_AutoFindPeak(const char* LayerTag, const char* FileTag, TCanvas*
       grapB->SetMarkerSize(1.5);
       grapB->SetMarkerColor(kBlue);
       grapB->SetTitle(Form("PulserFit_SSD%d_%sB_E_CH%02d",SSDNum+1,LayerTag,CHNum));
+      grapB->GetXaxis()->SetTitle("ADC Channel");
+      grapB->GetXaxis()->CenterTitle(1);
+      grapB->GetXaxis()->SetTitleSize(0.04);
+      grapB->GetYaxis()->SetTitle("Relative_Pulser_Height");
+      grapB->GetYaxis()->CenterTitle(1);
+      grapB->GetYaxis()->SetTitleSize(0.04);
       grapB->GetYaxis()->SetRangeUser(0.,1.1);
       grapB->GetYaxis()->SetNdivisions(511);
       grapB->Draw("AP*");

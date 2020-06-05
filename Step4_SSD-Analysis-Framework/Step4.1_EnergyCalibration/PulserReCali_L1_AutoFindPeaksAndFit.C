@@ -48,7 +48,7 @@ Double_t Switch6_SSD1_Gain20[6]  = {1./4, 1./5, 1./10, 1./20, 1./40, 1./50};  //
 Double_t Height11[11] = {1.,.9, .8, .7, .6, .5, .4, .3, .2, .1, 0.05};
 Double_t Height11_SSD2_Gain20[11] = {1./4, .9/4, .8/4, .7/4, .6/4, .5/4, .4/4, .3/4, .2/4, .1/4, 0.05/4};  // for SSD2_L1_Gain20_Hight
 
-Double_t RangeXLowCut = 350;   // for Gain74: Cut=120; Gain20: Cut=250(Switch) or 350(Height)
+Double_t RangeXLowCut = 120;   // for Gain74: Cut=120; Gain20: Cut=250(Switch) or 350(Height)
 Double_t RangeXLowCutSSD2 = 120;
 //_______________________________________________
 //   实现数组的降序排序
@@ -69,8 +69,8 @@ void PulserReCali_L1_AutoFindPeaksAndFit()
 
   std::string L1Tag("L1");
   std::string L1STag("L1S");
-  std::string FileTag("Height");   // "Height" or "Switch"
-  std::string GainTag("Gain20");  // SSD1_L1: Gain4, Gain20; SSD2_L1: Gain7.4, Gain20
+  std::string FileTag("Switch");   // "Height" or "Switch"
+  std::string GainTag("Gain4");  // SSD1_L1: Gain4, Gain20; SSD2_L1: Gain7.4, Gain20
 
   std::string pathPDFOutput(Form("figures/SSD_%s_PulserCali_%s_%s.pdf", L1STag.c_str(),GainTag.c_str(),FileTag.c_str()));
   std::string pathPDFbegin(Form("figures/SSD_%s_PulserCali_%s_%s.pdf[", L1STag.c_str(),GainTag.c_str(),FileTag.c_str()));
@@ -139,7 +139,7 @@ void PulserCali_AutoFindPeak(const char* L1Tag, const char* FileTag, const char*
 		      " peak6     peak7     peak8      peak9     peak10    peak11 \n");
 
   TH1D* PulserPeaks[4][16];
-  for(Int_t SSDNum=0; SSDNum<2; SSDNum++)
+  for(Int_t SSDNum=0; SSDNum<1; SSDNum++)
   {
     //std::string pathRootInput(Form("/data/EXPdata/Fission2019/QualityCheck/QC_MapSSD%d_%s_PulserCali_%s0000.root", SSDNum+1, L1Tag, FileTag));
     std::string pathRootInput(Form("rootinput/QC_MapSSD%d_%s_PulserReCali_%s_%s0000.root", SSDNum+1, L1Tag, GainTag, FileTag));
@@ -230,6 +230,11 @@ void PulserCali_AutoFindPeak(const char* L1Tag, const char* FileTag, const char*
       grap->SetMarkerSize(1.5);
       grap->SetMarkerColor(kBlue);
       grap->SetTitle(Form("PulserFit_SSD%d_%sS_E_CH%02d",SSDNum+1,L1Tag,CHNum));
+      grap->GetXaxis()->SetTitle("ADC Channel");
+      grap->GetXaxis()->CenterTitle(1);
+      grap->GetXaxis()->SetTitleSize(0.04);
+      grap->GetYaxis()->SetTitle("Relative_Pulser_Height");
+      grap->GetYaxis()->CenterTitle(1);
       grap->GetYaxis()->SetRangeUser(0.,1.1);
       grap->GetYaxis()->SetNdivisions(511);
       grap->Draw("AP*");

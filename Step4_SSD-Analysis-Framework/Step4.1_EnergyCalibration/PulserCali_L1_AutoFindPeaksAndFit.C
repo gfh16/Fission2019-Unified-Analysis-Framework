@@ -53,7 +53,7 @@ void PulserCali_L1_AutoFindPeaksAndFit()
 
   std::string L1Tag("L1");
   std::string L1STag("L1S");
-  std::string FileTag("Switch");   // "Height" or "Switch"
+  std::string FileTag("Height");   // "Height" or "Switch"
 
   std::string pathPDFOutput(Form("figures/SSD_%s_PulserCali_%s.pdf", L1STag.c_str(),FileTag.c_str()));
   std::string pathPDFbegin(Form("figures/SSD_%s_PulserCali_%s.pdf[", L1STag.c_str(),FileTag.c_str()));
@@ -206,8 +206,14 @@ void PulserCali_AutoFindPeak(const char* L1Tag, const char* FileTag, TCanvas* ca
       grap->SetMarkerSize(1.5);
       grap->SetMarkerColor(kBlue);
       grap->SetTitle(Form("PulserFit_SSD%d_%sS_E_CH%02d",SSDNum+1,L1Tag,CHNum));
+      grap->GetXaxis()->SetTitle("ADC Channel");
+      grap->GetXaxis()->CenterTitle(1);
+      grap->GetXaxis()->SetTitleSize(0.04);
       grap->GetYaxis()->SetRangeUser(0.,1.1);
       grap->GetYaxis()->SetNdivisions(511);
+      grap->GetYaxis()->SetTitle("Relative_Pulser_Height");
+      grap->GetYaxis()->CenterTitle(1);
+      grap->GetYaxis()->SetTitleSize(0.04);
       grap->Draw("AP*");
 
       TF1 * fit = new TF1("fit","pol1",100,3000);

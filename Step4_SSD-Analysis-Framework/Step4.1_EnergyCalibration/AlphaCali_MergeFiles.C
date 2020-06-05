@@ -17,7 +17,7 @@ void WriteHist(TH1D *hist[16], TFile * FileOut);
 void AlphaCali_MergeFiles()
 {
 
-  const int FirstRun = 33;   // 0-32, 3-48 for L2
+  const int FirstRun = 0;   // 0-32, 3-48 for L2
   const int LastRun  = 48;
 
   std::string LayerTag("L2");
@@ -94,6 +94,7 @@ void AlphaCali_MergeFiles()
       Hist_L1S[SSDNum][CHNum] = new TH1D(Form("SSD%d_L1S_E_CH%02d",SSDNum+1,CHNum),Form("SSD%d_L1S_E_CH%02d",SSDNum+1,CHNum),4096,0,4096);
       Hist_L2F[SSDNum][CHNum] = new TH1D(Form("SSD%d_L2F_E_CH%02d",SSDNum+1,CHNum),Form("SSD%d_L2F_E_CH%02d",SSDNum+1,CHNum),4096,0,4096);
       Hist_L2B[SSDNum][CHNum] = new TH1D(Form("SSD%d_L2B_E_CH%02d",SSDNum+1,CHNum),Form("SSD%d_L2B_E_CH%02d",SSDNum+1,CHNum),4096,0,4096);
+      Hist_L1S[SSDNum][CHNum]->GetXaxis()->SetRangeUser(10.,4096);
     }
   }
   // Loop on the data to fill the histograms. (event by event)
