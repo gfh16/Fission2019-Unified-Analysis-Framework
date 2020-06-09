@@ -73,3 +73,17 @@ void ReadFileModule::DeleteData(Double_t*** p, Int_t& SSDNum, Int_t& CHNum, Int_
   }
   delete [] p;
 }
+
+
+//______________________________________________________________________________
+void ReadFileModule::AddChain(TChain* chain, const char* L1STag, Int_t* dataarray, Int_t size, Int_t index)
+{
+  for (Int_t j=0; j<size; j++)
+  {
+    dataarray[j] = 0;
+  }
+  std::string SSD_E_bname;
+  SSD_E_bname = Form("SSD%d_%s_E", index+1, L1STag);
+  chain->SetBranchStatus(SSD_E_bname.c_str(), true);
+  chain->SetBranchAddress(SSD_E_bname.c_str(), dataarray);
+}

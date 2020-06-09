@@ -9,18 +9,6 @@
 
 
 //______________________________________________________________________________
-Double_t MaxSigma(Double_t sigma[], Int_t size)
-{
-  Double_t maxsigma = sigma[0];
-  for (Int_t i=0; i<size; i++)
-  {
-    if (sigma[i]>sigma[0]) maxsigma = sigma[i];
-  }
-  return maxsigma;
-}
-
-
-//______________________________________________________________________________
 void Pedestals_EstimateErrorsOfPedestals()
 {
    std::string LayerTag("L2");

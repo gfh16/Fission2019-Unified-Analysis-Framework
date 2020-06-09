@@ -1,4 +1,0 @@
- *Fit function = par[0]+par[1]*x && y = a*x + b (y=Energy, x=Ch);  so I define a = par[1], b = par[0]
- *SSDNum  CHNum     par_a       Errpar_a          par_b        Errpar_b
-    0      0      0.0558884     0.00057392       -5.41275        0.10944
-    0      1      0.0561887    0.000142404       -2.53586      0.0197219

@@ -53,7 +53,7 @@ void AlphaCali_ClickToFindAlphaPeaks()
   //  4. 三组分alpha源有3个能量峰,需要6个点来拟合                            //
   /////////////////////////////////////////////////////////////////////////////
 
-   std::string LayerTag("L2B");                // "L1S" or "L2F" or "L2B"
+   std::string LayerTag("L2F");                // "L1S" or "L2F" or "L2B"
    std::string LayerTagWithoutLabel("L2");     //  L1 or L2
    std::string AlphaFileTag("AlphaCali00_48"); //  for L1:00_04,00_08,05_08;  for L2: 00_32,33_48
 
@@ -88,12 +88,12 @@ void AlphaCali_ClickToFindAlphaPeaks()
    std::string pathFileInput(Form("/home/sea/Fission2019_Data/QualityCheck/QC_MapSSD_%s_%s.root", LayerTagWithoutLabel.c_str(), AlphaFileTag.c_str()));
    std::string pathPedestalInput(Form("output/SSD_%s_AlphaCaliPedestals_%s.dat",LayerTag.c_str(),AlphaFileTag.c_str()));
 
-   std::string pathAlphaPeaksOutput(Form("output/SSD_%s_%s_%s.dat", LayerTag.c_str(), AlphaPeaksTag.c_str(), AlphaFileTag.c_str()));
-   std::string pathAlphaFitResultsOutput(Form("output/SSD_%s_%s_%s.dat",LayerTag.c_str(), AlphaFitTag.c_str(), AlphaFileTag.c_str()));
+   std::string pathAlphaPeaksOutput(Form("output/SSD4_%s_CH13-14_%s_%s.dat", LayerTag.c_str(), AlphaPeaksTag.c_str(), AlphaFileTag.c_str()));
+   std::string pathAlphaFitResultsOutput(Form("output/SSD4_%s_CH13-14_%s_%s.dat",LayerTag.c_str(), AlphaFitTag.c_str(), AlphaFileTag.c_str()));
 
-   std::string pathPDFOutput(Form("figures/SSD_%s_%s_%s.pdf", LayerTag.c_str(), AlphaPeaksTag.c_str(), AlphaFileTag.c_str()));
-   std::string pathPDFbegin(Form("figures/SSD_%s_%s_%s.pdf[", LayerTag.c_str(), AlphaPeaksTag.c_str(), AlphaFileTag.c_str()));
-   std::string pathPDFend(Form("figures/SSD_%s_%s_%s.pdf]", LayerTag.c_str(), AlphaPeaksTag.c_str(), AlphaFileTag.c_str()));
+   std::string pathPDFOutput(Form("figures/SSD4_%s_CH13-14_%s_%s.pdf", LayerTag.c_str(), AlphaPeaksTag.c_str(), AlphaFileTag.c_str()));
+   std::string pathPDFbegin(Form("figures/SSD4_%s_CH13-14_%s_%s.pdf[", LayerTag.c_str(), AlphaPeaksTag.c_str(), AlphaFileTag.c_str()));
+   std::string pathPDFend(Form("figures/SSD4_%s_CH13-14%s_%s.pdf]", LayerTag.c_str(), AlphaPeaksTag.c_str(), AlphaFileTag.c_str()));
 
    //   在此修改输出文件路径
    ofstream FileOut(pathAlphaPeaksOutput.c_str());
@@ -143,8 +143,8 @@ void AlphaCali_ClickToFindAlphaPeaks()
    Double_t limit[6] = {0};   //定义limit[2]用于存储拟合范围
    Double_t par[9] = {40,250,15,20,260,15,10,270,15}; // 拟合参数初始化
 
-   for (Int_t SSDNum=0; SSDNum<4; SSDNum++) {
-     for (Int_t CHNum=0; CHNum<16; CHNum++) {
+   for (Int_t SSDNum=3; SSDNum<4; SSDNum++) {
+     for (Int_t CHNum=13; CHNum<15; CHNum++) {
 
        Int_t Option = 2;   // 设置一个标志, 当Option==2时，执行后面的while(Option==2)循环
 
