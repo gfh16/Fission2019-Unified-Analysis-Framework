@@ -11,7 +11,7 @@
 //                                                                             //
 /////////////////////////////////////////////////////////////////////////////////
 
-#include "include/EnergyLossModule.h"
+#include "../../include/EnergyLossModule.h"
 
 Double_t Energy1[3] = {5.155, 5.143, 5.103};   // Unit: MeV
 Double_t Ratio1 [3] = {0.730, 0.151, 0.115};   // branch ratio

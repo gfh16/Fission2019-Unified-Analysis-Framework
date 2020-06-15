@@ -15,7 +15,7 @@
 //   gfh, 2020-06-07
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "include/ReadFileModule.h"
+#include "../../include/ReadFileModule.h"
 
 Int_t SSDNum = 4;
 Int_t CHNum  = 16;

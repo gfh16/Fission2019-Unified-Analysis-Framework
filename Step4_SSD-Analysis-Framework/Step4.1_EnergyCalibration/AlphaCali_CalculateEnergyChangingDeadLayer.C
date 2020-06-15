@@ -15,7 +15,7 @@
 //                                                                            //
 /////////////////////////////////////////////////////////////////////////////////
 
-#include "include/EnergyLossModule.h"
+#include "../../include/EnergyLossModule.h"
 
 
 

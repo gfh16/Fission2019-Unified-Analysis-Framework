@@ -11,9 +11,7 @@
 //   gfh, 2020-05-30
 ////////////////////////////////////////////////////////////////////////////////
 
-//______________________________________________________________________________
-Double_t*** ReadData(const Char_t* datapath, Int_t& SSDNum, Int_t& CHNum, Int_t& ParNum);
-void DeleteData(Double_t*** p, Int_t& SSDNum, Int_t& CHNum, Int_t& ParNum);
+#include "../../include/ReadFileModule.h"
 
 
 //_________________________________________
@@ -57,8 +55,9 @@ void PulserReCali_L1_GainEffectOntheCali()
   std::string pathHighGainFileIn(Form("output/SSD_%s_%s_%s_%s.dat",LayerTag.c_str(),CaliTag.c_str(),
                                  HighGainTag.c_str(),CaliMethodTag.c_str()));
 
-  Double_t*** LowGainIn  = ReadData(pathLowGainFileIn.c_str(), SSDNum,CHNum,numpar_LowGainIn);
-  Double_t*** HighGainIn = ReadData(pathHighGainFileIn.c_str(),SSDNum,CHNum,numpar_HighGainIn);
+  ReadFileModule readfile;
+  Double_t*** LowGainIn  = readfile.ReadData(pathLowGainFileIn.c_str(), SSDNum,CHNum,numpar_LowGainIn);
+  Double_t*** HighGainIn = readfile.ReadData(pathHighGainFileIn.c_str(),SSDNum,CHNum,numpar_HighGainIn);
 
   Double_t a_LowGain[SSDNum][CHNum];
   Double_t b_LowGain[SSDNum][CHNum];
@@ -208,73 +207,4 @@ void PulserReCali_L1_GainEffectOntheCali()
     }
   }
   cans_end->Print(pathPDFOutputEnd.c_str());
-}
-
-
-//_______________________________________________
-Double_t*** ReadData(const Char_t* datapath, Int_t& SSDNum, Int_t& CHNum, Int_t& ParNum)
-{
-///////////////////////////////////////////////////////
-//     构建一个函数，返回类型是 三维数组(三级指针)          //
-//     注意多级指针的使用！！！                          //
-///////////////////////////////////////////////////////
-   Double_t*** readpar = NULL;
-   readpar = new Double_t** [SSDNum];
-   for(Int_t i=0; i<SSDNum; i++)
-   {
-     readpar[i] = new Double_t* [CHNum];
-     for(Int_t j=0; j<CHNum; j++)
-     {
-       readpar[i][j]= new Double_t[ParNum];
-     }
-   }
-   ifstream in;
-   in.open(datapath);
-   if(!in.is_open())
-   {
-     printf("Error: file %s not found\n",datapath);
-     return NULL;
-   }
-   while(in.good())
-   {
-     // 按行读取数据
-     std::string LineRead;
-     std::getline(in, LineRead);
-     LineRead.assign(LineRead.substr(0, LineRead.find('*')));
-     if(LineRead.empty()) continue;
-     if(LineRead.find_first_not_of(' ')==std::string::npos) continue;
-     std::istringstream LineStream(LineRead);
-
-     Int_t ssdnum;
-     Int_t chnum;
-
-     LineStream >> ssdnum >> chnum;
-     for(Int_t i=0; i<ParNum; i++)
-     {
-       LineStream >>readpar[ssdnum][chnum][i];
-     }
-   }
-   in.close();
-   return readpar;
-}
-
-//______________________________________________________________________________
-void DeleteData(Double_t*** p, Int_t& SSDNum, Int_t& CHNum, Int_t& ParNum)
-{
-/////////////////////////////////////////////////////////////
-//    释放前面用 new方法给 Double_t*** p 动态分配的内存         //
-//    多级指针需要逐层释放内存！！！                            //
-/////////////////////////////////////////////////////////////
-  for(Int_t i=0; i<SSDNum; i++)
-  {
-    for(Int_t j=0; j<CHNum; j++)
-    {
-      delete [] p[i][j];
-    }
-  }
-  for(Int_t i=0; i<SSDNum; i++)
-  {
-    delete [] p[i];
-  }
-  delete [] p;
 }
