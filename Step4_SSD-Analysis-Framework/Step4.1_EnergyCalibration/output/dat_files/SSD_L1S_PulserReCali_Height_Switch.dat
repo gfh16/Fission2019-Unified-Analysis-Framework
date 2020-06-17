@@ -1,2 +1,0 @@
-* Fiiting funtion = par[0] + par[1]*x && y=a*x+b (y=Energy, x=Ch), so a = par[1], b = par[0];  0.0 isn't a peak
-* SSDNum CHNum    par0(a)   err_par0     par1(b)      err_par1       peak1     peak2     peak3      peak4     peak5   peak6     peak7     peak8      peak9     peak10    peak11 
