@@ -1,14 +1,12 @@
 /////////////////////////////////////////////////////////////////////////////////
-//                  ALPHA CALIBRATION CALCULATION ENERGY                       //
-//                                                                             //
-//    Use this macro to calculate the real incident energy of alpha to silicon,//
-//    because this a 2-um aluminizing Mylar.                                   //
-//                                                                             //
-//    Run this macro : root -l AlphaCali_CalEnergy.cpp                         //
-//                                                                             //
-//    Author gfh                                                               //
-//    Date Nov 11, 2019                                                        //
-//                                                                             //
+//                  ALPHA CALIBRATION CALCULATION ENERGY
+//
+//    修正 alpha 的能量. 能量修正主要来源于两部分:
+//     1. 硅条前面的镀铝 Mylar 膜: 2.0um Mylar + 0.06um Al
+//     2. 硅条的死层
+//    这里的计算先不考虑硅的死层，仅计算 alpha 在 镀铝 Mylar 膜中的能损
+//
+//    gfh, 2019-11-11
 /////////////////////////////////////////////////////////////////////////////////
 
 #include "../../include/EnergyLossModule.h"

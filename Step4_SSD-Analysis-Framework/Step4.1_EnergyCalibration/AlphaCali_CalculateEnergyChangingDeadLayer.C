@@ -1,18 +1,18 @@
 /////////////////////////////////////////////////////////////////////////////////
-//                  ALPHA CALIBRATION CALCULATION ENERGY                       //
-//                                                                             //
-//    Use this macro to calculate the real incident energy of alpha to silicon,//
+//                  ALPHA CALIBRATION CALCULATION ENERGY
+//
+//    Use this macro to calculate the real incident energy of alpha to silicon,
 //    because this a 2-um aluminizing Mylar.
 //
-//    由于硅条探测器表面也有死层, 厚度未知, 现在想检测死层对刻度结果的影响, 思路是：       //
+//    由于硅条探测器表面也有死层, 厚度未知, 现在想检测死层对刻度结果的影响, 思路是：
 //       1. 改变死层的厚度, 计算 alpha 粒子的剩余能量作为在硅条中的能损
-//       2. 为了方便起见, 通过改变 Mylar 膜中铝的厚度来等效代替硅条中死层的厚度         //
-//       3. 由于死层是一个固定值, alpha 的能损也是固定的, 理论上: 改变 Al 膜厚度,      //
-//          拟合效果最好的情况, 认为是充分考虑了死层的影响                            //
-//                                                                            //
-//    Author gfh                                                              //
-//    Date March 27, 2020                                                     //
-//                                                                            //
+//       2. 为了方便起见, 通过改变 Mylar 膜中铝的厚度来等效代替硅条中死层的厚度
+//       3. 由于死层是一个固定值, alpha 的能损也是固定的, 理论上: 改变 Al 膜厚度,
+//          拟合效果最好的情况, 认为是充分考虑了死层的影响
+//
+//    Author gfh
+//    Date March 27, 2020
+//
 /////////////////////////////////////////////////////////////////////////////////
 
 #include "../../include/EnergyLossModule.h"

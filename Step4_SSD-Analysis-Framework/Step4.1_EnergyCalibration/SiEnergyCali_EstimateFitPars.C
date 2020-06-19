@@ -109,6 +109,9 @@ void EstimateErrorOfPeak1AndPeak2(const char* layertag)
     legend->AddEntry(graph_a_Err[i],"a_Err","lp");
     legend->AddEntry(graph_b_Err[i],"b_Err","lp");
 
+    TLatex* latex = new TLatex(3.,1.5,"a_Err = b_Err = #left|#frac{c_{2}-c_{1}}{c_{1}}#right|");
+    latex->SetTextColor(kMagenta);
+
     TLine* line = new TLine(1,1.0,16,1.0);
     line->SetLineColor(kGreen);
     line->SetLineStyle(7);
@@ -117,6 +120,7 @@ void EstimateErrorOfPeak1AndPeak2(const char* layertag)
     multigraph[i]->Draw("APL");
     legend->Draw("SAME");
     line->Draw("SAME");
+    latex->Draw();
   }
   cans->Print(pathPNGOutput.c_str());
 
@@ -211,16 +215,16 @@ void EstimateParameterDistributions(const char* layertag)
       a_scale[i][j] = (a[i][j] - a_rangeLow[i]) * a_scalefactor[i] + 2;
       b_scale[i][j] = (b[i][j] - b_rangeUp[i])  * b_scalefactor[i] - 2;
 
-      if (i==3 && j==0) continue; // SSD4_L1S_CH00 无信号, 应剔除该道
+      if (i==3 && j==0 && (strcmp(layertag,"L1S")==0)) continue; // SSD4_L1S_CH00 无信号, 应剔除该道
       a_sum[i] += a[i][j];
       b_sum[i] += b[i][j];
     }
-    if (i!=3) {
-      a_average[i] = a_sum[i]/CHNum;
-      b_average[i] = b_sum[i]/CHNum;
-    } else {
+    if ((i==3) && (strcmp(layertag,"L1S")==0)) {
       a_average[i] = a_sum[i]/15;
       b_average[i] = b_sum[i]/15;
+    } else {
+      a_average[i] = a_sum[i]/CHNum;
+      b_average[i] = b_sum[i]/CHNum;
     }
     a_average_scale[i] = (a_average[i]-a_rangeLow[i]) * a_scalefactor[i] + 2;
     b_average_scale[i] = (b_average[i]-b_rangeUp[i])  * b_scalefactor[i] - 2;
@@ -234,8 +238,8 @@ void EstimateParameterDistributions(const char* layertag)
   TMultiGraph* mg[SSDNum];
   TGaxis* a_Yaxis[SSDNum];
   TGaxis* b_Yaxis[SSDNum];
-  TLine* line_a_average[SSDNum];
-  TLine* line_b_average[SSDNum];
+  TLine*  line_a_average[SSDNum];
+  TLine*  line_b_average[SSDNum];
   TLatex* latex_a[SSDNum];
   TLatex* latex_b[SSDNum];
 
@@ -289,9 +293,9 @@ void EstimateParameterDistributions(const char* layertag)
     b_Yaxis[i] = new TGaxis(gPad->GetUxmin(),YRangeLow,gPad->GetUxmin(),YScaleRangeUp,
                             b_rangeLow[i],b_rangeUp[i],1002,"-R");
 
-    a_Yaxis[i]->SetLineColor(kBlue);
+    a_Yaxis[i]->SetLineColor (kBlue);
     a_Yaxis[i]->SetLabelColor(kBlue);
-    b_Yaxis[i]->SetLineColor(kRed);
+    b_Yaxis[i]->SetLineColor (kRed);
     b_Yaxis[i]->SetLabelColor(kRed);
 
     latex_a[i] = new TLatex(6,18.,Form("<a> = %.5f",a_average[i]));

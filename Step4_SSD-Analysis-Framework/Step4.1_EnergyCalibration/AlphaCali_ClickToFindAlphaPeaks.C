@@ -1,14 +1,13 @@
-////////////////////////////////////////////////////////////////////////////////////
-//    THIS MACRO IS USED TO FIND THE PEAKS OF ALPHA SOURCE                        //
-//    This macro enable us to set the fit range of each histogram by hand         //
-//    Then the histogram is fitted using the user-defined function                //
-//    The canva is saved as pdf                                                   //
-//                                                                                //
-//    Run this macro: root -l AlphaCali_FindPeak.cpp                                   //
-//                                                                                //
-//    Date: 2019-11-11                                                            //
-//    Author: gfh                                                                 //
-////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+//
+//    手动提取选取刻度区间，同时对 3 个 alpha 峰进行拟合.
+//    这是因为: 手动可以自由选取拟合范围，同时方便将拟合区间保存下来.
+//
+//    说明: 手动选取 3 个拟合区间，同时画出拟合直线，根据拟合结果判断拟合效果，
+//    如果 3 个 alpha 峰很好地在一条实现上，则进行下一个拟合; 否则，重复当前拟合.
+//
+//    gfh, 2019-11-11
+////////////////////////////////////////////////////////////////////////////////
 
 #include "TH1.h"
 #include "TF1.h"

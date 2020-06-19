@@ -20,20 +20,20 @@ Double_t L2_XRangeUp [4] = {180.,200.,300.,480.};
 
 
 //_______________________________________________
-void PulserCaliCheck_SSD2_L2F_CH00_01()
+void PulserCaliCheck_SSD_L2F_CH00_01()
 {
   gStyle->SetOptStat(0);
 
   Int_t SSDNum = 4;
   Int_t CHNum  = 16;
 
-  Int_t SSDIndex  = 2;
+  Int_t SSDIndex  = 0;
   Int_t YRangeCut = 4000;
 
   std::string LayerTag("L2");
   std::string LayerTagWithLabel("L2F");
   std::string AlphaCaliTag("AlphaCali00_48");
-  std::string PulserCheckTag(Form("PulserCaliCheck_SSD%d_L2F",SSDIndex+1));
+  std::string PulserCheckTag(Form("CheckPulserCali_SSD%d_L2F_CH00_CH01",SSDIndex+1));
 
 
   std::string pathRootFileFolder("/home/sea/Fission2019_Data/QualityCheck/");

@@ -1,13 +1,10 @@
-////////////////////////////////////////////////////////////////////////////////////
-//    THIS MACRO IS USED TO FIND THE PEDESATLS FOR ENERGY CHANNEL OF SSD          //
-//    This macro enable us to set the fit range of each histogram by hand         //
-//    Then the histogram is fitted using the user-defined function                //                                                 //
-//                                                                                //
-//    Run this macro: root -l FindPedestals.cpp                                   //
-//                                                                                //
-//    Date: 2019-11-06                                                            //
-//    Author: gfh                                                                 //
-////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+//
+//    相比于自动寻峰, 手动拟合的主要优点是： 可以得到拟合的所有参数！
+//
+//    gfh, 2019-11-11
+////////////////////////////////////////////////////////////////////////////////
+
 #include <iostream>
 #include "TH1.h"
 #include "TF1.h"

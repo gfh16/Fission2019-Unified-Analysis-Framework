@@ -1,10 +1,16 @@
-/////////////////////////////////////////////////////////////////////////
-//    This macro is used to find the peaks in pulser calibration data  //
-//    Here, we use TSpectrum to find the peaks candidates              //
-//                                                                     //
-//    Author gfh                                                       //
-//    Date Nov.7, 2019                                                 //
-/////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+//
+//    自动寻峰进行脉冲刻度. 刻度分两步完成:
+//      1. 自动寻峰, 同时使用函数 sort() 对峰值进行倒序排序
+//      2. 使用一次多项式对所有峰值进行拟合, 同时画出拟合直线, 保存拟合结果
+//
+//    由于脉冲刻度, 只需要知道峰值即可, 因此使用自动寻峰是最方便的. 但由于自动寻峰是乱序的,
+//    需要认为对峰值进行排序. 使用方法 std::sort().
+//
+//    脉冲刻度时, 将最大脉冲归一成 1.0，然后按比例衰减
+//
+//    gfh, 2019-11-11
+////////////////////////////////////////////////////////////////////////////////
 
 #include "TCanvas.h"
 #include "TH1.h"
@@ -242,7 +248,7 @@ void PulserCali_AutoFindPeak(const char* LayerTag, const char* FileTag, TCanvas*
       grapF->GetYaxis()->SetRangeUser(0.,1.1);
       grapF->GetYaxis()->SetNdivisions(511);
       grapF->Draw("AP*");
-      TF1 * fitF = new TF1("fitF","pol1",100,4096);
+      TF1* fitF = new TF1("fitF","pol1",100,4096);
       grapF->Fit("fitF");
       Double_t par0_F     = fitF->GetParameter(1);   // fitting function = par[0]+par[1]*x
       Double_t err_par0_F = fitF->GetParError(1);
@@ -266,7 +272,7 @@ void PulserCali_AutoFindPeak(const char* LayerTag, const char* FileTag, TCanvas*
       grapB->GetYaxis()->SetRangeUser(0.,1.1);
       grapB->GetYaxis()->SetNdivisions(511);
       grapB->Draw("AP*");
-      TF1 * fitB = new TF1("fitB","pol1",100,4096);
+      TF1* fitB = new TF1("fitB","pol1",100,4096);
       grapB->Fit("fitB");
       Double_t par0_B     = fitB->GetParameter(1);   // fitting function = par[0]+par[1]*x
       Double_t err_par0_B = fitB->GetParError(1);
