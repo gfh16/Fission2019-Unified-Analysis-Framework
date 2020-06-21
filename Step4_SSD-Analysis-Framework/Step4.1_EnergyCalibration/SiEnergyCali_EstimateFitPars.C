@@ -35,7 +35,7 @@ void SiEnergyCali_EstimateFitPars()
   EstimateErrorOfPeak1AndPeak2(L2FTag.c_str());
   EstimateErrorOfPeak1AndPeak2(L2BTag.c_str());
 
-  EstimateParameterDistributions(L1STag.c_str());
+  EstimatePasrameterDistributions(L1STag.c_str());
   EstimateParameterDistributions(L2FTag.c_str());
   EstimateParameterDistributions(L2BTag.c_str());
 }

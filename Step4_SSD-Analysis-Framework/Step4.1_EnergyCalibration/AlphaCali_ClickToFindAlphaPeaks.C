@@ -52,7 +52,7 @@ void AlphaCali_ClickToFindAlphaPeaks()
   //  4. 三组分alpha源有3个能量峰,需要6个点来拟合                            //
   /////////////////////////////////////////////////////////////////////////////
 
-   std::string LayerTag("L2B");                // "L1S" or "L2F" or "L2B"
+   std::string LayerTag("L2F");                // "L1S" or "L2F" or "L2B"
    std::string LayerTagWithoutLabel("L2");     //  L1 or L2
    std::string AlphaFileTag("AlphaCali00_48"); //  for L1:00_04,00_08,05_08;  for L2: 00_32,33_48
 

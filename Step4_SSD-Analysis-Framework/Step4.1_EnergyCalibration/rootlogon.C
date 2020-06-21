@@ -1,6 +1,5 @@
 {
-  gSystem->Exec("date");
-  gROOT->ProcessLine(".L ../../Nuclear_Masses/nuclear_masses.cpp");
-  gROOT->ProcessLine(".L ../../src/EnergyLossModule.C");
-  gROOT->ProcessLine(".L ../../src/ReadFileModule.C");
+  gROOT->ProcessLine(".L src/ReadFileModule.C");
+  gROOT->ProcessLine(".L Nuclear_Masses/nuclear_masses.C");
+  gROOT->ProcessLine(".L EnergyLossModule.C");
 }

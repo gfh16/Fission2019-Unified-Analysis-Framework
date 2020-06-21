@@ -42,9 +42,9 @@ void SiEnergyCali_PulserAndAlpha()
   std::string L2FTag("L2F");
   std::string L2BTag("L2B");
 
-  SiEnergyCali_PulserAndAlpha_L1(L1STag.c_str());
+  //SiEnergyCali_PulserAndAlpha_L1(L1STag.c_str());
   SiEnergyCali_PulserAndAlpha_L2(L2FTag.c_str());
-  SiEnergyCali_PulserAndAlpha_L2(L2BTag.c_str());
+//  SiEnergyCali_PulserAndAlpha_L2(L2BTag.c_str());
 }
 
 

@@ -268,6 +268,8 @@ void Check_SSD2_L2F_CH00_CH01()
 
   TLatex* latex_k = new TLatex(5,18.,Form("<k> = %.8f",k_average));
   TLatex* latex_h = new TLatex(5,-4.,Form("<h> = %.8f",h_average));
+  TLatex* latex_average16 = new TLatex(5.5,14.,"Average (16 Channels)");
+  latex_average16->SetTextColor(kMagenta);
 
   mg->Draw("PL");
   k_Yaxis->Draw();
@@ -276,6 +278,7 @@ void Check_SSD2_L2F_CH00_CH01()
   line_h_average->Draw();
   latex_h->Draw();
   latex_k->Draw();
+  latex_average16->Draw();
 
 
   //____________________________________________
@@ -304,6 +307,8 @@ void Check_SSD2_L2F_CH00_CH01()
 
   TLatex* latex_k14 = new TLatex(5,18.,Form("<k> = %.8f",k_average14));
   TLatex* latex_h14 = new TLatex(5,-4.,Form("<h> = %.8f",h_average14));
+  TLatex* latex_average14 = new TLatex(5.5,14.,"Average (14 Channels)");
+  latex_average14->SetTextColor(kMagenta);
 
   mg14->Draw("PL");
   k_Yaxis->Draw();
@@ -312,6 +317,7 @@ void Check_SSD2_L2F_CH00_CH01()
   line_h_average14->Draw();
   latex_k14->Draw();
   latex_h14->Draw();
+  latex_average14->Draw();
 
 
   //__________________________________________________________________
