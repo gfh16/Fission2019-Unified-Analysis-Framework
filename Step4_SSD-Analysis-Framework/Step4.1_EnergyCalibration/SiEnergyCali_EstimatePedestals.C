@@ -93,7 +93,7 @@ void EstimatePedestals(const char* layertag)
      Sum_PulserPedestals[i]     = 0.;
      Sum_EnergyCaliPars [i]     = 0.;
      Sum_Errors[i]              = 0.;
-     Sum_RelativeErrors [i] = 0.;
+     Sum_RelativeErrors [i]     = 0.;
 
     for (Int_t j=0; j<CHNum; j++)
     {
@@ -226,7 +226,7 @@ void EstimatePedestals(const char* layertag)
     graph_relativeerrs[i]->GetXaxis()->SetTitle("Channel");
     graph_relativeerrs[i]->GetXaxis()->CenterTitle(1);
     graph_relativeerrs[i]->GetXaxis()->SetTitleSize(0.04);
-    graph_relativeerrs[i]->GetYaxis()->SetTitle("Relative_Errors (%)");
+    graph_relativeerrs[i]->GetYaxis()->SetTitle("Relative_Errors (%%)");
     graph_relativeerrs[i]->GetYaxis()->CenterTitle(1);
     graph_relativeerrs[i]->GetYaxis()->SetTitleSize(0.04);
     graph_relativeerrs[i]->GetYaxis()->SetRangeUser(RelativeErrRangeLow[index],RelativeErrRangeUp[index]);
@@ -237,7 +237,7 @@ void EstimatePedestals(const char* layertag)
     line_aveRelativeErrs[i]->SetLineStyle(7);
     line_aveRelativeErrs[i]->SetLineWidth(3);
 
-    latex_aveRelativeErrs[i] = new TLatex(3.,latex_RelativeErrUp,Form("<Relative_Errors> = %.1f (%)",Average_RelativeErrors[i]));
+    latex_aveRelativeErrs[i] = new TLatex(3.,latex_RelativeErrUp,Form("<Relative_Errors> = %.1f (%%)",Average_RelativeErrors[i]));
     latex_aveRelativeErrs[i]->SetTextColor(kMagenta);
 
     graph_relativeerrs[i]->Draw("APL");
@@ -246,7 +246,4 @@ void EstimatePedestals(const char* layertag)
 
     cans[i]->Print(pathPNGOutput[i].c_str());
   }
-
-
-
 }

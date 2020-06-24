@@ -153,7 +153,84 @@ SiEnergyCali_ModifyDeadLayer.C
    (4) **SiEnergyCali_ModifyDeadLayer.C:** 考虑死层修正后, 查看硅条能量刻度的情况是否改善
 
 
-### <font color=#00BBDD> 4.2 Hit Multiplicity && Hit Pattern </font>
+
+### <font color=#00BBDD> 4.2 CsI Energy Calibration </font>
+[CsI-能量刻度文档总结]()
+[CsI-能量刻度-投影法-DEEFIT教程]()
+
++ **说明:**
+  >+ CsI 能量刻度依赖于硅条的能量刻度, 因此需要硅条能量刻度完成后才能进行
+   CsI 能量刻度
+  >+ CsI 能量刻度可以用两种方法进行: 1.投影法， 2.DEEFIT 方法.
+  >+ DEEFIT 是意大利国家核物理研究院(INFN) 为 CHIMERA 探测器开发的一套程序,
+   专门用于 Si-CsI 的数据分析. 其中包括 CsI 的能量刻度, 粒子鉴别等.
+
+
++ **DEEFIT - 工作原理简介**
+  >+ 读取已有 $\Delta \rm{E-E}$ 能谱.  
+  >+ 选取特定的核素 (Z, M), 在对应的 $\Delta \rm{E-E}$ 能谱带上手动选点. 
+  >+ 对所有核素的选中的数据点, 用一个多维公式进行拟合.
+  >+ 根据拟合结果, 进行粒子鉴别, 鉴别包括粒子质量 M 与电荷数 Z.
+  >+ 查看粒子鉴别分布情况, 以检验拟合结果的好坏程度.
+
++ **DEEFIT 方法进行 CsI 能量刻度分 5 步:**    
+  >+ DEEFIT 方法进行 CsI 能量刻度分 5 步:
+  >+ 1.程序编译
+  >+ 2.数据转换
+  >+ 3.$\Delta \rm{E-E}$ 能谱拟合
+  >+ 4.计算 CsI 中的能损
+  >+ 5.得到 CsI 能量曲线
+
+
+#### <font color=#FF00FF> 4.2.1 程序编译 </font>
+```C++
+// 在 DEEFIT/ 文件夹下直接 make 即可.
+// 如果遇到因为 ROOT 版本而编译不成功, 可进行下面的尝试:
+1. ROOT版本问题：在ROOT6版本下，主要问题在于：
+   deedict.cxx:163:65: error: ‘DefineBehavior’ was not declared in this scope
+
+2. 在ROOT6中，‘DefineBehavior’等函数定义在命名空间ROOT::Internal中
+
+3. 解决办法：在 deedict.cxx 文件中，加入命名空间：
+   using namesapce ROOT::Internal;
+```
+
+
+#### <font color=#FF00FF> 4.2.2 数据转换 </font>
+
+>+ **目的:** DEEFIT 对读取的 .root 文件格式有要求. 因此需要先进行数据转换.
+>+ **文件:**
+>+ **说明:**
+   1.DEEFIT 程序要求 .root 文件存成 Tree 的格式. 共有 3 个 branch:
+     h1: histogram name
+     numtel: 类型为short, 探测器编号. 按照 CsI 晶体进行标记. 
+      &emsp;&emsp;&emsp;&ensp;例如: 我们有4块硅条, 每块硅条有 9 块 CsI 晶体, 应该编号 $0 \sim 35$.
+     desilpgf: 类型为float, 硅条中的能能损，以 MeV 为单位, 依赖硅条能量刻度.
+     fastpg: 类型为short, CsI 晶体中的能损，以 ADC 道址为单位.
+
+  
+
+
+#### <font color=#FF00FF> 4.2.3 $\Delta \rm{E-E}$ 能谱拟合 </font>
+>+ **目的:** 
+>+ **文件:**
+>+ **说明:**
+
+
+#### <font color=#FF00FF> 4.2.4 计算 CsI 中的能损 </font>
+>+ **目的:** 
+>+ **文件:**
+>+ **说明:**
+
+
+#### <font color=#FF00FF> 4.2.5 得到 CsI 能量曲线 </font>
+>+ **目的:** 
+>+ **文件:**
+>+ **说明:**
+
+
+
+### <font color=#00BBDD> 4.3 Hit Multiplicity && Hit Pattern </font>
 >+ [硅条粒子多重性与 HitPattern 总结文档](https://cloud.tsinghua.edu.cn/f/e2cf3b27f4fd462ba3b0/)
 
 ``````C++
@@ -163,7 +240,7 @@ $ root -l HitMultiplicityChangingSigma.C
 $ root -l HitPattern.C
 ``````
 
-#### <font color=#FF00FF> 4.2.1 Hit Multiplicity </font>
+#### <font color=#FF00FF> 4.3.1 Hit Multiplicity </font>
 
 >+ **目的:** 获得单次次事件下,硅条探测到的粒子多重数 $\Bbb {M}$
 >+ **文件:** HitMultiplicity.C
@@ -182,7 +259,7 @@ if (SSD_E[i][j]>(PedestalMean[i][j]+PedestalSigma[i][j]*SigmaNum))
 ``````
 
 
-#### <font color=#FF00FF> 4.2.2 Hit Pattern </font>
+#### <font color=#FF00FF> 4.3.2 Hit Pattern </font>
 
 >+ **目的:** 查看粒子在硅条中的点火情况
 >+ **文件:** HitPattern.C
@@ -220,81 +297,6 @@ if ((HitMultiplicity_SSD_L2F[i]<HitMultiplicityCut)||
     }
 }
 ```
-
-
-### <font color=#00BBDD> 4.3 CsI Energy Calibration </font>
-[CsI-能量刻度文档总结]()
-[CsI-能量刻度-投影法-DEEFIT教程]()
-
-+ **说明:**
-  >+ CsI 能量刻度依赖于硅条的能量刻度, 因此需要硅条能量刻度完成后才能进行
-   CsI 能量刻度
-  >+ CsI 能量刻度可以用两种方法进行: 1.投影法， 2.DEEFIT 方法.
-  >+ DEEFIT 是意大利国家核物理研究院(INFN) 为 CHIMERA 探测器开发的一套程序,
-   专门用于 Si-CsI 的数据分析. 其中包括 CsI 的能量刻度, 粒子鉴别等.
-
-
-+ **DEEFIT - 工作原理简介**
-  >+ 读取已有 $\Delta \rm{E-E}$ 能谱.  
-  >+ 选取特定的核素 (Z, M), 在对应的 $\Delta \rm{E-E}$ 能谱带上手动选点. 
-  >+ 对所有核素的选中的数据点, 用一个多维公式进行拟合.
-  >+ 根据拟合结果, 进行粒子鉴别, 鉴别包括粒子质量 M 与电荷数 Z.
-  >+ 查看粒子鉴别分布情况, 以检验拟合结果的好坏程度.
-
-+ **DEEFIT 方法进行 CsI 能量刻度分 5 步:**    
-  >+ DEEFIT 方法进行 CsI 能量刻度分 5 步:
-  >+ 1.程序编译
-  >+ 2.数据转换
-  >+ 3.$\Delta \rm{E-E}$ 能谱拟合
-  >+ 4.计算 CsI 中的能损
-  >+ 5.得到 CsI 能量曲线
-
-
-#### <font color=#FF00FF> 4.3.1 程序编译 </font>
-```C++
-// 在 DEEFIT/ 文件夹下直接 make 即可.
-// 如果遇到因为 ROOT 版本而编译不成功, 可进行下面的尝试:
-1. ROOT版本问题：在ROOT6版本下，主要问题在于：
-   deedict.cxx:163:65: error: ‘DefineBehavior’ was not declared in this scope
-
-2. 在ROOT6中，‘DefineBehavior’等函数定义在命名空间ROOT::Internal中
-
-3. 解决办法：在 deedict.cxx 文件中，加入命名空间：
-   using namesapce ROOT::Internal;
-```
-
-
-#### <font color=#FF00FF> 4.3.2 数据转换 </font>
-
->+ **目的:** DEEFIT 对读取的 .root 文件格式有要求. 因此需要先进行数据转换.
->+ **文件:**
->+ **说明:**
-   1.DEEFIT 程序要求 .root 文件存成 Tree 的格式. 共有 3 个 branch:
-     h1: histogram name
-     numtel: 类型为short, 探测器编号. 按照 CsI 晶体进行标记. 
-      &emsp;&emsp;&emsp;&ensp;例如: 我们有4块硅条, 每块硅条有 9 块 CsI 晶体, 应该编号 $0 \sim 35$.
-     desilpgf: 类型为float, 硅条中的能能损，以 MeV 为单位, 依赖硅条能量刻度.
-     fastpg: 类型为short, CsI 晶体中的能损，以 ADC 道址为单位.
-
-  
-
-
-#### <font color=#FF00FF> 4.3.3 $\Delta \rm{E-E}$ 能谱拟合 </font>
->+ **目的:** 
->+ **文件:**
->+ **说明:**
-
-
-#### <font color=#FF00FF> 4.3.4 计算 CsI 中的能损 </font>
->+ **目的:** 
->+ **文件:**
->+ **说明:**
-
-
-#### <font color=#FF00FF> 4.3.5 得到 CsI 能量曲线 </font>
->+ **目的:** 
->+ **文件:**
->+ **说明:**
 
 
 

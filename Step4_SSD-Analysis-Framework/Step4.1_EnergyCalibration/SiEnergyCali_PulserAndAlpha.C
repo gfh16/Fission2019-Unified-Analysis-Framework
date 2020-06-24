@@ -42,7 +42,7 @@ void SiEnergyCali_PulserAndAlpha()
   std::string L2FTag("L2F");
   std::string L2BTag("L2B");
 
-  //SiEnergyCali_PulserAndAlpha_L1(L1STag.c_str());
+//  SiEnergyCali_PulserAndAlpha_L1(L1STag.c_str());
   SiEnergyCali_PulserAndAlpha_L2(L2FTag.c_str());
 //  SiEnergyCali_PulserAndAlpha_L2(L2BTag.c_str());
 }
@@ -154,18 +154,21 @@ void SiEnergyCali_PulserAndAlpha_L1(const char* layertag)
   }
 
   // Draw the three fit functions
-  TCanvas* cans = new TCanvas("cans","cans", 1000,600);
-  cans->Divide(2,1);
-
-  TCanvas* cans_begin = new TCanvas();
-  TCanvas* cans_end = new TCanvas();
-  cans_begin->Print(pathPDFBegin.c_str());
-
   TLegend* legend[SSDNum][CHNum];
 
   TF1* fPeak1[SSDNum][CHNum];
   TF1* fPeak2[SSDNum][CHNum];
   TF1* fPeak3[SSDNum][CHNum];
+
+  TCanvas* cans = new TCanvas("cans","cans", 1000,600);
+  cans->Divide(2,1);
+
+  TCanvas* cans_begin = new TCanvas();
+  TCanvas* cans_end = new TCanvas();
+  cans_begin->Close();
+  cans_end  ->Close();
+  cans_begin->Print(pathPDFBegin.c_str());
+
   for (Int_t i=0; i<SSDNum; i++)
   {
     for (Int_t j=0; j<CHNum; j++)
@@ -223,8 +226,8 @@ void SiEnergyCali_PulserAndAlpha_L2(const char* layertag)
 
   std::string pathPDFOutput(Form("figures/SSD_%s_%sAndAlphaFitFunction.pdf",layertag,PulserTag.c_str()));
   std::string pathPDFBegin(Form("figures/SSD_%s_%sAndAlphaFitFunction.pdf[",layertag,PulserTag.c_str()));
-  std::string pathPDFEnd(Form("figures/SSD_%s_%sAndAlphaFitFunction.pdf]",layertag,PulserTag.c_str()));
-  std::string pathFitParsOutput(Form("output/SSD_%s_%sAndAlphaFitPars.dat",layertag,PulserTag.c_str()));
+  std::string pathPDFEnd(Form("figures/SSD_%s_%sAndAlphaFitFunction.pdf]",  layertag,PulserTag.c_str()));
+  std::string pathFitParsOutput(Form("output/SSD_%s_%sAndAlphaFitPars.dat", layertag,PulserTag.c_str()));
 
   ofstream SiEnergyCaliPars(pathFitParsOutput.c_str());
   SiEnergyCaliPars<<"* Fit function: E_MeV = k * E_CH + h, then E_CH = 1/k * E_MeV - h/k \n";
@@ -297,6 +300,8 @@ void SiEnergyCali_PulserAndAlpha_L2(const char* layertag)
 
   TCanvas* cans_begin = new TCanvas();
   TCanvas* cans_end = new TCanvas();
+  cans_begin->Close();
+  cans_end  ->Close();
   cans_begin->Print(pathPDFBegin.c_str());
 
   TLegend* legend[SSDNum][CHNum];

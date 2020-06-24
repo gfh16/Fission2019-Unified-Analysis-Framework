@@ -35,7 +35,7 @@ void SiEnergyCali_EstimateFitPars()
   EstimateErrorOfPeak1AndPeak2(L2FTag.c_str());
   EstimateErrorOfPeak1AndPeak2(L2BTag.c_str());
 
-  EstimatePasrameterDistributions(L1STag.c_str());
+  EstimateParameterDistributions(L1STag.c_str());
   EstimateParameterDistributions(L2FTag.c_str());
   EstimateParameterDistributions(L2BTag.c_str());
 }
@@ -101,7 +101,7 @@ void EstimateErrorOfPeak1AndPeak2(const char* layertag)
     multigraph[i]->GetXaxis()->SetTitleSize(0.04);
     multigraph[i]->GetYaxis()->SetRangeUser(0.,2.0);
     multigraph[i]->GetYaxis()->SetNdivisions(1004);
-    multigraph[i]->GetYaxis()->SetTitle("Relative Errors (%)");
+    multigraph[i]->GetYaxis()->SetTitle("Relative Errors (%%)");
     multigraph[i]->GetYaxis()->CenterTitle(1);
     multigraph[i]->GetYaxis()->SetTitleSize(0.04);
 
@@ -138,10 +138,10 @@ void EstimateParameterDistributions(const char* layertag)
   Int_t numpar_ParsInput = 6;
 
   // 手动设定系数 a 与 b 的范围
-  Double_t YRangeLow = -22.;
+  Double_t YRangeLow =-22.;
   Double_t YRangeUp  = 22.;
   Double_t YScaleRangeLow = 2.;
-  Double_t YScaleRangeUp  = -2.;
+  Double_t YScaleRangeUp  =-2.;
 
   Double_t L1S_a_rangeLow[4] = { 0.14, 0.073, 0.027, 0.018};
   Double_t L1S_a_rangeUp [4] = { 0.15, 0.085, 0.033, 0.024};
@@ -159,26 +159,26 @@ void EstimateParameterDistributions(const char* layertag)
   Double_t L2B_b_rangeUp [4] = {-3.0,  -2.0,   0.0,  -1.0};
 
   Double_t a_rangeLow[SSDNum];
-  Double_t a_rangeUp[SSDNum];
+  Double_t a_rangeUp [SSDNum];
   Double_t b_rangeLow[SSDNum];
-  Double_t b_rangeUp[SSDNum];
+  Double_t b_rangeUp [SSDNum];
   for (Int_t i=0; i<SSDNum; i++)
   {
     if (strcmp(layertag,"L1S")==0) {
       a_rangeLow[i] = L1S_a_rangeLow[i];
-      a_rangeUp[i]  = L1S_a_rangeUp[i];
+      a_rangeUp [i] = L1S_a_rangeUp [i];
       b_rangeLow[i] = L1S_b_rangeLow[i];
-      b_rangeUp[i]  = L1S_b_rangeUp[i];
+      b_rangeUp [i] = L1S_b_rangeUp [i];
     } else if (strcmp(layertag,"L2F")==0) {
       a_rangeLow[i] = L2F_a_rangeLow[i];
-      a_rangeUp[i]  = L2F_a_rangeUp[i];
+      a_rangeUp [i] = L2F_a_rangeUp [i];
       b_rangeLow[i] = L2F_b_rangeLow[i];
-      b_rangeUp[i]  = L2F_b_rangeUp[i];
+      b_rangeUp [i] = L2F_b_rangeUp [i];
     } else {
       a_rangeLow[i] = L2B_a_rangeLow[i];
-      a_rangeUp[i]  = L2B_a_rangeUp[i];
+      a_rangeUp [i] = L2B_a_rangeUp [i];
       b_rangeLow[i] = L2B_b_rangeLow[i];
-      b_rangeUp[i]  = L2B_b_rangeUp[i];
+      b_rangeUp [i] = L2B_b_rangeUp [i];
     }
   }
 
@@ -227,7 +227,7 @@ void EstimateParameterDistributions(const char* layertag)
       b_average[i] = b_sum[i]/CHNum;
     }
     a_average_scale[i] = (a_average[i]-a_rangeLow[i]) * a_scalefactor[i] + 2;
-    b_average_scale[i] = (b_average[i]-b_rangeUp[i])  * b_scalefactor[i] - 2;
+    b_average_scale[i] = (b_average[i]-b_rangeUp [i]) * b_scalefactor[i] - 2;
 
     cout<<Form("a_average[%d] = ",i+1)<< a_average[i]<<setw(20)
         <<Form("b_average[%d] = ",i+1)<< b_average[i]<<endl;

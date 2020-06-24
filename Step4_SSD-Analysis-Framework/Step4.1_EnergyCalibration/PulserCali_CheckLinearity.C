@@ -116,6 +116,7 @@ void CheckLinearity(const char* layertag)
       // 画出全部的 11 个点
       cans->cd(1);
       gPad->SetLeftMargin(0.13);
+      gPad->SetGridx();
       gPad->SetGridy();
       graphpeaks11[i][j]->SetTitle(Form("SSD%d_%s_%02d_PulserCali",i+1,layertag,j));
       graphpeaks11[i][j]->SetMarkerStyle(20);
@@ -124,7 +125,7 @@ void CheckLinearity(const char* layertag)
       graphpeaks11[i][j]->GetXaxis()->SetTitleSize(0.04);
       graphpeaks11[i][j]->GetXaxis()->CenterTitle(1);
       graphpeaks11[i][j]->GetXaxis()->SetRangeUser(0.,4096);
-      graphpeaks11[i][j]->GetXaxis()->SetNdivisions(505);
+      graphpeaks11[i][j]->GetXaxis()->SetNdivisions(510);
       graphpeaks11[i][j]->GetYaxis()->SetTitle("Relative_PulserHeight11");
       graphpeaks11[i][j]->GetYaxis()->SetTitleSize(0.04);
       graphpeaks11[i][j]->GetYaxis()->CenterTitle(1);
@@ -157,6 +158,7 @@ void CheckLinearity(const char* layertag)
       // 画出全部的 11 个点
       cans->cd(2);
       gPad->SetLeftMargin(0.13);
+      gPad->SetGridx();
       gPad->SetGridy();
       graph11[i][j]->SetTitle(Form("SSD%d_%s_%02d_ErrBetweenPointsAndCurve",i+1,layertag,j));
       graph11[i][j]->SetMarkerStyle(20);
@@ -165,7 +167,7 @@ void CheckLinearity(const char* layertag)
       graph11[i][j]->GetXaxis()->SetTitleSize(0.04);
       graph11[i][j]->GetXaxis()->CenterTitle(1);
       graph11[i][j]->GetXaxis()->SetRangeUser(0.,4096);
-      graph11[i][j]->GetXaxis()->SetNdivisions(505);
+      graph11[i][j]->GetXaxis()->SetNdivisions(510);
       graph11[i][j]->GetYaxis()->SetRangeUser(-1.5,1.5);
       graph11[i][j]->GetYaxis()->SetNdivisions(1006);
       graph11[i][j]->GetYaxis()->SetTitle("Relative_Errors (%)");

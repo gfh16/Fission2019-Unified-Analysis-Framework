@@ -7,9 +7,9 @@
 //   3. Alpha 刻度:  SSD4_L1S_CH00-CH15   前后两次刻度有一个 shift, 此前的刻度使用 AlphaCali05_08
 //
 //   评估的内容包括：
-//   (1) 分别修正 alpha 能量点的 ADC 道址 与 能量
-//   (2) 将两组 alpha 峰峰值相加, 在对这两道进行刻度
-//   (3) 对于 SSD4_L1S, 使用 AlphaCali00_04 再进行刻度, 与AlphaCali05_08进行对比
+//   (1) 分别修正 alpha 能量点的 ADC 道址 与 能量    => 结果: 没找到修正方法, 暂不作修正
+//   (2) 将两组 alpha 峰峰值相加, 在对这两道进行刻度  => 结果: peak1Low + peak1Up - pedestal
+//   (3) 对于 SSD4_L1S, 使用 AlphaCali00_04 再进行刻度, 与AlphaCali05_08进行对比 =>  => 结果: 没找到修正方法, 暂使用 AlphaCali05_08
 //
 //   gfh, 2020-06-18
 ////////////////////////////////////////////////////////////////////////////////
@@ -75,6 +75,7 @@ void Check_SSD2_L2F_CH00_CH01()
   Double_t k_scalfactor = (YRangeUp-YScaleRangeLow) /(SSD2_L2F_k_RangeUp-SSD2_L2F_k_RangeLow);
   Double_t h_scalfactor = (YScaleRangeUp-YRangeLow) /(SSD2_L2F_h_RangeUp-SSD2_L2F_h_RangeLow);
   Double_t Height11[11] = {1./2, .9/2, .8/2, .7/2, .6/2, .5/2, .4/2, .3/2, .2/2, .1/2, 0.05/2};
+  //Double_t Height11[11] = {1., .9, .8, .7, .6, .5, .4, .3, .2, .1, 0.05};
 
   ReadFileModule readfile;
   Double_t*** PulserIn       = readfile.ReadData(pathPulserIn.c_str(),       SSDNum, CHNum, numpar_PulserIn);
@@ -607,8 +608,6 @@ void Check_SSD4_L2F_CH13_CH14()
   latex_k->Draw();
   latex_average16->Draw();
 
-  //____________________________________________
-  // 将 SSD_L2F_CH00,CH01 取为其余 14 道的平均值
   //____________________________________________
   // 将 SSD_L2F_CH00,CH01 取为其余 14 道的平均值
   cans_distribution_SSD4->cd(2);

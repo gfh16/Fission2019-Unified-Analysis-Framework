@@ -1,7 +1,8 @@
 ////////////////////////////////////////////////////////////////////////////////
 //
-//  1. 能量刻度的准确性主要由两大因素决定: (1) alpha 能量的准确性   (2) 脉冲刻度的线性
-//  2. 从结果看, 脉冲刻度的线性性非常好. 因此，有理由认为能量刻度的准确性由 alpha 的能量决定!
+//  1. 能量刻度的准确性主要由三大因素决定:
+//            (1) 脉冲刻度的线性 (2)alpha 能量的准确性 (3)alpha 拟合道址的准确性
+//  2. 从结果看, 脉冲刻度的线性性很好. 因此，现在来考察alpha能量的准确性对刻度的影响!
 //
 //  3. alpha 能量的准确性来源于两部分:
 //     (1) alpha 标准能量的准确性. 需要查表, 目前采用的是 刘运祚老师的
@@ -40,7 +41,7 @@ Int_t A_Alpha = 4;
 Int_t Deadlayer_num       = 500;
 Double_t Sideadlayer_step = 0.01; // um
 
-Double_t RelativeErrCut = 0.003;
+Double_t RelativeErrCut = 0.005;
 
 
 //______________________________________________________________________________
@@ -67,7 +68,20 @@ void SiEnergyCali_EstimateDeadLayerEffects()
 void EstimateDeadLayerEffects(const Char_t* layertag)
 {
   std::string PulserTag("Height");
+
   std::string pathPNDOutput(Form("figures/SSD_%s_DeadLayerEffectsOntheParErrs.png",layertag));
+  std::string pathFitFuncPDFOutput(Form("figures/SSD_%s_DeadLayerEffectsOnFitFunc.pdf",layertag));
+  std::string pathFitFuncPDFOutputBegin(Form("figures/SSD_%s_DeadLayerEffectsOnFitFunc.pdf[",layertag));
+  std::string pathFitFuncPDFOutputEnd(Form("figures/SSD_%s_DeadLayerEffectsOnFitFunc.pdf]",layertag));
+
+  std::string pathDeadLayerParsOut(Form("output/SSD_%s_DeadLayerFitPars.dat",layertag));
+
+  ofstream SiEnergyCaliPars(pathDeadLayerParsOut.c_str());
+  SiEnergyCaliPars<<"* Consider the deadlayer effects on the fit parameters of peak1 and peak2 \n";
+  SiEnergyCaliPars<<"* 1,2 represent using alpha peak1,peak2, respectively. \n";
+  SiEnergyCaliPars<<"* SSDNum"<<setw(7)<<"CHNum"<<setw(10)<<"k1"<<setw(15)<<"h1"<<setw(15)<<"k2"<<setw(13)
+                  <<"h2"<<setw(25)<<"<deadlayer>(um)"<<setw(18)<<"deadlayer(um)"<<setw(15)
+                  <<"E1_ELoss"<<setw(20)<<"E2_ELoss\n";
 
   Double_t YRangeLow = 0.;
   Double_t YRangeUp  = 45.;
@@ -141,15 +155,16 @@ void EstimateDeadLayerEffects(const Char_t* layertag)
       c1[i][j] = 0.; c2[i][j] = 0.;
 
       deadlayer[i][j] = 0.;
+      energyloss1[i][j] = 0.;
+      energyloss2[i][j] = 0.;
 
       if (((i<2) && strcmp(layertag,"L2F")==0) ||
       ((i==1) && (j==15) && strcmp(layertag,"L2B")==0)) {                  // SSD1_L2F,SSD2_L2F peak2 刻度的斜率
         GetSiEnergyCaliPars(layertag,k1[i][j],h1[i][j],c1[i][j],i,j,E1,1); // 比 peak1 的大;
         GetSiEnergyCaliPars(layertag,k2[i][j],h2[i][j],c2[i][j],i,j,E2,2); // 死层修正无效, 因此不考虑死层的修正
         deadlayer[i][j]   = Sideadlayer_step * 0;                          // SSD2_L2B_CH15 同样无法考虑死层的修正
-        energyloss1[i][j] = 0.;
-        energyloss2[i][j] = 0.;
         cout<<setw(5)<<i<<setw(5)<<j<<setw(5)<<0<<setw(10)<<deadlayer[i][j]<<endl;
+
       } else {
         for (Int_t k=0; k<Deadlayer_num; k++)
         {
@@ -162,7 +177,6 @@ void EstimateDeadLayerEffects(const Char_t* layertag)
             deadlayer[i][j]   = Sideadlayer_step * k;
             energyloss1[i][j] = E1_ELoss[k];
             energyloss2[i][j] = E2_ELoss[k];
-            cout<<setw(5)<<i<<setw(5)<<j<<setw(5)<<k<<setw(10)<<deadlayer[i][j]<<endl;
             break;
           }
         }
@@ -214,11 +228,21 @@ void EstimateDeadLayerEffects(const Char_t* layertag)
       k_RelativeErr_Ave_scale[i] = (k_RelativeErr_Ave[i]-RelativeErr_RangeLow)*ScaleFactor_Err;
     }
     deadlayer_Ave_scale[i] = (deadlayer_Ave[i]-DeadLayer_RangeLow)*ScaleFactor_DeadLayer + YScaleRangeLow_DeadLayer;
+
+    // 输出经死层修正后的刻度参数
+    for (Int_t j=0; j<CHNum; j++)
+    {
+      SiEnergyCaliPars<<setw(5) <<i<<setw(7)<<j<<setw(15)<<k1[i][j]<<setw(15)<<h1[i][j]
+                      <<setw(15)<<k2[i][j]<<setw(15)<<h2[i][j]<<setw(15)<<deadlayer_Ave[i]
+                      <<setw(18)<<deadlayer[i][j]<<setw(20)<<energyloss1[i][j]
+                      <<setw(20)<<energyloss2[i][j]<<endl;
+    }
   }
+
 
   //_______________________________________________________
   //  画图
-  TMultiGraph* mg[SSDNum];
+  TMultiGraph* mg_scale[SSDNum];
   TGraph* graph_k_Err_scale[SSDNum];
   TGraph* graph_deadlayer_scale[SSDNum];
 
@@ -238,7 +262,7 @@ void EstimateDeadLayerEffects(const Char_t* layertag)
 
   for (Int_t i=0; i<SSDNum; i++)
   {
-    mg[i] = new TMultiGraph();
+    mg_scale[i] = new TMultiGraph();
     graph_k_Err_scale[i]     = new TGraph(CHNum, SSDCHNum[i], k_RelativeErr_scale[i]);
     graph_deadlayer_scale[i] = new TGraph(CHNum, SSDCHNum[i], deadlayer_scale[i]);
 
@@ -247,14 +271,14 @@ void EstimateDeadLayerEffects(const Char_t* layertag)
     graph_deadlayer_scale[i]->SetMarkerStyle(20);
     graph_deadlayer_scale[i]->SetMarkerColor(kRed);
 
-    mg[i]->Add(graph_k_Err_scale[i]);
-    mg[i]->Add(graph_deadlayer_scale[i]);
+    mg_scale[i]->Add(graph_k_Err_scale[i]);
+    mg_scale[i]->Add(graph_deadlayer_scale[i]);
 
     cans->cd(i+1);
     gPad->SetGridx();
-    mg[i]->SetTitle(Form("SSD%d_%s_Peak1AndPeak2ParErrs_DeadLayer",i+1,layertag));
-    mg[i]->GetXaxis()->SetRangeUser(0.,17.);
-    mg[i]->GetXaxis()->SetNdivisions(117);
+    mg_scale[i]->SetTitle(Form("SSD%d_%s_Peak1AndPeak2ParErrs_DeadLayer",i+1,layertag));
+    mg_scale[i]->GetXaxis()->SetRangeUser(0.,17.);
+    mg_scale[i]->GetXaxis()->SetNdivisions(117);
 
     auto hist_scale = graph_k_Err_scale[i]->GetHistogram();
     hist_scale->SetTitle(Form("SSD%d_%s_Peak1Peak2ParErrsWithDeadLayer",i+1,layertag));
@@ -277,7 +301,7 @@ void EstimateDeadLayerEffects(const Char_t* layertag)
     deadlayer_Yaxis[i] = new TGaxis(gPad->GetUxmin(),YScaleRangeLow_DeadLayer,gPad->GetUxmin(),YRangeUp,
                                     DeadLayer_RangeLow,DeadLayer_RangeUp,1003,"-R");
 
-    k_Err_Yaxis[i]->SetTitle("k_{RelativeErr} (%)");
+    k_Err_Yaxis[i]->SetTitle("k_{RelativeErr} (%%)");
     k_Err_Yaxis[i]->CenterTitle(1);
     k_Err_Yaxis[i]->SetTitleSize(0.05);
     k_Err_Yaxis[i]->SetTitleColor(kBlue);
@@ -309,12 +333,12 @@ void EstimateDeadLayerEffects(const Char_t* layertag)
     line0_deadlayer[i]->SetLineColor(kRed);
     line0_deadlayer[i]->SetLineStyle(2);
 
-    latex_Err[i]       = new TLatex(3,15.,Form("<k_{RelativeErr}> = %.5f (%)",k_RelativeErr_Ave[i]));
+    latex_Err[i]       = new TLatex(3,15.,Form("<k_{RelativeErr}> = %.3f (%%)<%.2f (%%)",k_RelativeErr_Ave[i],RelativeErrCut*100));
     latex_deadlayer[i] = new TLatex(3,40.,Form("<deadlayer> = %.5f (#mum)",deadlayer_Ave[i]));
-    latex_Err[i]->SetTextColor(kMagenta);
-    latex_deadlayer[i]->SetTextColor(kMagenta);
+    latex_Err[i]->SetTextColor(kBlue);
+    latex_deadlayer[i]->SetTextColor(kRed);
 
-    mg[i]->Draw("PL");
+    mg_scale[i]->Draw("PL");
     k_Err_Yaxis[i]->Draw();
     deadlayer_Yaxis[i]->Draw();
     line_Err_average[i]->Draw();
@@ -325,6 +349,59 @@ void EstimateDeadLayerEffects(const Char_t* layertag)
     latex_deadlayer[i]->Draw();
   }
   cans->Print(pathPNDOutput.c_str());
+
+  //______________________________________
+  // 画出死层修正后的能量刻度曲线
+  TF1* fPeak1_deadlayer[SSDNum][CHNum];
+  TF1* fPeak2_deadlayer[SSDNum][CHNum];
+
+  TLegend* legend[SSDNum][CHNum];
+  TLatex*  latex [SSDNum][CHNum];
+
+  TCanvas* cans_func = new TCanvas("cans_func","cans_func",800,600);
+  TCanvas* cans_begin = new TCanvas();
+  TCanvas* cans_end   = new TCanvas();
+  cans_begin->Close();
+  cans_end->Close();
+
+  cans_begin->Print(pathFitFuncPDFOutputBegin.c_str());
+  for (Int_t i=0; i<SSDNum; i++)
+  {
+    for (Int_t j=0; j<CHNum; j++)
+    {
+      fPeak1_deadlayer[i][j] = new TF1(Form("fPeak1_DeadLayer_SSD%d_CH%d",i+1,j),
+                                       Form("%.5f*x+%.5f",k1[i][j],h1[i][j]),0,4096);
+      fPeak2_deadlayer[i][j] = new TF1(Form("fPeak2_DeadLayer_SSD%d_CH%d",i+1,j),
+                                       Form("%.5f*x+%.5f",k2[i][j],h2[i][j]),0,4096);
+      fPeak1_deadlayer[i][j]->SetTitle(Form("SSD%d_%s_CH%02d_FitFunctionDeadLayer",i+1,layertag,j));
+      fPeak1_deadlayer[i][j]->GetXaxis()->SetTitle("ADC CH");
+      fPeak1_deadlayer[i][j]->GetXaxis()->CenterTitle(1);
+      fPeak1_deadlayer[i][j]->GetYaxis()->SetTitle("Energy (MeV)");
+      fPeak1_deadlayer[i][j]->GetYaxis()->CenterTitle(1);
+
+      fPeak1_deadlayer[i][j]->SetLineColor(kRed);
+      fPeak2_deadlayer[i][j]->SetLineColor(kGreen);
+
+      legend[i][j] = new TLegend(0.15,0.7,0.55,0.85);
+      legend[i][j]->AddEntry(fPeak1_deadlayer[i][j],"Pulser+AlphaPeak1","l");
+      legend[i][j]->AddEntry(fPeak2_deadlayer[i][j],"Pulser+AlphaPeak2","l");
+
+      latex[i][j] = new TLatex(2000.,0.2*fPeak1_deadlayer[i][j]->GetMaximum(),Form("deadlayer=%.5f(#mum)",deadlayer[i][j] ));
+      latex[i][j]->SetTextColor(kMagenta);
+
+      cans_func->cd();
+      fPeak1_deadlayer[i][j]->Draw();
+      fPeak2_deadlayer[i][j]->Draw("SAME");
+      legend[i][j]->Draw("SAME");
+      latex[i][j] ->Draw("SAME");
+
+      gPad->Modified();
+      gPad->Update();
+
+      cans_func->Print(pathFitFuncPDFOutput.c_str());
+    }
+  }
+  cans_end->Print(pathFitFuncPDFOutputEnd.c_str());
 }
 
 
@@ -403,7 +480,7 @@ void GetSiEnergyCaliPars(const Char_t* layertag, Double_t& k, Double_t& h,
     h = c * b;
   }
 
-  //______________________________
+  //_____________________________________________________________
   //  对 L2F, L2B 进行刻度
   if (strcmp(layertag,"L2F")==0 || strcmp(layertag,"L2B")==0) {
 

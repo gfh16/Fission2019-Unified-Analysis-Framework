@@ -68,7 +68,7 @@ void AlphaCali_CalculateEnergy()
     for(Int_t CHNum=0; CHNum<16; CHNum++)
     {
       FileOut<<setw(5)<<SSDNum <<setw(7)<<CHNum
-             <<setw(15)<<Eresidual2[0]<<setw(13)<<Eresidual2[1]<<setw(13)<<Eresidual2[0]
+             <<setw(15)<<Eresidual2[0]<<setw(13)<<Eresidual2[1]<<setw(13)<<Eresidual2[2]
              <<setw(13)<<E1<<setw(13)<<E2<<setw(13)<<E3
              <<setw(13)<<Ealpha[0]-Eresidual2[0]
              <<setw(13)<<Ealpha[1]-Eresidual2[1]
