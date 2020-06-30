@@ -64,7 +64,8 @@ void FinallyDeterminedFitPars(const char* layertag)
   SiEnergyCaliPars<<"* 2.Consider the dead layer effect, then the get the average of the peak1 and the peak2 parameters \n";
   SiEnergyCaliPars<<"* Fit function: E_MeV = k * E_CH + h, then E_CH = 1/k * E_MeV - h/k \n";
   SiEnergyCaliPars<<"* SSDNum"<<setw(7)<<"CHNum"<<setw(15)<<"k_average"<<setw(20)<<"h_average"<<setw(20)
-                  <<"k_deadlayer"<<setw(20)<<"h_deadlayer\n";
+                  <<"k_deadlayer"<<setw(20)<<"h_deadlayer"<<setw(20)<<"k_average_ave"<<setw(20)
+                  <<"h_average_ave"<<setw(20)<<"k_deadlayer_ave"<<setw(20)<<"h_deadlayer_ave\n";
 
 
   Int_t numpar_HeightAndAlphaFitPars = 4; // k1,h1,k2,h2
@@ -105,8 +106,28 @@ void FinallyDeterminedFitPars(const char* layertag)
   Double_t h_deadlayer_ave[SSDNum][CHNum];
   Double_t deadlayer[SSDNum][CHNum];
 
+  Double_t k_ave_sum  [SSDNum];
+  Double_t h_ave_sum  [SSDNum];
+  Double_t k_ave_ave  [SSDNum];
+  Double_t h_ave_ave  [SSDNum];
+
+  Double_t k_deadlayer_ave_sum[SSDNum];
+  Double_t h_deadlayer_ave_sum[SSDNum];
+  Double_t k_deadlayer_ave_ave[SSDNum];
+  Double_t h_deadlayer_ave_ave[SSDNum];
+
   for (Int_t i=0; i<SSDNum; i++)
   {
+    k_ave_sum[i] = 0.0;
+    h_ave_sum[i] = 0.0;
+    k_ave_ave[i] = 0.0;
+    h_ave_ave[i] = 0.0;
+
+    k_deadlayer_ave_sum[i] = 0.0;
+    h_deadlayer_ave_sum[i] = 0.0;
+    k_deadlayer_ave_ave[i] = 0.0;
+    h_deadlayer_ave_ave[i] = 0.0;
+
     for (Int_t j=0; j<CHNum; j++)
     {
       k1[i][j] = HeightAndAlphaFitPars[i][j][0];
@@ -127,10 +148,36 @@ void FinallyDeterminedFitPars(const char* layertag)
 
       deadlayer[i][j] = DeadLayerFitPars[i][j][5];
 
-      SiEnergyCaliPars<<setw(5)<<i<<setw(7)<<j<<setw(15)<<k_ave[i][j]<<setw(20)<<h_ave[i][j]<<setw(20)
-                      <<k_deadlayer_ave[i][j]<<setw(20)<<h_deadlayer_ave[i][j]<<endl;
+      k_ave_sum  [i] += k_ave[i][j];
+      h_ave_sum  [i] += h_ave[i][j];
+      k_deadlayer_ave_sum[i] += k_deadlayer_ave[i][j];
+      h_deadlayer_ave_sum[i] += h_deadlayer_ave[i][j];
+    }
+
+    if (i==3 && strcmp(layertag,"L1S")==0) {
+      k_ave_ave  [i] = (k_ave_sum[i]-k_ave[i][0])/15;
+      h_ave_ave  [i] = (h_ave_sum[i]-h_ave[i][0])/15;
+      k_deadlayer_ave_ave[i] = (k_deadlayer_ave_sum[i]-k_deadlayer_ave[i][0])/15;
+      h_deadlayer_ave_ave[i] = (h_deadlayer_ave_sum[i]-h_deadlayer_ave[i][0])/15;
+    } else {
+      k_ave_ave[i] = k_ave_sum[i]/CHNum;
+      h_ave_ave[i] = h_ave_sum[i]/CHNum;
+      k_deadlayer_ave_ave[i] = k_deadlayer_ave_sum[i]/CHNum;
+      h_deadlayer_ave_ave[i] = h_deadlayer_ave_sum[i]/CHNum;
     }
   }
+
+  for (Int_t i=0; i<SSDNum; i++)
+  {
+    for (Int_t j=0; j<CHNum; j++)
+    {
+      SiEnergyCaliPars<<setw(5)<<i<<setw(7)<<j<<setw(15)<<k_ave[i][j]<<setw(20)<<h_ave[i][j]<<setw(20)
+                      <<k_deadlayer_ave[i][j]<<setw(20)<<h_deadlayer_ave[i][j]<<setw(20)
+                      <<k_ave_ave[i]<<setw(20)<<h_ave_ave[i]<<setw(20)
+                      <<k_deadlayer_ave_ave[i]<<setw(20)<<h_deadlayer_ave_ave[i]<<endl;
+    }
+  }
+
 
   TF1* fPeak1[SSDNum][CHNum];
   TF1* fPeak2[SSDNum][CHNum];
@@ -210,7 +257,7 @@ void FinallyDeterminedFitPars(const char* layertag)
 
 
       latex_k_Err[i][j] = new TLatex(1500,0.05*fPeak1[i][j]->GetMaximum(),
-                                     Form("k_Err < %.2f(%%)",100*RelativeErrCut));
+                                     Form("a_Err < %.2f(%%)",100*RelativeErrCut));
       latex_k_Err[i][j]->SetTextColor(kMagenta);
 
       if (strcmp(layertag,"L1S")==0 && i<3) { // SSD1_L1S,SSD2_L1S,SSD3_L1S, 使用 AlphaCali00_08

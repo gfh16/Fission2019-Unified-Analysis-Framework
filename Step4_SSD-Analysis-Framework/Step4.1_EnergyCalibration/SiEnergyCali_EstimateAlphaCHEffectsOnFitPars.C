@@ -234,13 +234,13 @@ void EstimateAlphaCHEffectsOnFitPars(const char* layertag, Double_t Ch_Err)
       legend_2MinusPlus[i][j]->AddEntry(fPeak1_2Plus[i][j], Form("E_{CH}(#alpha1) + %.1f",2*Ch_Err),"l");
 
       latex_Minus [i][j] = new TLatex(1000.,0.15*fPeak1[i][j]->GetMaximum(),
-                                      Form("k_Err(-%.1f) = %.3f(%%)",Ch_Err,RelativeErr_Minus[i][j]));
+                                      Form("a_Err(-%.1f) = %.3f(%%)",Ch_Err,RelativeErr_Minus[i][j]));
       latex_Plus  [i][j] = new TLatex(1000.,0.05*fPeak1[i][j]->GetMaximum(),
-                                      Form("k_Err(+%.1f) = %.3f(%%)",Ch_Err,RelativeErr_Plus[i][j]));
+                                      Form("a_Err(+%.1f) = %.3f(%%)",Ch_Err,RelativeErr_Plus[i][j]));
       latex_2Minus[i][j] = new TLatex(1000.,0.15*fPeak1[i][j]->GetMaximum(),
-                                      Form("k_Err(-%.1f) = %.3f(%%)",2*Ch_Err,RelativeErr_2Minus[i][j]));
+                                      Form("a_Err(-%.1f) = %.3f(%%)",2*Ch_Err,RelativeErr_2Minus[i][j]));
       latex_2Plus [i][j] = new TLatex(1000.,0.05*fPeak1[i][j]->GetMaximum(),
-                                      Form("k_Err(+%.1f) = %.3f(%%)",2*Ch_Err,RelativeErr_2Plus[i][j]));
+                                      Form("a_Err(+%.1f) = %.3f(%%)",2*Ch_Err,RelativeErr_2Plus[i][j]));
       latex_Minus [i][j]->SetTextColor(kMagenta);
       latex_Plus  [i][j]->SetTextColor(kMagenta);
       latex_2Minus[i][j]->SetTextColor(kMagenta);

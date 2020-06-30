@@ -191,7 +191,7 @@ void CheckLinearity(const char* layertag)
       latex[i][j] = new TLatex(0.2*graph11[i][j]->GetXaxis()->GetXmax(),1.2,
                               "Relative_Err = #frac{Pulser-Cali}{Cali}");
       latex_average[i][j] = new TLatex(0.20*graph11[i][j]->GetXaxis()->GetXmax(),0.7,
-                              Form("<Relative_Err>_{10Peaks} = %.2f",Sum_RelativeErr10[i][j]/numpeaks10));
+                              Form("<Relative_Err>_{10Peaks} = %.2f (%%)",Sum_RelativeErr10[i][j]/numpeaks10));
       latex[i][j]->SetTextColor(kMagenta);
       latex_average[i][j]->SetTextColor(kBlue);
 

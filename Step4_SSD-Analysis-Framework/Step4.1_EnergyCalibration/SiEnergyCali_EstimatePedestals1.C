@@ -24,6 +24,7 @@ Int_t CHNum  = 16;
 
 //__________________________________________
 void EstimatePedestals(const char* layertag);
+void EstimateADCThreshold(const char* layertag);
 
 
 //______________________________________________
@@ -34,9 +35,12 @@ void SiEnergyCali_EstimatePedestals()
   std::string L2BTag("L2B");
 
   EstimatePedestals(L1STag.c_str());
-  EstimatePedestals(L2FTag.c_str());
-  EstimatePedestals(L2BTag.c_str());
+  //EstimatePedestals(L2FTag.c_str());
+  //EstimatePedestals(L2BTag.c_str());
 
+  //EstimateADCThreshold(L1STag.c_str());
+  //EstimateADCThreshold(L2FTag.c_str());
+  EstimateADCThreshold(L2BTag.c_str());
 }
 
 
@@ -72,7 +76,7 @@ void EstimatePedestals(const char* layertag)
 
 
   Int_t numpar_PedestalsIn = 2;
-  Int_t numpar_ParsInput   = 8; // a1,b1,a2,b2,a3,b3,a11,b11... b11是截距
+  Int_t numpar_ParsInput   = 8; // k1,h1,k2,h2,k3,h3,k11,h11... h11是截距
 
   ReadFileModule readfile;
   Double_t*** PedestalIn = readfile.ReadData(pathPedestalsInput.c_str(), SSDNum, CHNum, numpar_PedestalsIn);
@@ -90,10 +94,6 @@ void EstimatePedestals(const char* layertag)
   Double_t Sum_EnergyCaliPars[SSDNum];
   Double_t Sum_Errors[SSDNum];
 
-  Double_t a1[SSDNum][CHNum];
-  Double_t b1[SSDNum][CHNum];   // E_Mev = a1 * E_CH + b1
-  Double_t Threshold_MeV[SSDNum][CHNum];
-
   for (Int_t i=0; i<SSDNum; i++)
   {
      Sum_PulserPedestals[i]     = 0.;
@@ -107,10 +107,6 @@ void EstimatePedestals(const char* layertag)
       EnergyCaliPars[i][j]  = ParsInput[i][j][7]; // h11
       Errors[i][j]          = EnergyCaliPars[i][j] - PulserPedestals[i][j];
 
-      a1[i][j] = ParsInput[i][j][0];
-      b1[i][j] = ParsInput[i][j][1];
-      Threshold_MeV[i][j] = a1[i][j] * PedestalIn[i][j][0] + b1[i][j];
-
       Sum_PulserPedestals[i] += PulserPedestals[i][j];
       Sum_EnergyCaliPars[i]  += EnergyCaliPars[i][j];
       Sum_Errors[i]          += Errors[i][j];
@@ -121,28 +117,22 @@ void EstimatePedestals(const char* layertag)
   }
 
   TMultiGraph* mg[SSDNum];
-  TGraph* graph_pulser    [SSDNum];
+  TGraph* graph_pulser[SSDNum];
   TGraph* graph_energycali[SSDNum];
-  TGraph* graph_errors    [SSDNum];
-  TGraph* graph_threshold [SSDNum];
-
-  TLine* line_ave1   [SSDNum];
-  TLine* line_ave2   [SSDNum];
+  TGraph* graph_errors[SSDNum];
+  TLine* line_ave1[SSDNum];
+  TLine* line_ave2[SSDNum];
   TLine* line_aveErrs[SSDNum];
-
   TLatex* latex1[SSDNum];
   TLatex* latex2[SSDNum];
   TLatex* latex_aveErr[SSDNum];
-  TLatex* latex_threshold[SSDNum];
-
   for (Int_t i=0; i<SSDNum; i++)
   {
     mg[i] = new TMultiGraph();
 
-    graph_pulser[i]     = new TGraph(CHNum, SSDCHNum[i], PulserPedestals[i]);
-    graph_energycali[i] = new TGraph(CHNum, SSDCHNum[i], EnergyCaliPars[i]);
-    graph_errors[i]     = new TGraph(CHNum, SSDCHNum[i], Errors[i]);
-    graph_threshold[i]  = new TGraph(CHNum, SSDCHNum[i], Threshold_MeV[i]);
+    graph_pulser[i]       = new TGraph(CHNum, SSDCHNum[i], PulserPedestals[i]);
+    graph_energycali[i]   = new TGraph(CHNum, SSDCHNum[i], EnergyCaliPars[i]);
+    graph_errors[i]       = new TGraph(CHNum, SSDCHNum[i], Errors[i]);
 
     graph_pulser[i]->SetMarkerStyle(20);
     graph_pulser[i]->SetMarkerColor(kBlue);
@@ -152,8 +142,6 @@ void EstimatePedestals(const char* layertag)
     graph_errors[i]->SetMarkerStyle(20);
     graph_errors[i]->SetMarkerColor(kMagenta);
 
-    graph_threshold[i]->SetMarkerStyle(20);
-    graph_threshold[i]->SetMarkerColor(kCyan+1);
 
     mg[i]->Add(graph_pulser[i]);
     mg[i]->Add(graph_energycali[i]);
@@ -226,28 +214,52 @@ void EstimatePedestals(const char* layertag)
     latex_aveErr[i]->Draw();
 
 
-    // ADC 能量阈值分布
-    cans[i]->cd(4);
-    gPad->SetGridx();
-    graph_threshold[i]->SetTitle(Form("SSD%d_%s_ADCThresholdCalculatedWithFitFunc",i+1,layertag));
-    graph_threshold[i]->GetXaxis()->SetRangeUser(0,17);
-    graph_threshold[i]->GetXaxis()->SetNdivisions(118);
-    graph_threshold[i]->GetXaxis()->SetTitle("Channel");
-    graph_threshold[i]->GetXaxis()->CenterTitle(1);
-    graph_threshold[i]->GetXaxis()->SetTitleSize(0.04);
-    graph_threshold[i]->GetYaxis()->SetRangeUser(0.,3.);
-    graph_threshold[i]->GetYaxis()->SetNdivisions(1006);
-    graph_threshold[i]->GetYaxis()->SetTitle("Threshold (MeV)");
-    graph_threshold[i]->GetYaxis()->CenterTitle(1);
-    graph_threshold[i]->GetYaxis()->SetTitleSize(0.04);
-
-    latex_threshold[i] = new TLatex(4.,1.7,"Threshold = a * Pedestal + b");
-    latex_threshold[i]->SetTextColor(kCyan+1);
-
-    graph_threshold[i]->Draw("APL");
-    latex_threshold[i]->Draw("SAME");
+    // 相对误差分布
 
 
     cans[i]->Print(pathPNGOutput[i].c_str());
+  }
+}
+
+
+//_____________________________________________
+void EstimateADCThreshold(const char* layertag)
+{
+  std::string PulserTag("Height");
+
+  std::string pathPedestalsInput(Form("output/SSD_%s_PulserCaliPedestals_Pedestal0000.dat",layertag));
+  std::string pathParsInput(Form("output/SSD_%s_%sAndAlphaFitPars.dat",layertag,PulserTag.c_str()));
+
+  Double_t XMax = 4096.;
+  Double_t VoltageMax = 4000.; // 单位：mV, ADC 量程是 4V
+
+  Int_t numpar_PedestalsIn = 2;
+  Int_t numpar_ParsInput   = 2; // k1,h1,k2,h2,k3,h3,k11,h11... h11是截距
+
+  ReadFileModule readfile;
+  Double_t*** PedestalIn = readfile.ReadData(pathPedestalsInput.c_str(), SSDNum, CHNum, numpar_PedestalsIn);
+  Double_t*** ParsInput  = readfile.ReadData(pathParsInput.c_str(), SSDNum, CHNum, numpar_ParsInput);
+
+  Double_t PulserPedestals[SSDNum][CHNum];
+  Double_t k[SSDNum][CHNum];
+  Double_t b[SSDNum][CHNum];  // E_MeV = k * E_CH + b
+  Double_t Threshold_MeV    [CHNum][CHNum];
+  Double_t SSDCHNum[CHNum][CHNum];
+
+  for (Int_t i=0; i<SSDNum; i++)
+  {
+    for (Int_t j=0; j<CHNum; j++)
+    {
+      SSDCHNum[i][j] = j+1;
+
+      PulserPedestals[i][j] = PedestalIn[i][j][0];
+      k[i][j] = ParsInput[i][j][0];
+      b[i][j] = ParsInput[i][j][1];
+
+      Threshold_MeV[i][j] = k[i][j] * PulserPedestals[i][j] + b[i][j];
+
+      cout<<setw(5)<<i<<setw(5)<<j<<setw(15)<<k[i][j]<<setw(15)<<b[i][j]
+          <<setw(15)<<Threshold_MeV[i][j]<<endl;
+    }
   }
 }

@@ -333,8 +333,8 @@ void EstimateDeadLayerEffects(const Char_t* layertag)
     line0_deadlayer[i]->SetLineColor(kRed);
     line0_deadlayer[i]->SetLineStyle(2);
 
-    latex_Err[i]       = new TLatex(3,15.,Form("<k_{RelativeErr}> = %.3f (%%)<%.2f (%%)",k_RelativeErr_Ave[i],RelativeErrCut*100));
-    latex_deadlayer[i] = new TLatex(3,40.,Form("<deadlayer> = %.5f (#mum)",deadlayer_Ave[i]));
+    latex_Err[i]       = new TLatex(3,15.,Form("<a_{RelativeErr}> = %.3f (%%)<%.2f (%%)",k_RelativeErr_Ave[i],RelativeErrCut*100));
+    latex_deadlayer[i] = new TLatex(3,40.,Form("<deadlayer> = %.3f (#mum)",deadlayer_Ave[i]));
     latex_Err[i]->SetTextColor(kBlue);
     latex_deadlayer[i]->SetTextColor(kRed);
 
@@ -386,7 +386,7 @@ void EstimateDeadLayerEffects(const Char_t* layertag)
       legend[i][j]->AddEntry(fPeak1_deadlayer[i][j],"Pulser+AlphaPeak1","l");
       legend[i][j]->AddEntry(fPeak2_deadlayer[i][j],"Pulser+AlphaPeak2","l");
 
-      latex[i][j] = new TLatex(2000.,0.2*fPeak1_deadlayer[i][j]->GetMaximum(),Form("deadlayer=%.5f(#mum)",deadlayer[i][j] ));
+      latex[i][j] = new TLatex(1500.,0.2*fPeak1_deadlayer[i][j]->GetMaximum(),Form("deadlayer=%.5f(#mum)",deadlayer[i][j] ));
       latex[i][j]->SetTextColor(kMagenta);
 
       cans_func->cd();

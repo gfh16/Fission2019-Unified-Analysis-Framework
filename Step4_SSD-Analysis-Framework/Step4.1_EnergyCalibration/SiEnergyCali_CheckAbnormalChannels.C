@@ -267,8 +267,8 @@ void Check_SSD2_L2F_CH00_CH01()
   line_h_average->SetLineStyle(7);
   line_h_average->SetLineWidth(3);
 
-  TLatex* latex_k = new TLatex(5,18.,Form("<k> = %.8f",k_average));
-  TLatex* latex_h = new TLatex(5,-4.,Form("<h> = %.8f",h_average));
+  TLatex* latex_k = new TLatex(5,18.,Form("<a> = %.8f",k_average));
+  TLatex* latex_h = new TLatex(5,-4.,Form("<b> = %.8f",h_average));
   TLatex* latex_average16 = new TLatex(5.5,14.,"Average (16 Channels)");
   latex_average16->SetTextColor(kMagenta);
 
@@ -306,8 +306,8 @@ void Check_SSD2_L2F_CH00_CH01()
   line_h_average14->SetLineStyle(7);
   line_h_average14->SetLineWidth(3);
 
-  TLatex* latex_k14 = new TLatex(5,18.,Form("<k> = %.8f",k_average14));
-  TLatex* latex_h14 = new TLatex(5,-4.,Form("<h> = %.8f",h_average14));
+  TLatex* latex_k14 = new TLatex(5,18.,Form("<a> = %.8f",k_average14));
+  TLatex* latex_h14 = new TLatex(5,-4.,Form("<b> = %.8f",h_average14));
   TLatex* latex_average14 = new TLatex(5.5,14.,"Average (14 Channels)");
   latex_average14->SetTextColor(kMagenta);
 
@@ -345,8 +345,8 @@ void Check_SSD2_L2F_CH00_CH01()
   line_h_averagech->SetLineStyle(7);
   line_h_averagech->SetLineWidth(3);
 
-  TLatex* latex_kch = new TLatex(5,18.,Form("<k> = %.8f",k_averageDeltaCH));
-  TLatex* latex_hch = new TLatex(5,-4.,Form("<h> = %.8f",h_averageDeltaCH));
+  TLatex* latex_kch = new TLatex(5,18.,Form("<a> = %.8f",k_averageDeltaCH));
+  TLatex* latex_hch = new TLatex(5,-4.,Form("<b> = %.8f",h_averageDeltaCH));
   TLatex* latex_DeltaCH = new TLatex(5.5,14.,Form("CH( #alpha_{1} ) + %.f",E1_DeltaCH));
   latex_DeltaCH->SetTextColor(kMagenta);
 
@@ -384,8 +384,8 @@ void Check_SSD2_L2F_CH00_CH01()
   line_h_averagee->SetLineStyle(7);
   line_h_averagee->SetLineWidth(3);
 
-  TLatex* latex_ke = new TLatex(5,18.,Form("<k> = %.8f",k_averageDeltaE));
-  TLatex* latex_he = new TLatex(5,-4.,Form("<k> = %.8f",h_averageDeltaE));
+  TLatex* latex_ke = new TLatex(5,18.,Form("<a> = %.8f",k_averageDeltaE));
+  TLatex* latex_he = new TLatex(5,-4.,Form("<b> = %.8f",h_averageDeltaE));
   TLatex* latex_DeltaE = new TLatex(5,14.,Form("E_{MeV}( #alpha_{1} ) - %.2f",E1_DeltaE));
   latex_DeltaE->SetTextColor(kMagenta);
 
@@ -594,8 +594,8 @@ void Check_SSD4_L2F_CH13_CH14()
   line_h_average->SetLineStyle(7);
   line_h_average->SetLineWidth(3);
 
-  TLatex* latex_k = new TLatex(6,18.,Form("<k> = %.5f",k_average));
-  TLatex* latex_h = new TLatex(6,-4.,Form("<h> = %.5f",h_average));
+  TLatex* latex_k = new TLatex(6,18.,Form("<a> = %.5f",k_average));
+  TLatex* latex_h = new TLatex(6,-4.,Form("<b> = %.5f",h_average));
   TLatex* latex_average16 = new TLatex(4,14.,"Average( 16 Channels )");
   latex_average16->SetTextColor(kMagenta);
 
@@ -632,8 +632,8 @@ void Check_SSD4_L2F_CH13_CH14()
   line_h_average14->SetLineStyle(7);
   line_h_average14->SetLineWidth(3);
 
-  TLatex* latex_k14 = new TLatex(5,18.,Form("<k> = %.8f",k_average14));
-  TLatex* latex_h14 = new TLatex(5,-4.,Form("<h> = %.8f",h_average14));
+  TLatex* latex_k14 = new TLatex(5,18.,Form("<a> = %.8f",k_average14));
+  TLatex* latex_h14 = new TLatex(5,-4.,Form("<b> = %.8f",h_average14));
   TLatex* latex_average14 = new TLatex(4,14.,"Average( 14 Channels )");
   latex_average14->SetTextColor(kMagenta);
 
@@ -826,7 +826,7 @@ void Check_SSD4_L1S_CH00_CH15_AlphaCali00_04()
   legend_err->AddEntry(graph_k_RelativeErr,"k_Err","lp");
   legend_err->AddEntry(graph_h_RelativeErr,"h_Err","lp");
 
-  TLatex* latex = new TLatex(6.,6.,"k_Err = h_Err");
+  TLatex* latex = new TLatex(6.,6.,"a_Err = b_Err"); // 这里 a=k, b=h, 为了统一
   latex->SetTextColor(kMagenta);
 
   mg_err->Draw("APL");

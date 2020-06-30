@@ -42,9 +42,9 @@ void SiEnergyCali_PulserAndAlpha()
   std::string L2FTag("L2F");
   std::string L2BTag("L2B");
 
-//  SiEnergyCali_PulserAndAlpha_L1(L1STag.c_str());
+  SiEnergyCali_PulserAndAlpha_L1(L1STag.c_str());
   SiEnergyCali_PulserAndAlpha_L2(L2FTag.c_str());
-//  SiEnergyCali_PulserAndAlpha_L2(L2BTag.c_str());
+  SiEnergyCali_PulserAndAlpha_L2(L2BTag.c_str());
 }
 
 
@@ -193,12 +193,14 @@ void SiEnergyCali_PulserAndAlpha_L1(const char* layertag)
       legend[i][j]->AddEntry(fPeak3[i][j],"Pulser+AlphaPeak3","l");
 
       cans->cd(1);
+      gPad->SetLeftMargin(0.12);
       fPeak1[i][j]->Draw();
       fPeak2[i][j]->Draw("SAME");
       fPeak3[i][j]->Draw("SAME");
       legend[i][j]->Draw("SAME");
 
       cans->cd(2);
+      gPad->SetLeftMargin(0.12);
       fPeak1[i][j]->Draw();
       fPeak2[i][j]->Draw("SAME");
 
@@ -327,18 +329,20 @@ void SiEnergyCali_PulserAndAlpha_L2(const char* layertag)
       fPeak2[i][j]->SetLineColor(kGreen);
       fPeak3[i][j]->SetLineColor(kBlue);
 
-      legend[i][j] = new TLegend(0.15,0.7,0.60,0.88);
+      legend[i][j] = new TLegend(0.20,0.7,0.65,0.88);
       legend[i][j]->AddEntry(fPeak1[i][j],"Pulser+AlphaPeak1","l");
       legend[i][j]->AddEntry(fPeak2[i][j],"Pulser+AlphaPeak2","l");
       legend[i][j]->AddEntry(fPeak3[i][j],"Pulser+AlphaPeak3","l");
 
       cans->cd(1);
+      gPad->SetLeftMargin(0.12);
       fPeak1[i][j]->Draw();
       fPeak2[i][j]->Draw("SAME");
       fPeak3[i][j]->Draw("SAME");
       legend[i][j]->Draw("SAME");
 
       cans->cd(2);
+      gPad->SetLeftMargin(0.12);
       fPeak1[i][j]->Draw();
       fPeak2[i][j]->Draw("SAME");
 
