@@ -1,19 +1,18 @@
 #include "../include/KrPbReadTree.h"
 
-//________________________________________________
+//______________________________________________________________________________
 KrPbReadTree::KrPbReadTree()
 {
   //cout<< "constructor is called"<<endl;
 }
 
-//________________________________________________
+//______________________________________________________________________________
 KrPbReadTree::~KrPbReadTree()
 {
   //cout<<"disconstrctor is called"<<endl;
 }
 
-//___________________________________________________________________
-void KrPbReadTree::WriteHist(TChain* myChain,  const char* rootpath)
+//_____________________________________________________________________________
 {
   int BIN_NUM = 4096;
   int LOW_CH  = 0;
@@ -343,7 +342,7 @@ void KrPbReadTree::WriteHist(TChain* myChain,  const char* rootpath)
 }
 
 
-//____________________________________________________________________
+//______________________________________________________________________________
 void KrPbReadTree::SaveCanvas(TChain* myChain, const char* pdfpath)
 {
   int BIN_NUM = 4096;
