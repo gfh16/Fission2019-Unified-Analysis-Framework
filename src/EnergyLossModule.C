@@ -140,7 +140,7 @@ double EnergyLossModule::GetEnergyLoss(int Z, int A, double Einc, const char * m
 
   double mass_uma=NucData->get_mass_Z_A_uma(Z,A);
 
-  if(LoadEnergyLossFile(Form("LISEInput/LISE_ELoss_Z%02d_A%02d_%s.dat", Z, A, material))<=0) {
+  if(LoadEnergyLossFile(Form("../input/LISE_ELoss_Z%02d_A%02d_%s.dat", Z, A, material))<=0) {
     printf("Error: information not present for Z=%d A=%d material=%s\n", Z, A, material);
     return -100;
   }
@@ -205,7 +205,7 @@ double EnergyLossModule::GetRangeFromEnergy(int Z, int A, double Einc, const cha
 {
   double mass_uma=NucData->get_mass_Z_A_uma(Z,A);
 
-  if(LoadRangeFile(Form("LISEInput/LISE_Range_Z%02d_A%02d_%s.dat", Z, A, material))<=0) {
+  if(LoadRangeFile(Form("../input/LISE_Range_Z%02d_A%02d_%s.dat", Z, A, material))<=0) {
     printf("Error: information not present for Z=%d A=%d material=%s\n", Z, A, material);
     return -100;
   }
@@ -220,7 +220,7 @@ double EnergyLossModule::GetEnergyFromRange(int Z, int A, double range, const ch
 {
   double mass_uma=NucData->get_mass_Z_A_uma(Z,A);
 
-  if(LoadRangeFile(Form("LISEInput/LISE_Range_Z%02d_A%02d_%s.dat", Z, A, material))<=0) {
+  if(LoadRangeFile(Form("../input/LISE_Range_Z%02d_A%02d_%s.dat", Z, A, material))<=0) {
     printf("Error: information not present for Z=%d A=%d material=%s\n", Z, A, material);
     return -100;
   }
@@ -233,7 +233,7 @@ double EnergyLossModule::GetEnergyFromRange(int Z, int A, double range, const ch
 //______________________________________________
 void EnergyLossModule::DrawdEdx(int Z, int A, const char * material, int model)
 {
-  if(LoadEnergyLossFile(Form("LISEInput/LISE_ELoss_Z%02d_A%02d_%s.dat", Z, A, material))<=0) return;
+  if(LoadEnergyLossFile(Form("../input/LISE_ELoss_Z%02d_A%02d_%s.dat", Z, A, material))<=0) return;
 
   const int NPoints = ParticleEnergy.size();
   double E_LISE_Values[NPoints];

@@ -27,7 +27,7 @@ class KrPbReadTree
     KrPbReadTree();
     ~KrPbReadTree();
 
-    void WriteHist(TChain* myChain,  const char* rootpath);
+    void WriteHist (TChain* myChain, const char* rootpath);
     void SaveCanvas(TChain* myChain, const char* pdfpath);
 
 };

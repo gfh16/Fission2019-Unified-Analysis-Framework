@@ -9,7 +9,7 @@ deefit()
 .q
 .L deefit.C+
 deefit()
-.L deefit_S.C 
+.L deefit_S.C
 gSystem->Load("deefit_S.so")
 .a
 .q
@@ -62,7 +62,7 @@ gSystem
 gSystem->Load(deefit_S.so)
 .L deefit_S
 .q
-.L deefit_S.C 
+.L deefit_S.C
 .L deefit.C++
 .q
 TFile *_file0 = TFile::Open("graphcut.root")

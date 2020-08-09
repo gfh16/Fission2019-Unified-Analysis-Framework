@@ -26,15 +26,23 @@
 //
 */
 
+//const Int_t SSDNum = 4;
 //______________________________________________________________________________
 CSHINESiPixelGeometry::CSHINESiPixelGeometry()
 {
-  fWidthPerStrip        = 1.95;  // 条宽, mm
-  fWidthPerGap          = 0.05;  // 相邻条缝宽m, mm
-  fDistOfAdjacentStrips = 2.00;  // 条中心间距, mm
+  fWidthPerStrip                    = 1.95;  // 条宽, mm
+  fWidthPerGap                      = 0.05;  // 相邻条缝宽m, mm
+  fDistOfAdjacentStrips             = 2.00;  // 条中心间距, mm
 
-  fDistFromL1FToL2F     = 7.50; // mm
-  fDistFrom2ndMountingHoleToL2F = 33.50; // mm
+  fDistFromL1FToL2F                 = 7.50; // mm
+  fDistFrom2ndMountingHoleToL2F     = 33.50; // mm
+
+  fDistFrom2ndMountingHoleToTarget  = new Double_t [NUM_SSD];
+  fL1Thickness                      = new Double_t [NUM_SSD];
+  fL2Thickness                      = new Double_t [NUM_SSD];
+  fPhiOfSSDFixedPosition            = new Double_t [NUM_SSD];
+  fThetaOfSSDFixedPosition          = new Double_t [NUM_SSD];
+  fDistOfL2FToTarget                = new Double_t [NUM_SSD];
 
   fDistFrom2ndMountingHoleToTarget[0] = 315.50;  // mm
   fDistFrom2ndMountingHoleToTarget[1] = 275.50;  // mm
@@ -70,6 +78,13 @@ CSHINESiPixelGeometry::CSHINESiPixelGeometry()
 //______________________________________________________________________________
 CSHINESiPixelGeometry::~CSHINESiPixelGeometry()
 {
+  delete [] fDistFrom2ndMountingHoleToTarget;
+  delete [] fL1Thickness;
+  delete [] fL2Thickness;
+  delete [] fPhiOfSSDFixedPosition;
+  delete [] fThetaOfSSDFixedPosition;
+  delete [] fDistOfL2FToTarget;
+
   cout<< "Exit Class CSHINESiPixelGeometry, Bye!"<< endl;
 }
 
@@ -121,6 +136,21 @@ Double_t CSHINESiPixelGeometry::GetEffThicknessOfPixel(Int_t ssdnum, Int_t strip
   Double_t pixelY = StripNumToPosInSSDFrame(ssdnum, stripb, stripf).Y();
   return d2 * TMath::Sqrt(pow(dist, 2) + pow(pixelX, 2) + pow(pixelY, 2)) / dist;
 }
+
+//______________________________________________________________________________
+Double_t CSHINESiPixelGeometry::GetThetaDegOfPixel(Int_t ssdnum, Int_t stripb, Int_t stripf)
+{
+  Vector3 vec3 = StripNumToPosInLabFrame(ssdnum, stripb, stripf);
+  return vec3.ThetaDeg();
+}
+
+//______________________________________________________________________________
+Double_t CSHINESiPixelGeometry::GetPhiDegOfPixel(Int_t ssdnum, Int_t stripb, Int_t stripf)
+{
+  Vector3 vec3 = StripNumToPosInLabFrame(ssdnum, stripb, stripf);
+  return vec3.PhiDeg();
+}
+
 
 //___________________________________________________________________________________________
 Vector3 CSHINESiPixelGeometry::StripNumToPosInSSDFrame(Int_t ssdnum, Int_t stripb, Int_t stripf)

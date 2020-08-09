@@ -212,10 +212,10 @@ int MDEEFrame::CheckZResults(Int_t numtel_curr)
  TCanvas *cc = new TCanvas("cc", "CHECK ZETA",700,600);
  cout<<"Please wait...this procedure takes time. [Z="<<Zval<<" checking]"<<endl;
  t1->SetMarkerColor(2);
- t1->Draw("desipgf:fastpg",ss.str().c_str());
+ t1->Draw("desimev:ecsich",ss.str().c_str());
  cc->Update();
  t1->SetMarkerColor(4);
- t1->Draw("desipgf:fastpg",nss.str().c_str(),"same");
+ t1->Draw("desimev:ecsich",nss.str().c_str(),"same");
  t1->SetMarkerColor(1);
 }
 
@@ -264,18 +264,18 @@ int MDEEFrame::CheckMResults(Int_t numtel_curr)
  TCanvas *cc = new TCanvas("cc", "CHECK ZETA and MASS",700,600);
  cout<<"Please wait...this procedure takes time. [Z A ="<<Zval<<" "<< Aval << " checking]"<<endl;
  t1->SetMarkerColor(2);
- t1->Draw("desipgf:fastpg",ss.str().c_str());
+ t1->Draw("desimev:ecsich",ss.str().c_str());
  cc->Update();
  t1->SetMarkerColor(4);
- t1->Draw("desipgf:fastpg",nss.str().c_str(),"same");
+ t1->Draw("desimev:ecsich",nss.str().c_str(),"same");
  t1->SetMarkerColor(1);
 
  t1->SetMarkerColor(3);
- t1->Draw("desipgf:fastpg",nssp1.str().c_str(),"same");
+ t1->Draw("desimev:ecsich",nssp1.str().c_str(),"same");
  t1->SetMarkerColor(1);
 
  t1->SetMarkerColor(6);
- t1->Draw("desipgf:fastpg",nssm1.str().c_str(),"same");
+ t1->Draw("desimev:ecsich",nssm1.str().c_str(),"same");
  t1->SetMarkerColor(1);
 }
 //paolo<-
@@ -1316,7 +1316,7 @@ if(fmtree.IsOpen()) {
 
   tr->SetTimerInterval(300);
   ftimer->TurnOn();
-  tr->Draw("desipgf:fastpg", cut);
+  tr->Draw("desimev:ecsich", cut);
   HandleTimer(ftimer);
   ftimer->TurnOff();
   tr->SetTimerInterval(0);
@@ -2003,8 +2003,8 @@ Int_t MDEEFrame::Si_CsiIdentification(Int_t ntel)
    treeide->Fill();
    continue;
   }
-  de = (Double_t)evt->desipgf;
-  fast = (Double_t)evt->fastpg;
+  de = (Double_t)evt->desimev;
+  fast = (Double_t)evt->ecsich;
 
   if(de>0 && fast>0) {
 // charge identification
@@ -2079,7 +2079,7 @@ void MDEEFrame::UserPlot()
 // cplot = new TCanvas("cplot", "User DE-E matrix",700,600);
  if((hpl = (TH2F*)gROOT->FindObject("hpl"))!=0)delete hpl;
  hpl = new TH2F("hpl","DE-E User Plot",binx,xmin,xmax,biny,ymin,ymax);
- t1->Draw("desipgf:fastpg>>hpl",stel.str().c_str(),"colz",nevt);
+ t1->Draw("desimev:ecsich>>hpl",stel.str().c_str(),"colz",nevt);
 }
 
 //Display version

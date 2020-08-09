@@ -42,8 +42,9 @@ void SiPixellation()
   gStyle->SetPalette(1);
   gStyle->SetOptStat(0);
 
-  string pathPNGOutput("figures/CSHINE2019_ SSDArrayCoverage.png");
-  string pathDataOutput("data/CSHINE2019_SiPixelAngles.dat");
+  std::string pathPNGCoverage("figures/CSHINE2019_ SSDArrayCoverage.png");
+  std::string pathPNGCheckDirection("figures/CSHINE2019_CheckStripDirection.png");
+  std::string pathDataOutput("data/CSHINE2019_SiPixelAngles.dat");
 
   ofstream SiPixelAngles(pathDataOutput.c_str());
   SiPixelAngles<<"* ssdnum"<<setw(7)<<"stripb"<<setw(7)<<"stripf"
@@ -64,7 +65,15 @@ void SiPixellation()
   Double_t Y1, Y2, Y3, Y4;
   Double_t Z1, Z2, Z3, Z4;
 
-  TH2D* h2d_phi_theta = new TH2D("h2d","h2d_phi_over_theta",70,0.0,70.,360,0.0,360.);
+  TH2D* h2d_phi_theta = new TH2D("h2d", "h2d_phi_over_theta",70,0.0,70.,360,0.0,360.);
+  TH2D* h2d_nb0   = new TH2D("h2d_nb0",  "check stripb direction", 70,0.0,70.,360,0.0,360.);
+  TH2D* h2d_nb5   = new TH2D("h2d_nb5",  "check stripb direction", 70,0.0,70.,360,0.0,360.);
+  TH2D* h2d_nb10  = new TH2D("h2d_nb10", "check stripb direction", 70,0.0,70.,360,0.0,360.);
+  TH2D* h2d_nb15  = new TH2D("h2d_nb15", "check stripb direction", 70,0.0,70.,360,0.0,360.);
+  TH2D* h2d_nf0   = new TH2D("h2d_nf0",  "check stripf direction", 70,0.0,70.,360,0.0,360.);
+  TH2D* h2d_nf5   = new TH2D("h2d_nf5",  "check stripf direction", 70,0.0,70.,360,0.0,360.);
+  TH2D* h2d_nf10  = new TH2D("h2d_nf10", "check stripf direction", 70,0.0,70.,360,0.0,360.);
+  TH2D* h2d_nf15  = new TH2D("h2d_nf15", "check stripf direction", 70,0.0,70.,360,0.0,360.);
 
   for (Int_t ssdnum=0; ssdnum<NumSSD; ssdnum++)
   {
@@ -114,6 +123,16 @@ void SiPixellation()
 
         h2d_phi_theta->Fill(PosInLabFrame.ThetaDeg(), PosInLabFrame.PhiDeg());
 
+        if (nb==0)  h2d_nb0 ->Fill(PosInLabFrame.ThetaDeg(), PosInLabFrame.PhiDeg());
+      //  if (nb==5)  h2d_nb5 ->Fill(PosInLabFrame.ThetaDeg(), PosInLabFrame.PhiDeg());
+        if (nb==10) h2d_nb10->Fill(PosInLabFrame.ThetaDeg(), PosInLabFrame.PhiDeg());
+        if (nb==15) h2d_nb15->Fill(PosInLabFrame.ThetaDeg(), PosInLabFrame.PhiDeg());
+
+        if (nf==0)  h2d_nf0 ->Fill(PosInLabFrame.ThetaDeg(), PosInLabFrame.PhiDeg());
+    //    if (nf==5)  h2d_nf5 ->Fill(PosInLabFrame.ThetaDeg(), PosInLabFrame.PhiDeg());
+        if (nf==10) h2d_nf10->Fill(PosInLabFrame.ThetaDeg(), PosInLabFrame.PhiDeg());
+        if (nf==15) h2d_nf15->Fill(PosInLabFrame.ThetaDeg(), PosInLabFrame.PhiDeg());
+
         SiPixelAngles<<setw(5)<<ssdnum<<setw(7)<<nb<<setw(7)<<nf
                      <<setw(12)<<PosInLabFrame.ThetaDeg()<<setw(12)<<PosInLabFrame.PhiDeg()
                      <<setw(12)<<theta_min<<setw(12)<<theta_max
@@ -124,6 +143,8 @@ void SiPixellation()
     }
   }
 
+  TCanvas* cans_check = new TCanvas("cans_check","cans_check", 1200, 800);
+  cans_check->Divide(2,1);
   TCanvas* cans = new TCanvas("cans","cans_h2d", 1200, 1200);
   cans->Divide(2,2);
 
@@ -141,13 +162,11 @@ void SiPixellation()
   h2d_phi_theta->GetYaxis()->CenterTitle(1);
   h2d_phi_theta->Draw("COL");
 
-
   // phi distrbution
   cans->cd(1);
   auto projectionY = h2d_phi_theta->ProjectionY();
   projectionY->SetTitle("#phi - Distributions");
   projectionY->Draw();
-
 
   // theta distribution
   cans->cd(4);
@@ -155,10 +174,40 @@ void SiPixellation()
   projectionX->SetTitle("#theta - Distributions");
   projectionX->Draw();
 
-  cans->Print(pathPNGOutput.c_str());
+
+  // 关闭 L2F/L2B 的某个条，检查strip 的方向
+  cans_check->cd(1);
+  gPad->SetGridx();
+  gPad->SetGridy();
+  gPad->SetLeftMargin(0.15);
+  h2d_nb0->GetXaxis()->SetTitle("#theta (#circ)");
+  h2d_nb0->GetXaxis()->SetTitleSize(0.05);
+  h2d_nb0->GetXaxis()->CenterTitle(1);
+  h2d_nb0->GetYaxis()->SetTitle("#phi (#circ)");
+  h2d_nb0->GetYaxis()->SetTitleSize(0.05);
+  h2d_nb0->GetYaxis()->CenterTitle(1);
+  h2d_nb0 ->Draw("COL");
+  h2d_nb10->Draw("COL SAME");
+  h2d_nb15->Draw("COL SAME");
+
+  cans_check->cd(2);
+  gPad->SetGridx();
+  gPad->SetGridy();
+  gPad->SetLeftMargin(0.15);
+  h2d_nf0->GetXaxis()->SetTitle("#theta (#circ)");
+  h2d_nf0->GetXaxis()->SetTitleSize(0.05);
+  h2d_nf0->GetXaxis()->CenterTitle(1);
+  h2d_nf0->GetYaxis()->SetTitle("#phi (#circ)");
+  h2d_nf0->GetYaxis()->SetTitleSize(0.05);
+  h2d_nf0->GetYaxis()->CenterTitle(1);
+  h2d_nf0 ->Draw("COL");
+  h2d_nf10->Draw("COL SAME");
+  h2d_nf15->Draw("COL SAME");
+
+
+  cans->Print(pathPNGCoverage.c_str());
+  cans_check->Print(pathPNGCheckDirection.c_str());
   SiPixelAngles.close();
-
-
 }
 
 

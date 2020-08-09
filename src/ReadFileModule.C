@@ -13,8 +13,8 @@ ReadFileModule::~ReadFileModule()
 }
 
 //______________________________________________________________________________
-Double_t*** ReadFileModule::ReadData(const Char_t* datapath, Int_t& SSDNum,
-            Int_t& CHNum, Int_t& ParNum)
+Double_t*** ReadFileModule::ReadData(const Char_t* datapath, Int_t SSDNum,
+            Int_t CHNum, Int_t ParNum)
 {
   Double_t*** readpar = NULL;
   readpar = new Double_t** [SSDNum];
@@ -58,7 +58,7 @@ Double_t*** ReadFileModule::ReadData(const Char_t* datapath, Int_t& SSDNum,
 
 
 //______________________________________________________________________________
-void ReadFileModule::DeleteData(Double_t*** p, Int_t& SSDNum, Int_t& CHNum, Int_t& ParNum)
+void ReadFileModule::DeleteData(Double_t*** p, Int_t SSDNum, Int_t CHNum, Int_t ParNum)
 {
   for(Int_t i=0; i<SSDNum; i++)
   {
@@ -76,14 +76,14 @@ void ReadFileModule::DeleteData(Double_t*** p, Int_t& SSDNum, Int_t& CHNum, Int_
 
 
 //______________________________________________________________________________
-void ReadFileModule::AddChain(TChain* chain, const char* L1STag, Int_t* dataarray, Int_t size, Int_t index)
+void ReadFileModule::AddChain(TChain* chain, const char* LayerTag, Int_t* dataarray, Int_t size, Int_t index)
 {
   for (Int_t j=0; j<size; j++)
   {
     dataarray[j] = 0;
   }
   std::string SSD_E_bname;
-  SSD_E_bname = Form("SSD%d_%s_E", index+1, L1STag);
+  SSD_E_bname = Form("SSD%d_%s_E", index+1, LayerTag);
   chain->SetBranchStatus(SSD_E_bname.c_str(), true);
   chain->SetBranchAddress(SSD_E_bname.c_str(), dataarray);
 }
