@@ -60,16 +60,16 @@ void TimeAndPercentage::PrintPercentageAndRemainingTime(Long64_t ientry, Long64_
     std::cout<<"=";
   }
   std::cout<<"]   "<<"elapsed time "<<setprecision(1)
-           <<(time_elapsed<60 ? time_elapsed :
+           <<(time_elapsed<60   ? time_elapsed :
              (time_elapsed<3600 ? time_elapsed/60 : time_elapsed/3600))
-           <<(time_elapsed<60 ? "s; " : (time_elapsed<3600 ? "m; " : "h; "));
+           <<(time_elapsed<60   ? "s; " : (time_elapsed<3600 ? "m; " : "h; "));
   if (ientry>0)
   {
     Double_t time_remaining = (time_elapsed/ientry)*(nentries-ientry);
     std::cout<<" estimated remaining time "<<setprecision(1)
-             <<(time_remaining<60 ? time_remaining :
+             <<(time_remaining<60   ? time_remaining    :
                (time_remaining<3600 ? time_remaining/60 : time_remaining/3600))
-             <<(time_remaining<60 ? "s; " : (time_remaining<3600 ? "m; " : "h; "));
+             <<(time_remaining<60   ? "s; " : (time_remaining<3600 ? "m; " : "h; "));
   }
   std::cout<<"\r";
   std::cout.flush();
