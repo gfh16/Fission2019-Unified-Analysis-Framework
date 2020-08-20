@@ -220,6 +220,7 @@ void CSHINEEventTreeReader::Init(TTree* tree)
   fChain->SetBranchAddress("SSD1.fMultiCsI",       &SSD1_fMultiCsI,       &b_SSD1_fMultiCsI);
   fChain->SetBranchAddress("SSD1.fNumCsI",          SSD1_fNumCsI,         &b_SSD1_fNumCsI);
   fChain->SetBranchAddress("SSD1.fEChCsI",          SSD1_fEChCsI,         &b_SSD1_fEChCsI);
+
   fChain->SetBranchAddress("SSD2.fSSDMulti",       &SSD2_fSSDMulti,       &b_SSD2_fSSDMulti);
   fChain->SetBranchAddress("SSD2.fMultiL1S",       &SSD2_fMultiL1S,       &b_SSD2_fMultiL1S);
   fChain->SetBranchAddress("SSD2.fNumStripL1S",     SSD2_fNumStripL1S,    &b_SSD2_fNumStripL1S);
@@ -233,6 +234,7 @@ void CSHINEEventTreeReader::Init(TTree* tree)
   fChain->SetBranchAddress("SSD2.fMultiCsI",       &SSD2_fMultiCsI,       &b_SSD2_fMultiCsI);
   fChain->SetBranchAddress("SSD2.fNumCsI",          SSD2_fNumCsI,         &b_SSD2_fNumCsI);
   fChain->SetBranchAddress("SSD2.fEChCsI",          SSD2_fEChCsI,         &b_SSD2_fEChCsI);
+
   fChain->SetBranchAddress("SSD3.fSSDMulti",       &SSD3_fSSDMulti,       &b_SSD3_fSSDMulti);
   fChain->SetBranchAddress("SSD3.fMultiL1S",       &SSD3_fMultiL1S,       &b_SSD3_fMultiL1S);
   fChain->SetBranchAddress("SSD3.fNumStripL1S",     SSD3_fNumStripL1S,    &b_SSD3_fNumStripL1S);
@@ -246,6 +248,7 @@ void CSHINEEventTreeReader::Init(TTree* tree)
   fChain->SetBranchAddress("SSD3.fMultiCsI",       &SSD3_fMultiCsI,       &b_SSD3_fMultiCsI);
   fChain->SetBranchAddress("SSD3.fNumCsI",          SSD3_fNumCsI,         &b_SSD3_fNumCsI);
   fChain->SetBranchAddress("SSD3.fEChCsI",          SSD3_fEChCsI,         &b_SSD3_fEChCsI);
+
   fChain->SetBranchAddress("SSD4.fSSDMulti",       &SSD4_fSSDMulti,       &b_SSD4_fSSDMulti);
   fChain->SetBranchAddress("SSD4.fMultiL1S",       &SSD4_fMultiL1S,       &b_SSD4_fMultiL1S);
   fChain->SetBranchAddress("SSD4.fNumStripL1S",     SSD4_fNumStripL1S,    &b_SSD4_fNumStripL1S);
@@ -259,6 +262,7 @@ void CSHINEEventTreeReader::Init(TTree* tree)
   fChain->SetBranchAddress("SSD4.fMultiCsI",       &SSD4_fMultiCsI,       &b_SSD4_fMultiCsI);
   fChain->SetBranchAddress("SSD4.fNumCsI",          SSD4_fNumCsI,         &b_SSD4_fNumCsI);
   fChain->SetBranchAddress("SSD4.fEChCsI",          SSD4_fEChCsI,         &b_SSD4_fEChCsI);
+  
   fChain->SetBranchAddress("Global.fGlobalMulti",  &Global_fGlobalMulti,  &b_Global_fGlobalMulti);
   fChain->SetBranchAddress("Global.fNumOfSSD",     &Global_fNumOfSSD,     &b_Global_fNumOfSSD);
   fChain->SetBranchAddress("Global.fGNumStripL1S", &Global_fGNumStripL1S, &b_Global_fGNumStripL1S);

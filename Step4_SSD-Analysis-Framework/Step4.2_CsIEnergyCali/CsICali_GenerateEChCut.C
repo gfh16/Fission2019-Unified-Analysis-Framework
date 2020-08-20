@@ -6,10 +6,12 @@
 //
 ////////////////////////////////////////////////////////////////////////////////
 
+#include "../../include/shared.h"
+
 //______________________________________________________________________________
 void CsICali_GenerateEChCut()
 {
-  Double_t echcut = 150.;
+  Double_t echcut = ECSICHCUT;
 
   std::string pathDataOut("../Step4.1_EnergyCalibration/output/SSD_L3A_EChCut.dat");
 

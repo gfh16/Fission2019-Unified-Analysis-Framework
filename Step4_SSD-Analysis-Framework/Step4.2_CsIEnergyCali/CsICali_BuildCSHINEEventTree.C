@@ -13,7 +13,7 @@
 //  ** 说明:
 //  (1)关于硅条 Cut 的选取: 可调节 shared.C 中的 NUM_SIGMA
 //     目前 NUM_SIGAM = 10, L1S=2*10 sigma, L2F = L2B = 10*sigma
-//  (2)CsI 使用同一的 Cut = 250.0  [可用 GenerateEChCut.C 修改]
+//  (2)CsI 使用同一的 Cut = 150.0  [可用 GenerateEChCut.C 修改]
 //
 //  gfh, 2020-07-30
 ////////////////////////////////////////////////////////////////////////////////
@@ -26,7 +26,7 @@
 
 
 Int_t FirstRun = 200;
-Int_t LastRun  = 250;
+Int_t LastRun  = 203;
 
 //______________________________________________________________________________
 void CsICali_BuildCSHINEEventTree()
