@@ -786,3 +786,100 @@ void CSHINEEventTreeReader::DEE_L1_L2B(const char* pathOutput)
   time.GetEndTime();
   time.GetRunTime();
 }
+
+
+//______________________________________________________________________________
+void CSHINEEventTreeReader::Check_EMeVL2F_EMeVL2B_Correlation(const char* pathOutput)
+{
+  if (fChain == 0 ) return;
+
+  TimeAndPercentage time;
+  time.GetBeginTime();
+
+  std::string pathOutBegin(Form("%s[", pathOutput));
+  std::string pathOutEnd  (Form("%s]", pathOutput));
+
+  Double_t RangeEMeV[4] = {250., 250., 150., 100.};
+  Int_t    NBinsEMeV[4] = {2500, 2500, 1500, 1000};
+  Char_t   histname[4][20];
+
+  TH2D* hist2_L2F_L2B[NUM_SSD];
+  for (Int_t i=0; i<NUM_SSD; i++) {
+    sprintf(histname[i], "hist_SSD%d_L2F_L2B", i+1);
+    hist2_L2F_L2B[i] = new TH2D(histname[i], histname[i], NBinsEMeV[i], 0, RangeEMeV[i], NBinsEMeV[i], 0, RangeEMeV[i]);
+  }
+
+  fChain->SetBranchStatus("*", false);
+  fChain->SetBranchStatus("SSD1.fMultiL2F",  true);
+  fChain->SetBranchStatus("SSD1.fEMeVL2F" ,  true);
+  fChain->SetBranchStatus("SSD1.fMultiL2B",  true);
+  fChain->SetBranchStatus("SSD1.fEMeVL2B" ,  true);
+
+  fChain->SetBranchStatus("SSD2.fMultiL2F",  true);
+  fChain->SetBranchStatus("SSD2.fEMeVL2F" ,  true);
+  fChain->SetBranchStatus("SSD2.fMultiL2B",  true);
+  fChain->SetBranchStatus("SSD2.fEMeVL2B" ,  true);
+
+  fChain->SetBranchStatus("SSD3.fMultiL2F",  true);
+  fChain->SetBranchStatus("SSD3.fEMeVL2F" ,  true);
+  fChain->SetBranchStatus("SSD3.fMultiL2B",  true);
+  fChain->SetBranchStatus("SSD3.fEMeVL2B" ,  true);
+
+  fChain->SetBranchStatus("SSD4.fMultiL2F",  true);
+  fChain->SetBranchStatus("SSD4.fEMeVL2F" ,  true);
+  fChain->SetBranchStatus("SSD4.fMultiL2B",  true);
+  fChain->SetBranchStatus("SSD4.fEMeVL2B" ,  true);
+
+  Long64_t nentries = fChain->GetEntriesFast();
+  cout<<"*** Found  "<<nentries<<" entries. ***"<<endl;
+
+  for (Long64_t jentry=0; jentry<nentries; jentry++)
+  {
+
+    time.PrintPercentageAndRemainingTime(jentry, nentries);
+
+    fChain->GetEntry(jentry);
+
+    //___________________________________________________
+    if (SSD1_fMultiL2F == 1 && SSD1_fMultiL2B == 1) {
+      hist2_L2F_L2B[0]->Fill(SSD1_fEMeVL2F[0], SSD1_fEMeVL2B[0]);
+    }
+
+    //___________________________________________________
+    if (SSD2_fMultiL2F == 1 && SSD2_fMultiL2B == 1) {
+      hist2_L2F_L2B[1]->Fill(SSD2_fEMeVL2F[0], SSD2_fEMeVL2B[0]);
+    }
+
+    //___________________________________________________
+    if (SSD3_fMultiL2F == 1 && SSD3_fMultiL2B == 1) {
+      hist2_L2F_L2B[2]->Fill(SSD3_fEMeVL2F[0], SSD3_fEMeVL2B[0]);
+    }
+
+    //__________________________________________________
+    if (SSD4_fMultiL2F == 1 && SSD4_fMultiL2B == 1) {
+      hist2_L2F_L2B[3]->Fill(SSD4_fEMeVL2F[0], SSD4_fEMeVL2B[0]);
+    }
+  }
+
+  TCanvas* cans = new TCanvas("L2FL2B_ECorrelation", "L2FL2B_ECorrelation", 1000, 1000);
+  TCanvas* c_begin = new TCanvas();
+  c_begin->Close();
+  TCanvas* c_end   = new TCanvas();
+  c_end->Close();
+  c_begin->Print(pathOutBegin.c_str());
+
+  for (Int_t i=0; i<NUM_SSD; i++)
+  {
+    cans->cd();
+    hist2_L2F_L2B[i]->Draw("COL");
+
+    gPad->Modified();
+    gPad->Update();
+
+    cans->Print(pathOutput);
+  }
+  c_end->Print(pathOutEnd.c_str());
+
+  time.GetEndTime();
+  time.GetRunTime();
+}

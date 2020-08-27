@@ -17,7 +17,7 @@ void PID_L1_L2(TTree* mytree);
 
 
 //______________________________________________________________________________
-void CsICali_MakeClass()
+void EventTree_MakeClass()
 {
 
   std::string pathRootEventTreeFolder("/home/sea/Fission2019_Data/CSHINEEvent/");

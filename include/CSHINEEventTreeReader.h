@@ -175,7 +175,7 @@ public:
   virtual void DEE_L1_L2B   (const char* pathOutput);
 
   // 在这里进行一些检查
-//  virtual void EMeVL2F_EMeVL2B_Correlation();
+  virtual void Check_EMeVL2F_EMeVL2B_Correlation(const char* pathOutput);
 //  virtual void Check_L1_L2F_Matching();
 //  virtual void Check_L1_L2B_Matching();
 //  virtual void Check_L2F_CsI_Matching();
@@ -262,7 +262,7 @@ void CSHINEEventTreeReader::Init(TTree* tree)
   fChain->SetBranchAddress("SSD4.fMultiCsI",       &SSD4_fMultiCsI,       &b_SSD4_fMultiCsI);
   fChain->SetBranchAddress("SSD4.fNumCsI",          SSD4_fNumCsI,         &b_SSD4_fNumCsI);
   fChain->SetBranchAddress("SSD4.fEChCsI",          SSD4_fEChCsI,         &b_SSD4_fEChCsI);
-  
+
   fChain->SetBranchAddress("Global.fGlobalMulti",  &Global_fGlobalMulti,  &b_Global_fGlobalMulti);
   fChain->SetBranchAddress("Global.fNumOfSSD",     &Global_fNumOfSSD,     &b_Global_fNumOfSSD);
   fChain->SetBranchAddress("Global.fGNumStripL1S", &Global_fGNumStripL1S, &b_Global_fGNumStripL1S);

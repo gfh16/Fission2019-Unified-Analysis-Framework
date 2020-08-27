@@ -8,7 +8,7 @@
 #include <TStyle.h>
 #include <TCanvas.h>
 
-void CsICali_EventClassAnalysis::Loop()
+void EventTree_EventClassAnalysis::Loop()
 {
 //   In a ROOT session, you can do:
 //      root> .L CsICali_EventClassAnalysis.C
