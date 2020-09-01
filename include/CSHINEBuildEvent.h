@@ -9,13 +9,13 @@
 
 
 //__________________________________________
-class CSHINEBuildEvent 
+class CSHINEBuildEvent
 {
 public:
   CSHINEBuildEvent();
   virtual ~CSHINEBuildEvent();
 
-  // 参数说明: CSHINESSDEvent class, ssdindex, ech_L1S[16], ech_L2F[16], ech_L2B[16], ech_L3A[9], numsigma
+  // 参数说明: CSHINESSDEvent class, ssdindex, ech_L1S[16], ech_L2F[16], ech_L2B[16], ech_L3A[9]
   void BuildSSDEvent(CSHINESSDEvent&, Int_t, Int_t*, Int_t*, Int_t*, Int_t*);
   void BuildGlobalEvent(CSHINEGlobalEvent&,  Int_t*, Int_t*, Int_t*, Int_t*);
 

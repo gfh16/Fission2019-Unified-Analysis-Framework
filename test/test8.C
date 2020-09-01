@@ -1,6 +1,6 @@
 
 Int_t FirstRun = 200;
-Int_t LastRun  = 203;
+Int_t LastRun  = 207;
 
 //______________________________________________________________________________
 void test8()
@@ -18,6 +18,6 @@ void test8()
 
   TTree* mytree = (TTree*)file->Get("CSHINEEvent");
 
-  CSHINEEventTreeReader treereader(mytree);
+  CSHINEDEELines treereader(mytree);
   treereader.DEE_All(pathOutput);
 }

@@ -4,33 +4,33 @@
 //______________________________________________________________________________
 CSHINESSDEvent::CSHINESSDEvent() :
 fSSDMulti(0), // 初始化列表
-fMultiL1S(0),
-fMultiL2F(0),
-fMultiL2B(0),
-fMultiCsI(0)
+fL1SMulti(0),
+fL2FMulti(0),
+fL2BMulti(0),
+fCsIMulti(0)
 {
-  fNumStripL1S  =   new Int_t    [NUM_STRIP];
-  fEMeVL1S      =   new Double_t [NUM_STRIP];
-  fNumStripL2F  =   new Int_t    [NUM_STRIP];
-  fEMeVL2F      =   new Double_t [NUM_STRIP];
-  fNumStripL2B  =   new Int_t    [NUM_STRIP];
-  fEMeVL2B      =   new Double_t [NUM_STRIP];
-  fNumCsI       =   new Int_t    [NUM_CSI];
-  fEChCsI       =   new Int_t    [NUM_CSI];
+  fL1SNumStrip  =   new Int_t    [NUM_STRIP];
+  fL1SEMeV      =   new Double_t [NUM_STRIP];
+  fL2FNumStrip  =   new Int_t    [NUM_STRIP];
+  fL2FEMeV      =   new Double_t [NUM_STRIP];
+  fL2BNumStrip  =   new Int_t    [NUM_STRIP];
+  fL2BEMeV      =   new Double_t [NUM_STRIP];
+  fCsINum       =   new Int_t    [NUM_CSI];
+  fCsIECh       =   new Int_t    [NUM_CSI];
 }
 
 
 //______________________________________________________________________________
 CSHINESSDEvent::~CSHINESSDEvent()
 {
-  delete []  fNumStripL1S;
-  delete []  fEMeVL1S;
-  delete []  fNumStripL2F;
-  delete []  fEMeVL2F;
-  delete []  fNumStripL2B;
-  delete []  fEMeVL2B;
-  delete []  fNumCsI;
-  delete []  fEChCsI;
+  delete []  fL1SNumStrip;
+  delete []  fL1SEMeV;
+  delete []  fL2FNumStrip;
+  delete []  fL2FEMeV;
+  delete []  fL2BNumStrip;
+  delete []  fL2BEMeV;
+  delete []  fCsINum;
+  delete []  fCsIECh;
 }
 
 
@@ -38,43 +38,44 @@ CSHINESSDEvent::~CSHINESSDEvent()
 CSHINEGlobalEvent::CSHINEGlobalEvent() :
 fGlobalMulti(0)
 {
-  fNumOfSSD     =  new Int_t    [NUM_SSD*NUM_STRIP];
-  fGNumStripL1S =  new Int_t    [NUM_SSD*NUM_STRIP];
-  fGNumStripL2F =  new Int_t    [NUM_SSD*NUM_STRIP];
-  fGNumStripL2B =  new Int_t    [NUM_SSD*NUM_STRIP];
-  fGNumCsI      =  new Int_t    [NUM_SSD*NUM_CSI];
+  fGNumOfSSD    =  new Int_t     [NUM_SSD*NUM_STRIP];
+  fGL1SNumStrip =  new Int_t     [NUM_SSD*NUM_STRIP];
+  fGL2FNumStrip =  new Int_t     [NUM_SSD*NUM_STRIP];
+  fGL2BNumStrip =  new Int_t     [NUM_SSD*NUM_STRIP];
+  fGCsINum      =  new Int_t     [NUM_SSD*NUM_CSI];
 
-  fGTimeL2F     =  new Int_t    [NUM_SSD*NUM_STRIP];
+  fGL1SEMeV     =  new Double_t  [NUM_SSD*NUM_STRIP];
+  fGL2FEMeV     =  new Double_t  [NUM_SSD*NUM_STRIP];
+  fGL2BEMeV     =  new Double_t  [NUM_SSD*NUM_STRIP];
+  fGCsIEMeV     =  new Double_t  [NUM_SSD*NUM_CSI];
 
-  fGEMeVL1S     = new Double_t  [NUM_SSD*NUM_STRIP];
-  fGEMeVL2F     = new Double_t  [NUM_SSD*NUM_STRIP];
-  fGEMeVL2B     = new Double_t  [NUM_SSD*NUM_STRIP];
-  fGEMeVCsI     = new Double_t  [NUM_SSD*NUM_CSI];
+  fGL2FTime     =  new Int_t     [NUM_SSD*NUM_STRIP];
 
-  fTotKinEnergy = new Double_t  [NUM_SSD*NUM_STRIP];
-  fCalKinEnergy = new Double_t  [NUM_SSD*NUM_STRIP];
-  fBeta         = new Double_t  [NUM_SSD*NUM_STRIP];
-  fTheta        = new Double_t  [NUM_SSD*NUM_STRIP];
-  fPhi          = new Double_t  [NUM_SSD*NUM_STRIP];
+  fTotKinEnergy =  new Double_t  [NUM_SSD*NUM_STRIP];
+  fCalKinEnergy =  new Double_t  [NUM_SSD*NUM_STRIP];
+  fBeta         =  new Double_t  [NUM_SSD*NUM_STRIP];
+  fTheta        =  new Double_t  [NUM_SSD*NUM_STRIP];
+  fPhi          =  new Double_t  [NUM_SSD*NUM_STRIP];
 
-  fZ            = new Int_t     [NUM_SSD*NUM_STRIP];
-  fA            = new Int_t     [NUM_SSD*NUM_STRIP];
+  fZ            =  new Int_t     [NUM_SSD*NUM_STRIP];
+  fA            =  new Int_t     [NUM_SSD*NUM_STRIP];
 }
 
 //______________________________________________________________________________
 CSHINEGlobalEvent::~CSHINEGlobalEvent()
 {
-  delete []  fNumOfSSD;
-  delete []  fGNumStripL1S;
-  delete []  fGNumStripL2F;
-  delete []  fGNumStripL2B;
-  delete []  fGNumCsI;
-  delete []  fGTimeL2F;
+  delete []  fGNumOfSSD;
+  delete []  fGL1SNumStrip;
+  delete []  fGL2FNumStrip;
+  delete []  fGL2BNumStrip;
+  delete []  fGCsINum;
 
-  delete []  fGEMeVL1S;
-  delete []  fGEMeVL2F;
-  delete []  fGEMeVL2B;
-  delete []  fGEMeVCsI;
+  delete []  fGL1SEMeV;
+  delete []  fGL2FEMeV;
+  delete []  fGL2BEMeV;
+  delete []  fGCsIEMeV;
+
+  delete []  fGL2FTime;
 
   delete []  fTotKinEnergy;
   delete []  fCalKinEnergy;

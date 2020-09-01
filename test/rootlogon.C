@@ -6,5 +6,6 @@
   gROOT->ProcessLine(".L ../src/CSHINEEvent.C");
   gROOT->ProcessLine(".L ../src/TimeAndPercentage.C");
   gROOT->ProcessLine(".L ../src/CSHINEBuildEvent.C ");
-  gROOT->ProcessLine(".L ../src/CSHINEEventTreeReader.C");
+  gROOT->ProcessLine(".L ../src/CSHINEDEELines.C");
+  gROOT->ProcessLine(".L ../src/CSHINEHitPatternRecognition.C");
 }

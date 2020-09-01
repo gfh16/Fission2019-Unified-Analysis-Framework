@@ -130,8 +130,8 @@ Double_t CSHINESiPixelGeometry::GetThetaOfSSDFixedPosition(Int_t ssdnum)
 //______________________________________________________________________________
 Double_t CSHINESiPixelGeometry::GetEffThicknessOfPixel(Int_t ssdnum, Int_t stripb, Int_t stripf)
 {
-  Double_t d2 = Getd2(ssdnum);
-  Double_t dist = GetDistOfL2FToTarget(ssdnum);
+  Double_t d2     = Getd2(ssdnum);
+  Double_t dist   = GetDistOfL2FToTarget(ssdnum);
   Double_t pixelX = StripNumToPosInSSDFrame(ssdnum, stripb, stripf).X();
   Double_t pixelY = StripNumToPosInSSDFrame(ssdnum, stripb, stripf).Y();
   return d2 * TMath::Sqrt(pow(dist, 2) + pow(pixelX, 2) + pow(pixelY, 2)) / dist;

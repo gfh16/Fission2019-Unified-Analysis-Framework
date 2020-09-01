@@ -3,26 +3,26 @@
 
 //______________________________________________________________________________
 // 该类使用于各个子望远镜分开讨论的情况
-class CSHINESSDEvent 
+class CSHINESSDEvent
 {
 public:
   Int_t        fSSDMulti;
 
-  Int_t        fMultiL1S;
-  Int_t       *fNumStripL1S; // [fMultiL1S]
-  Double_t    *fEMeVL1S;     // [fMultiL1S]
+  Int_t        fL1SMulti;
+  Int_t       *fL1SNumStrip; // [fL1SMulti]
+  Double_t    *fL1SEMeV;     // [fL1SMulti]
 
-  Int_t        fMultiL2F;
-  Int_t       *fNumStripL2F; // [fMultiL2F]
-  Double_t    *fEMeVL2F;     // [fMultiL2F]
+  Int_t        fL2FMulti;
+  Int_t       *fL2FNumStrip; // [fL2FMulti]
+  Double_t    *fL2FEMeV;     // [fL2FMulti]
 
-  Int_t        fMultiL2B;
-  Int_t       *fNumStripL2B; // [fMultiL2B]
-  Double_t    *fEMeVL2B;     // [fMultiL2B]
+  Int_t        fL2BMulti;
+  Int_t       *fL2BNumStrip; // [fL2BMulti]
+  Double_t    *fL2BEMeV;     // [fL2BMulti]
 
-  Int_t        fMultiCsI;
-  Int_t       *fNumCsI;      // [fMultiCsI]
-  Int_t       *fEChCsI;      // [fMultiCsI]
+  Int_t        fCsIMulti;
+  Int_t       *fCsINum;      // [fCsIMulti]
+  Int_t       *fCsIECh;      // [fCsIMulti]
 
 
   CSHINESSDEvent();
@@ -36,23 +36,23 @@ public:
 
 //______________________________________________________________________________
 // 将四套硅条探测器合并起来讨论. 以总的粒子多重性为自变量
-class CSHINEGlobalEvent 
+class CSHINEGlobalEvent
 {
 public:
   Int_t        fGlobalMulti;
 
-  Int_t       *fNumOfSSD;            //[fGlobalMulti]
-  Int_t       *fGNumStripL1S;        //[fGlobalMulti]
-  Int_t       *fGNumStripL2F;        //[fGlobalMulti]
-  Int_t       *fGNumStripL2B;        //[fGlobalMulti]
-  Int_t       *fGNumCsI;             //[fGlobalMulti]
+  Int_t       *fGNumOfSSD;           //[fGlobalMulti]
+  Int_t       *fGL1SNumStrip;        //[fGlobalMulti]
+  Int_t       *fGL2FNumStrip;        //[fGlobalMulti]
+  Int_t       *fGL2BNumStrip;        //[fGlobalMulti]
+  Int_t       *fGCsINum;             //[fGlobalMulti]
 
-  Int_t       *fGTimeL2F;            //[fGlobalMulti]
+  Double_t    *fGL1SEMeV;            //[fGlobalMulti]
+  Double_t    *fGL2FEMeV;            //[fGlobalMulti]
+  Double_t    *fGL2BEMeV;            //[fGlobalMulti]
+  Double_t    *fGCsIEMeV;            //[fGlobalMulti]
 
-  Double_t    *fGEMeVL1S;            //[fGlobalMulti]
-  Double_t    *fGEMeVL2F;            //[fGlobalMulti]
-  Double_t    *fGEMeVL2B;            //[fGlobalMulti]
-  Double_t    *fGEMeVCsI;            //[fGlobalMulti]
+  Int_t       *fGL2FTime;            //[fGlobalMulti]
 
   Double_t    *fTotKinEnergy;        //[fGlobalMulti]
   Double_t    *fCalKinEnergy;        //[fGlobalMulti]

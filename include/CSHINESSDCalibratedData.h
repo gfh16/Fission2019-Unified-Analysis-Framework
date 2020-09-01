@@ -12,16 +12,17 @@ public:
   CSHINESSDCalibratedData();
   virtual ~CSHINESSDCalibratedData();
 
-  Double_t* GetSiEChPedestals    (const char* layertag);                  // [NUM_SSD*NUM_STRIP]
-  Double_t* GetSiEChCut          (const char* layertag, Int_t numsigma);  // [NUM_SSD*NUM_STRIP]
+  Double_t* GetSiEChPedestals    (const char* layertag);                     // [NUM_SSD*NUM_STRIP]
+  Double_t* GetSiEChCut          (const char* layertag, Double_t numsigma);  // [NUM_SSD*NUM_STRIP]
 
-  Double_t* GetSiCaliSlope       (const char* layertag);                  // [NUM_SSD*NUM_STRIP]
-  Double_t* GetSiCaliIntercept   (const char* layertag);                  // [NUM_SSD*NUM_STRIP]
-  Double_t* GetSiEMeVCut         (const char* layertag, Int_t numsigma);  // [NUM_SSD*NUM_STRIP]
-  // Int_t ssdindex, const char* layertag, Int_t chindex, Double_t ech, Int_t numsigma
-  Double_t GetSiEMeV   (Int_t, const char*, Int_t, Int_t, Int_t);
+  Double_t* GetSiCaliSlope       (const char* layertag);                     // [NUM_SSD*NUM_STRIP]
+  Double_t* GetSiCaliIntercept   (const char* layertag);                     // [NUM_SSD*NUM_STRIP]
+  Double_t* GetSiEMeVCut         (const char* layertag, Double_t numsigma);  // [NUM_SSD*NUM_STRIP]
+  // Int_t ssdindex, const char* layertag, Int_t chindex, Int_t ech, Double_t numsigma
+  Double_t GetSiEMeV   (Int_t, const char*, Int_t, Int_t, Double_t);
 
-  Double_t* GetCsIEChCut(const char* layertag);   // [NUM_SSD*NUM_CSI]
+  Double_t* GetCsIEChCut(const char* layertag);                 // [NUM_SSD*NUM_CSI]
+  Double_t* GetCsIEChCut(const char* layertag, Double_t numsigma); // 手动设置 CsI pedestal 的 sigma 为 2ch
 
 private:
   Double_t* fL1SEChPedestals;   // [NUM_SSD*NUM_STRIP]

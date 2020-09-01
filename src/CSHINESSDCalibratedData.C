@@ -90,9 +90,10 @@ Double_t* CSHINESSDCalibratedData::GetSiEChPedestals(const char* layertag)
 
 //______________________________________________________________________________
 // 计算 ECh_Cut = pedestal + num * sigma
-Double_t* CSHINESSDCalibratedData::GetSiEChCut(const char* layertag, Int_t numsigma)
+Double_t* CSHINESSDCalibratedData::GetSiEChCut(const char* layertag, Double_t numsigma)
 {
   Double_t* fSiEChCut;
+
   if (strcmp(layertag,"L1S")==0) {
     fSiEChCut = fL1SEChCut;
   } else if (strcmp(layertag,"L2F")==0) {
@@ -182,7 +183,7 @@ Double_t* CSHINESSDCalibratedData::GetSiCaliIntercept(const char* layertag)
 
 //______________________________________________________________________________
 // 计算参数为 <peak1 + peak2> 的情况下, ECh_Cut 对应的能量 EMeV_Cut
-Double_t* CSHINESSDCalibratedData::GetSiEMeVCut(const char* layertag, Int_t numsigma)
+Double_t* CSHINESSDCalibratedData::GetSiEMeVCut(const char* layertag, Double_t numsigma)
 {
   Double_t* fSiEMeVCut;
   if (strcmp(layertag,"L1S")==0) {
@@ -209,7 +210,7 @@ Double_t* CSHINESSDCalibratedData::GetSiEMeVCut(const char* layertag, Int_t nums
 //______________________________________________________________________________
 // 对于每个 SSD 的 每个 Ch, 给定 ECh 时, 计算对应的能量 EMeV
 Double_t CSHINESSDCalibratedData::GetSiEMeV(Int_t ssdindex, const char* layertag,
-  Int_t chindex, Int_t ech, Int_t numsigma)
+  Int_t chindex, Int_t ech, Double_t numsigma)
 {
   Double_t* slope     = GetSiCaliSlope(layertag);
   Double_t* intercept = GetSiCaliIntercept(layertag);
@@ -234,6 +235,29 @@ Double_t* CSHINESSDCalibratedData::GetCsIEChCut(const char* layertag)
   for (Int_t i=0; i<NUM_SSD; i++) {
     for (Int_t j=0; j<NUM_CSI; j++) {
       fCsIEChCut[i*NUM_CSI+j] = echcut[i][j][0];
+    }
+  }
+  // delete, 释放内存
+  readfile.DeleteData(echcut,NUM_SSD,NUM_CSI,numpar);
+  return fCsIEChCut;
+}
+
+
+//______________________________________________________________________________
+Double_t* CSHINESSDCalibratedData::GetCsIEChCut(const char* layertag, Double_t numsigma)
+{
+  std::string pathFolder("/home/sea/Fission2019-Unified-Analysis-Framework/");
+  std::string pathDataFolder(Form("%sStep4_SSD-Analysis-Framework/Step4.1_EnergyCalibration/output/",
+                             pathFolder.c_str()));
+  std::string pathDataInput(Form("%sSSD_%s_EChCut.dat", pathDataFolder.c_str(),layertag));
+
+  Int_t numpar = 1;
+  ReadFileModule readfile;
+  Double_t*** echcut = readfile.ReadData(pathDataInput.c_str(),NUM_SSD,NUM_CSI,numpar);
+
+  for (Int_t i=0; i<NUM_SSD; i++) {
+    for (Int_t j=0; j<NUM_CSI; j++) {
+      fCsIEChCut[i*NUM_CSI+j] = echcut[i][j][0] + numsigma * CSIPEDESTALSIGMA;
     }
   }
   // delete, 释放内存

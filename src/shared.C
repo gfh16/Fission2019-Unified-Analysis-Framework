@@ -12,7 +12,9 @@ const Int_t NUM_CSI                   =    9;
 const Int_t NUM_MAX_PARTICLES_PER_TEL =    5;
 
 //______________________________________________________________________________
-const Int_t NUM_SIGMA                 =    10;
+const Double_t NUM_SIGMA              =    10.;
 
 //______________________________________________________________________________
-const Double_t ECSICHCUT              =    150.;
+//const Double_t ECSICHCUT            =    150.;  // 手动添加
+const Double_t ECSICHCUT              =    80.;  // 手动添加
+const Double_t CSIPEDESTALSIGMA       =    2.;    // 手动添加
