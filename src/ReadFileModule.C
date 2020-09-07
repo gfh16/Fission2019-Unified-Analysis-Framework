@@ -1,15 +1,16 @@
 # include "../include/ReadFileModule.h"
 
+
 //______________________________________________________________________________
 ReadFileModule::ReadFileModule()
 {
-  cout<<"ReadFileModule Loaded!"<<endl;
+  //cout<<"ReadFileModule Loaded!"<<endl;
 }
 
 //______________________________________________________________________________
 ReadFileModule::~ReadFileModule()
 {
-  cout<<"ReadFileModule Deleted!"<<endl;
+  //cout<<"ReadFileModule Deleted!"<<endl;
 }
 
 //______________________________________________________________________________

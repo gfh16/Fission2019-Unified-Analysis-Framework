@@ -14,7 +14,10 @@ extern const Int_t NUM_CSI;
 extern const Int_t NUM_MAX_PARTICLES_PER_TEL;
 
 //______________________________
-extern const Double_t NUM_SIGMAE; // pedestal + NUM_SIGMA*sigma
+extern const Double_t NUM_SIGMA_L1S[4];
+extern const Double_t NUM_SIGMA_L2F[4];
+extern const Double_t NUM_SIGMA_L2B[4];
+extern const Double_t NUM_SIGMA_L3A[4];
 
 //______________________________
 // Setting the Cut for CsI

@@ -28,6 +28,11 @@ public:
   Vector3 PosInSSDFrameToLabFrame(Int_t ssdnum, Double_t pixelX, Double_t pixelY, Double_t pixelZ);
   Vector3 PosInLabFrameToSSDFrame(Double_t labX, Double_t labY, Double_t labZ, Double_t dist, Double_t theta, Double_t phi);
 
+  void    CalculateEffectiveThickness();
+  void    SiPixellation();
+  void    CheckSiPixellation();
+
+
 private:
   Double_t     fWidthPerStrip;         // 条宽, mm
   Double_t     fWidthPerGap;           // 相邻条缝宽, mm

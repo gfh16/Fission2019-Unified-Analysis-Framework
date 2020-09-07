@@ -1,7 +1,8 @@
 #include "../include/CSHINESSDCalibratedData.h"
+#include "../include/shared.h"
 
 
-//______________________________________________________________________________
+//******************************************************************************
 CSHINESSDCalibratedData::CSHINESSDCalibratedData()
 {
   fL1SEChPedestals  = new Double_t [NUM_SSD*NUM_STRIP];
@@ -25,7 +26,7 @@ CSHINESSDCalibratedData::CSHINESSDCalibratedData()
   fL2FEMeVCut       = new Double_t [NUM_SSD*NUM_STRIP];
   fL2BEMeVCut       = new Double_t [NUM_SSD*NUM_STRIP];
 
-  cout<<"Enter Class CSHINESSDCalibratedData!"<<endl;
+  //cout<<"Enter Class CSHINESSDCalibratedData!"<<endl;
 }
 
 //______________________________________________________________________________
@@ -52,11 +53,12 @@ CSHINESSDCalibratedData::~CSHINESSDCalibratedData()
   delete [] fL2FEMeVCut;
   delete [] fL2BEMeVCut;
 
-  cout<<"Exit Class CSHINESSDCalibratedData\n";
+  //cout<<"Exit Class CSHINESSDCalibratedData\n";
 }
+//******************************************************************************
 
 
-//______________________________________________________________________________
+//******************************************************************************
 //  提取 pedestals
 Double_t* CSHINESSDCalibratedData::GetSiEChPedestals(const char* layertag)
 {
@@ -87,8 +89,54 @@ Double_t* CSHINESSDCalibratedData::GetSiEChPedestals(const char* layertag)
   readfile.DeleteData(pedestals,NUM_SSD,NUM_STRIP,numpar);
   return fSiEChPedestals;
 }
+//******************************************************************************
 
-//______________________________________________________________________________
+
+//******************************************************************************
+// 计算 ECh_Cut = pedestal + num * sigma
+Double_t* CSHINESSDCalibratedData::GetSiEChCut(const char* layertag)
+{
+  Double_t* fSiEChCut;
+  Double_t  fSiNumSigma[NUM_SSD];
+
+  if (strcmp(layertag,"L1S")==0) {
+    fSiEChCut = fL1SEChCut;
+    for (Int_t i=0; i<NUM_SSD; i++) {
+      fSiNumSigma[i] = NUM_SIGMA_L1S[i];
+    }
+  } else if (strcmp(layertag,"L2F")==0) {
+    fSiEChCut = fL2FEChCut;
+    for (Int_t i=0; i<NUM_SSD; i++) {
+      fSiNumSigma[i] = NUM_SIGMA_L2F[i];
+    }
+  } else {
+    fSiEChCut = fL2BEChCut;
+    for (Int_t i=0; i<NUM_SSD; i++) {
+      fSiNumSigma[i] = NUM_SIGMA_L2B[i];
+    }
+  }
+  std::string pathFolder("/home/sea/Fission2019-Unified-Analysis-Framework/");
+  std::string pathDataFolder(Form("%sStep4_SSD-Analysis-Framework/Step4.1_EnergyCalibration/output/",
+                             pathFolder.c_str()));
+  std::string pathDataInput(Form("%sSSD_%s_PulserCaliPedestals_Pedestal0000.dat",
+                            pathDataFolder.c_str(), layertag));
+  Int_t numpar = 2; // pedestal mean, sigma
+  ReadFileModule readfile;
+  Double_t*** pedestals = readfile.ReadData(pathDataInput.c_str(),NUM_SSD,NUM_STRIP,numpar);
+
+  for (Int_t i=0; i<NUM_SSD; i++) {
+    for (Int_t j=0; j<NUM_STRIP; j++) {
+      fSiEChCut[i*NUM_STRIP+j] = pedestals[i][j][0] + fSiNumSigma[i]*pedestals[i][j][1];
+    }
+  }
+  // delete, 释放内存
+  readfile.DeleteData(pedestals,NUM_SSD,NUM_STRIP,numpar);
+  return fSiEChCut;
+}
+//******************************************************************************
+
+
+//******************************************************************************
 // 计算 ECh_Cut = pedestal + num * sigma
 Double_t* CSHINESSDCalibratedData::GetSiEChCut(const char* layertag, Double_t numsigma)
 {
@@ -119,9 +167,10 @@ Double_t* CSHINESSDCalibratedData::GetSiEChCut(const char* layertag, Double_t nu
   readfile.DeleteData(pedestals,NUM_SSD,NUM_STRIP,numpar);
   return fSiEChCut;
 }
+//******************************************************************************
 
 
-//______________________________________________________________________________
+//******************************************************************************
 //  提取硅条的能量曲线的斜率, 参数为 <peak1 + peak2> 的情况
 Double_t* CSHINESSDCalibratedData::GetSiCaliSlope(const char* layertag)
 {
@@ -150,8 +199,10 @@ Double_t* CSHINESSDCalibratedData::GetSiCaliSlope(const char* layertag)
   readfile.DeleteData(pedestals,NUM_SSD,NUM_STRIP,numpar);
   return fSiCaliSlope;
 }
+//******************************************************************************
 
-//______________________________________________________________________________
+
+//******************************************************************************
 //  提取硅条的能量曲线的截距, 参数为 <peak1 + peak2> 的情况
 Double_t* CSHINESSDCalibratedData::GetSiCaliIntercept(const char* layertag)
 {
@@ -180,10 +231,12 @@ Double_t* CSHINESSDCalibratedData::GetSiCaliIntercept(const char* layertag)
   readfile.DeleteData(pedestals,NUM_SSD,NUM_STRIP,numpar);
   return fSiCaliIntercept;
 }
+//******************************************************************************
 
-//______________________________________________________________________________
+
+//******************************************************************************
 // 计算参数为 <peak1 + peak2> 的情况下, ECh_Cut 对应的能量 EMeV_Cut
-Double_t* CSHINESSDCalibratedData::GetSiEMeVCut(const char* layertag, Double_t numsigma)
+Double_t* CSHINESSDCalibratedData::GetSiEMeVCut(const char* layertag)
 {
   Double_t* fSiEMeVCut;
   if (strcmp(layertag,"L1S")==0) {
@@ -194,9 +247,9 @@ Double_t* CSHINESSDCalibratedData::GetSiEMeVCut(const char* layertag, Double_t n
     fSiEMeVCut = fL2BEMeVCut;
   }
 
-  Double_t* slope     = GetSiCaliSlope(layertag);
+  Double_t* slope     = GetSiCaliSlope    (layertag);
   Double_t* intercept = GetSiCaliIntercept(layertag);
-  Double_t* echcut    = GetSiEChCut(layertag, numsigma);
+  Double_t* echcut    = GetSiEChCut       (layertag);
 
   for (Int_t i=0; i<NUM_SSD; i++) {
     for (Int_t j=0; j<NUM_STRIP; j++) {
@@ -205,24 +258,30 @@ Double_t* CSHINESSDCalibratedData::GetSiEMeVCut(const char* layertag, Double_t n
   }
   return fSiEMeVCut;
 }
+//******************************************************************************
 
 
-//______________________________________________________________________________
+//******************************************************************************
 // 对于每个 SSD 的 每个 Ch, 给定 ECh 时, 计算对应的能量 EMeV
-Double_t CSHINESSDCalibratedData::GetSiEMeV(Int_t ssdindex, const char* layertag,
-  Int_t chindex, Int_t ech, Double_t numsigma)
+Double_t CSHINESSDCalibratedData::GetSiEMeV(Int_t ssdindex, const char* layertag, Int_t chindex, Int_t ech)
 {
-  Double_t* slope     = GetSiCaliSlope(layertag);
+  Double_t* slope     = GetSiCaliSlope    (layertag);
   Double_t* intercept = GetSiCaliIntercept(layertag);
-  Double_t* echcut    = GetSiEChCut(layertag, numsigma);
+  Double_t* echcut    = GetSiEChCut       (layertag);
   if (ech < echcut[ssdindex*NUM_STRIP+chindex]) return -9999; // 忽略 ech<cut 的事件
   return  slope[ssdindex*NUM_STRIP+chindex]*ech + intercept[ssdindex*NUM_STRIP+chindex];
 }
+//******************************************************************************
 
 
-//______________________________________________________________________________
+//******************************************************************************
 Double_t* CSHINESSDCalibratedData::GetCsIEChCut(const char* layertag)
 {
+  Double_t fCsINumSigma[NUM_SSD];
+  for (Int_t i=0; i<NUM_SSD; i++) {
+    fCsINumSigma[i] = NUM_SIGMA_L3A[i];
+  }
+
   std::string pathFolder("/home/sea/Fission2019-Unified-Analysis-Framework/");
   std::string pathDataFolder(Form("%sStep4_SSD-Analysis-Framework/Step4.1_EnergyCalibration/output/",
                              pathFolder.c_str()));
@@ -234,16 +293,17 @@ Double_t* CSHINESSDCalibratedData::GetCsIEChCut(const char* layertag)
 
   for (Int_t i=0; i<NUM_SSD; i++) {
     for (Int_t j=0; j<NUM_CSI; j++) {
-      fCsIEChCut[i*NUM_CSI+j] = echcut[i][j][0];
+      fCsIEChCut[i*NUM_CSI+j] = echcut[i][j][0] + fCsINumSigma[i] * CSIPEDESTALSIGMA;
     }
   }
   // delete, 释放内存
   readfile.DeleteData(echcut,NUM_SSD,NUM_CSI,numpar);
   return fCsIEChCut;
 }
+//******************************************************************************
 
 
-//______________________________________________________________________________
+//******************************************************************************
 Double_t* CSHINESSDCalibratedData::GetCsIEChCut(const char* layertag, Double_t numsigma)
 {
   std::string pathFolder("/home/sea/Fission2019-Unified-Analysis-Framework/");
@@ -264,3 +324,4 @@ Double_t* CSHINESSDCalibratedData::GetCsIEChCut(const char* layertag, Double_t n
   readfile.DeleteData(echcut,NUM_SSD,NUM_CSI,numpar);
   return fCsIEChCut;
 }
+//******************************************************************************
