@@ -13,17 +13,7 @@
 
 #include "TCanvas.h"
 #include "TH1.h"
-#include "TF1.h"
 #include "TSpectrum.h"
-#include "TFile.h"
-#include "TTree.h"
-#include "TString.h"
-#include "TChain.h"
-#include "TStyle.h"
-#include "TMarker.h"
-#include "TGraph.h"
-#include "TMath.h"
-#include "TFile.h"
 
 
 //______________________________________________________________________________
@@ -51,9 +41,9 @@ void Pedestals_AutoFindPedestals()
 
   Int_t lowrange  = 0;
   Int_t highrange = 200;
-  std::string AlphaFileTag("AlphaCali00_04");
-  std::string LayerTagWithOutLabel("L1");
-  std::string LayerTag("L1S");
+  std::string AlphaFileTag("AlphaCali00_32");
+  std::string LayerTagWithOutLabel("L2");
+  std::string LayerTag("L2F");
 
 //  std::string pathRootInput(Form("/data/EXPdata/Fission2019_Data/MapRoot/MapSSD_%s_AlphaCali%04d.root", LayerTagWithOutLabel.c_str(), i));
   std::string pathRootInput(Form("/home/sea/Fission2019_Data/QualityCheck/QC_MapSSD_%s_%s.root", LayerTagWithOutLabel.c_str(), AlphaFileTag.c_str()));

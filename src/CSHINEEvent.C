@@ -220,8 +220,8 @@ void CSHINEBuildEvent::BuildLayerEventTree(Int_t firstrun, Int_t lastrun)
   std::string L2BTag("L2B");
   std::string L3ATag("L3A");
 
-  std::string pathRootInputFolder("/home/sea/Fission2019_Data/MapRoot/");
-  std::string pathEventTreeOutput("/home/sea/Fission2019_Data/CSHINEEvent/");
+  std::string pathRootInputFolder(Form("%sMapRoot/", PATHROOTFILESFOLDER));
+  std::string pathEventTreeOutput(Form("%sCSHINEEvent/", PATHROOTFILESFOLDER));
 
   Int_t SSD_L1S_E[NUM_SSD][NUM_STRIP];
   Int_t SSD_L2F_E[NUM_SSD][NUM_STRIP];

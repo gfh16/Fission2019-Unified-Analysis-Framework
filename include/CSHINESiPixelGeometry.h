@@ -2,8 +2,9 @@
 #define CSHINESIPIXELGEOMETRY_H
 
 #include "Vector3.h"
-#include <TMath.h>
 #include "shared.h"
+
+#include <TMath.h>
 
 class CSHINESiPixelGeometry
 {
@@ -11,26 +12,26 @@ public:
   CSHINESiPixelGeometry();
   ~CSHINESiPixelGeometry();
 
-  Double_t GetWidthPerStrip();
-  Double_t GetDistFromL1FToL2F();
-  Double_t Getd1(Int_t ssdnum);
-  Double_t Getd2(Int_t ssdnum);
-  Double_t GetDistOfL2FToTarget(Int_t ssdnum);
-  Double_t GetPhiOfSSDFixedPosition(Int_t ssdnum);
-  Double_t GetThetaOfSSDFixedPosition(Int_t ssdnum);
-  Double_t GetEffThicknessOfPixel(Int_t ssdnum, Int_t stripb, Int_t stripf);
-  Double_t GetThetaDegOfPixel(Int_t ssdnum, Int_t stripb, Int_t stripf);
-  Double_t GetPhiDegOfPixel(Int_t ssdnum, Int_t stripb, Int_t stripf);
+  Double_t    GetWidthPerStrip();
+  Double_t    GetDistFromL1FToL2F();
+  Double_t    Getd1(Int_t ssdnum);
+  Double_t    Getd2(Int_t ssdnum);
+  Double_t    GetDistOfL2FToTarget(Int_t ssdnum);
+  Double_t    GetPhiOfSSDFixedPosition(Int_t ssdnum);
+  Double_t    GetThetaOfSSDFixedPosition(Int_t ssdnum);
+  Double_t    GetEffThicknessOfPixel(Int_t ssdnum, Int_t stripb, Int_t stripf);
+  Double_t    GetThetaDegOfPixel(Int_t ssdnum, Int_t stripb, Int_t stripf);
+  Double_t    GetPhiDegOfPixel(Int_t ssdnum, Int_t stripb, Int_t stripf);
 
-  Vector3 StripNumToPosInSSDFrame(Int_t ssdnum, Int_t stripb, Int_t stripf);
-  Vector3 StripNumToPosInLabFrame(Int_t ssdnum, Int_t stripb, Int_t stripf);
-  Vector3 PosInSSDFrameToLabFrame(Double_t pixelX, Double_t pixelY, Double_t pixelZ, Double_t dist, Double_t theta, Double_t phi);
-  Vector3 PosInSSDFrameToLabFrame(Int_t ssdnum, Double_t pixelX, Double_t pixelY, Double_t pixelZ);
-  Vector3 PosInLabFrameToSSDFrame(Double_t labX, Double_t labY, Double_t labZ, Double_t dist, Double_t theta, Double_t phi);
+  Vector3     StripNumToPosInSSDFrame(Int_t ssdnum, Int_t stripb, Int_t stripf);
+  Vector3     StripNumToPosInLabFrame(Int_t ssdnum, Int_t stripb, Int_t stripf);
+  Vector3     PosInSSDFrameToLabFrame(Double_t pixelX, Double_t pixelY, Double_t pixelZ, Double_t dist, Double_t theta, Double_t phi);
+  Vector3     PosInSSDFrameToLabFrame(Int_t ssdnum, Double_t pixelX, Double_t pixelY, Double_t pixelZ);
+  Vector3     PosInLabFrameToSSDFrame(Double_t labX, Double_t labY, Double_t labZ, Double_t dist, Double_t theta, Double_t phi);
 
-  void    CalculateEffectiveThickness();
-  void    SiPixellation();
-  void    CheckSiPixellation();
+  void        CalculateEffectiveThickness();
+  void        SiPixellation();
+  void        CheckSiPixellation();
 
 
 private:

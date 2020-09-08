@@ -1,46 +1,50 @@
 #include "../include/EnergyLossModule.h"
-#include "../include/nuclear_masses.h"
 
-//______________________________________________
+
+//******************************************************************************
 EnergyLossModule::EnergyLossModule()
 {
-  NucData=new nuclear_masses("../Nuclear_Masses/masses.conf");
+  NucData = new Nuclear_masses("Masses.conf");
 }
 
-//______________________________________________
+//______________________________________________________________________________
 EnergyLossModule::~EnergyLossModule()
 {
   delete NucData;
 }
+//******************************************************************************
 
-//______________________________________________
+
+//******************************************************************************
 void EnergyLossModule::Clear()
 {
   ParticleEnergy.clear();
-  for(int i=0; i<NUM_MODELS; i++) {
+  for(Int_t i=0; i<NUM_MODELS; i++) {
     if(LiseELoss[i].size()) {
       LiseELoss[i].clear();
     }
   }
-  for(int i=0; i<NUM_RANGE_MODELS; i++) {
+  for(Int_t i=0; i<NUM_RANGE_MODELS; i++) {
     if(LiseRange[i].size()) {
       LiseRange[i].clear();
     }
   }
 }
+//******************************************************************************
 
-//______________________________________________
-int EnergyLossModule::LoadEnergyLossFile(const char * file_name)
+
+//******************************************************************************
+Int_t EnergyLossModule::LoadEnergyLossFile(const char* file_name)
 {
   std::ifstream FileIn(file_name);
   if(!FileIn.is_open()) {
     printf("Error: error while reading energy loss file\n");
     return -1;
   }
-  if(LastFileLoaded.compare(file_name)==0) return 1; //file already loaded
+  if(LastFileLoaded.compare(file_name)==0) return 1;  //file already loaded
 
   Clear();
-  int NRead=0;
+  Int_t NRead=0;
 
   while (!FileIn.eof())
   {
@@ -48,47 +52,46 @@ int EnergyLossModule::LoadEnergyLossFile(const char * file_name)
     std::getline(FileIn, LineRead);
 
     if(LineRead.empty()) continue;
-    if(LineRead.find('*')==0) continue;
+    if(LineRead.find('*') == 0) continue;
 
     std::istringstream LineStream(LineRead);
 
-    double energy;
-    double eloss;
+    Double_t energy;
+    Double_t eloss;
 
-    for(int i=0; i<NUM_MODELS; i++) {
+    for(Int_t i=0; i<NUM_MODELS; i++) {
       LineStream >> energy >> eloss;
       LiseELoss[i].push_back(eloss);
     }
-
     ParticleEnergy.push_back(energy);
-
     NRead++;
   }
 
   Emin=ParticleEnergy[0];
   Emax=ParticleEnergy[ParticleEnergy.size()-1];
 
-  for(int i=0; i<NUM_MODELS; i++) {
+  for(Int_t i=0; i<NUM_MODELS; i++) {
     SplineInterpolator[i].SetData(ParticleEnergy,LiseELoss[i]);
   }
-
   LastFileLoaded.assign(file_name);
 
   return NRead;
 }
+//******************************************************************************
 
-//______________________________________________
-int EnergyLossModule::LoadRangeFile(const char * file_name)
+
+//******************************************************************************
+Int_t EnergyLossModule::LoadRangeFile(const char* file_name)
 {
   std::ifstream FileIn(file_name);
   if(!FileIn.is_open()) {
     printf("Error: error while reading range file\n");
     return -1;
   }
-  if(LastFileLoaded.compare(file_name)==0) return 1; //file already loaded
+  if(LastFileLoaded.compare(file_name) == 0) return 1; //file already loaded
 
   Clear();
-  int NRead=0;
+  Int_t NRead=0;
 
   while (!FileIn.eof())
   {
@@ -96,116 +99,119 @@ int EnergyLossModule::LoadRangeFile(const char * file_name)
     std::getline(FileIn, LineRead);
 
     if(LineRead.empty()) continue;
-    if(LineRead.find('*')==0) continue;
+    if(LineRead.find('*') == 0) continue;
 
     std::istringstream LineStream(LineRead);
 
-    double energy;
-    double range;
+    Double_t energy;
+    Double_t range;
 
-    for(int i=0; i<NUM_RANGE_MODELS; i++) {
+    for(Int_t i=0; i<NUM_RANGE_MODELS; i++) {
       LineStream >> energy >> range;
       LiseRange[i].push_back(range);
     }
-
     ParticleEnergyRange.push_back(energy);
-
     NRead++;
   }
 
-  ERangeMin=ParticleEnergyRange[0];
-  ERangeMax=ParticleEnergyRange[ParticleEnergyRange.size()-1];
+  ERangeMin = ParticleEnergyRange[0];
+  ERangeMax = ParticleEnergyRange[ParticleEnergyRange.size()-1];
 
-  for(int i=0; i<NUM_RANGE_MODELS; i++) {
+  for(Int_t i=0; i<NUM_RANGE_MODELS; i++) {
     RangeSplineInterpolator[i].SetData(ParticleEnergyRange,LiseRange[i]);
     EnergyFromRangeSplineInterpolator[i].SetData(LiseRange[i],ParticleEnergyRange);
-    RangeMin[i]=LiseRange[i][0];
-    RangeMax[i]=LiseRange[i][LiseRange[i].size()-1];
+    RangeMin[i] = LiseRange[i][0];
+    RangeMax[i] = LiseRange[i][LiseRange[i].size()-1];
   }
-
   LastFileLoaded.assign(file_name);
 
   return NRead;
 }
+//******************************************************************************
 
-//______________________________________________
-double EnergyLossModule::GetEnergyLoss(int Z, int A, double Einc, const char * material, double thickness_um, int model)
+
+//******************************************************************************
+Double_t EnergyLossModule::GetEnergyLoss(Int_t Z, Int_t A, Double_t Einc,
+  const char* material, Double_t thickness_um, Int_t model)
 {
-  double Precision=0.0001;
-  double dThicknessMin=thickness_um*1E-4;
-  double IntegrateThickness=0;
-  double dThickness=dThicknessMin;
-  double Eresidual=Einc;
-  double ELoss=0;
+  Double_t Precision          =  0.0001;
+  Double_t dThicknessMin      =  thickness_um*1E-4;
+  Double_t IntegrateThickness =  0;
+  Double_t dThickness         =  dThicknessMin;
+  Double_t Eresidual          =  Einc;
+  Double_t ELoss              =  0;
+  Double_t mass_uma           =  NucData->GetMass_Z_A_uma(Z,A);
 
-  double mass_uma=NucData->get_mass_Z_A_uma(Z,A);
-
-  if(LoadEnergyLossFile(Form("../input/LISE_ELoss_Z%02d_A%02d_%s.dat", Z, A, material))<=0) {
+  if(LoadEnergyLossFile(Form("../LISEInput/LISE_ELoss_Z%02d_A%02d_%s.dat", Z, A, material))<=0) {
     printf("Error: information not present for Z=%d A=%d material=%s\n", Z, A, material);
     return -100;
   }
 
-  for(;IntegrateThickness<thickness_um; IntegrateThickness+=dThickness)
-  {
-    if(Eresidual<=Emin*mass_uma) { //the particle stopped in the material
-      ELoss=Einc;
+  for(;IntegrateThickness<thickness_um; IntegrateThickness+=dThickness) {
+    if(Eresidual <= Emin*mass_uma) {  //the particle stopped in the material
+      ELoss = Einc;
       return ELoss;
     }
-
     if(SplineInterpolator[model].Deriv(Eresidual/mass_uma)!=0) {
-      dThickness=fmin(dThicknessMin,std::abs(Precision/(SplineInterpolator[model].Eval(Eresidual/mass_uma)*SplineInterpolator[model].Deriv(Eresidual/mass_uma)))); //variable integration step with fixed precision
+      dThickness = fmin(dThicknessMin,std::abs(Precision/(SplineInterpolator[model].Eval(Eresidual/mass_uma)*SplineInterpolator[model].Deriv(Eresidual/mass_uma)))); //variable integration step with fixed precision
     }
+    Double_t ELossStep = dThickness*SplineInterpolator[model].Eval(Eresidual/mass_uma);
 
-    double ELossStep=dThickness*SplineInterpolator[model].Eval(Eresidual/mass_uma);
-
-    ELoss+=ELossStep;
-    Eresidual-=ELossStep;
+    ELoss     +=  ELossStep;
+    Eresidual -=  ELossStep;
   }
-
   return ELoss;
 }
+//******************************************************************************
 
-//______________________________________________
-double EnergyLossModule::GetResidualEnergy(int Z, int A, double Eloss, const char * material, double thickness_um, int model)
+
+//******************************************************************************
+Double_t EnergyLossModule::GetResidualEnergy(Int_t Z, Int_t A, Double_t Eloss,
+  const char* material, Double_t thickness_um, Int_t model)
 {
-  double Einc=GetIncidentEnergy(Z,A,Eloss,material,thickness_um, model);
-  if(Einc<0) return -1; //the particle cannot lose this energy (energy greater than punch through energy)
+  Double_t Einc = GetIncidentEnergy(Z,A,Eloss,material,thickness_um, model);
+  if(Einc < 0) return -1;  //the particle cannot lose this energy (energy greater than punch through energy)
   return Einc-Eloss;
 }
+//******************************************************************************
 
-//______________________________________________
-double EnergyLossModule::GetIncidentEnergy(int Z, int A, double Eloss, const char * material, double thickness_um, int model)
+
+//******************************************************************************
+Double_t EnergyLossModule::GetIncidentEnergy(Int_t Z, Int_t A, Double_t Eloss,
+  const char* material, Double_t thickness_um, Int_t model)
 {
-  double EincStep=Eloss;
-  double ElossStep;
-  double dE=30.;
+  Double_t  EincStep = Eloss;
+  Double_t  ElossStep;
+  Double_t  dE = 30.;
 
-  ElossStep=GetEnergyLoss(Z,A,EincStep,material,thickness_um, model);
+  ElossStep = GetEnergyLoss(Z,A,EincStep,material,thickness_um, model);
 
-  if(ElossStep<Eloss) return -1; //the particle cannot lose this energy (energy greater than punch through energy)
+  if(ElossStep < Eloss) return -1; //the particle cannot lose this energy (energy greater than punch through energy)
 
   for(;;EincStep+=dE)
   {
-    ElossStep=GetEnergyLoss(Z,A,EincStep,material,thickness_um, model);
+    ElossStep = GetEnergyLoss(Z,A,EincStep,material,thickness_um, model);
 
     if(ElossStep<Eloss) {
-      dE=-std::abs(dE)/2;
+      dE = -std::abs(dE)/2;
     }
     if(ElossStep>Eloss && dE<0) {
-      dE=std::abs(dE);
+      dE = std::abs(dE);
     }
     if(std::abs(dE)<0.00001) break;
   }
-
   return EincStep;
 }
+//******************************************************************************
 
-//______________________________________________
-double EnergyLossModule::GetRangeFromEnergy(int Z, int A, double Einc, const char * material, int model)
+
+//******************************************************************************
+Double_t EnergyLossModule::GetRangeFromEnergy(Int_t Z, Int_t A, Double_t Einc,
+  const char* material, Int_t model)
 {
-  double mass_uma=NucData->get_mass_Z_A_uma(Z,A);
+  Double_t mass_uma = NucData->GetMass_Z_A_uma(Z,A);
 
-  if(LoadRangeFile(Form("../input/LISE_Range_Z%02d_A%02d_%s.dat", Z, A, material))<=0) {
+  if(LoadRangeFile(Form("../LISEInput/LISE_Range_Z%02d_A%02d_%s.dat", Z, A, material))<=0) {
     printf("Error: information not present for Z=%d A=%d material=%s\n", Z, A, material);
     return -100;
   }
@@ -214,13 +220,16 @@ double EnergyLossModule::GetRangeFromEnergy(int Z, int A, double Einc, const cha
     return RangeSplineInterpolator[model].Eval(Einc/mass_uma);
   } else return -1;
 }
+//******************************************************************************
 
-//______________________________________________
-double EnergyLossModule::GetEnergyFromRange(int Z, int A, double range, const char * material, int model)
+
+//******************************************************************************
+Double_t EnergyLossModule::GetEnergyFromRange(Int_t Z, Int_t A, Double_t range,
+  const char* material, Int_t model)
 {
-  double mass_uma=NucData->get_mass_Z_A_uma(Z,A);
+  Double_t mass_uma = NucData->GetMass_Z_A_uma(Z,A);
 
-  if(LoadRangeFile(Form("../input/LISE_Range_Z%02d_A%02d_%s.dat", Z, A, material))<=0) {
+  if(LoadRangeFile(Form("../LISEInput/LISE_Range_Z%02d_A%02d_%s.dat", Z, A, material))<=0) {
     printf("Error: information not present for Z=%d A=%d material=%s\n", Z, A, material);
     return -100;
   }
@@ -229,32 +238,34 @@ double EnergyLossModule::GetEnergyFromRange(int Z, int A, double range, const ch
     return mass_uma*EnergyFromRangeSplineInterpolator[model].Eval(range);
   } else return -1;
 }
+//******************************************************************************
 
-//______________________________________________
-void EnergyLossModule::DrawdEdx(int Z, int A, const char * material, int model)
+
+//******************************************************************************
+void EnergyLossModule::DrawdEdx(Int_t Z, Int_t A, const char* material, Int_t model)
 {
-  if(LoadEnergyLossFile(Form("../input/LISE_ELoss_Z%02d_A%02d_%s.dat", Z, A, material))<=0) return;
+  if(LoadEnergyLossFile(Form("../LISEInput/LISE_ELoss_Z%02d_A%02d_%s.dat", Z, A, material))<=0) return;
 
-  const int NPoints = ParticleEnergy.size();
-  double E_LISE_Values[NPoints];
-  double LISE_Values[NPoints];
+  const Int_t NPoints = ParticleEnergy.size();
+  Double_t E_LISE_Values[NPoints];
+  Double_t LISE_Values  [NPoints];
 
-  const int NPointsInterpolation = NPoints*1000;
-  double E_LISE_ValuesInterpolation[NPointsInterpolation];
-  double LISE_ValuesInterpolation[NPointsInterpolation];
+  const Int_t NPointsInterpolation = NPoints*1000;
+  Double_t E_LISE_ValuesInterpolation[NPointsInterpolation];
+  Double_t LISE_ValuesInterpolation  [NPointsInterpolation];
 
-  for(int i=0; i<NPoints; i++) {
-    E_LISE_Values[i]=ParticleEnergy[i];
-    LISE_Values[i]=LiseELoss[model][i];
+  for(Int_t i=0; i<NPoints; i++) {
+    E_LISE_Values[i] = ParticleEnergy  [i];
+    LISE_Values  [i] = LiseELoss[model][i];
   }
 
-  for(int i=0; i<NPointsInterpolation; i++) {
-    E_LISE_ValuesInterpolation[i]=i*(Emax-Emin)/NPointsInterpolation;
-    LISE_ValuesInterpolation[i]=SplineInterpolator[model].Eval(E_LISE_ValuesInterpolation[i]);
+  for(Int_t i=0; i<NPointsInterpolation; i++) {
+    E_LISE_ValuesInterpolation[i] = i*(Emax-Emin)/NPointsInterpolation;
+    LISE_ValuesInterpolation  [i] = SplineInterpolator[model].Eval(E_LISE_ValuesInterpolation[i]);
   }
 
-  TGraph *LISEGraph = new TGraph(NPoints,E_LISE_Values,LISE_Values);
-  TGraph *LISEGraphInterpolation = new TGraph(NPointsInterpolation,E_LISE_ValuesInterpolation,LISE_ValuesInterpolation);
+  TGraph* LISEGraph = new TGraph(NPoints,E_LISE_Values,LISE_Values);
+  TGraph* LISEGraphInterpolation = new TGraph(NPointsInterpolation,E_LISE_ValuesInterpolation,LISE_ValuesInterpolation);
 
   LISEGraph->Draw("A*");
   LISEGraphInterpolation->Draw("same L");
@@ -262,3 +273,4 @@ void EnergyLossModule::DrawdEdx(int Z, int A, const char * material, int model)
 
   return;
 }
+//******************************************************************************

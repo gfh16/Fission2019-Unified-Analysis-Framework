@@ -1,5 +1,4 @@
 #include "../include/CSHINESSDCalibratedData.h"
-#include "../include/shared.h"
 
 
 //******************************************************************************
@@ -62,6 +61,9 @@ CSHINESSDCalibratedData::~CSHINESSDCalibratedData()
 //  提取 pedestals
 Double_t* CSHINESSDCalibratedData::GetSiEChPedestals(const char* layertag)
 {
+  std::string pathDataFolder(Form("%sdata_Pedestals/", PATHDATAFOLDER));
+  std::string pathDataInput(Form("%sSSD_%s_PulserCaliPedestals_Pedestal0000.dat", pathDataFolder.c_str(), layertag));
+
   Double_t* fSiEChPedestals;
   if (strcmp(layertag,"L1S")==0) {
     fSiEChPedestals = fL1SEChPedestals;
@@ -71,11 +73,6 @@ Double_t* CSHINESSDCalibratedData::GetSiEChPedestals(const char* layertag)
     fSiEChPedestals = fL2BEChPedestals;
   }
 
-  std::string pathFolder("/home/sea/Fission2019-Unified-Analysis-Framework/");
-  std::string pathDataFolder(Form("%sStep4_SSD-Analysis-Framework/Step4.1_EnergyCalibration/output/",
-                             pathFolder.c_str()));
-  std::string pathDataInput(Form("%sSSD_%s_PulserCaliPedestals_Pedestal0000.dat",
-                            pathDataFolder.c_str(), layertag));
   Int_t numpar = 2; // pedestal mean, sigma
   ReadFileModule readfile;
   Double_t*** pedestals = readfile.ReadData(pathDataInput.c_str(),NUM_SSD,NUM_STRIP,numpar);
@@ -96,9 +93,11 @@ Double_t* CSHINESSDCalibratedData::GetSiEChPedestals(const char* layertag)
 // 计算 ECh_Cut = pedestal + num * sigma
 Double_t* CSHINESSDCalibratedData::GetSiEChCut(const char* layertag)
 {
+  std::string pathDataFolder(Form("%sdata_Pedestals/", PATHDATAFOLDER));
+  std::string pathDataInput(Form("%sSSD_%s_PulserCaliPedestals_Pedestal0000.dat", pathDataFolder.c_str(), layertag));
+
   Double_t* fSiEChCut;
   Double_t  fSiNumSigma[NUM_SSD];
-
   if (strcmp(layertag,"L1S")==0) {
     fSiEChCut = fL1SEChCut;
     for (Int_t i=0; i<NUM_SSD; i++) {
@@ -115,11 +114,7 @@ Double_t* CSHINESSDCalibratedData::GetSiEChCut(const char* layertag)
       fSiNumSigma[i] = NUM_SIGMA_L2B[i];
     }
   }
-  std::string pathFolder("/home/sea/Fission2019-Unified-Analysis-Framework/");
-  std::string pathDataFolder(Form("%sStep4_SSD-Analysis-Framework/Step4.1_EnergyCalibration/output/",
-                             pathFolder.c_str()));
-  std::string pathDataInput(Form("%sSSD_%s_PulserCaliPedestals_Pedestal0000.dat",
-                            pathDataFolder.c_str(), layertag));
+
   Int_t numpar = 2; // pedestal mean, sigma
   ReadFileModule readfile;
   Double_t*** pedestals = readfile.ReadData(pathDataInput.c_str(),NUM_SSD,NUM_STRIP,numpar);
@@ -140,8 +135,10 @@ Double_t* CSHINESSDCalibratedData::GetSiEChCut(const char* layertag)
 // 计算 ECh_Cut = pedestal + num * sigma
 Double_t* CSHINESSDCalibratedData::GetSiEChCut(const char* layertag, Double_t numsigma)
 {
-  Double_t* fSiEChCut;
+  std::string pathDataFolder(Form("%sdata_Pedestals/", PATHDATAFOLDER));
+  std::string pathDataInput(Form("%sSSD_%s_PulserCaliPedestals_Pedestal0000.dat", pathDataFolder.c_str(), layertag));
 
+  Double_t* fSiEChCut;
   if (strcmp(layertag,"L1S")==0) {
     fSiEChCut = fL1SEChCut;
   } else if (strcmp(layertag,"L2F")==0) {
@@ -149,11 +146,7 @@ Double_t* CSHINESSDCalibratedData::GetSiEChCut(const char* layertag, Double_t nu
   } else {
     fSiEChCut = fL2BEChCut;
   }
-  std::string pathFolder("/home/sea/Fission2019-Unified-Analysis-Framework/");
-  std::string pathDataFolder(Form("%sStep4_SSD-Analysis-Framework/Step4.1_EnergyCalibration/output/",
-                             pathFolder.c_str()));
-  std::string pathDataInput(Form("%sSSD_%s_PulserCaliPedestals_Pedestal0000.dat",
-                            pathDataFolder.c_str(), layertag));
+
   Int_t numpar = 2; // pedestal mean, sigma
   ReadFileModule readfile;
   Double_t*** pedestals = readfile.ReadData(pathDataInput.c_str(),NUM_SSD,NUM_STRIP,numpar);
@@ -174,6 +167,9 @@ Double_t* CSHINESSDCalibratedData::GetSiEChCut(const char* layertag, Double_t nu
 //  提取硅条的能量曲线的斜率, 参数为 <peak1 + peak2> 的情况
 Double_t* CSHINESSDCalibratedData::GetSiCaliSlope(const char* layertag)
 {
+  std::string pathDataFolder(Form("%sdata_SiEnergyCali/", PATHDATAFOLDER));
+  std::string pathDataInput(Form("%sSSD_%s_SiEnergyCaliParameters.dat", pathDataFolder.c_str(), layertag));
+
   Double_t* fSiCaliSlope;
   if (strcmp(layertag,"L1S")==0) {
     fSiCaliSlope = fL1SSlope;
@@ -182,10 +178,7 @@ Double_t* CSHINESSDCalibratedData::GetSiCaliSlope(const char* layertag)
   } else {
     fSiCaliSlope = fL2BSlope;
   }
-  std::string pathFolder("/home/sea/Fission2019-Unified-Analysis-Framework/");
-  std::string pathDataFolder(Form("%sStep4_SSD-Analysis-Framework/Step4.1_EnergyCalibration/output/",
-                             pathFolder.c_str()));
-  std::string pathDataInput(Form("%sSSD_%s_SiEnergyCaliParameters.dat", pathDataFolder.c_str(), layertag));
+
   Int_t numpar = 4; // k_ave, h_ave, k_deadlayer, h_deadlayer
   ReadFileModule readfile;
   Double_t*** pedestals = readfile.ReadData(pathDataInput.c_str(),NUM_SSD,NUM_STRIP,numpar);
@@ -206,6 +199,9 @@ Double_t* CSHINESSDCalibratedData::GetSiCaliSlope(const char* layertag)
 //  提取硅条的能量曲线的截距, 参数为 <peak1 + peak2> 的情况
 Double_t* CSHINESSDCalibratedData::GetSiCaliIntercept(const char* layertag)
 {
+  std::string pathDataFolder(Form("%sdata_SiEnergyCali/", PATHDATAFOLDER));
+  std::string pathDataInput(Form("%sSSD_%s_SiEnergyCaliParameters.dat", pathDataFolder.c_str(), layertag));
+
   Double_t* fSiCaliIntercept;
   if (strcmp(layertag,"L1S")==0) {
     fSiCaliIntercept = fL1SIntercept;
@@ -214,10 +210,7 @@ Double_t* CSHINESSDCalibratedData::GetSiCaliIntercept(const char* layertag)
   } else {
     fSiCaliIntercept = fL2BIntercept;
   }
-  std::string pathFolder("/home/sea/Fission2019-Unified-Analysis-Framework/");
-  std::string pathDataFolder(Form("%sStep4_SSD-Analysis-Framework/Step4.1_EnergyCalibration/output/",
-                             pathFolder.c_str()));
-  std::string pathDataInput(Form("%sSSD_%s_SiEnergyCaliParameters.dat", pathDataFolder.c_str(), layertag));
+
   Int_t numpar = 4; // k_ave, h_ave, k_deadlayer, h_deadlayer
   ReadFileModule readfile;
   Double_t*** pedestals = readfile.ReadData(pathDataInput.c_str(),NUM_SSD,NUM_STRIP,numpar);
@@ -277,15 +270,13 @@ Double_t CSHINESSDCalibratedData::GetSiEMeV(Int_t ssdindex, const char* layertag
 //******************************************************************************
 Double_t* CSHINESSDCalibratedData::GetCsIEChCut(const char* layertag)
 {
+  std::string pathDataFolder(Form("%sdata_Pedestals/", PATHDATAFOLDER));
+  std::string pathDataInput(Form("%sSSD_%s_EChCut.dat", pathDataFolder.c_str(),layertag));
+
   Double_t fCsINumSigma[NUM_SSD];
   for (Int_t i=0; i<NUM_SSD; i++) {
     fCsINumSigma[i] = NUM_SIGMA_L3A[i];
   }
-
-  std::string pathFolder("/home/sea/Fission2019-Unified-Analysis-Framework/");
-  std::string pathDataFolder(Form("%sStep4_SSD-Analysis-Framework/Step4.1_EnergyCalibration/output/",
-                             pathFolder.c_str()));
-  std::string pathDataInput(Form("%sSSD_%s_EChCut.dat", pathDataFolder.c_str(),layertag));
 
   Int_t numpar = 1;
   ReadFileModule readfile;
@@ -306,10 +297,8 @@ Double_t* CSHINESSDCalibratedData::GetCsIEChCut(const char* layertag)
 //******************************************************************************
 Double_t* CSHINESSDCalibratedData::GetCsIEChCut(const char* layertag, Double_t numsigma)
 {
-  std::string pathFolder("/home/sea/Fission2019-Unified-Analysis-Framework/");
-  std::string pathDataFolder(Form("%sStep4_SSD-Analysis-Framework/Step4.1_EnergyCalibration/output/",
-                             pathFolder.c_str()));
-  std::string pathDataInput(Form("%sSSD_%s_EChCut.dat", pathDataFolder.c_str(),layertag));
+  std::string pathDataFolder(Form("%sdata_Pedestals/", PATHDATAFOLDER));
+  std::string pathDataInput(Form("%sSSD_%s_EChCut.dat",pathDataFolder.c_str(),layertag));
 
   Int_t numpar = 1;
   ReadFileModule readfile;

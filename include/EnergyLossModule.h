@@ -12,50 +12,50 @@
 #include <cmath>
 #include <Math/Interpolator.h>
 
-#include "nuclear_masses.h"
+#include "Nuclear_masses.h"
 
 // NUMBER OF MODELS FOR ENERGY LOSS CALCULATIONS
-static const int NUM_MODELS=6;
-static const int NUM_RANGE_MODELS=9;
+static const Int_t NUM_MODELS       = 6;
+static const Int_t NUM_RANGE_MODELS = 9;
 
 class EnergyLossModule
 {
 public:
   EnergyLossModule();
   ~EnergyLossModule();
-  
-  int LoadEnergyLossFile(const char *);
-  int LoadRangeFile(const char *);
+
+  Int_t LoadEnergyLossFile(const char*);
+  Int_t LoadRangeFile     (const char*);
   void Clear();
-  
-  double GetEnergyLoss(int Z, int A, double Einc, const char * material, double thickness_um, int model=1);
-  double GetResidualEnergy(int Z, int A, double Eloss, const char * material, double thickness_um, int model=1);
-  double GetIncidentEnergy(int Z, int A, double Eloss, const char * material, double thickness_um, int model=1);
-  
-  double GetRangeFromEnergy(int Z, int A, double Einc, const char * material, int model=1);
-  double GetEnergyFromRange(int Z, int A, double range, const char * material, int model=1);
-  
-  void DrawdEdx(int Z, int A, const char * material, int model=1);
-  
+
+  Double_t GetEnergyLoss     (Int_t Z, Int_t A, Double_t Einc,  const char* material, Double_t thickness_um, Int_t model=1);
+  Double_t GetResidualEnergy (Int_t Z, Int_t A, Double_t Eloss, const char* material, Double_t thickness_um, Int_t model=1);
+  Double_t GetIncidentEnergy (Int_t Z, Int_t A, Double_t Eloss, const char* material, Double_t thickness_um, Int_t model=1);
+
+  Double_t GetRangeFromEnergy(Int_t Z, Int_t A, Double_t Einc,  const char* material, Int_t model=1);
+  Double_t GetEnergyFromRange(Int_t Z, Int_t A, Double_t range, const char* material, Int_t model=1);
+
+  void DrawdEdx(Int_t Z, Int_t A, const char* material, Int_t model=1);
+
 private:
-  std::vector <double> ParticleEnergy; //MeV/u
-  std::vector <double> LiseELoss[NUM_MODELS];   //MeV/micron
-  std::vector <double> ParticleEnergyRange; //MeV/u
-  std::vector <double> LiseRange[NUM_RANGE_MODELS]; //micron
-  
-  double Emax; //MeV/u
-  double Emin; //MeV/u
-  double ERangeMax; //MeV/u
-  double ERangeMin; //MeV/u
-  double RangeMin[NUM_RANGE_MODELS]; //micron
-  double RangeMax[NUM_RANGE_MODELS]; //micron
-  
+  std::vector <Double_t> ParticleEnergy; //MeV/u
+  std::vector <Double_t> LiseELoss[NUM_MODELS];   //MeV/micron
+  std::vector <Double_t> ParticleEnergyRange; //MeV/u
+  std::vector <Double_t> LiseRange[NUM_RANGE_MODELS]; //micron
+
+  Double_t Emax; //MeV/u
+  Double_t Emin; //MeV/u
+  Double_t ERangeMax; //MeV/u
+  Double_t ERangeMin; //MeV/u
+  Double_t RangeMin[NUM_RANGE_MODELS]; //micron
+  Double_t RangeMax[NUM_RANGE_MODELS]; //micron
+
   ROOT::Math::Interpolator SplineInterpolator[NUM_MODELS];
   ROOT::Math::Interpolator RangeSplineInterpolator[NUM_RANGE_MODELS];
   ROOT::Math::Interpolator EnergyFromRangeSplineInterpolator[NUM_RANGE_MODELS];
-  
-  nuclear_masses *NucData;
-  
+
+  Nuclear_masses *NucData;
+
   std::string LastFileLoaded;
 };
 

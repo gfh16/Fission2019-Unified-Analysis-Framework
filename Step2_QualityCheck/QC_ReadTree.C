@@ -224,10 +224,10 @@ void ReadTree( TChain* myChain, const char* rootpath, const char* pdfpath)
   }
   for(int i=0; i<9; i++)
   {
-    Hist_SSD1_L3A_E[i] = new TH1D(Form("SSD1_L3A_E_CH%d", i), Form("SSD1_L3A_E_CH%d", i), BIN_NUM, LOW_CH, HIGH_CH);
-    Hist_SSD2_L3A_E[i] = new TH1D(Form("SSD2_L3A_E_CH%d", i), Form("SSD2_L3A_E_CH%d", i), BIN_NUM, LOW_CH, HIGH_CH);
-    Hist_SSD3_L3A_E[i] = new TH1D(Form("SSD3_L3A_E_CH%d", i), Form("SSD3_L3A_E_CH%d", i), BIN_NUM, LOW_CH, HIGH_CH);
-    Hist_SSD4_L3A_E[i] = new TH1D(Form("SSD4_L3A_E_CH%d", i), Form("SSD4_L3A_E_CH%d", i), BIN_NUM, LOW_CH, HIGH_CH);
+    Hist_SSD1_L3A_E[i] = new TH1D(Form("SSD1_L3A_E_CH%02d", i), Form("SSD1_L3A_E_CH%02d", i), BIN_NUM, LOW_CH, HIGH_CH);
+    Hist_SSD2_L3A_E[i] = new TH1D(Form("SSD2_L3A_E_CH%02d", i), Form("SSD2_L3A_E_CH%02d", i), BIN_NUM, LOW_CH, HIGH_CH);
+    Hist_SSD3_L3A_E[i] = new TH1D(Form("SSD3_L3A_E_CH%02d", i), Form("SSD3_L3A_E_CH%02d", i), BIN_NUM, LOW_CH, HIGH_CH);
+    Hist_SSD4_L3A_E[i] = new TH1D(Form("SSD4_L3A_E_CH%02d", i), Form("SSD4_L3A_E_CH%02d", i), BIN_NUM, LOW_CH, HIGH_CH);
   }
 
   //===========================================
@@ -456,22 +456,22 @@ void ReadTree( TChain* myChain, const char* rootpath, const char* pdfpath)
     TCanvas *Canvas_SSD4_L3A_E[9];
     for(int i=0; i<16; i++)
     {
-      Canvas_SSD1_L2F_T[i] = new TCanvas(Form("SSD1_L2F_T_CH%d",i), Form("SSD1_L2F_T_CH%d",i));
-      Canvas_SSD1_L1S_E[i] = new TCanvas(Form("SSD1_L1S_E_CH%d",i), Form("SSD1_L1S_E_CH%d",i));
-      Canvas_SSD1_L2F_E[i] = new TCanvas(Form("SSD1_L2F_E_CH%d",i), Form("SSD1_L2F_E_CH%d",i));
-      Canvas_SSD1_L2B_E[i] = new TCanvas(Form("SSD1_L2B_E_CH%d",i), Form("SSD1_L2B_E_CH%d",i));
-      Canvas_SSD2_L2F_T[i] = new TCanvas(Form("SSD2_L2F_T_CH%d",i), Form("SSD2_L2F_T_CH%d",i));
-      Canvas_SSD2_L1S_E[i] = new TCanvas(Form("SSD2_L1S_E_CH%d",i), Form("SSD2_L1S_E_CH%d",i));
-      Canvas_SSD2_L2F_E[i] = new TCanvas(Form("SSD2_L2F_E_CH%d",i), Form("SSD2_L2F_E_CH%d",i));
-      Canvas_SSD2_L2B_E[i] = new TCanvas(Form("SSD2_L2B_E_CH%d",i), Form("SSD2_L2B_E_CH%d",i));
-      Canvas_SSD3_L2F_T[i] = new TCanvas(Form("SSD3_L2F_T_CH%d",i), Form("SSD3_L2F_T_CH%d",i));
-      Canvas_SSD3_L1S_E[i] = new TCanvas(Form("SSD3_L1S_E_CH%d",i), Form("SSD3_L1S_E_CH%d",i));
-      Canvas_SSD3_L2F_E[i] = new TCanvas(Form("SSD3_L2F_E_CH%d",i), Form("SSD3_L2F_E_CH%d",i));
-      Canvas_SSD3_L2B_E[i] = new TCanvas(Form("SSD3_L2B_E_CH%d",i), Form("SSD3_L2B_E_CH%d",i));
-      Canvas_SSD4_L2F_T[i] = new TCanvas(Form("SSD4_L2F_T_CH%d",i), Form("SSD4_L2F_T_CH%d",i));
-      Canvas_SSD4_L1S_E[i] = new TCanvas(Form("SSD4_L1S_E_CH%d",i), Form("SSD4_L1S_E_CH%d",i));
-      Canvas_SSD4_L2F_E[i] = new TCanvas(Form("SSD4_L2F_E_CH%d",i), Form("SSD4_L2F_E_CH%d",i));
-      Canvas_SSD4_L2B_E[i] = new TCanvas(Form("SSD4_L2B_E_CH%d",i), Form("SSD4_L2B_E_CH%d",i));
+      Canvas_SSD1_L2F_T[i] = new TCanvas(Form("SSD1_L2F_T_CH%02d",i), Form("SSD1_L2F_T_CH%02d",i));
+      Canvas_SSD1_L1S_E[i] = new TCanvas(Form("SSD1_L1S_E_CH%02d",i), Form("SSD1_L1S_E_CH%02d",i));
+      Canvas_SSD1_L2F_E[i] = new TCanvas(Form("SSD1_L2F_E_CH%02d",i), Form("SSD1_L2F_E_CH%02d",i));
+      Canvas_SSD1_L2B_E[i] = new TCanvas(Form("SSD1_L2B_E_CH%02d",i), Form("SSD1_L2B_E_CH%02d",i));
+      Canvas_SSD2_L2F_T[i] = new TCanvas(Form("SSD2_L2F_T_CH%02d",i), Form("SSD2_L2F_T_CH%02d",i));
+      Canvas_SSD2_L1S_E[i] = new TCanvas(Form("SSD2_L1S_E_CH%02d",i), Form("SSD2_L1S_E_CH%02d",i));
+      Canvas_SSD2_L2F_E[i] = new TCanvas(Form("SSD2_L2F_E_CH%02d",i), Form("SSD2_L2F_E_CH%02d",i));
+      Canvas_SSD2_L2B_E[i] = new TCanvas(Form("SSD2_L2B_E_CH%02d",i), Form("SSD2_L2B_E_CH%02d",i));
+      Canvas_SSD3_L2F_T[i] = new TCanvas(Form("SSD3_L2F_T_CH%02d",i), Form("SSD3_L2F_T_CH%02d",i));
+      Canvas_SSD3_L1S_E[i] = new TCanvas(Form("SSD3_L1S_E_CH%02d",i), Form("SSD3_L1S_E_CH%02d",i));
+      Canvas_SSD3_L2F_E[i] = new TCanvas(Form("SSD3_L2F_E_CH%02d",i), Form("SSD3_L2F_E_CH%02d",i));
+      Canvas_SSD3_L2B_E[i] = new TCanvas(Form("SSD3_L2B_E_CH%02d",i), Form("SSD3_L2B_E_CH%02d",i));
+      Canvas_SSD4_L2F_T[i] = new TCanvas(Form("SSD4_L2F_T_CH%02d",i), Form("SSD4_L2F_T_CH%02d",i));
+      Canvas_SSD4_L1S_E[i] = new TCanvas(Form("SSD4_L1S_E_CH%02d",i), Form("SSD4_L1S_E_CH%02d",i));
+      Canvas_SSD4_L2F_E[i] = new TCanvas(Form("SSD4_L2F_E_CH%02d",i), Form("SSD4_L2F_E_CH%02d",i));
+      Canvas_SSD4_L2B_E[i] = new TCanvas(Form("SSD4_L2B_E_CH%02d",i), Form("SSD4_L2B_E_CH%02d",i));
     }
     for(int i=0; i<9; i++)
     {

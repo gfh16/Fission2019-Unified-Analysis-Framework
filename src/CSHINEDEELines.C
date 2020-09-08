@@ -1,3 +1,7 @@
+#define  CSHINEDEELines_cxx
+#include "../include/CSHINEDEELines.h"
+
+
 ////////////////////////////////////////////////////////////////////////////////
 //
 //  检查 dE-E 谱的质量, 确定采取怎样的方式填充 dE-E 并最终用于 DEFFIT 进行拟合
@@ -20,14 +24,6 @@
 //  ** 添加 CSHINEDEELines::DEE_L1_L2B
 //
 ////////////////////////////////////////////////////////////////////////////////
-
-#define  CSHINEDEELines_cxx
-#include "../include/CSHINEDEELines.h"
-#include "../include/TimeAndPercentage.h"
-#include "../include/shared.h"
-#include <TH1.h>
-#include <TH2.h>
-#include <TCanvas.h>
 
 
 //______________________________________________________________________________

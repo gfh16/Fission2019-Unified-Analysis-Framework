@@ -16,10 +16,14 @@ void Step47_EventTree()
   Int_t FirstRun;
   Int_t LastRun;
 
+  cout<<"********************************************"<<endl;
+  cout<<"       欢迎来到 Step4.7_EventTree 界面 !      "<<endl;
+  cout<<"********************************************"<<endl;
+  cout<<endl;
   cout<<"请选择您需要进行的操作: "<<endl;
-  cout<<"1.运行 BuildLayerEventTree (Int_t fisrtrun, Int_t lastlun)"<<endl;
-  cout<<"2.运行 BuildSSDEventTree   (Int_t fisrtrun, Int_t lastlun)"<<endl;
-  cout<<"3.运行 BuildGlobalEventTree(Int_t fisrtrun, Int_t lastlun)"<<endl;
+  cout<<"471.运行 BuildLayerEventTree (Int_t fisrtrun, Int_t lastlun)"<<endl;
+  cout<<"472.运行 BuildSSDEventTree   (Int_t fisrtrun, Int_t lastlun)"<<endl;
+  cout<<"473.运行 BuildGlobalEventTree(Int_t fisrtrun, Int_t lastlun)"<<endl;
 
   cin >> option;
 
@@ -36,16 +40,16 @@ void Step47_EventTree()
   }
 
   switch(option) {
-    case 1:
+    case 471:
       buildevent.BuildLayerEventTree(FirstRun, LastRun);
       break;
 
 /*
-    case 2:
+    case 472:
       buildevent.BuildSSDEventTree(FirstRun, LastRun);
       break;
 
-    case 3:
+    case 473:
       buildevent.BuildGlobalEventTree(FirstRun, LastRun);
       break;
 */

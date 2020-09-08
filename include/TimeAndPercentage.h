@@ -14,8 +14,8 @@ public:
   clock_t  GetEndTime();
   Double_t GetRunTime();
 
-  void PrintPercentage(Long64_t ientry, Long64_t nentries);
-  void PrintPercentageAndRemainingTime(Long64_t ientry, Long64_t nentries);
+  void     PrintPercentage(Long64_t ientry, Long64_t nentries);
+  void     PrintPercentageAndRemainingTime(Long64_t ientry, Long64_t nentries);
 
 private:
   clock_t fBeginTime;

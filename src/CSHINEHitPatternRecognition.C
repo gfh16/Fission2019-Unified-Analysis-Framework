@@ -1,3 +1,6 @@
+#include "../include/CSHINEHitPatternRecognition.h"
+
+
 ////////////////////////////////////////////////////////////////////////////////
 //
 //  此程序用于硅条望远镜的模式识别. 大致可以分为以下几部分:
@@ -12,10 +15,6 @@
 //
 //  gfh, 2020-09-06
 ////////////////////////////////////////////////////////////////////////////////
-
-#include "../include/CSHINEHitPatternRecognition.h"
-#include "../include/TimeAndPercentage.h"
-#include "../include/shared.h"
 
 
 //******************************************************************************
@@ -194,13 +193,12 @@ void CSHINEHitPatternRecognition::EstimateLayerMulti(Int_t firstrun, Int_t lastr
   std::string L2BTag("L2B");
   std::string L3ATag("L3A");
 
-  std::string pathRootInputFolder("/home/sea/Fission2019_Data/MapRoot/");
-  std::string pathFrameworkFolder("/home/sea/Fission2019-Unified-Analysis-Framework/");
-  std::string pathLayerMultiPNDOut(Form("%sfigures/Layer_MultiRatio_Run%03d-Run%03d.png",pathFrameworkFolder.c_str(),firstrun,lastrun));
-  std::string pathSSDMultiPNDOut  (Form("%sfigures/SSD_MultiRatio_Run%03d-Run%03d.png",  pathFrameworkFolder.c_str(),firstrun,lastrun));
+  std::string pathRootInputFolder(Form("%sMapRoot/", PATHROOTFILESFOLDER));
+  std::string pathLayerMultiPNDOut(Form("%sfigure_HitPatternRecognition/Layer_MultiRatio_Run%03d-Run%03d.png",PATHFIGURESFOLDER,firstrun,lastrun));
+  std::string pathSSDMultiPNDOut  (Form("%sfigure_HitPatternRecognition/SSD_MultiRatio_Run%03d-Run%03d.png",  PATHFIGURESFOLDER,firstrun,lastrun));
   std::string pathMultiCheckOut[NUM_SSD];
   for (Int_t i=0; i<NUM_SSD; i++) {
-    pathMultiCheckOut[i] = Form("%sfigures/SSD%d_MultiCheck_Run%03d-Run%03d.png",pathFrameworkFolder.c_str(),i+1,firstrun,lastrun);
+    pathMultiCheckOut[i] = Form("%sfigure_HitPatternRecognition/SSD%d_MultiCheck_Run%03d-Run%03d.png",PATHFIGURESFOLDER,i+1,firstrun,lastrun);
   }
 
   TChain* mychain = new TChain("KrPb");

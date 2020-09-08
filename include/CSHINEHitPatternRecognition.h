@@ -1,20 +1,19 @@
 #ifndef CSHINEHITPATTERNRECOGNITION_H
 #define CSHINEHITPATTERNRECOGNITION_H
 
+#include "CSHINESSDCalibratedData.h"
+#include "TimeAndPercentage.h"
+#include "shared.h"
+
 #include <TTree.h>
 #include <TChain.h>
-#include "CSHINESSDCalibratedData.h"
-
 
 //________________________________
 class CSHINEHitPatternRecognition
 {
-private:
-  CSHINESSDCalibratedData fCSHINESSDCalibratedData;
-
 public:
   CSHINEHitPatternRecognition();
-  virtual ~CSHINEHitPatternRecognition();
+  ~CSHINEHitPatternRecognition();
 
   // 在这里定义需要进行的操作
   Int_t    LayerMultiplicity   (Int_t, const char*, Int_t*, Double_t*); // ssdindex, layertag, ech[], echcut[]
@@ -25,6 +24,9 @@ public:
   Bool_t   GeoConstraint_L2B_L1S(Int_t stripl2b, Int_t stripl1s, Int_t deltastrip);
 
   void     EstimateLayerMulti(Int_t firstrun, Int_t lastrun);
+
+private:
+  CSHINESSDCalibratedData fCSHINESSDCalibratedData;
 };
 
 #endif

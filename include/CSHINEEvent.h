@@ -31,7 +31,7 @@ public:
   Int_t       *fCsIECh;      // [fCsIMulti]
 
   CSHINELayerEvent();
-  virtual ~CSHINELayerEvent();
+  ~CSHINELayerEvent();
   ClassDef(CSHINELayerEvent, 1);
 };
 //______________________________________________________________________________
@@ -57,7 +57,7 @@ public:
   Double_t    *fPhi;           //[fSSDMulti]
 
   CSHINESSDEvent();
-  virtual ~CSHINESSDEvent();
+  ~CSHINESSDEvent();
   ClassDef(CSHINESSDEvent, 1);
 };
 //______________________________________________________________________________
@@ -93,7 +93,7 @@ public:
 
   CSHINEGlobalEvent();
   CSHINEGlobalEvent(Int_t);
-  virtual ~CSHINEGlobalEvent();
+  ~CSHINEGlobalEvent();
 
   ClassDef(CSHINEGlobalEvent, 1);
 };
@@ -105,7 +105,7 @@ class CSHINEBuildEvent
 {
 public:
   CSHINEBuildEvent();
-  virtual ~CSHINEBuildEvent();
+  ~CSHINEBuildEvent();
 
   // 参数说明: CSHINESSDEvent class, ssdindex, ech_L1S[16], ech_L2F[16], ech_L2B[16], ech_L3A[9]
   void BuildLayerEvent (CSHINELayerEvent&,  Int_t,  Int_t*, Int_t*, Int_t*, Int_t*);

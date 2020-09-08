@@ -22,3 +22,8 @@ const Double_t NUM_SIGMA_L3A[4]       =    {12., 5.,  12., 10.};
 //const Double_t ECSICHCUT            =    150.;  // 手动添加
 const Double_t ECSICHCUT              =    80.;   // 手动添加
 const Double_t CSIPEDESTALSIGMA       =    4.;    // 手动添加
+
+//______________________________________________________________________________
+const char* PATHDATAFOLDER      = "/home/sea/Fission2019-Unified-Analysis-Framework/data/";
+const char* PATHFIGURESFOLDER   = "/home/sea/Fission2019-Unified-Analysis-Framework/figures/";
+const char* PATHROOTFILESFOLDER = "/home/sea/Fission2019_Data/";

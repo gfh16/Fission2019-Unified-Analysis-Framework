@@ -1,5 +1,6 @@
 #include "../include/CSHINESiPixelGeometry.h"
 
+
 //////////////////////////////////////////////////////////////////////////////
 // SSD1 && SSD4 硅条本体坐标系定义:          // SSD2 && SSD3 硅条本体坐标系定义:
 //                          EB=0               EB=0
@@ -294,8 +295,7 @@ Vector3 CSHINESiPixelGeometry::PosInLabFrameToSSDFrame(Double_t labX, Double_t l
 ////////////////////////////////////////////////////////////////////////////////
 void CSHINESiPixelGeometry::CalculateEffectiveThickness()
 {
-  std::string pathFolder("/home/sea/Fission2019-Unified-Analysis-Framework/");
-  std::string pathDataOutput(Form("%sdata/CSHINE2019_EffThicknessOfL2.dat", pathFolder.c_str()));
+  std::string pathDataOutput(Form("%sdata_Pixellation/CSHINE2019_EffThicknessOfL2.dat", PATHDATAFOLDER));
 
   ofstream EffThickness(pathDataOutput.c_str());
   EffThickness<<"* ssdnum"<<setw(10)<<"stripb"<<setw(10)<<"stripf"
@@ -378,10 +378,9 @@ void CSHINESiPixelGeometry::SiPixellation()
   gStyle->SetPalette(1);
   gStyle->SetOptStat(0);
 
-  std::string pathFolder("/home/sea/Fission2019-Unified-Analysis-Framework/");
-  std::string pathPNGCoverage(Form("%sfigures/CSHINE2019_ SSDArrayCoverage.png", pathFolder.c_str()));
-  std::string pathPNGCheckDirection(Form("%sfigures/CSHINE2019_CheckStripDirection.png", pathFolder.c_str()));
-  std::string pathDataOutput(Form("%sdata/CSHINE2019_SiPixelAngles.dat", pathFolder.c_str()));
+  std::string pathPNGCoverage(Form("%sfigure_Pixellation/CSHINE2019_ SSDArrayCoverage.png", PATHFIGURESFOLDER));
+  std::string pathPNGCheckDirection(Form("%sfigure_Pixellation/CSHINE2019_CheckStripDirection.png", PATHFIGURESFOLDER));
+  std::string pathDataOutput(Form("%sdata_Pixellation/CSHINE2019_SiPixelAngles.dat", PATHDATAFOLDER));
 
   ofstream SiPixelAngles(pathDataOutput.c_str());
   SiPixelAngles<<"* ssdnum"<<setw(7)<<"stripb"<<setw(7)<<"stripf"

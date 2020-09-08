@@ -1,8 +1,13 @@
 #ifndef CSHINEDEELINES_H
 #define CSHINEDEELINES_H
 
-#include <TTree.h>
+#include "TimeAndPercentage.h"
+#include "shared.h"
 
+#include <TTree.h>
+#include <TH1.h>
+#include <TH2.h>
+#include <TCanvas.h>
 
 //________________________________
 class CSHINEDEELines
@@ -165,23 +170,23 @@ public:
 
 
   CSHINEDEELines(TTree* tree=0);
-  virtual ~CSHINEDEELines();
+  ~CSHINEDEELines();
 
-  virtual void Init(TTree* tree);
+  void Init(TTree* tree);
 
   // 在这里定义需要进行的操作
-  virtual void DEE_All      (const char* pathOutput);
-  virtual void DEE_L2F_L3   (const char* pathOutput);
-  virtual void DEE_L2B_L3   (const char* pathOutput);
-  virtual void DEE_L1_L2F   (const char* pathOutput);
-  virtual void DEE_L1_L2B   (const char* pathOutput);
+  void DEE_All      (const char* pathOutput);
+  void DEE_L2F_L3   (const char* pathOutput);
+  void DEE_L2B_L3   (const char* pathOutput);
+  void DEE_L1_L2F   (const char* pathOutput);
+  void DEE_L1_L2B   (const char* pathOutput);
 
   // 在这里进行一些检查
-  virtual void Check_EMeVL2F_EMeVL2B_Correlation(const char* pathOutput);
-//  virtual void Check_L1_L2F_Matching();
-//  virtual void Check_L1_L2B_Matching();
-//  virtual void Check_L2F_CsI_Matching();
-//  virtual void Check_L2B_CsI_Matching();
+  void Check_EMeVL2F_EMeVL2B_Correlation(const char* pathOutput);
+//void Check_L1_L2F_Matching();
+//void Check_L1_L2B_Matching();
+//void Check_L2F_CsI_Matching();
+//void Check_L2B_CsI_Matching();
 };
 
 #endif

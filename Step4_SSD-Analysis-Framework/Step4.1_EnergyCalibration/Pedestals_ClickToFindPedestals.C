@@ -193,7 +193,7 @@ void SetPoints(Int_t event, Int_t x, Int_t y, TObject *selected)
 //    Click the Central button of the mouse to get the range                //
 //                                                                          //
 //    Function parameters:                                                  //
-//       event :                                                            //
+//       event :   default value = 2                                                       //
 //           x :   x value of the point                                     //
 //           y :   y value of the point                                     //
 //    selected :   a pointer to the curent point                            //
@@ -226,7 +226,7 @@ void SetPoints(Int_t event, Int_t x, Int_t y, TObject *selected)
       // !!! I get only 2 points and then I return
       if (NPoints==2)
       {
-        Index = 1;   // Index
+        Index = 1;
         return;
       }
       cout<< "Click next point"<< endl;
