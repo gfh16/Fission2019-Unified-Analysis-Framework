@@ -1,12 +1,17 @@
-///////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 // An Raw2ROOT.cpp: main() of Raw2ROOT, used
 // for offline data analysis.
 // Han Jianlong (08/2012)
-///////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 
-////////////////////////////////////////////////////////////
+//______________________________________________________________________________
+// 根据 ADC/TDC 与探测器的对应关系, 将原始 .root 文件转换成与探测器对应的 .root 文件
+// 实质是对数据进行重命名
 // Use detector map to convert RawRoot data to MapRoot data
-///////////////////////////////////////////////////////////
+//
+// gfh, 2020-09-20, 再次修改, 使更加简洁
+////////////////////////////////////////////////////////////////////////////////
+
 
 #include "TApplication.h"
 #include "TDAQApplication.h"
@@ -42,66 +47,51 @@
 
 using namespace std;
 
-//const st ring gDataPath = "DAQDataPath";
-
-
-
 void PrintUsage(char *name);
 
+
+//______________________________________________________________________________
 int main(int argc, char *argv[])
 {
-  //output file
-  fstream outfile;
-  outfile.open("../../Fission2019_Data/MapRoot/NEntries.dat",ios::app);
-  outfile << "* Filename" << setw(40)<< "NEntries"<<endl;
-
-  //read filenamelist
-
-  //****************************************************************
-  //defination
-  //****************************************************************
   string dfname;
   string rawlist, rawfile;
   bool inter = false;
   vector<string> rawdfname;
   fstream listf;
 
-  string datapath = "../../Fission2019_Data/RawRoot";
+  //____________________________________________________________________________
+  //  !!! 重要 ！！！
+  // 需改输入、输出文件路径
+  string datapath     = "/home/sea/Fission2019_Data/RawRoot"; //原始root文件输入路径
+  TString pathoutfile = "/home/sea/Fission2019_Data/MapRoot"; //Map 转换后root文件输出路径
 
-  //***************************************************
-  //judgement the way to solve the data by parameter
-  //***************************************************
-  if(argc == 1)
-  {
+
+  //output file
+  fstream outfile;
+  outfile.open("/home/sea/Fission2019_Data/MapRoot/FileList_NEntries.dat",ios::app);
+  outfile << "* Filename" << setw(40)<< "NEntries"<<endl;
+
+  //____________________________________________________________________________
+  // 两种处理方式: 1.处理单个文件, 2.批量处理
+  if(argc == 1) {
     cout <<"Input RawData File Name: ";
     cin >> dfname;
     inter = true;
-  }
-  else if(argc == 2)
-  {
+  } else if(argc == 2) {
     rawlist = datapath+"/"+argv[1];
     cout <<"List file of raw data files: " << argv[1] << endl;
     inter = false;
-  }
-  else
-  {
+  } else {
     PrintUsage(argv[0]);
     return 0;
   }
 
-  //****************************************************************
-  //Save filename in the vector
-  //****************************************************************
-  if(inter)
-  {
+  if(inter) {
     rawdfname.push_back(dfname);
-  }
-  else
-  {
+  } else {
     cout << rawlist.c_str() << endl;
     listf.open( rawlist.c_str() );
-    if( listf.fail() )
-    {
+    if( listf.fail() ) {
       cout << "File: " << rawlist << " open error!" << endl;
       return 0;
     }
@@ -115,8 +105,7 @@ int main(int argc, char *argv[])
       if(tsitem.IsWhitespace())  continue;  //skip blank lines
       if(item.c_str()[0] == '*') continue;  //skip the comments
       istringstream s_item(item);
-      if(item.size() > 0)
-      {
+      if(item.size() > 0) {
         s_item >> dfname;
         rawdfname.push_back(dfname);
       }
@@ -126,9 +115,8 @@ int main(int argc, char *argv[])
   }
 
 
-  //****************************************************************
-  //loop on each file
-  //****************************************************************
+  //____________________________________________________________________________
+  //                loop on each file
   for(int i=0; i<rawdfname.size(); i++)
   {
     string rdfname = rawdfname[i];
@@ -189,19 +177,15 @@ int main(int argc, char *argv[])
   	Long64_t nentries = fChain->GetEntriesFast();
   	cout << rdfname << setw(20)<< "nentries=" << nentries << endl;
     outfile<< rdfname << setw(20)<< nentries <<endl;
-
-    TString pathoutfile = "../../Fission2019_Data/MapRoot";
-    pathoutfile += "/Map";	//"a" is the signature of first deal data
+    pathoutfile += "/Map";	//"/Map" is the signature of first deal data
     pathoutfile += rdfname;
 
     TFile fout(pathoutfile.Data(),"recreate");
-
     TTree *tree = new TTree("KrPb","KrPb");
 
-
-    //=============================================
-    //                  For PPAC
-    //=============================================
+    //__________________________________________________________________________
+    //                          For PPAC
+    //__________________________________________________________________________
     int PPAC_T[3]  = {0};
     int PPAC_X1[3] = {0};
     int PPAC_X2[3] = {0};
@@ -233,14 +217,12 @@ int main(int argc, char *argv[])
       tree->Branch(T_E_name, &PPAC_T_Energy[i], T_E_nameI);
     }
 
-
-    //========================================================
-    //                       For Au-Si
-    //========================================================
+    //__________________________________________________________________________
+    //                                For Au-Si
+    //__________________________________________________________________________
     int AuSi_L1E[2] = {0};
     int AuSi_L2E[2] = {0};
     int AuSi_L1T[2] = {0};
-
     char AuSi_L1E_name[200];    char AuSi_L1E_nameI[200];
     char AuSi_L2E_name[200];    char AuSi_L2E_nameI[200];
     char AuSi_L1T_name[200];    char AuSi_L1T_nameI[200];
@@ -256,36 +238,31 @@ int main(int argc, char *argv[])
       tree->Branch(AuSi_L1T_name, &AuSi_L1T[i], AuSi_L1T_nameI);
     }
 
-    //==============================================
-    //               For RF
-    ////////////////////////////////////////////////
+    //__________________________________________________________________________
+    //                             For RF
+    //__________________________________________________________________________
     int RF1 = 0;
     int RF2 = 0;
-
     tree->Branch("RF1",&RF1, "RF1/I");
     tree->Branch("RF2",&RF2, "RF2/I");
 
-
-    //========================================================
-    //                    For SSD
-    //========================================================
+    //__________________________________________________________________________
+    //                              For SSD
+    //__________________________________________________________________________
     int SSD_L2F_T[4][16];
     int SSD_L1S_E[4][16];
     int SSD_L2F_E[4][16];
     int SSD_L2B_E[4][16];
     int SSD_L3A_E[4][9];
-    for(int i=0; i<4; i++)
-    {
-      for(int j=0; j<16; j++)
-      {
+    for(int i=0; i<4; i++) {
+      for(int j=0; j<16; j++) {
          SSD_L2F_T[i][j] = 0;
          SSD_L1S_E[i][j] = 0;
          SSD_L2F_E[i][j] = 0;
          SSD_L2B_E[i][j] = 0;
       }
 
-      for(int j=0; j<9; j++)
-      {
+      for(int j=0; j<9; j++) {
          SSD_L3A_E[i][j]  = 0;
       }
     }
@@ -296,7 +273,7 @@ int main(int argc, char *argv[])
     char SSD_L2B_E_name[200];  char SSD_L2B_E_nameI[200];
     char SSD_L3A_E_name[200];  char SSD_L3A_E_nameI[200];
 
-    ///////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////
     ///  对SSD数据填充方式1：CH0-CH15 填充到同一个branch
 
     for(int i=0; i<4; i++)
@@ -315,65 +292,19 @@ int main(int argc, char *argv[])
     }
 
 
-///////////////////////////////////////////////////////////////////////////////
-///  对SSD数据填充方式2：CH0-CH15 单独作为 branch
 
-/*
-for(int i=0; i<4; i++)
-{
-  for(int j=0; j<16; j++)
-  {
-    sprintf(SSD_L2F_T_name,"SSD%d_L2F_T_CH%d",(i+1),j);    sprintf(SSD_L2F_T_nameI,"SSD%d_L2F_T_CH%d/I",(i+1),j);
-    tree->Branch(SSD_L2F_T_name, &SSD_L2F_T[i][j], SSD_L2F_T_nameI);
-  }
-
-  for(int j=0; j<16; j++)
-  {
-    sprintf(SSD_L1S_E_name,"SSD%d_L1S_E_CH%d",(i+1),j);    sprintf(SSD_L1S_E_nameI,"SSD%d_L1S_E_CH%d/I",(i+1),j);
-    tree->Branch(SSD_L1S_E_name, &SSD_L1S_E[i][j], SSD_L1S_E_nameI);
-  }
-
-  for(int j=0; j<16; j++)
-  {
-    sprintf(SSD_L2F_E_name,"SSD%d_L2F_E_CH%d",(i+1),j);    sprintf(SSD_L2F_E_nameI,"SSD%d_L2_FE_CH%d/I",(i+1),j);
-    tree->Branch(SSD_L2F_E_name, &SSD_L2F_E[i][j], SSD_L2F_E_nameI);
-  }
-
-  for(int j=0; j<16; j++)
-  {
-    sprintf(SSD_L2B_E_name,"SSD%d_L2B_E_CH%d",(i+1),j);    sprintf(SSD_L2B_E_nameI,"SSD%d_L2B_E_CH%d/I",(i+1),j);
-    tree->Branch(SSD_L2B_E_name, &SSD_L2B_E[i][j], SSD_L2B_E_nameI);
-  }
-
-  for(int j=0;j<9;j++)
-  {
-   sprintf(SSD_L3A_E_name,"SSD%d_L3A_E_CH%d",(i+1),j);    sprintf(SSD_L3A_E_nameI,"SSD%d_L3A_E_CH%d/I",(i+1),j);
-   tree->Branch(SSD_L3A_E_name, &SSD_L3A_E[i][j], SSD_L3A_E_nameI);
-  }
-}
-*/
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
-
-    //****************************************************************
-    //loop on each Events in the rootfile
-    //****************************************************************
+    //__________________________________________________________________________
+    //             loop on each Events in the rootfile
+    //__________________________________________________________________________
     for (Long64_t ientry=0; ientry<nentries;ientry++)
     {
       Long64_t jentry = fChain->LoadTree(ientry);
       if (jentry < 0) break;
       fChain->GetEntry(ientry);
 
-      ///////////////////////////////////////////
-      //The map of the Channel to Detector
-      //////////////////////////////////////////
-
-      //////////////////
-      // for PPAC
-      //////////////////
-      for(int i=0; i<3; i++)
-      {
+      //____________________________________
+      //             for PPAC
+      for(int i=0; i<3; i++) {
         PPAC_T[i]  = vmod103->chdata[5*i+0];
         PPAC_X1[i] = vmod103->chdata[5*i+1];
         PPAC_X2[i] = vmod103->chdata[5*i+2];
@@ -383,27 +314,23 @@ for(int i=0; i<4; i++)
         PPAC_T_Energy[i] = vmod104->chdata[28+i];
       }
 
-      ////////////////////////
-      // for Au-Si
-      ////////////////////////
+      ///______________________________________
+      //               for Au-Si
       // 这里需要修改：run121-run432 T104020-T104023
       //            run89-run120  T104016-T104019
-      for(int i=0; i<2; i++)
-      {
+      for(int i=0; i<2; i++) {
         AuSi_L1E[i] = vmod104->chdata[20+2*i];
         AuSi_L2E[i] = vmod104->chdata[20+2*i+1];
         AuSi_L1T[i] = vmod106->chdata[i];
       }
 
-      ///////////////////////
-      //    for RF
-      ///////////////////////
+      //______________________________________
+      //          for RF
       RF1 = vmod106->chdata[2];
       RF2 = vmod106->chdata[3];
 
-      ///////////////////////
-      // for SSD L1 && L2
-      //////////////////////
+      //_____________________________________
+      //       for SSD L1 && L2
       for(int i=0; i<16; i++)
       {
         SSD_L2F_T[0][i] = vmod108->chdata[i];
@@ -427,11 +354,9 @@ for(int i=0; i<4; i++)
     		SSD_L2B_E[3][i] = vmod121->chdata[i+16];
       }
 
-      //========================================================
-      //SSD_Telescope_L3
-      //========================================================
-      for (int i=0; i<9; i++)
-      {
+      //___________________________________________
+      //              SSD_Telescope_L3
+      for (int i=0; i<9; i++) {
         SSD_L3A_E[0][i] = vmod111->chdata[16+i];
         SSD_L3A_E[1][i] = vmod114->chdata[16+i];
         SSD_L3A_E[2][i] = vmod117->chdata[16+i];
@@ -449,6 +374,7 @@ for(int i=0; i<4; i++)
   return 0;
 }
 
+//_________________________________
 void PrintUsage(char *name){
 	//cout<<"Usage: "<<name<<"  "<<endl;
 	//cout<<"\t Interactive mode." << endl;

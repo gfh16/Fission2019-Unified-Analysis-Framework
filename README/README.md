@@ -20,15 +20,15 @@ https://github.com/gfh16/Fission2019-Unified-Analysis-Framework
 ````````C++
 // 运行代码
 $ make
-$ ./raw2roo.sh listfilename
+$ ./raw2root.sh listfilename
 ````````
 >+ **目的:** 将原始数据(二进制文件)转换成.root文件 
 >+ **文件:** /RIBLLVMEDAQ/Raw2ROOT.cpp  
 >+ **说明:** 批量转换  
    (1) 输入文件(原始文件)都在 /vmedata/文件夹下.  
-   (2) 在 /vmedata/中 添加 listfilename 文件. 将需要格式转换的原始文件名一一写出，每个文件名占一行  
+   (2) 在 /vmedata/中 添加 listfilename.txt 文件. 将需要格式转换的原始文件名一一写出，每个文件名占一行  
    (3) 修改 /RIBLLVMEDAQ/Raw2ROOT.cpp文件：修改输出文件的位置  <font color=#FF00FF>(string rootpath = "./rootdata")</font>
-   (4) 编译成功后, 执行 ./raw2roo.sh listfilename
+   (4) 编译成功后, 执行 ./raw2root.sh listfilename
 
 
 
