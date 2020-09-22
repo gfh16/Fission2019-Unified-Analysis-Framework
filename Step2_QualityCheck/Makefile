@@ -17,11 +17,11 @@ TIMELINK1 =  ../src/ReadFileModule.C
 TIMELINK2 =  ../src/TimeAndPercentage.C
 
 
-PROG: QC_ReadTree
+PROG: QC_BranchAddress
 
 
-QC_ReadTree: QC_ReadTree.o
-	$(CPP) -o $@ QC_ReadTree.o $(OBJS) $(CFLAG) $(ROOTLIB) $(SYSLIB) $(TIMELINK1) 
+QC_BranchAddress: QC_BranchAddress.o
+	$(CPP) -o $@ QC_BranchAddress.o $(OBJS) $(CFLAG) $(ROOTLIB) $(SYSLIB) $(TIMELINK1) $(TIMELINK2)
 
 %.o: %.C
 	$(CPP) -c $(CFLAG) $(CRFLAG) -o $@ $<
@@ -29,4 +29,4 @@ QC_ReadTree: QC_ReadTree.o
 
 clean:
 	-rm *.o
-	-rm QC_ReadTree
+	-rm QC_BranchAddress

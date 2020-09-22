@@ -38,6 +38,8 @@ public:
     void    DrawSSD(const Char_t* pdfpath, TCanvas* canvas[], TH1D* hist[], const Int_t numtel);
     void    DrawSSDLogy(const Char_t* pdfpath, TCanvas* canvas[], TH1D* hist[], const Int_t numtel);
 
+    void    ReadBranch(TChain* chain, const char* pathrootout, const char* pathpdfout);
+
 };
 
 #endif
