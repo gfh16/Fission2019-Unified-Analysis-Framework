@@ -1,4 +1,5 @@
 #include "../include/CSHINEPedestals.h"
+using namespace std;
 
 
 //******************************************************************************

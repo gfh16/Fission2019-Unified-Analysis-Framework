@@ -1,4 +1,5 @@
 #include "../include/CSHINESSDCalibratedData.h"
+using namespace std;
 
 
 //******************************************************************************

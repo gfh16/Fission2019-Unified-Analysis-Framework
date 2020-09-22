@@ -1,4 +1,5 @@
 #include "../include/ReadFileModule.h"
+using namespace std;
 
 
 //******************************************************************************
@@ -89,7 +90,7 @@ void ReadFileModule::AddChain(TChain* chain, const char* LayerTag, Int_t* dataar
 
 
 //******************************************************************************
-void ReadFileModule::GetFilesName(const char* pathfolder, const char* pathfileout)
+void ReadFileModule::GetFileNamesFromFolder(const char* pathfolder, const char* pathfileout)
 {
 	DIR* directory_pointer;
   struct dirent** namelist;
@@ -118,5 +119,33 @@ void ReadFileModule::GetFilesName(const char* pathfolder, const char* pathfileou
     }
   }
   fileout.close();
+}
+//******************************************************************************
+
+
+//******************************************************************************
+void ReadFileModule::GetFileNamesFromFile(const char* pathfilein, vector<string>& filelist)
+{
+  std::string filename;
+
+  ifstream filein(pathfilein);
+
+  if (!filein.is_open()) {
+    printf("Error: file %s not found\n", pathfilein);
+    return;
+  }
+  //_______________________________________
+  //      按行读取文件中的每一个文件名
+  while (filein.good()) {
+    std::string LineRead;
+    std::getline(filein, LineRead);
+    LineRead.assign(LineRead.substr(0, LineRead.find('*')));
+    if(LineRead.empty()) continue;
+    if(LineRead.find_first_not_of(' ')==std::string::npos) continue;
+    std::istringstream LineStream(LineRead);
+
+    LineStream>>filename;
+    filelist.push_back(filename);
+  }
 }
 //******************************************************************************

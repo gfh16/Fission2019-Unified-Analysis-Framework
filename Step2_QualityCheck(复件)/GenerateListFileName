@@ -1,0 +1,17 @@
+#!/bin/bash
+
+# Use this script to generate the file names 
+# to be used in quality check
+
+echo "for line in cat alistfilename2"
+
+filetag="Map"
+
+
+for line in $(cat /data/EXPdata/Fission2019/MapRoot/alistfilename2)
+do
+     echo ${filetag}${line} >> aqualitychecklist;
+     echo $line;
+done
+
+cp aqualitychecklist /data/EXPdata/Fission2019/MapRoot/

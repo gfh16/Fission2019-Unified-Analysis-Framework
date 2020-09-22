@@ -12,6 +12,7 @@
   gROOT->ProcessLine(".L src/CSHINEHitPatternRecognition.C");
   gROOT->ProcessLine(".L src/CSHINEEvent.C");
   gROOT->ProcessLine(".L src/CSHINEPedestals.C");
+  gROOT->ProcessLine(".L src/CSHINEQualityCheck.C");
 
   printf("Welcome to Fission2019-Unified-Analysis-Framework/\n");
 }

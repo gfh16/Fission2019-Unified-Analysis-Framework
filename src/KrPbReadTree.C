@@ -12,7 +12,9 @@ KrPbReadTree::~KrPbReadTree()
   //cout<<"disconstrctor is called"<<endl;
 }
 
+
 //_____________________________________________________________________________
+void KrPbReadTree::WriteHist (TChain* myChain, const char* rootpath)
 {
   int BIN_NUM = 4096;
   int LOW_CH  = 0;

@@ -1,46 +1,19 @@
-////////////////////////////////////////////////////////////////////////////////
-//   使用 TTreeReader 方法读取 tree 来进行数据文件的质检
-//
-////////////////////////////////////////////////////////////////////////////////
+#include "../include/CSHINEQualityCheck.h"
 
-#include "TTreeReader.h"
-#include "TTreeReaderValue.h"
-#include "TTreeReaderArray.h"
-#include "TFile.h"
-#include "TTree.h"
-#include "TString.h"
-#include "TChain.h"
-#include "TNtuple.h"
-#include <TH2.h>
 
-#include "TSystem.h"
-#include "TCanvas.h"
-
-#include "../include/TimeAndPercentage.h"
-#include "../include/ReadFileModule.h"
-
-#include <iostream>
-#include <sstream>
-#include <fstream>
-#include <stdlib.h>
-#include <vector>
-#include <map>
-
-using namespace std;
-
+//******************************************************************************
+CSHINEQualityCheck::CSHINEQualityCheck()
+{}
 
 //______________________________________________________________________________
-void WriteHistforSSD(TFile* FileOut, TH1D* hist[],  const Int_t numtel);
-void DrawSSD(const Char_t* pdfpath, TCanvas* canvas[], TH1D* hist[], const Int_t numtel);
-void DrawSSDLogy(const Char_t* pdfpath, TCanvas* canvas[], TH1D* hist[], const Int_t numtel);
-void ReadTree(TChain* myChain, const Char_t* rootpath, const Char_t* pdfpath);
+CSHINEQualityCheck::~CSHINEQualityCheck()
+{}
+//******************************************************************************
 
 
-//______________________________________________________________________________
-//   主函数从这里开始
-int main(int argc, char *argv[])
+//******************************************************************************
+void CSHINEQualityCheck::QC_TreeReader(const char* pathlistfile)
 {
-  TString pathlistfile("/home/sea/Fission2019_Data/MapRoot/alistfilename1");
   std::vector<string>  filenamelist;
 
   ReadFileModule readfile;
@@ -55,12 +28,14 @@ int main(int argc, char *argv[])
     TString pathrootout = "/home/sea/Fission2019_Data/QualityCheck/";
     pathrootout += "QC_";
     pathrootout += filenamelist[i];
+  //  cout<<"生成 root 文件: "<<pathrootout<<endl;
 
     TString pdf_name = filenamelist[i];
     pdf_name.ReplaceAll(".root", ".pdf");
     TString pathpdfout = "/home/sea/Fission2019_Data/QualityCheck_figures/";
     pathpdfout  += "QC_";
     pathpdfout  += pdf_name;
+  //  cout<<"生成 pdf  文件: "<<pathpdfout<<endl;
 
     TString pathrootin = "/home/sea/Fission2019_Data/MapRoot/";
     pathrootin += filenamelist[i];
@@ -70,20 +45,36 @@ int main(int argc, char *argv[])
 
     ReadTree(myChain, pathrootout, pathpdfout);
   }
-  return 0;
-} // int main() 函数到此结束
+
+}
+//******************************************************************************
 
 
-//__________________________________________________________________
-//      从这里开始编辑 ReadTree() 函数
-void ReadTree(TChain* mychain, const char* pathrootout, const char* pathpdfout)
+//******************************************************************************
+void CSHINEQualityCheck::QC_BranchAdress()
+{
+
+}
+//******************************************************************************
+
+
+//******************************************************************************
+void CSHINEQualityCheck::QC_ReadHistToDraw()
+{
+
+}
+//******************************************************************************
+
+
+//******************************************************************************
+void CSHINEQualityCheck::ReadTree(TChain* mychain, const char* pathrootout, const char* pathpdfout)
 {
   Int_t  BIN_NUM   =  4096;
   Int_t  LOW_CH    =  0;
   Int_t  HIGH_CH   =  4096;
   Int_t  BIN_SHIFT =  100;
 
-  //TimeAndPercentage time;
+  TimeAndPercentage time;
 
   Long64_t nentries = mychain->GetEntriesFast();
   cout << "nentries = " << nentries << endl;
@@ -225,7 +216,7 @@ void ReadTree(TChain* mychain, const char* pathrootout, const char* pathpdfout)
   while(myReader.Next())
   {
     ientry++;
-    //time.PrintPercentageAndRemainingTime(ientry, nentries);
+    time.PrintPercentageAndRemainingTime(ientry, nentries);
 
     Hist_PPAC1_T   ->Fill(*PPAC1_T);
     Hist_PPAC1_X1  ->Fill(*PPAC1_X1);
@@ -487,27 +478,36 @@ void ReadTree(TChain* mychain, const char* pathrootout, const char* pathpdfout)
     FileOut->Close();
     return;
 }
+//******************************************************************************
 
-//______________________________________________________________________________
-void WriteHistforSSD(TFile* FileOut, TH1D* hist[], const Int_t numtel)
+
+//******************************************************************************
+void CSHINEQualityCheck::WriteHistforSSD(TFile* FileOut, TH1D* hist[],  const Int_t numtel)
 {
   for(Int_t i=0; i<numtel; i++){
     FileOut->WriteTObject(hist[i], hist[i]->GetName());
   }
 }
+//******************************************************************************
 
-//______________________________________________________________________________
-void DrawSSD(const Char_t* pdfpath, TCanvas* canvas[], TH1D* hist[], const Int_t numtel)
+
+//******************************************************************************
+void CSHINEQualityCheck::DrawSSD(const Char_t* pdfpath, TCanvas* canvas[],
+  TH1D* hist[], const Int_t numtel)
 {
   for(Int_t i=0; i<numtel; i++){
     canvas[i]->cd(); hist[i] ->Draw(); canvas[i] ->Print(pdfpath);
   }
 }
+//******************************************************************************
 
-//______________________________________________________________________________
-void DrawSSDLogy(const Char_t* pdfpath, TCanvas* canvas[], TH1D* hist[], const Int_t numtel)
+
+//******************************************************************************
+void CSHINEQualityCheck::DrawSSDLogy(const Char_t* pdfpath, TCanvas* canvas[],
+  TH1D* hist[], const Int_t numtel)
 {
   for(Int_t i=0; i<numtel; i++){
     canvas[i]->cd(); gPad->SetLogy(); hist[i] ->Draw(); canvas[i] ->Print(pdfpath);
   }
 }
+//******************************************************************************

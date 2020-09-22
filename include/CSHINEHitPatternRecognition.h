@@ -7,6 +7,7 @@
 
 #include <TTree.h>
 #include <TChain.h>
+#include <iostream>
 
 //________________________________
 class CSHINEHitPatternRecognition

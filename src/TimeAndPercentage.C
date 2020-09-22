@@ -1,4 +1,5 @@
 #include "../include/TimeAndPercentage.h"
+using namespace std;
 
 
 //******************************************************************************

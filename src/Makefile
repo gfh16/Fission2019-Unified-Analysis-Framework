@@ -1,5 +1,5 @@
 ######################################
-#  makefile for a_QA.cc          #
+#  makefile for a_QA.cc             #
 #  yj-wang 2018-2-28                #
 ######################################
 
@@ -13,15 +13,16 @@ SYSLIB   =  -lstdc++
 ROOTINC  =  -I $(shell root-config --incdir)
 CRFLAG   =  $(shell root-config --cflags)
 ROOTBIN  =  $(shell root-config --bindir)
-TIMELINK1 =  ../src/ReadFileModule.C
-TIMELINK2 =  ../src/TimeAndPercentage.C
+SYSLIB    := -lz -l TreePlayer -lMathMore
+ROOTCLINGORCINT   := rootcling
 
 
-PROG: QC_ReadTree
+
+PROG: CSHINEQualityCheck
 
 
-QC_ReadTree: QC_ReadTree.o
-	$(CPP) -o $@ QC_ReadTree.o $(OBJS) $(CFLAG) $(ROOTLIB) $(SYSLIB) $(TIMELINK1) 
+QC_ReadTree: CSHINEQualityCheck.o
+	 $(CPP) -o $@ CSHINEQualityCheck.o $(OBJS) $(CFLAG) $(ROOTLIB) $(SYSLIB) $(ROOTCINT) $(SYSLIB) $(ROOTCLINGORCINT)
 
 %.o: %.C
 	$(CPP) -c $(CFLAG) $(CRFLAG) -o $@ $<
@@ -29,4 +30,4 @@ QC_ReadTree: QC_ReadTree.o
 
 clean:
 	-rm *.o
-	-rm QC_ReadTree
+	-rm CSHINEQualityCheck

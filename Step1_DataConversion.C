@@ -49,11 +49,11 @@ void Step1_DataConversion()
 
     switch(option1) {
       case 13 :
-        readfile.GetFilesName(pathRawData.c_str(), pathRawDataFilelist.c_str());
+        readfile.GetFileNamesFromFolder(pathRawData.c_str(), pathRawDataFilelist.c_str());
         break;
 
       case 14 :
-        readfile.GetFilesName(pathRootData.c_str(), pathRootDataFilelist.c_str());
+        readfile.GetFileNamesFromFolder(pathRootData.c_str(), pathRootDataFilelist.c_str());
         break;
     }
     cout<<"请选择下一步操作: "<<endl;
