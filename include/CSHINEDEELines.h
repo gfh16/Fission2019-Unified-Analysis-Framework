@@ -4,10 +4,13 @@
 #include "TimeAndPercentage.h"
 #include "shared.h"
 
+#include <iostream>
 #include <TTree.h>
 #include <TH1.h>
 #include <TH2.h>
 #include <TCanvas.h>
+#include <ctime>
+#include <TPad.h>
 
 //________________________________
 class CSHINEDEELines

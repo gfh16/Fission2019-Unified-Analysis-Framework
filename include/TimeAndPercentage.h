@@ -1,6 +1,7 @@
 #ifndef TIMEANDPERCENTAGE_H
 #define TIMEANDPERCENTAGE_H
 
+#include <iostream>
 #include <ctime>
 
 //______________________________________________________________________________

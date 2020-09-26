@@ -4,7 +4,11 @@
 #include "Vector3.h"
 #include "shared.h"
 
-#include <TMath.h>
+#include "TMath.h"
+#include "TCanvas.h"
+#include "TH2.h"
+
+#include <iostream>
 
 
 //******************************************************************************

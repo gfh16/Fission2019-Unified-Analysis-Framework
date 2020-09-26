@@ -9,8 +9,10 @@
 #include "TCanvas.h"
 #include "TSpectrum.h"
 #include "TMath.h"
+#include "TFile.h"
 
 #include <iostream>
+#include <string>
 
 
 //______________________________________________________________________________

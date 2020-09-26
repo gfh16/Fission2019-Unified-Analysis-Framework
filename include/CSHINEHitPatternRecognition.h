@@ -5,9 +5,13 @@
 #include "TimeAndPercentage.h"
 #include "shared.h"
 
+#include <iostream>
 #include <TTree.h>
 #include <TChain.h>
-#include <iostream>
+#include <TCanvas.h>
+#include <TLine.h>
+#include <TGraph.h>
+
 
 //________________________________
 class CSHINEHitPatternRecognition

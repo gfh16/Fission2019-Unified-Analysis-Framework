@@ -7,6 +7,10 @@
 #include "TimeAndPercentage.h"
 
 #include <vector>
+#include <string>
+#include "TChain.h"
+#include "TCanvas.h"
+
 
 //______________________________________________________________________________
 // LayerEvent 是指: 对于每一个 entry, 确定各套硅条探测器各层的粒子多重性 LayerMulti，

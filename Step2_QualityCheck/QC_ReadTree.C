@@ -16,7 +16,7 @@
 #include "TSystem.h"
 #include "TCanvas.h"
 
-#include "../include/TimeAndPercentage.h"
+//#include "../include/TimeAndPercentage.h"
 #include "../include/ReadFileModule.h"
 
 #include <iostream>

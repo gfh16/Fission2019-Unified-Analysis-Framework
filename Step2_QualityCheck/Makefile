@@ -10,18 +10,16 @@ CFLAG    =  -O2 -D LINUX -g
 ROOTLIB  =  $(shell root-config --cflags --glibs)
 ROOTCINT =  rootcint -f
 SYSLIB   =  -lstdc++
-ROOTINC  =  -I $(shell root-config --incdir)
+ROOTINC  =  -I$(shell root-config --incdir)
 CRFLAG   =  $(shell root-config --cflags)
 ROOTBIN  =  $(shell root-config --bindir)
-TIMELINK1 =  ../src/ReadFileModule.C
-TIMELINK2 =  ../src/TimeAndPercentage.C
+SRC      = ../src/ReadFileModule.C
+
+PROG: QC_ReadTree
 
 
-PROG: QC_BranchAddress
-
-
-QC_BranchAddress: QC_BranchAddress.o
-	$(CPP) -o $@ QC_BranchAddress.o $(OBJS) $(CFLAG) $(ROOTLIB) $(SYSLIB) $(TIMELINK1) $(TIMELINK2)
+QC_ReadTree: QC_ReadTree.o
+	$(CPP) -o $@ QC_ReadTree.o $(OBJS) $(CFLAG)  $(ROOTLIB) $(SYSLIB) $(ROOTCLINGORCINT) $(TIMELINK1) $(TIMELINK2) $(SRC)
 
 %.o: %.C
 	$(CPP) -c $(CFLAG) $(CRFLAG) -o $@ $<
@@ -29,4 +27,4 @@ QC_BranchAddress: QC_BranchAddress.o
 
 clean:
 	-rm *.o
-	-rm QC_BranchAddress
+	-rm QC_ReadTree

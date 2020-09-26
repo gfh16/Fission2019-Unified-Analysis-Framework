@@ -3,6 +3,8 @@
 
 #include "ReadFileModule.h"
 #include "shared.h"
+
+#include <string>
 #include <iostream>
 
 //______________________________________________________________________________
