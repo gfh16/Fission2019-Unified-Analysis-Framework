@@ -10,6 +10,7 @@
 #include <string>
 #include "TChain.h"
 #include "TCanvas.h"
+#include "TROOT.h"
 
 
 //______________________________________________________________________________
@@ -36,7 +37,7 @@ public:
 
   CSHINELayerEvent();
   ~CSHINELayerEvent();
-  ClassDef(CSHINELayerEvent, 1);
+//ClassDef(CSHINELayerEvent, 1);
 };
 //______________________________________________________________________________
 
@@ -62,7 +63,7 @@ public:
 
   CSHINESSDEvent();
   ~CSHINESSDEvent();
-  ClassDef(CSHINESSDEvent, 1);
+  //ClassDef(CSHINESSDEvent, 1);
 };
 //______________________________________________________________________________
 
@@ -96,10 +97,8 @@ public:
   Int_t       *fA;                   //[fGlobalMulti]
 
   CSHINEGlobalEvent();
-  CSHINEGlobalEvent(Int_t);
   ~CSHINEGlobalEvent();
-
-  ClassDef(CSHINEGlobalEvent, 1);
+  //ClassDef(CSHINEGlobalEvent, 1);
 };
 //______________________________________________________________________________
 

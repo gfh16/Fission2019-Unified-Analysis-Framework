@@ -286,3 +286,23 @@ void CSHINEBuildEvent::BuildLayerEventTree(Int_t firstrun, Int_t lastrun)
   time.GetRunTime();
 }
 //******************************************************************************
+
+
+//******************************************************************************
+void CSHINEBuildEvent::BuildSSDEvent(CSHINESSDEvent&,Int_t,  Int_t*, Int_t*, Int_t*, Int_t*)
+{}
+
+
+//******************************************************************************
+void CSHINEBuildEvent::BuildSSDEventTree(Int_t firstrun, Int_t lastrun)
+{}
+
+
+//******************************************************************************
+void CSHINEBuildEvent::BuildGlobalEvent(CSHINEGlobalEvent&, Int_t*, Int_t*, Int_t*, Int_t*)
+{}
+
+
+//******************************************************************************
+void CSHINEBuildEvent::BuildGlobalEventTree(Int_t firstrun, Int_t lastrun)
+{}

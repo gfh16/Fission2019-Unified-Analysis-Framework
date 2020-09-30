@@ -1,33 +1,37 @@
-#
-# setup control
-#
-OutPut   := test1
-TOP      := $(shell pwd)/
-OBJ      := $(TOP)obj/
-BIN      := $(TOP)bin/
-SRC      := $(TOP)src/
-INCLUDE  := $(TOP)include/
+##################################################
+##          My first makefile
+##################################################
 
-CPP       = g++
-CPPFLAGS  = -O -Wall -fPIC -I$(INCLUDE)
-ROOTLIB   = $(shell root-config --cflags --glibs)
-ROOTINC   = -I$(shell root-config --incdir)
-ROOTBIN   = $(shell root-config --bindir)
-SYSLIB    = -lstdc++
+DIR_INC := include/
+DIR_SRC := src/
+DIR_OBJ := obj/
+DIR_BIN := bin/
 
-############## Make Executables ####################################
-all:	$(OutPut)
+CPP        := g++
+ROOTCFLAGS := -c -g -Wall `root-config --cflags`
+ROOTGLIBS  := `root-config --glibs`
+ROOTLIBS   := -lSpectrum -lMathMore
 
-$(OutPut)	: $(patsubst $(SRC)%.C,$(OBJ)%.o,$(wildcard $(SRC)*.C))
-	$(CPP) $^ $(CPPLIBS) -o $(BIN)$(notdir $@) $(ROOTLIB) $(SYSLIB) $(ROOTINC) $(ROOTBIN)
-	@echo
+TARGET     := QualityCheck
+BIN_TARGET := $(DIR_BIN)$(TARGET)
 
-######################################################
-$(OBJ)%.o : 	$(SRC)%.C
-	$(CPP)  $(CPPFLAGS) -c $(SRC)$(notdir $<) -o $(OBJ)$(notdir $@) $(ROOTLIB) $(SYSLIB) $(ROOTINC) $(ROOTBIN)
-	@echo
+PATHSRCS   := ./Step2_QualityCheck/QualityCheck.C
+SOURCES    := $(shell find $(DIR_SRC) -name "*.C") $(PATHSRCS)
+INCLUDES   := $(shell find $(DIR_INC) -name "*.h")
+OBJECTS    := $(patsubst %.C, %.o, $(SOURCES))
 
-.PHONY:clean
+all: $(BIN_TARGET)
+
+
+$(BIN_TARGET): $(OBJECTS)
+	$(CPP) $(OBJECTS) $(ROOTGLIBS) $(ROOTLIBS) -o $@
+	rm -f $(OBJECTS)
+
+
+%.o : %.C $(INCLUDES)
+	$(CPP) $(ROOTCFLAGS) $< -o $@
+
+
+.PHONY: clean
 clean:
-	rm -f $(OBJ)*.o
-	rm -f $(BIN)*
+	rm ./*~ ${BIN_TARGET} ./$(DIR_SRC)*.o

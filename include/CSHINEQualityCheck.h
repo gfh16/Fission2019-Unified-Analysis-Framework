@@ -12,6 +12,9 @@
 #include "TChain.h"
 #include <TH2.h>
 #include "TCanvas.h"
+#include "TKey.h"
+
+#include "shared.h"
 
 #include <iostream>
 #include <sstream>
@@ -21,7 +24,6 @@
 #include <map>
 #include <string>
 
-
 //______________________________________________________________________________
 class CSHINEQualityCheck
 {
@@ -29,16 +31,16 @@ public:
     CSHINEQualityCheck();
     ~CSHINEQualityCheck();
 
-    void    QC_TreeReader(const char* pathlistfile);
-    void    QC_BranchAdress();
-    void    QC_ReadHistToDraw();
+    void    QC_TreeReader(const char* pathlistfiles);
+    void    QC_BranchAdress(const char* pathlistfiles);
+    void    QC_ReadHistToDraw(Int_t runnumber, const char* layertag);
 
-    void    ReadTree(TChain* mychain, const char* pathrootout, const char* pathpdfout);
+    void    TreeReaderMethod(TChain* mychain, const char* pathrootout, const char* pathpdfout);
     void    WriteHistforSSD(TFile* FileOut, TH1D* hist[],  const Int_t numtel);
     void    DrawSSD(const Char_t* pdfpath, TCanvas* canvas[], TH1D* hist[], const Int_t numtel);
     void    DrawSSDLogy(const Char_t* pdfpath, TCanvas* canvas[], TH1D* hist[], const Int_t numtel);
 
-    void    ReadBranch(TChain* chain, const char* pathrootout, const char* pathpdfout);
+    void    ReadBranchMethod(TChain* chain, const char* pathrootout, const char* pathpdfout);
 
 };
 

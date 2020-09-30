@@ -7,7 +7,7 @@
 CC=gcc
 CF=ifort
 FF=gfortran
-FFLAG= -w -o2 -fpp 
+FFLAG= -w -o2 -fpp
 
 CPP=g++
 CFLAG = -O2 -D LINUX -g
@@ -34,13 +34,13 @@ all: $(PROG)
 
 DAQPC:DIC $(OBJS) VMEDAQPC.o
 	$(CPP) -o $@ VMEDAQPC.o $(OBJS) $(CFLAG) $(ROOTLIB) $(SYSLIB) $(CAENLibs)
-	
+
 ControlPC:DIC $(OBJS) ControlPC.o
 	$(CPP) -o ControlPC ControlPC.o $(OBJS) $(CFLAG) $(ROOTLIB) $(SYSLIB) $(CAENLibs)
 
 OnlinePC:DIC $(OBJS) OnlinePC.o
 	$(CPP) -o $@ OnlinePC.o $(OBJS) $(CFLAG) $(ROOTLIB) $(SYSLIB) $(CAENLibs)
-	
+
 MonOnline:DIC $(OBJS) MonOnline.o
 	$(CPP) -o $@ MonOnline.o $(OBJS) $(CFLAG) $(ROOTLIB) $(SYSLIB) $(CAENLibs)
 
@@ -50,7 +50,7 @@ Raw2ROOT:DIC $(OBJS) Raw2ROOT.o
 ReadRootFile2D:DIC $(OBJS) ReadRootFile2D.o
 	$(CPP) -o $@ ReadRootFile2D.o $(OBJS) $(CFLAG) $(ROOTLIB) $(SYSLIB) $(CAENLibs)
 
-       
+
 %.o: %.cpp
 	$(CPP) -c $(CFLAG) $(CRFLAG) -o $@ $<
 

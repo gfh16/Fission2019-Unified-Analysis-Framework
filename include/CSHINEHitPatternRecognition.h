@@ -11,6 +11,9 @@
 #include <TCanvas.h>
 #include <TLine.h>
 #include <TGraph.h>
+#include <TStyle.h>
+#include <TLegend.h>
+#include <TMultiGraph.h>
 
 
 //________________________________

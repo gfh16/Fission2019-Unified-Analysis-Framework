@@ -118,7 +118,6 @@ void CSHINEPedestals::AutoFindPedestals(const char* layertag, const char* fileta
       printf("%s is analyzed,%2d peaks found\n", histname[SSDNum][CHNum].c_str(), nfound);
       c1->Print(pathPDFOutput.c_str());
 
-      Int_t npeaks = 0;
       Double_t* xpeaks = s->GetPositionX();
       fprintf(FileOut, "%5d  %5d  %10.1f \n", SSDNum, CHNum, xpeaks[0]);
       fflush(FileOut);

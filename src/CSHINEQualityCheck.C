@@ -13,18 +13,18 @@ CSHINEQualityCheck::~CSHINEQualityCheck()
 
 
 //******************************************************************************
-void CSHINEQualityCheck::QC_TreeReader(const char* pathlistfile)
+void CSHINEQualityCheck::QC_TreeReader(const char* pathlistfiles)
 {
   std::vector<string>  filenamelist;
 
   ReadFileModule readfile;
-  readfile.GetFileNamesFromFile(pathlistfile, filenamelist);
+  readfile.GetFileNamesFromFile(pathlistfiles, filenamelist);
 
   //__________________________________________
   //               逐个处理文件
   // !!! 重要 ！！！
   // 此处修改输入、输出文件路径
-  for (Int_t i=0; i<filenamelist.size(); i++)
+  for (Int_t i=0; i<Int_t(filenamelist.size()); i++)
   {
     TString pathrootout = "/home/sea/Fission2019_Data/QualityCheck/";
     pathrootout += "QC_";
@@ -38,35 +38,84 @@ void CSHINEQualityCheck::QC_TreeReader(const char* pathlistfile)
 
     TString pathrootin = "/home/sea/Fission2019_Data/MapRoot/";
     pathrootin += filenamelist[i];
+
     TFile* rootfile = new TFile(pathrootin);
     TChain* myChain = (TChain*)rootfile->Get("KrPb");
     cout<<"正在处理文件  : "<<pathrootin<<endl;
 
-    ReadTree(myChain, pathrootout, pathpdfout);
+    TreeReaderMethod(myChain, pathrootout, pathpdfout);
   }
-
 }
 //******************************************************************************
 
 
 //******************************************************************************
-void CSHINEQualityCheck::QC_BranchAdress()
+void CSHINEQualityCheck::QC_BranchAdress(const char* pathlistfiles)
 {
+  std::vector<string>  filenamelist;
 
+  ReadFileModule readfile;
+  readfile.GetFileNamesFromFile(pathlistfiles, filenamelist);
+
+  //__________________________________________
+  //               逐个处理文件
+  // !!! 重要 ！！！
+  // 此处修改输入、输出文件路径
+  for (Int_t i=0; i<Int_t(filenamelist.size()); i++)
+  {
+    TString pathrootout = "/home/sea/Fission2019_Data/QualityCheck/";
+    pathrootout += "QC_";
+    pathrootout += filenamelist[i];
+
+    TString pdf_name = filenamelist[i];
+    pdf_name.ReplaceAll(".root", ".pdf");
+    TString pathpdfout = "/home/sea/Fission2019_Data/QualityCheck_figures/";
+    pathpdfout  += "QC_";
+    pathpdfout  += pdf_name;
+
+    TString pathrootin = "/home/sea/Fission2019_Data/MapRoot/";
+    pathrootin += filenamelist[i];
+
+    TFile* rootfile = new TFile(pathrootin);
+    TChain* myChain = (TChain*)rootfile->Get("KrPb");
+    cout<<"正在处理文件  : "<<pathrootin<<endl;
+
+    ReadBranchMethod(myChain, pathrootout, pathpdfout);
+  }
 }
 //******************************************************************************
 
 
 //******************************************************************************
-void CSHINEQualityCheck::QC_ReadHistToDraw()
+void CSHINEQualityCheck::QC_ReadHistToDraw(Int_t runnumber, const char* layertag)
 {
+  std::string pathfilein(Form("%sMapRoot/MapFission2019_Kr_Pb%04d.root",PATHROOTFILESFOLDER,runnumber));
 
+  TCanvas* cans = new TCanvas("cans", "cans", 800, 600);
+  TFile* filein = new TFile(pathfilein.c_str());
+  TIter next(filein->GetListOfKeys());
+  TKey* key;
+  while ((key = (TKey*)next())) {
+    TH1D* hist = (TH1D*)key->ReadObj();
+    std::string histname(hist->GetName());
+    if(histname.find("SSD")==std::string::npos) continue;
+    if(histname.find(layertag)==std::string::npos) continue;
+    printf("histname = %s\n", histname.c_str());
+
+    cans->cd();
+    hist->GetXaxis()->SetRangeUser(150, 400);
+    hist->GetYaxis()->SetRangeUser(0, (hist->GetMaximum())*1.1);
+    hist->Draw();
+
+    cans->Modified();
+    cans->Update();
+  }
 }
 //******************************************************************************
 
 
 //******************************************************************************
-void CSHINEQualityCheck::ReadTree(TChain* mychain, const char* pathrootout, const char* pathpdfout)
+void CSHINEQualityCheck::TreeReaderMethod(TChain* mychain, const char* pathrootout, const char* pathpdfout)
 {
   Int_t  BIN_NUM   =  4096;
   Int_t  LOW_CH    =  0;
@@ -481,7 +530,7 @@ void CSHINEQualityCheck::ReadTree(TChain* mychain, const char* pathrootout, cons
 
 
 //******************************************************************************
-void CSHINEQualityCheck::ReadBranch(TChain* fChain, const char* pathrootout, const char* pathpdfout)
+void CSHINEQualityCheck::ReadBranchMethod(TChain* fChain, const char* pathrootout, const char* pathpdfout)
 {
     Int_t   BIN_NUM  =  4096;
     Int_t   LOW_CH   =  0;
@@ -778,50 +827,53 @@ void CSHINEQualityCheck::ReadBranch(TChain* fChain, const char* pathrootout, con
 
     //__________________________________________________________________________
     //                         Save the TCanvas
-
-    Canvas_begin->Print(pathoutpdf+'[');
+    TString pathpdfout_begin = pathpdfout;
+    pathpdfout_begin        += '[';
+    Canvas_begin->Print(pathpdfout_begin);
     //_____________________________________
     //            for  PPAC
     for(Int_t i=0; i<3; i++) {
-      Canvas_PPAC_T[i]  ->Print(pathoutpdf);
-      Canvas_PPAC_X1[i] ->Print(pathoutpdf);
-      Canvas_PPAC_X2[i] ->Print(pathoutpdf);
-      Canvas_PPAC_Y1[i] ->Print(pathoutpdf);
-      Canvas_PPAC_Y2[i] ->Print(pathoutpdf);
-      Canvas_PPAC_T_E[i]->Print(pathoutpdf);
+      Canvas_PPAC_T[i]  ->Print(pathpdfout);
+      Canvas_PPAC_X1[i] ->Print(pathpdfout);
+      Canvas_PPAC_X2[i] ->Print(pathpdfout);
+      Canvas_PPAC_Y1[i] ->Print(pathpdfout);
+      Canvas_PPAC_Y2[i] ->Print(pathpdfout);
+      Canvas_PPAC_T_E[i]->Print(pathpdfout);
     }
     //_____________________________________
     //            for Au-Si
     for(Int_t i=0; i<2; i++) {
-      Canvas_AuSi_L1T[i]->Print(pathoutpdf);
-      Canvas_AuSi_L1E[i]->Print(pathoutpdf);
-      Canvas_AuSi_L2E[i]->Print(pathoutpdf);
+      Canvas_AuSi_L1T[i]->Print(pathpdfout);
+      Canvas_AuSi_L1E[i]->Print(pathpdfout);
+      Canvas_AuSi_L2E[i]->Print(pathpdfout);
     }
     //_____________________________________
     //            for RF
-    Canvas_RF1->Print(pathoutpdf);
-    Canvas_RF2->Print(pathoutpdf);
+    Canvas_RF1->Print(pathpdfout);
+    Canvas_RF2->Print(pathpdfout);
     //____________________________________
     //      for SSD
     for(Int_t i=0; i<4; i++)
     {
       for(Int_t j=0; j<16; j++) {
-        Canvas_SSD_L2F_T[i][j]->Print(pathoutpdf);
+        Canvas_SSD_L2F_T[i][j]->Print(pathpdfout);
       }
       for(Int_t j=0; j<16; j++) {
-        Canvas_SSD_L1S_E[i][j]->Print(pathoutpdf);
+        Canvas_SSD_L1S_E[i][j]->Print(pathpdfout);
       }
       for(Int_t j=0; j<16; j++) {
-        Canvas_SSD_L2F_E[i][j]->Print(pathoutpdf);
+        Canvas_SSD_L2F_E[i][j]->Print(pathpdfout);
       }
       for(Int_t j=0; j<16; j++) {
-        Canvas_SSD_L2B_E[i][j]->Print(pathoutpdf);
+        Canvas_SSD_L2B_E[i][j]->Print(pathpdfout);
       }
       for(Int_t j=0; j<9; j++) {
-        Canvas_SSD_L3A_E[i][j]->Print(pathoutpdf);
+        Canvas_SSD_L3A_E[i][j]->Print(pathpdfout);
       }
     }
-    Canvas_end->Print(pathoutpdf+']');
+    TString pathpdfout_end = pathpdfout;
+    pathpdfout_end        += "]";
+    Canvas_end->Print(pathpdfout_end);
 }
 //******************************************************************************
 

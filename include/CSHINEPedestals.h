@@ -10,10 +10,14 @@
 #include "TSpectrum.h"
 #include "TMath.h"
 #include "TFile.h"
+#include "TMarker.h"
+#include "TLine.h"
+#include "TGraph.h"
+#include "TGClient.h"
+
 
 #include <iostream>
 #include <string>
-
 
 //______________________________________________________________________________
 class CSHINEPedestals

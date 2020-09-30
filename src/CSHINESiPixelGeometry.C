@@ -2,7 +2,7 @@
 using namespace std;
 
 
-//////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 // SSD1 && SSD4 硅条本体坐标系定义:          // SSD2 && SSD3 硅条本体坐标系定义:
 //                          EB=0               EB=0
 //  EF=0 +-------------------+ EF=0            +-------------------+
@@ -19,7 +19,7 @@ using namespace std;
 //
 // 实验室系定义:
 //     束流方向
-//       /|\
+//       /||
 //        |
 //        |
 // <----- O (靶点)
@@ -328,7 +328,6 @@ void CSHINESiPixelGeometry::CalculateEffectiveThickness()
 //******************************************************************************
 
 
-//******************************************************************************
 ////////////////////////////////////////////////////////////////////////////////
 //
 //   计算硅条每个 pixel 中心点在实验室系下的 （R, Theta, Phi）
@@ -394,9 +393,9 @@ void CSHINESiPixelGeometry::SiPixellation()
   CSHINESiPixelGeometry pixel;
 
   Double_t DistToEdge = 2.0; // pixel 中心点到四条边距离相等, 都是 2mm (实验中两条并为一条)
-  Double_t dist [NUM_SSD];
-  Double_t theta[NUM_SSD];
-  Double_t phi  [NUM_SSD];
+//  Double_t dist [NUM_SSD];
+//  Double_t theta[NUM_SSD];
+//  Double_t phi  [NUM_SSD];
 
   Double_t X1, X2, X3, X4;
   Double_t Y1, Y2, Y3, Y4;
@@ -404,19 +403,19 @@ void CSHINESiPixelGeometry::SiPixellation()
 
   TH2D* h2d_phi_theta =  new TH2D("h2d",      "h2d_phi_over_theta",     70,0.0,70.,360,0.0,360.);
   TH2D* h2d_nb0       =  new TH2D("h2d_nb0",  "check stripb direction", 70,0.0,70.,360,0.0,360.);
-  TH2D* h2d_nb5       =  new TH2D("h2d_nb5",  "check stripb direction", 70,0.0,70.,360,0.0,360.);
+//  TH2D* h2d_nb5       =  new TH2D("h2d_nb5",  "check stripb direction", 70,0.0,70.,360,0.0,360.);
   TH2D* h2d_nb10      =  new TH2D("h2d_nb10", "check stripb direction", 70,0.0,70.,360,0.0,360.);
   TH2D* h2d_nb15      =  new TH2D("h2d_nb15", "check stripb direction", 70,0.0,70.,360,0.0,360.);
   TH2D* h2d_nf0       =  new TH2D("h2d_nf0",  "check stripf direction", 70,0.0,70.,360,0.0,360.);
-  TH2D* h2d_nf5       =  new TH2D("h2d_nf5",  "check stripf direction", 70,0.0,70.,360,0.0,360.);
+//  TH2D* h2d_nf5       =  new TH2D("h2d_nf5",  "check stripf direction", 70,0.0,70.,360,0.0,360.);
   TH2D* h2d_nf10      =  new TH2D("h2d_nf10", "check stripf direction", 70,0.0,70.,360,0.0,360.);
   TH2D* h2d_nf15      =  new TH2D("h2d_nf15", "check stripf direction", 70,0.0,70.,360,0.0,360.);
 
   for (Int_t ssdnum=0; ssdnum<NUM_SSD; ssdnum++)
   {
-    dist[ssdnum]  = pixel.GetDistOfL2FToTarget(ssdnum);
-    theta[ssdnum] = pixel.GetThetaOfSSDFixedPosition(ssdnum);
-    phi[ssdnum]   = pixel.GetPhiOfSSDFixedPosition(ssdnum);
+//    dist[ssdnum]  = pixel.GetDistOfL2FToTarget(ssdnum);
+//    theta[ssdnum] = pixel.GetThetaOfSSDFixedPosition(ssdnum);
+//    phi[ssdnum]   = pixel.GetPhiOfSSDFixedPosition(ssdnum);
 
     for (Int_t nb=0; nb<NUM_STRIP; nb++)
     {
@@ -563,9 +562,9 @@ void CSHINESiPixelGeometry::CheckSiPixellation()
   CSHINESiPixelGeometry pixel;
 
   Double_t DistToEdge = 2.0; // pixel 中心点到四条变距离相等, 都是 2mm (实验中两条并为一条)
-  Double_t dist [NUM_SSD];
-  Double_t theta[NUM_SSD];
-  Double_t phi  [NUM_SSD];
+//  Double_t dist [NUM_SSD];
+//  Double_t theta[NUM_SSD];
+//  Double_t phi  [NUM_SSD];
 
   Double_t X1, X2, X3, X4;
   Double_t Y1, Y2, Y3, Y4;
@@ -573,9 +572,9 @@ void CSHINESiPixelGeometry::CheckSiPixellation()
 
   for (Int_t ssdnum=0; ssdnum<NUM_SSD; ssdnum++)
   {
-    dist[ssdnum]  = pixel.GetDistOfL2FToTarget(ssdnum);
-    theta[ssdnum] = pixel.GetThetaOfSSDFixedPosition(ssdnum);
-    phi[ssdnum]   = pixel.GetPhiOfSSDFixedPosition(ssdnum);
+//    dist[ssdnum]  = pixel.GetDistOfL2FToTarget(ssdnum);
+//    theta[ssdnum] = pixel.GetThetaOfSSDFixedPosition(ssdnum);
+//    phi[ssdnum]   = pixel.GetPhiOfSSDFixedPosition(ssdnum);
 
     for (Int_t nb=0; nb<NUM_STRIP; nb++)
     {

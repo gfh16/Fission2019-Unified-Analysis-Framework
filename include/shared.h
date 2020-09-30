@@ -1,28 +1,28 @@
 #ifndef SHARED_H
 #define SHARED_H
 
-#include <cmath>
+#include "TMath.h"
 
 //______________________________________________________________________________
-extern const Double_t RadToDeg;
-extern const Double_t DegToRad;
+extern const double RadToDeg;
+extern const double DegToRad;
 
 //______________________________________________________________________________
-extern const Int_t NUM_SSD;
-extern const Int_t NUM_STRIP;
-extern const Int_t NUM_CSI;
-extern const Int_t NUM_MAX_PARTICLES_PER_TEL;
+extern const int NUM_SSD;
+extern const int NUM_STRIP;
+extern const int NUM_CSI;
+extern const int NUM_MAX_PARTICLES_PER_TEL;
 
 //______________________________________________________________________________
-extern const Double_t NUM_SIGMA_L1S[4];
-extern const Double_t NUM_SIGMA_L2F[4];
-extern const Double_t NUM_SIGMA_L2B[4];
-extern const Double_t NUM_SIGMA_L3A[4];
+extern const double NUM_SIGMA_L1S[4];
+extern const double NUM_SIGMA_L2F[4];
+extern const double NUM_SIGMA_L2B[4];
+extern const double NUM_SIGMA_L3A[4];
 
 //______________________________________________________________________________
 // Setting the Cut for CsI
-extern const Double_t ECSICHCUT;
-extern const Double_t CSIPEDESTALSIGMA;
+extern const double ECSICHCUT;
+extern const double CSIPEDESTALSIGMA;
 
 //______________________________________________________________________________
 extern const char* PATHDATAFOLDER;

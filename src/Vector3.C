@@ -1,4 +1,6 @@
 #include "../include/Vector3.h"
+using namespace std;
+
 
 //______________________________________________________________________________
 Vector3::Vector3()

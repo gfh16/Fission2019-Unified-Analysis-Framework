@@ -3,6 +3,7 @@
 
 #include <TMath.h>
 #include <cmath>
+#include <iostream>
 
 //______________________________________________________________________________
 class Vector3
