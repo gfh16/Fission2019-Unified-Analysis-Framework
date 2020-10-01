@@ -33,6 +33,8 @@ void Step1_DataConversion()
   cout<<"122 根据需要,修改输入路径(datapath)与输出路径(pathoutfile)."<<endl;
   cout<<"123 在输入路径(datapath)文件夹下添加 listrootfilename.dat. 执行 14 直接生成 listrootfilename.dat."<<endl;
   cout<<"124 编译(make), 然后执行 ./ReadRootFile2D listrootfilename.dat"<<endl;
+  cout<<"注意: Fission2019实验中, 0089-0120 与 0121-0438 需要分开转换, 因为此间Au-Si探测器有改变,"<<endl
+  cout<<"需要修改ReadRootFile2D.cpp"<<endl;
   cout<<endl;
 
   cout<<"1.3 生成 listrawfilename"<<endl;

@@ -13,16 +13,10 @@ using namespace std;
 int main(int argc, char *argv[])
 {
   Int_t option;
-  std::string listfilenames;
+  TString pathlistname;
 
-  cout<<"请输入 listfilenames 文件: "<<endl;
-  cin >>listfilenames;
-
-  TString pathlistname(Form("/home/sea/Fission2019_Data/MapRoot/%s",listfilenames.c_str()));
-  if (!pathlistname.IsNull()) {
-    printf("文件 %s 不存在！\n", pathlistname.Data());
-    return -1;
-  }
+  cout<<"请输入 pathlistname 文件: "<<endl;
+  cin >>pathlistname;
 
   cout<<"请选择质检方式: (两种方式实质内容一样)"<<endl;
   cout<<"1.使用 TreeReader 方式(推荐)"<<endl;
