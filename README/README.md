@@ -110,7 +110,7 @@ $ root -l SiEnergyCali_ModifyDeadLayer.C          // 考虑死层的修正对能
 void SetPoints(Int_t event, Int_t x, Int_t y, TObject *selected){}
 ```
 
-#### <font color=#FF00FF> 4.1.2 Pulser 线性刻度 </font>
+#### <font color=#FF00FF> 4.1.2 Pulse 线性刻度 </font>
 >+ **目的:** 脉冲线性刻度
 >+ **文件:** 
 PulserCali_L1_AutoFindPeaksAndFit.C

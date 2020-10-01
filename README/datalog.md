@@ -16,7 +16,7 @@
 
 
 ### <font color=#DC143C> 1. 硅条刻度文件 </font>
-#### <font color=#00BBDD> 1.1 硅条 Pulser 刻度 </font>
+#### <font color=#00BBDD> 1.1 硅条 Pulse 刻度 </font>
 
 + **<font color=#FF00FF> SSD_PulserCali_Pedestal.0000 </font>**
   >+ 刻度 SSD_L1 与 SSD_L2的零点道
