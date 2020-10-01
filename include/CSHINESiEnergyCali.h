@@ -6,14 +6,14 @@
 class PulserCalibration
 {
 public:
-  PulseCalibration();
-  ~PulseCalibration();
+  PulserCalibration();
+  ~PulserCalibration();
 
-  void    L1_AutoFindPeaksAndFit();
-  void    L2_AutoFindPeaksAndFit();
-  void    L1_AutoFindPeaksAndFit_ReCali();
-  void    L1_GainEffectOnPulseCali();
-
+  void   L1_AutoFindPeaksAndFit();
+  void   L2_AutoFindPeaksAndFit();
+  void   L1_AutoFindPeaksAndFit_ReCali();
+  void   L1_GainEffectOnPulseCali();
+  void   CaliCheck_SSD_L2F_CH00_01();
 };
 
 
@@ -28,8 +28,15 @@ public:
   void   MergeAlphaCaliFiles();
   void   CheckAphaPeaks();
   void   ClickToFindAlphaPeaks();
-
   void   CheckAbnormaleChannels_SSD4();
+
+  void   SetPoints(Int_t event, Int_t x, Int_t y, TObject* selected); //*SIGNAL*
+
+private:
+  Int_t     fIndex = 0;
+  Int_t     fNPoints;
+  TMarker  *m[2];
+  TLine    *l[2];
 };
 
 
@@ -41,7 +48,7 @@ public:
   ~SiEnergiCalibration();
 
   void   CheckAbnormalChannels();
-  void   PulseAndAlphaCali();
+  void   PulserAndAlphaCali();
   void   EstimatePedestals();
   void   EstimateFitPars();
   void   EstimateDeadlayerEffects();
