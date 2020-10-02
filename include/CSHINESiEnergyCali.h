@@ -1,51 +1,27 @@
 #ifndef CSHINESIENERGYCALI_H
 #define CSHINESIENERGYCALI_H
 
+#include "shared.h"
+
+#include "TCanvas.h"
+#include "TH1.h"
+#include "TF1.h"
+#include "TSpectrum.h"
+#include "TFile.h"
+#include "TTree.h"
+#include "TString.h"
+#include "TStyle.h"
+#include "TMarker.h"
+#include "TGraph.h"
+
+#include <string.h>
 
 //______________________________________________________________________________
-class PulserCalibration
+class CSHINESiEnergyCali
 {
 public:
-  PulserCalibration();
-  ~PulserCalibration();
-
-  void   L1_AutoFindPeaksAndFit();
-  void   L2_AutoFindPeaksAndFit();
-  void   L1_AutoFindPeaksAndFit_ReCali();
-  void   L1_GainEffectOnPulseCali();
-  void   CaliCheck_SSD_L2F_CH00_01();
-};
-
-
-//______________________________________________________________________________
-class AlphaCalibration
-{
-public:
-  AlphaCalibration();
-  ~AlphaCalibration();
-
-  void   CalculateAlphaEnergy();
-  void   MergeAlphaCaliFiles();
-  void   CheckAphaPeaks();
-  void   ClickToFindAlphaPeaks();
-  void   CheckAbnormaleChannels_SSD4();
-
-  void   SetPoints(Int_t event, Int_t x, Int_t y, TObject* selected); //*SIGNAL*
-
-private:
-  Int_t     fIndex = 0;
-  Int_t     fNPoints;
-  TMarker  *m[2];
-  TLine    *l[2];
-};
-
-
-//______________________________________________________________________________
-class SiEnergiCalibration
-{
-public:
-  SiEnergiCalibration();
-  ~SiEnergiCalibration();
+  CSHINESiEnergyCali();
+  ~CSHINESiEnergyCali();
 
   void   CheckAbnormalChannels();
   void   PulserAndAlphaCali();
