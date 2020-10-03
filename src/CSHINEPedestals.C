@@ -95,15 +95,13 @@ void CSHINEPedestals::AutoFindPedestals(const char* layertag, const char* fileta
   for (Int_t SSDNum=0; SSDNum<NUM_SSD; SSDNum++)
   {
     // 读取root文件中的 Histograms
-    for (Int_t CHNum=0; CHNum<Num_CH; CHNum++)
-    {
+    for (Int_t CHNum=0; CHNum<Num_CH; CHNum++) {
       histname [SSDNum][CHNum] = Form("SSD%d_%s_E_CH%02d",SSDNum+1,layertag,CHNum);
       Pedestals[SSDNum][CHNum] = (TH1D*)FileIn->Get(histname[SSDNum][CHNum].c_str());
       Pedestals[SSDNum][CHNum]->GetXaxis()->SetRangeUser(lowrange, highrange);
       cout << histname[SSDNum][CHNum].c_str() << endl;
     }
     printf("Histograms loaded\n");
-
     //____________________________________________________________________________
     //                        BEGIN ANALYZE HERE !!!
     TSpectrum* s = new TSpectrum();
@@ -136,7 +134,6 @@ void CSHINEPedestals::AutoFindPedestals(const char* layertag, const char* fileta
 
 //******************************************************************************
 //    相比于自动寻峰, 手动拟合的主要优点是： 可以得到拟合的所有参数！
-//
 //                          -----------------
 //                             自动寻峰步骤
 //                          -----------------
@@ -179,7 +176,7 @@ void CSHINEPedestals::ClickToFindPedestals(const char* layertag, const char* fil
   ofstream FileOut(pathPedestalsOutput.c_str());
   FileOut << "*SSDNum" << setw(7) << "CHNum" << setw(8) << "mean"<< setw(10)<< "sigma"<< setw(14)
           <<"mean+5sigma"<< setw(10)<<"Chi2" << setw(10) <<"Xmin"<< setw(10)<<"Xmax" << endl;
-
+  //____________________________________________________________________________
   TFile* FileIn = new TFile(pathRootInput.c_str());
   if(!FileIn->IsOpen()) {
     cout<<"Open file "<< pathRootInput.c_str() << " failed"<<endl;
@@ -201,7 +198,6 @@ void CSHINEPedestals::ClickToFindPedestals(const char* layertag, const char* fil
   c_begin->Close();
   TCanvas *c_end   = new TCanvas("c_end","");
   c_end->Close();
-
   //____________________________________________________________________________
   //                            BEGIN ANALYZE HERE !!!
   //
@@ -209,26 +205,22 @@ void CSHINEPedestals::ClickToFindPedestals(const char* layertag, const char* fil
   c_begin->Print(pathPDFbegin.c_str());
 
   Float_t limit[2] = {0};   //定义limit[2]用于存储拟合范围
-  for(Int_t i=0; i<NUM_SSD; i++)
-  {
-    for(Int_t j=0; j<NUM_STRIP; j++)
-    {
+  for(Int_t i=0; i<NUM_SSD; i++) {
+    for(Int_t j=0; j<NUM_STRIP; j++) {
       Int_t Option = 2;   // 设置一个标志, 当Option==2时，执行后面的while(Option==2)循环
-
       if (PedestalHist[i][j] == 0) {
         printf("No data present for SSD%d_%s_CH%02d\n",(i+1),layertag,j);
         continue;
       }
-      while(Option == 2)
-      {
+      Double_t HistYUpRange = (PedestalHist[i][j]->GetMaximum())*1.2;
+      PedestalHist[i][j]->GetXaxis()->SetRangeUser(50,160);
+      PedestalHist[i][j]->GetYaxis()->SetRangeUser(0, HistYUpRange);
+      while(Option == 2) {
         fIndex   = 0;
         fNPoints = 0;
-
         c1->cd();
         gPad->Modified();
         gPad->Update();
-        PedestalHist[i][j]->GetXaxis()->SetRangeUser(50,160);
-        PedestalHist[i][j]->GetYaxis()->SetRangeUser(0,(PedestalHist[i][j]->GetMaximum())*1.1);
         PedestalHist[i][j]->Draw();
         //____________________________________________________
         //   it is very important!!! very convenient!!!
@@ -255,7 +247,7 @@ void CSHINEPedestals::ClickToFindPedestals(const char* layertag, const char* fil
         cin >> Option;
         //  Option ==1，保存拟合结果
         if (Option==1) {
-          TF1 *fit = PedestalHist[i][j]->GetFunction("gaus");
+          TF1* fit = PedestalHist[i][j]->GetFunction("gaus");
           Double_t Mean  = fit->GetParameter(1);    // Par[1] = Mean
           Double_t Sigma = fit->GetParameter(2);    // Par[2] = sigma
           Double_t Chi2  = fit->GetChisquare();
@@ -342,14 +334,12 @@ void CSHINEPedestals::EstimateErrorsOfPedestals(const char* layertag, const char
        err_pedestal[i][j]  =  TMath::Abs(Pedestal1[i][j][0]-Pedestal2[i][j][0]);
      }
    }
-
    // build graphs
    TGraph* graph[NUM_SSD];
    for (Int_t i=0; i<NUM_SSD; i++) {
      graph[i] = new TGraph(NUM_STRIP, SSDCHNum[i], err_pedestal[i]);
      graph[i]->SetTitle(Form("SSD%d_%s_PedestalError_%s_%s", i+1, layertag, filetag1, filetag2));
    }
-
    // draw
    TCanvas* cans = new TCanvas("cans","Error of Pedestals",1200,1000);
    cans->Divide(2,2,small,small);

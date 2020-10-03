@@ -1,11 +1,10 @@
 #include "../include/EnergyLossModule.h"
-const char* pathFrameWork("/home/sea/Fission2019-Unified-Analysis-Framework/");
 
 
 //******************************************************************************
 EnergyLossModule::EnergyLossModule()
 {
-  NucData = new Nuclear_masses(Form("%ssrc/Masses.conf",pathFrameWork));
+  NucData = new Nuclear_masses("Masses.conf");
 }
 
 //______________________________________________________________________________
@@ -143,7 +142,7 @@ Double_t EnergyLossModule::GetEnergyLoss(Int_t Z, Int_t A, Double_t Einc,
   Double_t ELoss              =  0;
   Double_t mass_uma           =  NucData->GetMass_Z_A_uma(Z,A);
 
-  if(LoadEnergyLossFile(Form("%sLISEInput/LISE_ELoss_Z%02d_A%02d_%s.dat",pathFrameWork,Z,A,material))<=0) {
+  if(LoadEnergyLossFile(Form("../LISEInput/LISE_ELoss_Z%02d_A%02d_%s.dat", Z, A, material))<=0) {
     printf("Error: information not present for Z=%d A=%d material=%s\n", Z, A, material);
     return -100;
   }
@@ -212,7 +211,7 @@ Double_t EnergyLossModule::GetRangeFromEnergy(Int_t Z, Int_t A, Double_t Einc,
 {
   Double_t mass_uma = NucData->GetMass_Z_A_uma(Z,A);
 
-if(LoadEnergyLossFile(Form("%sLISEInput/LISE_ELoss_Z%02d_A%02d_%s.dat",pathFrameWork,Z,A,material))<=0) {
+  if(LoadRangeFile(Form("../LISEInput/LISE_Range_Z%02d_A%02d_%s.dat", Z, A, material))<=0) {
     printf("Error: information not present for Z=%d A=%d material=%s\n", Z, A, material);
     return -100;
   }
@@ -230,7 +229,7 @@ Double_t EnergyLossModule::GetEnergyFromRange(Int_t Z, Int_t A, Double_t range,
 {
   Double_t mass_uma = NucData->GetMass_Z_A_uma(Z,A);
 
-  if(LoadEnergyLossFile(Form("%sLISEInput/LISE_ELoss_Z%02d_A%02d_%s.dat",pathFrameWork,Z,A,material))<=0) {
+  if(LoadRangeFile(Form("../LISEInput/LISE_Range_Z%02d_A%02d_%s.dat", Z, A, material))<=0) {
     printf("Error: information not present for Z=%d A=%d material=%s\n", Z, A, material);
     return -100;
   }
@@ -245,7 +244,7 @@ Double_t EnergyLossModule::GetEnergyFromRange(Int_t Z, Int_t A, Double_t range,
 //******************************************************************************
 void EnergyLossModule::DrawdEdx(Int_t Z, Int_t A, const char* material, Int_t model)
 {
-  if(LoadEnergyLossFile(Form("%sLISEInput/LISE_ELoss_Z%02d_A%02d_%s.dat",pathFrameWork,Z,A,material))<=0) return;
+  if(LoadEnergyLossFile(Form("../LISEInput/LISE_ELoss_Z%02d_A%02d_%s.dat", Z, A, material))<=0) return;
 
   const Int_t NPoints = ParticleEnergy.size();
   Double_t E_LISE_Values[NPoints];

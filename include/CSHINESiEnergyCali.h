@@ -2,6 +2,7 @@
 #define CSHINESIENERGYCALI_H
 
 #include "shared.h"
+#include "ReadFileModule.h"
 
 #include "TCanvas.h"
 #include "TH1.h"
@@ -13,6 +14,8 @@
 #include "TStyle.h"
 #include "TMarker.h"
 #include "TGraph.h"
+#include "TLegend.h"
+
 
 #include <string.h>
 
@@ -23,10 +26,10 @@ public:
   CSHINESiEnergyCali();
   ~CSHINESiEnergyCali();
 
-  void   CheckAbnormalChannels();
-  void   PulserAndAlphaCali();
-  void   EstimatePedestals();
+  void   PulserAndAlphaCali(const char*, const char*);
+  void   EstimatePedestals(const char*, const char*);
   void   EstimateFitPars();
+  void   CheckAbnormalChannels();
   void   EstimateDeadlayerEffects();
   void   EstimateAlphaChannelEffOnFitPars();
   void   FinallyDeterminedFitPars();

@@ -22,7 +22,6 @@ private:
   char      ***fElement_names; // fElement_names[Z][A]
   double       fElectron_mass; // MeV
   double       fUMA_MeV;       // MeV/uma
-
 };
 
 #endif

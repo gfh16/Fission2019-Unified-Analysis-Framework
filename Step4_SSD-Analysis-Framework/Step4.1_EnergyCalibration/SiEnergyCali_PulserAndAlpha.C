@@ -73,7 +73,6 @@ void SiEnergyCali_PulserAndAlpha_L1(const char* layertag)
                   <<"h2"<<setw(12)<<"k3"<<setw(12)<<"h3"<<setw(16)<<"k11=1./k1"<<setw(12)<<"h11=-h1/k1"<<setw(12)
                   <<"k22=1./k2"<<setw(12)<<"h22=-h2/k2"<<setw(12)<<"k33=1./k3"<<setw(13)<<"h33=-h3/k3\n";
 
-
   Int_t numpar_PulserIn       = 3;  // a, err_a, b
   Int_t numpar_PulserInGain20 = 3;  // a, err_a, b
   Int_t numpar_AlphaCali00_08 = 3;  // peak1, peak2, peak3
