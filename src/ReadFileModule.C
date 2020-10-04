@@ -20,23 +20,21 @@ ReadFileModule::~ReadFileModule()
 Double_t*** ReadFileModule::ReadData(const Char_t* datapath, Int_t SSDNum,
             Int_t CHNum, Int_t ParNum)
 {
-  Double_t*** readpar = NULL;
-  readpar = new Double_t** [SSDNum];
-  for(Int_t i=0; i<SSDNum; i++)
-  {
-    readpar[i] = new Double_t* [CHNum];
-    for(Int_t j=0; j<CHNum; j++) {
-      readpar[i][j]= new Double_t[ParNum];
-    }
-  }
   ifstream in;
   in.open(datapath);
   if(!in.is_open()) {
     printf("Error: file %s not found\n",datapath);
     return NULL;
   }
-  while(in.good())
-  {
+  Double_t*** readpar = NULL;
+  readpar = new Double_t** [SSDNum];
+  for(Int_t i=0; i<SSDNum; i++) {
+    readpar[i] = new Double_t* [CHNum];
+    for(Int_t j=0; j<CHNum; j++) {
+      readpar[i][j]= new Double_t[ParNum];
+    }
+  }
+  while(in.good()) {
     // 按行读取数据
     std::string LineRead;
     std::getline(in, LineRead);
@@ -147,5 +145,14 @@ void ReadFileModule::GetFileNamesFromFile(const char* pathfilein, vector<string>
     LineStream>>filename;
     filelist.push_back(filename);
   }
+}
+//******************************************************************************
+
+
+//******************************************************************************
+Bool_t ReadFileModule::IsFileExists(const std::string& filename)
+{
+  ifstream filein(filename.c_str());
+  return filein.good();
 }
 //******************************************************************************

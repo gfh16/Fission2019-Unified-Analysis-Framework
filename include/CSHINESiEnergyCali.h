@@ -3,6 +3,7 @@
 
 #include "shared.h"
 #include "ReadFileModule.h"
+#include "EnergyLossModule.h"
 
 #include "TCanvas.h"
 #include "TH1.h"
@@ -15,7 +16,10 @@
 #include "TMarker.h"
 #include "TGraph.h"
 #include "TLegend.h"
-
+#include "TMultiGraph.h"
+#include "TLine.h"
+#include "TLatex.h"
+#include "TGaxis.h"
 
 #include <string.h>
 
@@ -28,11 +32,22 @@ public:
 
   void   PulserAndAlphaCali(const char*, const char*);
   void   EstimatePedestals(const char*, const char*);
-  void   EstimateFitPars();
-  void   CheckAbnormalChannels();
-  void   EstimateDeadlayerEffects();
-  void   EstimateAlphaChannelEffOnFitPars();
-  void   FinallyDeterminedFitPars();
+
+  void   EstimateFitPars(const char*, const char*);
+  void   EstimateErrorOfPeak1AndPeak2(const char*, const char*);
+  void   EstimateParameterDistributions(const char*, const char*);
+
+  void   CheckAbnormalChannels(const char*);
+  void   Check_SSD2_L2F_CH00_CH01(const char*);
+  void   Check_SSD4_L2F_CH13_CH14(const char*);
+  void   Check_SSD4_L1S_CH00_CH15_AlphaCali00_04();
+
+  void   EstimateDeadlayerEffects(const char*,const char*);
+  void   GetSiEnergyCaliPars(const char*,const char*,Double_t&,Double_t&,Double_t&,Int_t,Int_t,Double_t,Int_t);
+
+  void   EstimateAlphaChannelEffOnFitPars(const char*, const char*);
+  void   FinallyDeterminedFitPars(const char*, const char*);
+
 };
 
 #endif

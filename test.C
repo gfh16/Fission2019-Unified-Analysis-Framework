@@ -16,5 +16,7 @@ void test()
 //  alphacali.CheckAbnormaleChannels_SSD4();
 
   CSHINESiEnergyCali energycali;
-  energycali.PulserAndAlphaCali("L1S","Height");
+//  energycali.EstimatePedestals("L1S","Height");
+//  energycali.EstimateFitPars("L1S","Height");
+  energycali.FinallyDeterminedFitPars("L1S", "Height");
 }

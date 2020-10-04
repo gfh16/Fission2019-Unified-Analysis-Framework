@@ -36,6 +36,8 @@ public:
   void        AddChain(TChain *chain, const char *LayerTag, Int_t *dataarray, Int_t size, Int_t index);
   void        GetFileNamesFromFolder(const char* pathfolder, const char* pathfileout);
   void        GetFileNamesFromFile(const char* pathfilein, std::vector<string>& filelist);
+
+  Bool_t      IsFileExists(const std::string& filename);
 };
 
 #endif
