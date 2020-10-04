@@ -30,13 +30,13 @@ public:
   CSHINEPulserCali();
   ~CSHINEPulserCali();
 
-  void   L1_AutoFindPeaksAndFit(const char* FileTag);
-  void   L2_AutoFindPeaksAndFit(const char* FileTag);
+  void   L1_AutoFindPeaksAndFit(const char*);
+  void   L2_AutoFindPeaksAndFit(const char*);
   void   L1_AutoFindPeaksAndFit_ReCali(const char*, const char*);
-  void   L1_GainEffectOnPulseCali_ReCali(const char* FileTag);
+  void   L1_GainEffectOnPulseCali_ReCali(const char*);
   void   CaliCheck_SSD_L2F_CH00_01();
   void   EstimateErrorOfHightAndSwitch();
-  void   CheckLinearity(const char* layertag);
+  void   CheckLinearity(const char*, const char*);
 };
 
 

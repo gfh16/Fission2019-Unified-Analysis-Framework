@@ -242,12 +242,12 @@ void CSHINESiEnergyCali::EstimatePedestals(const char* layertag, const char* pul
   Double_t PedestalRangeUp    [3] = { 130.,130., 160.};
   Double_t ErrorRangeLow      [3] = {-25., -35., -25.};
   Double_t ErrorRangeUp       [3] = { 0.,  -5.,   0.};
-//Double_t RelativeErrRangeLow[3] = {-30., -40., -50.};
-//Double_t RelativeErrRangeUp [3] = { 0.,  -5.,   0.};
+  //Double_t RelativeErrRangeLow[3] = {-30., -40., -50.};
+  //Double_t RelativeErrRangeUp [3] = { 0.,  -5.,   0.};
   Double_t latex_PedestalUp    = 0.9 * (PedestalRangeUp   [index] - PedestalRangeLow   [index]) + PedestalRangeLow[index];
   Double_t latex_PedestalLow   = 0.1 * (PedestalRangeUp   [index] - PedestalRangeLow   [index]) + PedestalRangeLow[index];
   Double_t latex_ErrorUp       = 0.9 * (ErrorRangeUp      [index] - ErrorRangeLow      [index]) + ErrorRangeLow[index];
-//Double_t latex_RelativeErrUp = 0.9 * (RelativeErrRangeUp[index] - RelativeErrRangeLow[index]) + RelativeErrRangeLow[index];
+  //Double_t latex_RelativeErrUp = 0.9 * (RelativeErrRangeUp[index] - RelativeErrRangeLow[index]) + RelativeErrRangeLow[index];
   //____________________________________________________________________________
   Int_t numpar_PedestalsIn = 2;
   Int_t numpar_ParsInput   = 8; // a1,b1,a2,b2,a3,b3,a11,b11... b11是截距
@@ -515,10 +515,8 @@ void CSHINESiEnergyCali::EstimateParameterDistributions(const char* layertag, co
   std::string L1STag("L1S");
   std::string L2FTag("L2F");
   std::string L2BTag("L2B");
-  std::string pathParsInput(Form("%sdata_SiEnergyCali/SSD_%s_%sAndAlphaFitPars.dat",
-                            PATHDATAFOLDER,layertag,pulserfiletag));
-  std::string pathPNGOutput(Form("%sfigure_SiEnergyCali/SSD_%s_Peak1ParameterDistributions.png",
-                            PATHFIGURESFOLDER,layertag));
+  std::string pathParsInput(Form("%sdata_SiEnergyCali/SSD_%s_%sAndAlphaFitPars.dat",PATHDATAFOLDER,layertag,pulserfiletag));
+  std::string pathPNGOutput(Form("%sfigure_SiEnergyCali/SSD_%s_Peak1ParameterDistributions.png",PATHFIGURESFOLDER,layertag));
   // 手动设定系数 a 与 b 的范围
   Double_t YRangeLow      = -22.;
   Double_t YRangeUp       =  22.;
@@ -784,7 +782,7 @@ void CSHINESiEnergyCali::Check_SSD2_L2F_CH00_CH01(const char* pulserfiletag)
   Double_t SSDCHNum[NUM_STRIP];
 
   Double_t k_scaleCH[num_channel];
-//Double_t h_scaleCH[num_channel];
+  //Double_t h_scaleCH[num_channel];
   Double_t k_scaleE [num_channel];
 //Double_t h_scaleE [num_channel];
 
@@ -1948,7 +1946,7 @@ void CSHINESiEnergyCali::EstimateAlphaChannelEffOnFitPars(const char* layertag, 
   Double_t c1_Plus  [NUM_SSD][NUM_STRIP];
   Double_t c1_2Minus[NUM_SSD][NUM_STRIP];
   Double_t c1_2Plus [NUM_SSD][NUM_STRIP];
-//Double_t SSDCHNum [NUM_SSD][NUM_STRIP];
+ //Double_t SSDCHNum [NUM_SSD][NUM_STRIP];
   Double_t RelativeErr_Minus [NUM_SSD][NUM_STRIP];
   Double_t RelativeErr_Plus  [NUM_SSD][NUM_STRIP];
   Double_t RelativeErr_2Minus[NUM_SSD][NUM_STRIP];

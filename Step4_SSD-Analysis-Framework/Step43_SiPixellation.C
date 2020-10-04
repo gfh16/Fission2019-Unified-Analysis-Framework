@@ -17,7 +17,7 @@ void Step43_SiPixellation()
   Int_t option2 = 1;
 
   cout<<"********************************************"<<endl;
-  cout<<"     欢迎来到 Step4.3_SiPixellation 界面 !    "<<endl;
+  cout<<"     欢迎来到 Step43_SiPixellation 界面 !    "<<endl;
   cout<<"********************************************"<<endl;
   cout<<endl;
   cout<<"请选择您需要进行的操作: "<<endl;
@@ -29,19 +29,12 @@ void Step43_SiPixellation()
     cout<<"============================================================="<<endl;
     cout<<"请在此输入您的选项: 431, 432, 433"<<endl;
     cin >>option;
-
-    switch(option) {
-      case 431:
-        pixel.CalculateEffectiveThickness();
-        break;
-
-      case 432:
-        pixel.SiPixellation();
-        break;
-
-      case 433:
-        pixel.CheckSiPixellation();
-        break;
+    if (option == 431) {
+      pixel.CalculateEffectiveThickness();
+    } else if (option == 432) {
+      pixel.SiPixellation();
+    } else {
+      pixel.CheckSiPixellation();
     }
     cout<<"请选择下一步操作: "<<endl;
     cout<<"1.继续输入操作选项."<<endl;
@@ -49,7 +42,7 @@ void Step43_SiPixellation()
     cin >>option2;
     if (option2 == 2) {
       cout<<"***********************************************"<<endl;
-      cout<<"          Exit Step4.3_SiPixellation!          "<<endl;
+      cout<<"          Exit Step43_SiPixellation!          "<<endl;
       cout<<"***********************************************"<<endl;
       return;
     }

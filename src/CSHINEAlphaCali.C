@@ -118,14 +118,22 @@ void CSHINEAlphaCali::MergeAlphaCaliFiles(const char* layertag, Int_t firstrun, 
 
   std::string L1Tag("L1");
   std::string L2Tag("L2");
-  std::string pathROOTFileOut(Form("%sMapRoot/MapSSD_%s_AlphaCali%02d_%02d.root",
-                             PATHROOTFILESFOLDER,layertag,firstrun,lastrun));
+  std::string L1STag("L1S");
+  std::string pathROOTFileOut;
+  std::string pathROOTFileIn;
+  pathROOTFileOut = Form("%sMapRoot/MapSSD_%s_AlphaCali%02d_%02d.root",PATHROOTFILESFOLDER,layertag,firstrun,lastrun);
+  pathROOTFileIn;
+  if (strcmp(layertag,L1STag.c_str())==0) {
+    pathROOTFileIn = Form("%sMapRoot/MapSSD_%s",PATHROOTFILESFOLDER,L1Tag.c_str());
+  } else {
+    pathROOTFileIn = Form("%sMapRoot/MapSSD_%s",PATHROOTFILESFOLDER,L2Tag.c_str());
+  }
   //____________________________________________________________________________
   TFile* FileOut = new TFile(pathROOTFileOut.c_str(), "RECREATE");
   auto*   myData = new TChain("KrPb");
 
   for (int i=firstrun; i<=lastrun; i++) {
-    myData->Add(Form("%sMapRoot/MapSSD_%s_AlphaCali%04d.root",PATHROOTFILESFOLDER,layertag,i));
+    myData->Add(Form("%s_AlphaCali%04d.root",pathROOTFileIn.c_str(),i));
     printf("MapSSD_%s_AlphaCali%04d.root Loaded\n",layertag,i);
   }
   // I disable all the branches
@@ -265,7 +273,7 @@ void CSHINEAlphaCali::MergeAlphaCaliFiles(const char* layertag, Int_t firstrun, 
 //  gfh, 2019-11-11
 //  修改成类, 2020-10-03
 ////////////////////////////////////////////////////////////////////////////////
-void CSHINEAlphaCali::ClickToFindAlphaPeaks(const char* layertag, const char* filetag)
+void CSHINEAlphaCali::ClickToFindAlphaPeaks(const char* layertag, const char* alphafiletag)
 {
   Double_t Ealpha[3] = {4.90407, 5.24768, 5.57147};  //MeV
 
@@ -279,22 +287,22 @@ void CSHINEAlphaCali::ClickToFindAlphaPeaks(const char* layertag, const char* fi
 
   std::string pathRootFileInput;
   if (strcmp(layertag,L1STag.c_str())==0) {
-    pathRootFileInput= Form("%sQualityCheck/QC_MapSSD_%s_%s.root",PATHROOTFILESFOLDER,L1Tag.c_str(),filetag);
+    pathRootFileInput= Form("%sQualityCheck/QC_MapSSD_%s_%s.root",PATHROOTFILESFOLDER,L1Tag.c_str(),alphafiletag);
   } else {
-    pathRootFileInput= Form("%sQualityCheck/QC_MapSSD_%s_%s.root",PATHROOTFILESFOLDER,L2Tag.c_str(),filetag);
+    pathRootFileInput= Form("%sQualityCheck/QC_MapSSD_%s_%s.root",PATHROOTFILESFOLDER,L2Tag.c_str(),alphafiletag);
   }
   std::string pathPedestalInput(Form("%sdata_Pedestals/SSD_%s_AlphaCaliPedestals_%s.dat",
-                                PATHDATAFOLDER,layertag,filetag));
+                                PATHDATAFOLDER,layertag,alphafiletag));
   std::string pathAlphaPeaksOutput(Form("%sdata_AlphaCali/SSD_%s_%s_%s.dat", PATHDATAFOLDER,
-                                layertag,AlphaPeaksTag.c_str(),filetag));
+                                layertag,AlphaPeaksTag.c_str(),alphafiletag));
   std::string pathAlphaFitResultsOutput(Form("%sdata_AlphaCali/SSD_%s_%s_%s.dat",PATHDATAFOLDER,
-                                layertag,AlphaFitTag.c_str(),filetag));
+                                layertag,AlphaFitTag.c_str(),alphafiletag));
   std::string pathPDFOutput(Form("%sfigure_AlphaCali/SSD_%s_%s_%s.pdf",PATHFIGURESFOLDER,
-                                layertag,AlphaPeaksTag.c_str(),filetag));
+                                layertag,AlphaPeaksTag.c_str(),alphafiletag));
   std::string pathPDFbegin(Form("%sfigure_AlphaCali/SSD_%s_%s_%s.pdf[",PATHFIGURESFOLDER,
-                                layertag,AlphaPeaksTag.c_str(),filetag));
+                                layertag,AlphaPeaksTag.c_str(),alphafiletag));
   std::string pathPDFend(Form("%sfigure_AlphaCali/SSD_%s_%s_%s.pdf]",PATHFIGURESFOLDER,
-                                layertag,AlphaPeaksTag.c_str(),filetag));
+                                layertag,AlphaPeaksTag.c_str(),alphafiletag));
   Double_t HistXLowRange[NUM_SSD];
   Double_t HistXUpRange [NUM_SSD];
   if (strcmp(layertag, L1STag.c_str())==0) {           // for L1S
@@ -493,10 +501,8 @@ void CSHINEAlphaCali::AlphaCali_SSD4_L1S_CompareAlphaCali00_04And05_08()
 
   std::string AlphaCali00_04("AlphaCali00_04");
   std::string AlphaCali05_08("AlphaCali05_08");
-  std::string pathAlphaCali00_04(Form("%sdata_AlphaCali/SSD_L1S_AlphaPeaks_%s.dat",
-                                 PATHDATAFOLDER,AlphaCali00_04.c_str()));
-  std::string pathAlphaCali05_08(Form("%sdata_AlphaCali/SSD_L1S_AlphaPeaks_%s.dat",
-                                 PATHDATAFOLDER,AlphaCali05_08.c_str()));
+  std::string pathAlphaCali00_04(Form("%sdata_AlphaCali/SSD_L1S_AlphaPeaks_%s.dat",PATHDATAFOLDER,AlphaCali00_04.c_str()));
+  std::string pathAlphaCali05_08(Form("%sdata_AlphaCali/SSD_L1S_AlphaPeaks_%s.dat",PATHDATAFOLDER,AlphaCali05_08.c_str()));
   std::string pathPNGOutput(Form("%sfigure_AlphaCali/SSD4_L1S_AlphaReCali.png",PATHFIGURESFOLDER));
   //____________________________________________________________________________
   Double_t CHIndex[NUM_STRIP];

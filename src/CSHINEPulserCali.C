@@ -32,7 +32,7 @@ CSHINEPulserCali::~CSHINEPulserCali()
 //
 //   PulserCali_AutoFindPeak()参数说明
 //   L1Tag   : L1 or L2
-//   FileTag    : Switch / Height，We use this two methods for pulser cali
+//   pulserfiletag : Switch / Height，We use this two methods for pulser cali
 //   cans[4][16]: Canvas for to save all the figures
 //
 //   Search()参数说明：
@@ -50,7 +50,7 @@ bool compare(Int_t a, Int_t b) {
 }
 
 //******************************************************************************
-void CSHINEPulserCali::L1_AutoFindPeaksAndFit(const char* FileTag)
+void CSHINEPulserCali::L1_AutoFindPeaksAndFit(const char* pulserfiletag)
 {
   gStyle->SetOptStat(0);
 
@@ -72,16 +72,16 @@ void CSHINEPulserCali::L1_AutoFindPeaksAndFit(const char* FileTag)
   std::string L1Tag("L1");
   std::string L1STag("L1S");
 
-  std::string pathPDFOutput(Form("%sfigure_PulserCali/SSD_%s_PulserCali_%s.pdf",PATHFIGURESFOLDER,L1STag.c_str(),FileTag));
-  std::string pathPDFbegin(Form("%sfigure_PulserCali/SSD_%s_PulserCali_%s.pdf[",PATHFIGURESFOLDER,L1STag.c_str(),FileTag));
-  std::string pathPDFend(Form("%sfigure_PulserCali/SSD_%s_PulserCali_%s.pdf]"  ,PATHFIGURESFOLDER,L1STag.c_str(),FileTag));
+  std::string pathPDFOutput(Form("%sfigure_PulserCali/SSD_%s_PulserCali_%s.pdf",PATHFIGURESFOLDER,L1STag.c_str(),pulserfiletag));
+  std::string pathPDFbegin(Form("%sfigure_PulserCali/SSD_%s_PulserCali_%s.pdf[",PATHFIGURESFOLDER,L1STag.c_str(),pulserfiletag));
+  std::string pathPDFend(Form("%sfigure_PulserCali/SSD_%s_PulserCali_%s.pdf]"  ,PATHFIGURESFOLDER,L1STag.c_str(),pulserfiletag));
 
   std::string pathRootInput[NUM_SSD];
   for (Int_t i=0; i<NUM_SSD; i++) {
-    pathRootInput[i] = Form("%sQualityCheck/QC_MapSSD%d_%s_PulserCali_%s0000.root",PATHROOTFILESFOLDER,i+1,L1Tag.c_str(),FileTag);
+    pathRootInput[i] = Form("%sQualityCheck/QC_MapSSD%d_%s_PulserCali_%s0000.root",PATHROOTFILESFOLDER,i+1,L1Tag.c_str(),pulserfiletag);
   }
 
-  std::string pathPulserCaliParsOutput(Form("%sdata_PulserCali/SSD_%s_PulserCali_%s.dat",PATHDATAFOLDER,L1STag.c_str(),FileTag));
+  std::string pathPulserCaliParsOutput(Form("%sdata_PulserCali/SSD_%s_PulserCali_%s.dat",PATHDATAFOLDER,L1STag.c_str(),pulserfiletag));
   FILE* FileOut = fopen(pathPulserCaliParsOutput.c_str(),"w");
   fprintf(FileOut,"* Fiiting funtion = par[0] + par[1]*x && y=a*x+b (y=Energy, x=Ch), so a = par[1], b = par[0];  0.0 isn't a peak\n");
   fprintf(FileOut,"* SSDNum CHNum    par0(a)   err_par0     par1(b)      err_par1      "
@@ -214,12 +214,13 @@ void CSHINEPulserCali::L1_AutoFindPeaksAndFit(const char* FileTag)
     }
   }
   c_end->Print(pathPDFend.c_str());
+  return;
 }
 //******************************************************************************
 
 
 //******************************************************************************
-void CSHINEPulserCali::L2_AutoFindPeaksAndFit(const char* FileTag)
+void CSHINEPulserCali::L2_AutoFindPeaksAndFit(const char* pulserfiletag)
 {
   gStyle->SetOptStat(0);
   //____________________________________________________________________________
@@ -237,16 +238,16 @@ void CSHINEPulserCali::L2_AutoFindPeaksAndFit(const char* FileTag)
   std::string L2FTag("L2F");
   std::string L2BTag("L2B");
 
-  std::string pathPDFOutput(Form("%sfigure_PulserCali/SSD_%s_PulserCali_%s.pdf", PATHFIGURESFOLDER,L2Tag.c_str(),FileTag));
-  std::string pathPDFbegin (Form("%sfigure_PulserCali/SSD_%s_PulserCali_%s.pdf[",PATHFIGURESFOLDER,L2Tag.c_str(),FileTag));
-  std::string pathPDFend   (Form("%sfigure_PulserCali/SSD_%s_PulserCali_%s.pdf]",PATHFIGURESFOLDER,L2Tag.c_str(),FileTag));
+  std::string pathPDFOutput(Form("%sfigure_PulserCali/SSD_%s_PulserCali_%s.pdf", PATHFIGURESFOLDER,L2Tag.c_str(),pulserfiletag));
+  std::string pathPDFbegin (Form("%sfigure_PulserCali/SSD_%s_PulserCali_%s.pdf[",PATHFIGURESFOLDER,L2Tag.c_str(),pulserfiletag));
+  std::string pathPDFend   (Form("%sfigure_PulserCali/SSD_%s_PulserCali_%s.pdf]",PATHFIGURESFOLDER,L2Tag.c_str(),pulserfiletag));
 
-  std::string pathPulserCaliParsOutput_L2F(Form("%sdata_PulserCali/SSD_%s_PulserCali_%s.dat",PATHDATAFOLDER,L2FTag.c_str(),FileTag));
-  std::string pathPulserCaliParsOutput_L2B(Form("%sdata_PulserCali/SSD_%s_PulserCali_%s.dat",PATHDATAFOLDER,L2BTag.c_str(),FileTag));
+  std::string pathPulserCaliParsOutput_L2F(Form("%sdata_PulserCali/SSD_%s_PulserCali_%s.dat",PATHDATAFOLDER,L2FTag.c_str(),pulserfiletag));
+  std::string pathPulserCaliParsOutput_L2B(Form("%sdata_PulserCali/SSD_%s_PulserCali_%s.dat",PATHDATAFOLDER,L2BTag.c_str(),pulserfiletag));
 
   std::string pathRootInput[NUM_SSD];
   for (Int_t i=0; i<NUM_SSD; i++) {
-    pathRootInput[i] = Form("%sQualityCheck/QC_MapSSD%d_%s_PulserCali_%s0000.root",PATHROOTFILESFOLDER,i+1,L2Tag.c_str(),FileTag);
+    pathRootInput[i] = Form("%sQualityCheck/QC_MapSSD%d_%s_PulserCali_%s0000.root",PATHROOTFILESFOLDER,i+1,L2Tag.c_str(),pulserfiletag);
   }
   FILE* FileOutF = fopen(pathPulserCaliParsOutput_L2F.c_str(),"w");
   FILE* FileOutB = fopen(pathPulserCaliParsOutput_L2B.c_str(),"w");
@@ -435,6 +436,7 @@ void CSHINEPulserCali::L2_AutoFindPeaksAndFit(const char* FileTag)
     }
   }
   c_end->Print(pathPDFend.c_str());
+  return;
 }
 //******************************************************************************
 
@@ -451,10 +453,19 @@ void CSHINEPulserCali::L2_AutoFindPeaksAndFit(const char* FileTag)
 //    gfh, 2020-05-27
 //    修改成类, 2020-10-02
 ////////////////////////////////////////////////////////////////////////////////
-void CSHINEPulserCali::L1_AutoFindPeaksAndFit_ReCali(const char* FileTag,const char* GainTag)
+void CSHINEPulserCali::L1_AutoFindPeaksAndFit_ReCali(const char* pulserfiletag,const char* GainTag)
 {
   gStyle->SetOptStat(0);
   //____________________________________________________________________________
+  std::string L1Tag("L1");
+  std::string L1STag("L1S");
+  std::string Gain20("Gain20");
+  std::string Gain4 ("Gain4");
+  std::string Gain74("Gain74");
+  std::string LowGain("LowGain");
+  std::string HighGain("HighGain");
+  std::string Height("Height");
+
   Int_t ReCaliSSDNum = 2;
 
   Double_t AttenFactor[11] = {0};     //衰减因子
@@ -470,10 +481,10 @@ void CSHINEPulserCali::L1_AutoFindPeaksAndFit_ReCali(const char* FileTag,const c
   Double_t Height11_SSD2_Gain20[11] = {1./4, .9/4, .8/4, .7/4, .6/4, .5/4, .4/4, .3/4, .2/4, .1/4, 0.05/4};  // for SSD2_L1_Gain20_Hight
 
   Double_t RangeXLowCut[ReCaliSSDNum];
-  if (strcmp(GainTag,"LowGain")==0) {
+  if (strcmp(GainTag,LowGain.c_str())==0) {
     RangeXLowCut[0] = 120.;
     RangeXLowCut[1] = 120.;
-  } else if ((strcmp(GainTag,"HighGain")==0) && (strcmp(FileTag,"Height")==0)) {
+  } else if ((strcmp(GainTag,HighGain.c_str())==0) && (strcmp(pulserfiletag,Height.c_str())==0)) {
     RangeXLowCut[0] = 350.;
     RangeXLowCut[1] = 120.;
   } else {
@@ -481,28 +492,20 @@ void CSHINEPulserCali::L1_AutoFindPeaksAndFit_ReCali(const char* FileTag,const c
     RangeXLowCut[1] = 120.;
   }
 
-  std::string L1Tag("L1");
-  std::string L1STag("L1S");
-  std::string Gain20("Gain20");
-  std::string Gain4 ("Gain4");
-  std::string Gain74("Gain74");
-  std::string LowGain("LowGain");
-  std::string HighGain("HighGain");
+  std::string pathPDFOutput(Form("%sfigure_PulserCali/SSD_%s_PulserReCali_%s_%s.pdf",PATHFIGURESFOLDER,L1STag.c_str(),GainTag,pulserfiletag));
+  std::string pathPDFbegin(Form("%sfigure_PulserCali/SSD_%s_PulserReCali_%s_%s.pdf[",PATHFIGURESFOLDER,L1STag.c_str(),GainTag,pulserfiletag));
+  std::string pathPDFend(Form("%sfigure_PulserCali/SSD_%s_PulserReCali_%s_%s.pdf]",  PATHFIGURESFOLDER,L1STag.c_str(),GainTag,pulserfiletag));
 
-  std::string pathPDFOutput(Form("%sfigure_PulserCali/SSD_%s_PulserReCali_%s_%s.pdf",PATHFIGURESFOLDER,L1STag.c_str(),GainTag,FileTag));
-  std::string pathPDFbegin(Form("%sfigure_PulserCali/SSD_%s_PulserReCali_%s_%s.pdf[",PATHFIGURESFOLDER,L1STag.c_str(),GainTag,FileTag));
-  std::string pathPDFend(Form("%sfigure_PulserCali/SSD_%s_PulserReCali_%s_%s.pdf]",  PATHFIGURESFOLDER,L1STag.c_str(),GainTag,FileTag));
-
-  std::string pathPulserCaliParsOutput(Form("%sdata_PulserCali/SSD_%s_PulserReCali_%s_%s.dat",PATHDATAFOLDER,L1STag.c_str(),GainTag,FileTag));
+  std::string pathPulserCaliParsOutput(Form("%sdata_PulserCali/SSD_%s_PulserReCali_%s_%s.dat",PATHDATAFOLDER,L1STag.c_str(),GainTag,pulserfiletag));
 
   std::string pathRootInput[ReCaliSSDNum];
   if (strcmp(GainTag,HighGain.c_str())==0) {
-    pathRootInput[0] = Form("%sQualityCheck/QC_MapSSD%d_%s_PulserReCali_%s_%s0000.root",PATHROOTFILESFOLDER,1,L1Tag.c_str(),Gain20.c_str(),FileTag);
-    pathRootInput[1] = Form("%sQualityCheck/QC_MapSSD%d_%s_PulserReCali_%s_%s0000.root",PATHROOTFILESFOLDER,2,L1Tag.c_str(),Gain20.c_str(),FileTag);
+    pathRootInput[0] = Form("%sQualityCheck/QC_MapSSD%d_%s_PulserReCali_%s_%s0000.root",PATHROOTFILESFOLDER,1,L1Tag.c_str(),Gain20.c_str(),pulserfiletag);
+    pathRootInput[1] = Form("%sQualityCheck/QC_MapSSD%d_%s_PulserReCali_%s_%s0000.root",PATHROOTFILESFOLDER,2,L1Tag.c_str(),Gain20.c_str(),pulserfiletag);
   }
   if (strcmp(GainTag,LowGain.c_str())==0) {
-    pathRootInput[0] = Form("%sQualityCheck/QC_MapSSD%d_%s_PulserReCali_%s_%s0000.root",PATHROOTFILESFOLDER,1,L1Tag.c_str(),Gain4.c_str(),FileTag);
-    pathRootInput[1] = Form("%sQualityCheck/QC_MapSSD%d_%s_PulserReCali_%s_%s0000.root",PATHROOTFILESFOLDER,2,L1Tag.c_str(),Gain74.c_str(),FileTag);
+    pathRootInput[0] = Form("%sQualityCheck/QC_MapSSD%d_%s_PulserReCali_%s_%s0000.root",PATHROOTFILESFOLDER,1,L1Tag.c_str(),Gain4.c_str(),pulserfiletag);
+    pathRootInput[1] = Form("%sQualityCheck/QC_MapSSD%d_%s_PulserReCali_%s_%s0000.root",PATHROOTFILESFOLDER,2,L1Tag.c_str(),Gain74.c_str(),pulserfiletag);
   }
 
   FILE * FileOut = fopen(pathPulserCaliParsOutput.c_str(),"w");
@@ -633,6 +636,7 @@ void CSHINEPulserCali::L1_AutoFindPeaksAndFit_ReCali(const char* FileTag,const c
     }
   }
   c_end->Print(pathPDFend.c_str());
+  return;
 }
 //******************************************************************************
 
@@ -649,7 +653,7 @@ void CSHINEPulserCali::L1_AutoFindPeaksAndFit_ReCali(const char* FileTag,const c
 //  gfh, 2020-05-30
 // 修改成类, 2020-10-02
 ////////////////////////////////////////////////////////////////////////////////
-void CSHINEPulserCali::L1_GainEffectOnPulseCali_ReCali(const char* FileTag)
+void CSHINEPulserCali::L1_GainEffectOnPulseCali_ReCali(const char* pulserfiletag)
 {
   gStyle->SetPalette(1);
   //____________________________________________________________________________
@@ -689,15 +693,15 @@ void CSHINEPulserCali::L1_GainEffectOnPulseCali_ReCali(const char* FileTag)
   std::string LowGainTag("LowGain");
 
   std::string pathPDFOutput(Form("%sfigure_PulserCali/SSD_%s_%s_%s_%s.pdf",PATHFIGURESFOLDER,L1STag.c_str(),
-                            CaliTag.c_str(),FileTag,FileOutTag.c_str()));
+                            CaliTag.c_str(),pulserfiletag,FileOutTag.c_str()));
   std::string pathPDFOutputBegin(Form("%sfigure_PulserCali/SSD_%s_%s_%s_%s.pdf[",PATHFIGURESFOLDER,L1STag.c_str(),
-                            CaliTag.c_str(),FileTag,FileOutTag.c_str()));
+                            CaliTag.c_str(),pulserfiletag,FileOutTag.c_str()));
   std::string pathPDFOutputEnd(Form("%sfigure_PulserCali/SSD_%s_%s_%s_%s.pdf]",PATHFIGURESFOLDER,L1STag.c_str(),
-                            CaliTag.c_str(),FileTag,FileOutTag.c_str()));
+                            CaliTag.c_str(),pulserfiletag,FileOutTag.c_str()));
   std::string pathLowGainFileIn(Form("%sdata_PulserCali/SSD_%s_%s_%s_%s.dat",PATHDATAFOLDER,L1STag.c_str(),CaliTag.c_str(),
-                            LowGainTag.c_str(),FileTag));
+                            LowGainTag.c_str(),pulserfiletag));
   std::string pathHighGainFileIn(Form("%sdata_PulserCali/SSD_%s_%s_%s_%s.dat",PATHDATAFOLDER,L1STag.c_str(),CaliTag.c_str(),
-                            HighGainTag.c_str(),FileTag));
+                            HighGainTag.c_str(),pulserfiletag));
   //____________________________________________________________________________
 
   ReadFileModule readfile;
@@ -749,7 +753,7 @@ void CSHINEPulserCali::L1_GainEffectOnPulseCali_ReCali(const char* FileTag)
       cans->cd(1);
       gPad->SetGridx();
       gPad->SetGridy();
-      FuncLowGain->SetTitle(Form("SSD%d_%s_CH%02d_%s_%s",i+1,L1STag.c_str(),j,FileTag,FileOutTag.c_str()));
+      FuncLowGain->SetTitle(Form("SSD%d_%s_CH%02d_%s_%s",i+1,L1STag.c_str(),j,pulserfiletag,FileOutTag.c_str()));
       FuncLowGain->SetLineColor(kRed);
       FuncLowGain->GetXaxis()->SetRangeUser(0.,MaxCh);
       FuncLowGain->GetXaxis()->SetTitle("ADC Channel");
@@ -799,6 +803,7 @@ void CSHINEPulserCali::L1_GainEffectOnPulseCali_ReCali(const char* FileTag)
     }
   }
   cans_end->Print(pathPDFOutputEnd.c_str());
+  return;
 }
 //******************************************************************************
 
@@ -878,6 +883,7 @@ void CSHINEPulserCali::CaliCheck_SSD_L2F_CH00_01()
     hist[i][13]->Draw();
     cans[i]->Print(pathPNGOutput[i].c_str());
   }
+  return;
 }
 //******************************************************************************
 
@@ -991,6 +997,7 @@ void CSHINEPulserCali::EstimateErrorOfHightAndSwitch()
 
   readfile.DeleteData(HeightIn, NUM_SSD, NUM_STRIP, numpar_HeightIn);
   readfile.DeleteData(SwitchIn, NUM_SSD, NUM_STRIP, numpar_SwitchIn);
+  return;
 }
 //******************************************************************************
 
@@ -998,28 +1005,23 @@ void CSHINEPulserCali::EstimateErrorOfHightAndSwitch()
 //******************************************************************************
 ////////////////////////////////////////////////////////////////////////////////
 //   较定量考察 pulser 脉冲刻度的线性性！
-//   虽然从 pulser 刻度的图片看到很好的线性, 但为保险期间，需要对其进行定量考察.
+//   虽然从 pulser 刻度的图片看到很好的线性, 但为保险起见，需要对其进行定量考察.
 //   思路如下: 对于每个相同的 ADC 道址, 计算每个相对脉冲幅度与刻度曲线的偏差
 //
 //   gfh, 2020-06-20
 //   修改成类, 2020-10-02
 ////////////////////////////////////////////////////////////////////////////////
-void CSHINEPulserCali::CheckLinearity(const char* layertag)
+void CSHINEPulserCali::CheckLinearity(const char* layertag, const char* pulserfiletag)
 {
   Double_t Height[11] = {1., .9, .8, .7, .6, .5, .4, .3, .2, .1, 0.05};
   Int_t numpeaks11 = 11;  // 最多是 11 个点, 但有些是 10 个点
   Int_t numpeaks10 = 10;
   Int_t numpar_PulserIn  = 15;
 
-  std::string PulserTag("Height");
-  std::string pathPulserIn(Form("%sdata_PulserCali/SSD_%s_PulserCali_%s.dat",
-                           PATHDATAFOLDER,layertag,PulserTag.c_str()));
-  std::string pathPDFOutput(Form("%sfigure_PulserCali/SSD_%s_CheckPulserLinearity.pdf",
-                           PATHFIGURESFOLDER,layertag));
-  std::string pathPDFOutputBegin(Form("%sfigure_PulserCali/SSD_%s_CheckPulserLinearity.pdf[",
-                           PATHFIGURESFOLDER,layertag));
-  std::string pathPDFOutputEnd(Form("%sfigure_PulserCali/SSD_%s_CheckPulserLinearity.pdf]",
-                           PATHFIGURESFOLDER,layertag));
+  std::string pathPulserIn(Form("%sdata_PulserCali/SSD_%s_PulserCali_%s.dat",PATHDATAFOLDER,layertag,pulserfiletag));
+  std::string pathPDFOutput(Form("%sfigure_PulserCali/SSD_%s_CheckPulserLinearity.pdf",PATHFIGURESFOLDER,layertag));
+  std::string pathPDFOutputBegin(Form("%sfigure_PulserCali/SSD_%s_CheckPulserLinearity.pdf[",PATHFIGURESFOLDER,layertag));
+  std::string pathPDFOutputEnd(Form("%sfigure_PulserCali/SSD_%s_CheckPulserLinearity.pdf]",PATHFIGURESFOLDER,layertag));
   //____________________________________________________________________________
   ReadFileModule readfile;
   Double_t*** PulserIn  = readfile.ReadData(pathPulserIn.c_str(),NUM_SSD,NUM_STRIP,numpar_PulserIn);
@@ -1069,8 +1071,8 @@ void CSHINEPulserCali::CheckLinearity(const char* layertag)
       fit[i][j] = new TF1(Form("fun_SSD%d_CH%02d",i+1,j),"pol1",0.,4000.);
       graphpeaks11[i][j] = new TGraph(numpeaks11,PulserPeaks11[i][j],PulserHeight11[i][j]);
       graphpeaks10[i][j] = new TGraph(numpeaks10,PulserPeaks10[i][j],PulserHeight10[i][j]);
-      graph11[i][j]    = new TGraph(numpeaks11,PulserPeaks11[i][j],RelativeErr11[i][j]);
-      graph10[i][j]    = new TGraph(numpeaks10,PulserPeaks10[i][j],RelativeErr10[i][j]);
+      graph11[i][j]      = new TGraph(numpeaks11,PulserPeaks11[i][j],RelativeErr11[i][j]);
+      graph10[i][j]      = new TGraph(numpeaks10,PulserPeaks10[i][j],RelativeErr10[i][j]);
       // 画出全部的 11 个点
       cans->cd(1);
       gPad->SetLeftMargin(0.13);
@@ -1176,5 +1178,6 @@ void CSHINEPulserCali::CheckLinearity(const char* layertag)
     }
   }
   cans_end->Print(pathPDFOutputEnd.c_str());
+  return;
 }
 //******************************************************************************

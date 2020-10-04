@@ -48,15 +48,10 @@ void Step1_DataConversion()
     cout<<"============================================================="<<endl;
     cout<<"请在此输入您的选项: 13 or 14"<<endl;
     cin >>option1;
-
-    switch(option1) {
-      case 13 :
-        readfile.GetFileNamesFromFolder(pathRawData.c_str(), pathRawDataFilelist.c_str());
-        break;
-
-      case 14 :
-        readfile.GetFileNamesFromFolder(pathRootData.c_str(), pathRootDataFilelist.c_str());
-        break;
+    if (option1 == 13) {
+      readfile.GetFileNamesFromFolder(pathRawData.c_str(), pathRawDataFilelist.c_str());
+    } else {
+      readfile.GetFileNamesFromFolder(pathRootData.c_str(), pathRootDataFilelist.c_str());
     }
     cout<<"请选择下一步操作: "<<endl;
     cout<<"1.继续输入操作选项."<<endl;

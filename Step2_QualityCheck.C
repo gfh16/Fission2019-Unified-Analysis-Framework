@@ -16,7 +16,7 @@ void Step2_QualityCheck()
   cout<<"       欢迎来到 Step2_QualityCheck 界面 !        "<<endl;
   cout<<"***********************************************"<<endl;
   cout<<endl;
-  cout<<"请选择您需要进行的操作: ";
+  cout<<"请选择您需要进行的操作: "<<endl;;
   cout<<"==============================================="<<endl;
   cout<<"211 生成 listfilename 文件, 文件内容是需要质检的文件名"<<endl;
   cout<<"221 在当前目录下, 执行编译命令: 先 make clean, 再 make"<<endl;
@@ -38,9 +38,14 @@ void Step2_QualityCheck()
       return -1;
     }
     cout<<"请选择下一步操作: "<<endl;
-    cout<<"1.返回上一层,重新进行操作选择"<<endl;
+    cout<<"1.返回上一层, 重新进行操作选择"<<endl;
     cout<<"2.操作完成, 结束程序"<<endl;
     cin >>option_index;
-    if (option_index == 2) return;
+    if (option_index == 2) {
+      cout<<"***********************************************"<<endl;
+      cout<<"          Exit Step2_QualityCheck!             "<<endl;
+      cout<<"***********************************************"<<endl;
+      return;
+    }
   }
 }
