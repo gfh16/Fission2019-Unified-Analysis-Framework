@@ -9,7 +9,7 @@ DIR_BIN := bin/
 
 CPP        := g++
 ROOTCFLAGS := -c -g -Wall `root-config --cflags`
-ROOTGLIBS  := `root-config --glibs`
+ROOTGLIBS  := `root-config --glibs --libs`
 ROOTLIBS   := -lSpectrum -lMathMore
 
 TARGET     := QualityCheck
