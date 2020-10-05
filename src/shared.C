@@ -25,17 +25,17 @@ const double CSIPEDESTALSIGMA       =    4.;    // 手动添加
 
 //______________________________________________________________________________
 //本地使用
-//const char* PATHDATAFOLDER      = "/home/sea/Fission2019-Unified-Analysis-Framework/data/";
-//const char* PATHFIGURESFOLDER   = "/home/sea/Fission2019-Unified-Analysis-Framework/figures/";
-//const char* PATHROOTFILESFOLDER = "/home/sea/Fission2019_Data/";
-//const char* PATHHOMEFOLDER      = "/home/sea/Fission2019-Unified-Analysis-Framework/";
+const char* PATHDATAFOLDER      = "/home/sea/Fission2019-Unified-Analysis-Framework/data/";
+const char* PATHFIGURESFOLDER   = "/home/sea/Fission2019-Unified-Analysis-Framework/figures/";
+const char* PATHROOTFILESFOLDER = "/home/sea/Fission2019_Data/";
+const char* PATHHOMEFOLDER      = "/home/sea/Fission2019-Unified-Analysis-Framework/";
 
 
 //______________________________________________________________________________
 // 服务器上使用
+/*
 const char* PATHDATAFOLDER      = "/home/gfh/Fission2019-Unified-Analysis-Framework/data/";
 const char* PATHFIGURESFOLDER   = "/home/gfh/Fission2019-Unified-Analysis-Framework/figures/";
 const char* PATHROOTFILESFOLDER = "/data/EXPdata/Fission2019_Data/";
 const char* PATHHOMEFOLDER      = "/home/gfh/Fission2019-Unified-Analysis-Framework/";
-
-
+*/

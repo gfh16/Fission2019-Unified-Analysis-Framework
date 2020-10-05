@@ -2,7 +2,7 @@
 
 
 //******************************************************************************
-EnergyLossModule::EnergyLossModule()26
+EnergyLossModule::EnergyLossModule()
 {
   NucData = new Nuclear_masses(Form("%ssrc/Masses.conf",PATHHOMEFOLDER));
 }
