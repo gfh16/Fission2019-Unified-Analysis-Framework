@@ -21,17 +21,20 @@ void Step41_PedestalCali()
   cout<<"               欢迎来到 Step41_PedestalCali 界面 !               "<<endl;
   cout<<"****************************************************************"<<endl;
   cout<<endl;
-  cout<<"请选择您需要进行的操作: "<<endl;
-  cout<<"411.AutoFindPedestals()         -- 自动寻峰"<<endl;
-  cout<<"412.ClickToFindPedestals()      -- 手动拟合"<<endl;
-  cout<<"413.EstimateErrorsOfPedestals() -- 评估不同刻度文件的pedestal差异"<<endl;
   while (option41 == 1) {
-    cout<<"======================================="<<endl;
+    cout<<"请选择您需要进行的操作: "<<endl;
+    cout<<"============================================================="<<endl;
+    cout<<"411.AutoFindPedestals()         -- 自动寻峰"<<endl;
+    cout<<"412.ClickToFindPedestals()      -- 手动拟合"<<endl;
+    cout<<"413.EstimateErrorsOfPedestals() -- 评估不同刻度文件的pedestal差异"<<endl;
+    cout<<"============================================================="<<endl;
     cout<<"请在此输入您的选项: 411, 412, 413"<<endl;
     cin >>option_step41;
-    if (option_step41 == 411) Step411_AutoFindPedestals();
-    if (option_step41 == 412) Step412_ClickToFindPedestals();
-    if (option_step41 == 413) Step413_EstimateErrorsOfPedestals();
+
+    if (option_step41 == 411)  Step411_AutoFindPedestals();
+    if (option_step41 == 412)  Step412_ClickToFindPedestals();
+    if (option_step41 == 413)  Step413_EstimateErrorsOfPedestals();
+
     cout<<"请选择下一步操作: "<<endl;
     cout<<"1.返回 Step41,重新进行操作选择"<<endl;
     cout<<"2.操作完成, 结束程序"<<endl;
@@ -58,9 +61,9 @@ void Step411_AutoFindPedestals()
 
   CSHINEPedestals pedestal;
 
-  cout<<"***************************************************************"<<endl;
-  cout<<"     您正在进行Pedestals自动寻峰  Step411_AutoFindPedestals ！    "<<endl;
-  cout<<"***************************************************************"<<endl;
+  cout<<"****************************************************************"<<endl;
+  cout<<"     您正在进行 Pedestals 自动寻峰  Step411_AutoFindPedestals ！    "<<endl;
+  cout<<"****************************************************************"<<endl;
   cout<<endl;
   while (option411 == 1) {
     InputLayerAndFileTag(option_layer, LayerTag, option_file, FileTag);
@@ -68,7 +71,7 @@ void Step411_AutoFindPedestals()
     cout<<"请选择下一步操作: "<<endl;
     cout<<"1.返回 Step411,重新进行操作选择"<<endl;
     cout<<"2.操作完成, 结束程序"<<endl;
-    cin >> option411;
+    cin >>option411;
     if (option411 == 2) {
       cout<<"*************************************************"<<endl;
       cout<<"          Exit Step411_AutoFindPedestals!        "<<endl;
@@ -152,6 +155,7 @@ void InputLayerTag(Int_t opt_layer, std::string& layertag)
   std::string L2FTag("L2F");
   std::string L2BTag("L2B");
   cout<<"请选择对哪一层硅条进行处理: "<<endl;
+  cout<<"===================="<<endl;
   cout<<"1.L1S"<<endl;
   cout<<"2.L2F"<<endl;
   cout<<"3.L2B"<<endl;
@@ -179,6 +183,7 @@ void InputLayerAndFileTag(Int_t opt_layer, std::string& layertag, Int_t opt_file
 
   if (strcmp(layertag.c_str(), L1STag.c_str())==0) {
     cout<<"请选择对 L1 的哪个文件进行处理: "<<endl;
+    cout<<"================================"<<endl;
     cout<<"1.Pedestal0000"  <<endl;
     cout<<"2.AlphaCali00_04"<<endl;
     cout<<"3.AlphaCali05_08"<<endl;
@@ -192,6 +197,7 @@ void InputLayerAndFileTag(Int_t opt_layer, std::string& layertag, Int_t opt_file
     if (opt_file == 4) filetag = AlphaCali00_08;
   } else {
     cout<<"请选择对 L2 的哪个文件进行处理: "<<endl;
+    cout<<"================================="<<endl;
     cout<<"1.Pedestal0000"  <<endl;
     cout<<"2.AlphaCali00_32"<<endl;
     cout<<"3.AlphaCali33_48"<<endl;
@@ -223,11 +229,12 @@ void InputLayerAngTwoFiles(Int_t opt_layer, std::string& layertag,
 
   if (strcmp(layertag.c_str(), L1STag.c_str())==0) {
     cout<<"请选择对 L1 的哪组文件进行比较: "<<endl;
-    cout<<"1. Pedestal0000   vs  AlphaCali00_04"  <<endl;
-    cout<<"2. Pedestal0000   vs  AlphaCali05_08"<<endl;
-    cout<<"3. Pedestal0000   vs  AlphaCali00_08"<<endl;
-    cout<<"4. AlphaCali00_04 vs  AlphaCali05_08"<<endl;
-    cout<<"================================="<<endl;
+    cout<<"========================================"<<endl;
+    cout<<"1. Pedestal0000   vs  AlphaCali00_04"    <<endl;
+    cout<<"2. Pedestal0000   vs  AlphaCali05_08"    <<endl;
+    cout<<"3. Pedestal0000   vs  AlphaCali00_08"    <<endl;
+    cout<<"4. AlphaCali00_04 vs  AlphaCali05_08"    <<endl;
+    cout<<"========================================"<<endl;
     cout<<"请在此输入您的选择: "<<endl;
     cin >>opt_file;
     if (opt_file == 1) { filetag1 = Pedestal0000;   filetag2 = AlphaCali00_04; }
@@ -236,11 +243,12 @@ void InputLayerAngTwoFiles(Int_t opt_layer, std::string& layertag,
     if (opt_file == 4) { filetag1 = AlphaCali00_04; filetag2 = AlphaCali05_08; }
   } else {
     cout<<"请选择对 L2 的哪组文件进行比较: "<<endl;
-    cout<<"1. Pedestal0000   vs  AlphaCali00_32"  <<endl;
-    cout<<"2. Pedestal0000   vs  AlphaCali33_48"<<endl;
-    cout<<"3. Pedestal0000   vs  AlphaCali00_48"<<endl;
-    cout<<"4. AlphaCali00_32 vs  AlphaCali33_48"<<endl;
-    cout<<"================================="<<endl;
+    cout<<"========================================"<<endl;
+    cout<<"1. Pedestal0000   vs  AlphaCali00_32"    <<endl;
+    cout<<"2. Pedestal0000   vs  AlphaCali33_48"    <<endl;
+    cout<<"3. Pedestal0000   vs  AlphaCali00_48"    <<endl;
+    cout<<"4. AlphaCali00_32 vs  AlphaCali33_48"    <<endl;
+    cout<<"========================================"<<endl;
     cout<<"请在此输入您的选择: "<<endl;
     cin >>opt_file;
     if (opt_file == 1) { filetag1 = Pedestal0000;   filetag2 = AlphaCali00_32; }

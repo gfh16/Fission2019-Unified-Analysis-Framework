@@ -62,9 +62,8 @@ int main(int argc, char *argv[])
   //____________________________________________________________________________
   //  !!! 重要 ！！！
   // 需改输入、输出文件路径
-  string datapath     = "/home/sea/Fission2019_Data/RawRoot"; //原始root文件输入路径
-  TString pathoutfile = "/home/sea/Fission2019_Data/MapRoot"; //Map 转换后root文件输出路径
-
+  string datapath  = "/home/sea/Fission2019_Data/RawRoot"; //原始root文件输入路径
+  TString pathoutfile;
 
   //output file
   fstream outfile;
@@ -114,11 +113,12 @@ int main(int argc, char *argv[])
     listf.close();
   }
 
-
   //____________________________________________________________________________
   //                loop on each file
   for(int i=0; i<rawdfname.size(); i++)
   {
+    pathoutfile = "/home/sea/Fission2019_Data/MapRoot"; //Map 转换后root文件输出路径
+
     string rdfname = rawdfname[i];
     TString pathrdfn = datapath;
     pathrdfn += '/';
@@ -185,7 +185,6 @@ int main(int argc, char *argv[])
 
     //__________________________________________________________________________
     //                          For PPAC
-    //__________________________________________________________________________
     int PPAC_T[3]  = {0};
     int PPAC_X1[3] = {0};
     int PPAC_X2[3] = {0};
@@ -219,7 +218,6 @@ int main(int argc, char *argv[])
 
     //__________________________________________________________________________
     //                                For Au-Si
-    //__________________________________________________________________________
     int AuSi_L1E[2] = {0};
     int AuSi_L2E[2] = {0};
     int AuSi_L1T[2] = {0};
@@ -227,8 +225,7 @@ int main(int argc, char *argv[])
     char AuSi_L2E_name[200];    char AuSi_L2E_nameI[200];
     char AuSi_L1T_name[200];    char AuSi_L1T_nameI[200];
 
-    for(int i=0;i<2;i++)
-    {
+    for(int i=0;i<2;i++) {
       sprintf(AuSi_L1E_name,"AuSi%d_L1E",(i+1));   sprintf(AuSi_L1E_nameI,"AuSi%d_L1E/I",(i+1));
       sprintf(AuSi_L2E_name,"AuSi%d_L2E",(i+1));   sprintf(AuSi_L2E_nameI,"AuSi%d_L2E/I",(i+1));
       sprintf(AuSi_L1T_name,"AuSi%d_L1T",(i+1));   sprintf(AuSi_L1T_nameI,"AuSi%d_L1T/I",(i+1));
@@ -240,7 +237,6 @@ int main(int argc, char *argv[])
 
     //__________________________________________________________________________
     //                             For RF
-    //__________________________________________________________________________
     int RF1 = 0;
     int RF2 = 0;
     tree->Branch("RF1",&RF1, "RF1/I");
@@ -248,7 +244,6 @@ int main(int argc, char *argv[])
 
     //__________________________________________________________________________
     //                              For SSD
-    //__________________________________________________________________________
     int SSD_L2F_T[4][16];
     int SSD_L1S_E[4][16];
     int SSD_L2F_E[4][16];
@@ -261,12 +256,10 @@ int main(int argc, char *argv[])
          SSD_L2F_E[i][j] = 0;
          SSD_L2B_E[i][j] = 0;
       }
-
       for(int j=0; j<9; j++) {
          SSD_L3A_E[i][j]  = 0;
       }
     }
-
     char SSD_L2F_T_name[200];  char SSD_L2F_T_nameI[200];
     char SSD_L1S_E_name[200];  char SSD_L1S_E_nameI[200];
     char SSD_L2F_E_name[200];  char SSD_L2F_E_nameI[200];
@@ -275,9 +268,7 @@ int main(int argc, char *argv[])
 
     ////////////////////////////////////////////////////////////////////////////
     ///  对SSD数据填充方式1：CH0-CH15 填充到同一个branch
-
-    for(int i=0; i<4; i++)
-    {
+    for(int i=0; i<4; i++) {
       sprintf(SSD_L2F_T_name,"SSD%d_L2F_T",(i+1));    sprintf(SSD_L2F_T_nameI,"SSD%d_L2F_T[16]/I",(i+1));
       sprintf(SSD_L1S_E_name,"SSD%d_L1S_E",(i+1));    sprintf(SSD_L1S_E_nameI,"SSD%d_L1S_E[16]/I",(i+1));
       sprintf(SSD_L2F_E_name,"SSD%d_L2F_E",(i+1));    sprintf(SSD_L2F_E_nameI,"SSD%d_L2F_E[16]/I",(i+1));
@@ -291,17 +282,12 @@ int main(int argc, char *argv[])
       tree->Branch(SSD_L3A_E_name, SSD_L3A_E[i], SSD_L3A_E_nameI);
     }
 
-
-
     //__________________________________________________________________________
     //             loop on each Events in the rootfile
-    //__________________________________________________________________________
-    for (Long64_t ientry=0; ientry<nentries;ientry++)
-    {
+    for (Long64_t ientry=0; ientry<nentries;ientry++) {
       Long64_t jentry = fChain->LoadTree(ientry);
       if (jentry < 0) break;
       fChain->GetEntry(ientry);
-
       //____________________________________
       //             for PPAC
       for(int i=0; i<3; i++) {
@@ -313,7 +299,6 @@ int main(int argc, char *argv[])
 
         PPAC_T_Energy[i] = vmod104->chdata[28+i];
       }
-
       ///______________________________________
       //               for Au-Si
       // 这里需要修改：run121-run432 T104020-T104023
@@ -323,16 +308,13 @@ int main(int argc, char *argv[])
         AuSi_L2E[i] = vmod104->chdata[20+2*i+1];
         AuSi_L1T[i] = vmod106->chdata[i];
       }
-
       //______________________________________
       //          for RF
       RF1 = vmod106->chdata[2];
       RF2 = vmod106->chdata[3];
-
       //_____________________________________
       //       for SSD L1 && L2
-      for(int i=0; i<16; i++)
-      {
+      for(int i=0; i<16; i++) {
         SSD_L2F_T[0][i] = vmod108->chdata[i];
         SSD_L1S_E[0][i] = vmod111->chdata[i];
     		SSD_L2F_E[0][i] = vmod112->chdata[i];
@@ -353,7 +335,6 @@ int main(int argc, char *argv[])
     		SSD_L2F_E[3][i] = vmod121->chdata[i];
     		SSD_L2B_E[3][i] = vmod121->chdata[i+16];
       }
-
       //___________________________________________
       //              SSD_Telescope_L3
       for (int i=0; i<9; i++) {
@@ -362,10 +343,8 @@ int main(int argc, char *argv[])
         SSD_L3A_E[2][i] = vmod117->chdata[16+i];
         SSD_L3A_E[3][i] = vmod120->chdata[16+i];
       }
-
       tree->Fill();
     }
-
     f.Close();
     fout.cd();
     fout.Write();

@@ -122,7 +122,6 @@ void CSHINEAlphaCali::MergeAlphaCaliFiles(const char* layertag, Int_t firstrun, 
   std::string pathROOTFileOut;
   std::string pathROOTFileIn;
   pathROOTFileOut = Form("%sMapRoot/MapSSD_%s_AlphaCali%02d_%02d.root",PATHROOTFILESFOLDER,layertag,firstrun,lastrun);
-  pathROOTFileIn;
   if (strcmp(layertag,L1STag.c_str())==0) {
     pathROOTFileIn = Form("%sMapRoot/MapSSD_%s",PATHROOTFILESFOLDER,L1Tag.c_str());
   } else {

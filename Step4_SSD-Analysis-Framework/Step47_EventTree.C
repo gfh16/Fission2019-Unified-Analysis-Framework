@@ -28,7 +28,7 @@ void Step47_EventTree()
   cout<<"473.运行 BuildGlobalEventTree(Int_t fisrtrun, Int_t lastlun)"<<endl;
 
   while (option2 == 1) {
-    cout<<"============================================================="<<endl;
+    cout<<"============================================="<<endl;
     cout<<"请在此输入您的选项: 471, 472, 473"<<endl;
     cin >>option;
     cout<<"请输入起始文件编号: (121 - 432)"<<endl;
@@ -42,13 +42,10 @@ void Step47_EventTree()
       cout<<"请重新输入终止文件编号  lastrun: (121 - 432)"<<endl;
       cin >>LastRun;
     }
-    if (option == 471) {
-      buildevent.BuildLayerEventTree(FirstRun, LastRun);
-    } else if (option == 472) {
-      buildevent.BuildSSDEventTree(FirstRun, LastRun);
-    } else {
-      buildevent.BuildGlobalEventTree(FirstRun, LastRun);
-    }
+    if (option == 471) buildevent.BuildLayerEventTree (FirstRun, LastRun);
+    if (option == 472) buildevent.BuildSSDEventTree   (FirstRun, LastRun);
+    if (option == 472) buildevent.BuildGlobalEventTree(FirstRun, LastRun);
+
     cout<<"请选择下一步操作: "<<endl;
     cout<<"1.继续输入操作选项."<<endl;
     cout<<"2.结束操作, 退出程序！"<<endl;

@@ -21,12 +21,12 @@ void Step42_SiEnergyCali()
   cout<<"      欢迎来到 Step42_SiEnergyCali 界面 !        "<<endl;
   cout<<"***********************************************"<<endl;
   cout<<endl;
-  cout<<"请选择您需要进行的操作: "<<endl;
-  cout<<"421 CSHINEPulserCali() -- 脉冲刻度 "<<endl;
-  cout<<"422 CSHINEAlphaCali    -- 放射源刻度"<<endl;
-  cout<<"423 CSHINESiEnergyCali -- 硅条能量线性刻度"<<endl;
-
   while (option42 == 1) {
+    cout<<"请选择您需要进行的操作: "<<endl;
+    cout<<"======================================="<<endl;
+    cout<<"421 CSHINEPulserCali() -- 脉冲刻度 "<<endl;
+    cout<<"422 CSHINEAlphaCali    -- 放射源刻度"<<endl;
+    cout<<"423 CSHINESiEnergyCali -- 硅条能量线性刻度"<<endl;
     cout<<"======================================="<<endl;
     cout<<"请在此输入您的选项: 421, 422, 423"<<endl;
     cin >>option_step42;
@@ -70,16 +70,16 @@ void Step421_PulserCali()
   cout<<"           您现在进行硅条的脉冲刻度  Step421_PulserCali            "<<endl;
   cout<<"***************************************************************"<<endl;
   cout<<endl;
-  cout<<"请选择您需要进行的操作: "<<endl;
-  printf("4211  L1_AutoFindPeaksAndFit()          -- L1自动寻峰\n");
-  printf("4212  L2_AutoFindPeaksAndFit()          -- L2自动寻峰\n");
-  printf("4213  L1_AutoFindPeaksAndFit_ReCali()   -- L1重新刻度\n");
-  printf("4214  L1_GainEffectOnPulseCali_ReCali() -- L1前放放大倍数效应\n");
-  printf("4215  CaliCheck_SSD_L2F_CH00_01()       -- L2F检查CH00_01\n");
-  printf("4216  EstimateErrorOfHightAndSwitch()   -- Hight和Switch偏差\n");
-  printf("4217  CheckLinearity()                  -- 检查脉冲的线性\n");
-
   while (option421 == 1) {
+    cout<<"请选择您需要进行的操作: "<<endl;
+    cout<<"============================================================="<<endl;
+    printf("4211  L1_AutoFindPeaksAndFit()          -- L1自动寻峰\n");
+    printf("4212  L2_AutoFindPeaksAndFit()          -- L2自动寻峰\n");
+    printf("4213  L1_AutoFindPeaksAndFit_ReCali()   -- L1重新刻度\n");
+    printf("4214  L1_GainEffectOnPulseCali_ReCali() -- L1前放放大倍数效应\n");
+    printf("4215  CaliCheck_SSD_L2F_CH00_01()       -- L2F检查CH00_01\n");
+    printf("4216  EstimateErrorOfHightAndSwitch()   -- Hight和Switch偏差\n");
+    printf("4217  CheckLinearity()                  -- 检查脉冲的线性\n");
     cout<<"============================================================="<<endl;
     cout<<"请在此输入您的选项: 4211, 4212, 4213, 4214, 4215, 4216, 4217"<<endl;
     cin >>option_step421;
@@ -94,6 +94,7 @@ void Step421_PulserCali()
     } else if (option_step421 == 4213) {   //4213  L1重新刻度
       InputPuserTag(option_pulser,PulserFileTag);
       cout<<"请选择前放放大倍数: "<<endl;
+      cout<<"====================="<<endl;
       cout<<"1.LowGain"<<endl;
       cout<<"2.HighGain"<<endl;
       cout<<"====================="<<endl;
@@ -154,14 +155,14 @@ void Step422_AlphaCali()
   cout<<"           您现在进行硅条的脉冲刻度  Step422_AlphaCali             "<<endl;
   cout<<"***************************************************************"<<endl;
   cout<<endl;
-  cout<<"请选择您需要进行的操作: "<<endl;
-  printf("4221  CalculateAlphaEnergy()        -- alpha 能量修正计算\n");
-  printf("4222  MergeAlphaCaliFiles()         -- 合并 alpha 刻度文件\n");
-  printf("4223  ClickToFindAlphaPeaks()       -- 手动拟合 alpha 峰\n");
-  printf("4224  CheckAbnormaleChannels_SSD4() -- 检查异常信号\n");
-
   while (option422 == 1) {
-    cout<<"================================================="<<endl;
+    cout<<"============================================================="<<endl;
+    cout<<"请选择您需要进行的操作: "<<endl;
+    printf("4221  CalculateAlphaEnergy()        -- alpha 能量修正计算\n");
+    printf("4222  MergeAlphaCaliFiles()         -- 合并 alpha 刻度文件\n");
+    printf("4223  ClickToFindAlphaPeaks()       -- 手动拟合 alpha 峰\n");
+    printf("4224  CheckAbnormaleChannels_SSD4() -- 检查异常信号\n");
+    cout<<"============================================================="<<endl;
     cout<<"请在此输入您的选项: 4221, 4222, 4223, 4224"<<endl;
     cin >>option_step422;
     if (option_step422 == 4221) {
@@ -215,17 +216,17 @@ void Step423_SiEnergyCali()
   cout<<"          您现在进行硅条的脉冲刻度  Step423_SiEnergyCali           "<<endl;
   cout<<"***************************************************************"<<endl;
   cout<<endl;
-  cout<<"请选择您需要进行的操作: "<<endl;
-  printf("4231  PulserAndAlphaCali()               -- 硅条能量刻度曲线\n");
-  printf("4232  EstimatePedestals()                -- 考察刻度曲线与pedestal\n");
-  printf("4233  EstimateFitPars()                  -- 初步评估刻度参数\n");
-  printf("4234  CheckAbnormalChannels()            -- 检查异常信号\n");
-  printf("4235  EstimateDeadlayerEffects()         -- 考察死层效应\n");
-  printf("4236  EstimateAlphaChannelEffOnFitPars() -- 考察 alpha 道址效应\n");
-  printf("4237  FinallyDeterminedFitPars()         -- 确定最终刻度参数\n");
-
   while (option423 == 1) {
-    cout<<"========================================================="<<endl;
+    cout<<"请选择您需要进行的操作: "<<endl;
+    cout<<"============================================================="<<endl;
+    printf("4231  PulserAndAlphaCali()               -- 硅条能量刻度曲线\n");
+    printf("4232  EstimatePedestals()                -- 考察刻度曲线与pedestal\n");
+    printf("4233  EstimateFitPars()                  -- 初步评估刻度参数\n");
+    printf("4234  CheckAbnormalChannels()            -- 检查异常信号\n");
+    printf("4235  EstimateDeadlayerEffects()         -- 考察死层效应\n");
+    printf("4236  EstimateAlphaChannelEffOnFitPars() -- 考察 alpha 道址效应\n");
+    printf("4237  FinallyDeterminedFitPars()         -- 确定最终刻度参数\n");
+    cout<<"============================================================="<<endl;
     cout<<"请在此输入您的选项: 4231, 4232, 4233, 4234, 4235, 4236, 4237"<<endl;
     cin >>option_step423;
     if (option_step423 == 4231) {
@@ -294,10 +295,11 @@ void InputLayerTag(Int_t opt_layer, std::string& layertag)
   std::string L2FTag("L2F");
   std::string L2BTag("L2B");
   cout<<"请选择对哪一层硅条进行处理: "<<endl;
+  cout<<"========================"<<endl;
   cout<<"1.L1S"<<endl;
   cout<<"2.L2F"<<endl;
   cout<<"3.L2B"<<endl;
-  cout<<"====================="<<endl;
+  cout<<"========================"<<endl;
   cout<<"请输入您的选项:"<<endl;
   cin >>opt_layer;
   if (opt_layer == 1) layertag = L1STag;
@@ -319,6 +321,7 @@ void InputLayerAndAlphaTag(Int_t opt_layer,std::string& layertag,Int_t opt_alpha
 
   if (strcmp(layertag.c_str(), L1STag.c_str())==0) {
     cout<<"请选择 L1 的 alpha 合并文件: "<<endl;
+    cout<<"================================="<<endl;
     cout<<"1.AlphaCali00_04"<<endl;
     cout<<"2.AlphaCali05_08"<<endl;
     cout<<"3.AlphaCali00_08"<<endl;
@@ -330,6 +333,7 @@ void InputLayerAndAlphaTag(Int_t opt_layer,std::string& layertag,Int_t opt_alpha
     if (opt_alphafile == 3) alphafiletag = AlphaCali00_08;
   } else {
     cout<<"请选择 L2 的 alpha 合并文件: "<<endl;
+    cout<<"==================================="<<endl;
     cout<<"1.AlphaCali00_32"<<endl;
     cout<<"2.AlphaCali33_48"<<endl;
     cout<<"3.AlphaCali00_48"<<endl;

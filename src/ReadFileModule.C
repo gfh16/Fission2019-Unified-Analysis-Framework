@@ -117,6 +117,7 @@ void ReadFileModule::GetFileNamesFromFolder(const char* pathfolder, const char* 
     }
   }
   fileout.close();
+  printf("文件 %s 已生成!\n", pathfileout);
 }
 //******************************************************************************
 
@@ -145,6 +146,7 @@ void ReadFileModule::GetFileNamesFromFile(const char* pathfilein, vector<string>
     LineStream>>filename;
     filelist.push_back(filename);
   }
+  printf("文件 %s 已读取完成!\n", pathfilein);
 }
 //******************************************************************************
 
