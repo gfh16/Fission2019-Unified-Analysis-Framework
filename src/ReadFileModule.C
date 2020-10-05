@@ -107,7 +107,7 @@ void ReadFileModule::GetFileNamesFromFolder(const char* pathfolder, const char* 
       Int_t index = 0;
       while (index < n) {
         //printf("d_name: %s\n", namelist[index]->d_name);
-        if (strstr(namelist[index]->d_name,"Fission") != NULL) {
+        if ((strstr(namelist[index]->d_name,"Fission") != NULL) || (strstr(namelist[index]->d_name,"Map") != NULL)) {
           fileout<<namelist[index]->d_name<<endl;
         }
         free(namelist[index]);

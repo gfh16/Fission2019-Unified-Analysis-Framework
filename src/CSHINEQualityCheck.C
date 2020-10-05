@@ -26,17 +26,17 @@ void CSHINEQualityCheck::QC_TreeReader(const char* pathlistfiles)
   // 此处修改输入、输出文件路径
   for (Int_t i=0; i<Int_t(filenamelist.size()); i++)
   {
-    TString pathrootout = "/home/sea/Fission2019_Data/QualityCheck/";
+    TString pathrootout = Form("%sQualityCheck/", PATHROOTFILESFOLDER);
     pathrootout += "QC_";
     pathrootout += filenamelist[i];
 
     TString pdf_name = filenamelist[i];
     pdf_name.ReplaceAll(".root", ".pdf");
-    TString pathpdfout = "/home/sea/Fission2019_Data/QualityCheck_figures/";
+    TString pathpdfout = Form("%sQualityCheck_figures/", PATHROOTFILESFOLDER);
     pathpdfout  += "QC_";
     pathpdfout  += pdf_name;
 
-    TString pathrootin = "/home/sea/Fission2019_Data/MapRoot/";
+    TString pathrootin = Form("%s/MapRoot/", PATHROOTFILESFOLDER);
     pathrootin += filenamelist[i];
 
     TFile* rootfile = new TFile(pathrootin);
@@ -63,17 +63,17 @@ void CSHINEQualityCheck::QC_BranchAdress(const char* pathlistfiles)
   // 此处修改输入、输出文件路径
   for (Int_t i=0; i<Int_t(filenamelist.size()); i++)
   {
-    TString pathrootout = "/home/sea/Fission2019_Data/QualityCheck/";
+    TString pathrootout = Form("%sQualityCheck/", PATHROOTFILESFOLDER);
     pathrootout += "QC_";
     pathrootout += filenamelist[i];
 
     TString pdf_name = filenamelist[i];
     pdf_name.ReplaceAll(".root", ".pdf");
-    TString pathpdfout = "/home/sea/Fission2019_Data/QualityCheck_figures/";
+    TString pathpdfout = Form("%sQualityCheck_figures/", PATHROOTFILESFOLDER);
     pathpdfout  += "QC_";
     pathpdfout  += pdf_name;
 
-    TString pathrootin = "/home/sea/Fission2019_Data/MapRoot/";
+    TString pathrootin = Form("%s/MapRoot/", PATHROOTFILESFOLDER);
     pathrootin += filenamelist[i];
 
     TFile* rootfile = new TFile(pathrootin);

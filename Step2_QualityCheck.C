@@ -13,7 +13,7 @@ void Step2_QualityCheck()
   Int_t option_step2;
 
   std::string FileName("QC_listfiles.dat");
-  std::string pathFolder("/home/sea/Fission2019_Data/MapRoot/");
+  std::string pathFolder(Form("%sMapRoot/", PATHROOTFILESFOLDER));
   std::string pathFileout(Form("%s%s",pathFolder.c_str(), FileName.c_str()));
 
   ReadFileModule readfile;

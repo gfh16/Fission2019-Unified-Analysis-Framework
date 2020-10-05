@@ -172,8 +172,8 @@ void InputFileName(Int_t opt_filename, std::string& pathfolder, std::string& pat
   std::string pathRawData("Step1_DataConversion/vmedata/");
   std::string pathRawDataFilelist("Step1_DataConversion/vmedata/listrawfilename.dat");
 
-  std::string pathRootData("/home/sea/Fission2019_Data/RawRoot/");
-  std::string pathRootDataFilelist("/home/sea/Fission2019_Data/RawRoot/listrootfilename.dat");
+  std::string pathRootData(Form("%s/RawRoot/", PATHROOTFILESFOLDER));
+  std::string pathRootDataFilelist(From("%slistrootfilename.dat", pathRootData.c_str()));
 
   cout<<"请选择读取下面哪个文件夹下的所有文件名: "<<endl;
   cout<<"======================================================================="<<endl;

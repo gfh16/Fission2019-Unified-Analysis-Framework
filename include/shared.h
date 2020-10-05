@@ -28,6 +28,7 @@ extern const double CSIPEDESTALSIGMA;
 extern const char* PATHDATAFOLDER;
 extern const char* PATHFIGURESFOLDER;
 extern const char* PATHROOTFILESFOLDER;
+extern const char* PATHHOMEFOLDER;
 
 
 

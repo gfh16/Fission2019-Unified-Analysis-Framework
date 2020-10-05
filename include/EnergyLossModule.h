@@ -13,6 +13,7 @@
 #include <Math/Interpolator.h>
 
 #include "Nuclear_masses.h"
+#include "shared.h"
 
 // NUMBER OF MODELS FOR ENERGY LOSS CALCULATIONS
 static const Int_t NUM_MODELS       = 6;
