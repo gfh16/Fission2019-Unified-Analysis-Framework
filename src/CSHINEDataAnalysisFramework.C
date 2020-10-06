@@ -40,7 +40,6 @@ void CSHINEDataAnalysisFramework::CSHINEDataAnalysis()
     if (option_step == 2)  Step2_QualityChecks();
     if (option_step == 3)  Step3_PPACAnalysisFramework();
     if (option_step == 4)  Step4_SSDAnalysisFramework();
-    else                    cout<<"输入有误!"<<endl;
 
     cout<<"请选择下一步操作: "<<endl;
     cout<<"1.返回 CSHINEDataAnalysisFramework, 重新进行操作选择"<<endl;
@@ -78,7 +77,6 @@ void CSHINEDataAnalysisFramework::Step1_DataConversion()
     if (option_step1 == 11)  Step11_GenerateFileLists();
     if (option_step1 == 12)  Step12_RawToRawRoot();
     if (option_step1 == 13)  Step13_RawRootToMapRoot();
-    else                     cout<<"输入有误!"<<endl;
 
     cout<<"请选择下一步操作: "<<endl;
     cout<<"1.返回 Step1, 重新进行操作选择"<<endl;
@@ -124,8 +122,7 @@ void CSHINEDataAnalysisFramework::Step2_QualityChecks()
     if (option_step2 == 23)  system("vim Makefile");
     if (option_step2 == 24)  system("make clean");
     if (option_step2 == 25)  system("make -j16");
-    if (option_step2 == 26)  { cout<<pathFileout.c_str()<<endl; system("./QualityCheck"); }
-    else                     cout<<"输入有误!"<<endl;
+    if (option_step2 == 26)  { cout<<pathFileout.c_str()<<endl; system("./exec_QualityCheck"); }
 
     cout<<"请选择下一步操作: "<<endl;
     cout<<"1.返回 Step2, 重新进行操作选择"<<endl;
@@ -200,7 +197,7 @@ void CSHINEDataAnalysisFramework::Step12_RawToRawRoot()
     cout<<"============================================================="<<endl;
     cout<<"提示: !!!一般不需要修改 RIBLLVMEDAQ/Raw2ROOT.cpp!!!"<<endl;
     cout<<"121  Check          -- 检查/vmedata/下 listRAWfilename.dat 是否存在;若否,则先执行 Step11_GenerateFileLists()"<<endl;
-    cout<<"122  make clean     -- make clean(可进入 Step1_DataConversion/ 下执行)"<<endl;
+    cout<<"122  make clean     -- make clean(可进入 VMEDAQ_DataConversion/ 下执行)"<<endl;
     cout<<"123  make           -- 生成可执行文件 Raw2ROOT"<<endl;
     cout<<"124  ./raw2root.sh  -- 批量文件转换"<<endl;
     cout<<"============================================================="<<endl;
@@ -208,9 +205,9 @@ void CSHINEDataAnalysisFramework::Step12_RawToRawRoot()
     cin >>option_step12;
 
     if (option_step12 == 121) cout<<"请到/vmedata/文件夹检查文件 listRAWfilename.dat 是否存在!"<<endl;
-    if (option_step12 == 122) system("cd Step1_DataConversion/ && make clean");
-    if (option_step12 == 123) system("cd Step1_DataConversion/ && make");
-    if (option_step12 == 124) system("cd Step1_DataConversion/ && ./raw2root.sh listRAWfilename.dat");
+    if (option_step12 == 122) system("cd VMEDAQ_DataConversion/ && make clean");
+    if (option_step12 == 123) system("cd VMEDAQ_DataConversion/ && make");
+    if (option_step12 == 124) system("cd VMEDAQ_DataConversion/ && ./raw2root.sh listRAWfilename.dat");
     else                      cout<<"输入有误!"<<endl;
 
     cout<<"请选择下一步操作: "<<endl;
@@ -255,11 +252,11 @@ void CSHINEDataAnalysisFramework::Step13_RawRootToMapRoot()
     cout<<"请在此输入您的选项: 131, 132, 133, 134, 135"<<endl;
     cin >>option_step13;
 
-    if (option_step13 == 131) system("vim Step1_DataConversion/RIBLLVMEDAQ/ReadRootFile2D.cpp");
+    if (option_step13 == 131) system("vim VMEDAQ_DataConversion/RIBLLVMEDAQ/ReadRootFile2D.cpp");
     if (option_step13 == 132) cout<<"请到RawRoot文件夹检查文件 listROOTfilename.dat 是否存在!"<<endl;
-    if (option_step13 == 133) system("cd Step1_DataConversion && make clean");
-    if (option_step13 == 134) system("cd Step1_DataConversion && make");
-    if (option_step13 == 135) system("cd Step1_DataConversion && ./ReadRootFile2D listROOTfilename.dat");
+    if (option_step13 == 133) system("cd VMEDAQ_DataConversion && make clean");
+    if (option_step13 == 134) system("cd VMEDAQ_DataConversion && make");
+    if (option_step13 == 135) system("cd VMEDAQ_DataConversion && ./ReadRootFile2D listROOTfilename.dat");
     else                      cout<<"输入有误!"<<endl;
 
     cout<<"请选择下一步操作: "<<endl;

@@ -82,7 +82,6 @@ void CSHINESSDDataAnalysisFramework::Step41_PedestalCali()
     if (option_step41 == 411)  Step411_AutoFindPedestals();
     if (option_step41 == 412)  Step412_ClickToFindPedestals();
     if (option_step41 == 413)  Step413_EstimateErrorsOfPedestals();
-    else                       cout<<"输入有误!"<<endl;
 
     cout<<"请选择下一步操作: "<<endl;
     cout<<"1.返回 Step41, 重新进行操作选择"<<endl;
@@ -119,7 +118,6 @@ void CSHINESSDDataAnalysisFramework::Step42_SiEnergyCali()
     if (option_step42 == 421)  Step421_PulserCali();
     if (option_step42 == 422)  Step422_AlphaCali();
     if (option_step42 == 423)  Step423_SiEnergyCali();
-    else                       cout<<"输入有误!"<<endl;
 
     cout<<"请选择下一步操作: "<<endl;
     cout<<"1.返回 Step42, 重新进行操作选择"<<endl;
@@ -156,7 +154,6 @@ void CSHINESSDDataAnalysisFramework::Step43_SiPixellation()
     if (option_step43 == 431)  pixel.CalculateEffectiveThickness();
     if (option_step43 == 432)  pixel.SiPixellation();
     if (option_step43 == 433)  pixel.CheckSiPixellation();
-    else                       cout<<"输入有误!"<<endl;
 
     cout<<"请选择下一步操作: "<<endl;
     cout<<"1.返回 Step43, 重新进行操作选择"<<endl;
@@ -230,7 +227,6 @@ void CSHINESSDDataAnalysisFramework::Step47_EventTree()
     if (option_step47 == 471)  buildevent.BuildLayerEventTree (FirstRun, LastRun);
     if (option_step47 == 472)  buildevent.BuildSSDEventTree   (FirstRun, LastRun);
     if (option_step47 == 472)  buildevent.BuildGlobalEventTree(FirstRun, LastRun);
-    else                       cout<<"输入有误!"<<endl;
 
     cout<<"请选择下一步操作: "<<endl;
     cout<<"1.返回 Step47, 重新进行操作选择"<<endl;
@@ -404,12 +400,10 @@ void CSHINESSDDataAnalysisFramework::Step421_PulserCali()
     } else if (option_step421 == 4216) {  //4216  Hight和Switch偏差
       pulsercali.EstimateErrorOfHightAndSwitch();
 
-    } else if (option_step421 == 4217) {  //4217  检查脉冲的线性
+    } else {  //4217  检查脉冲的线性
       InputLayerTagWithLabel(option_layer, LayerTag);
       InputPuserTag(option_pulser,PulserFileTag);
       pulsercali.CheckLinearity(LayerTag.c_str(),PulserFileTag.c_str());
-    } else {
-      cout<<"输入有误!"<<endl;
     }
     cout<<"请选择下一步操作: "<<endl;
     cout<<"1.返回 Step421, 重新进行操作选择"<<endl;
@@ -540,12 +534,10 @@ void CSHINESSDDataAnalysisFramework::Step423_SiEnergyCali()
       InputPuserTag(option_pulserfile, PulserFileTag);
       energycali.EstimateAlphaChannelEffOnFitPars(LayerTag.c_str(),PulserFileTag.c_str());
 
-    } else if (option_step423 == 4237) {
+    } else {
       InputLayerTagWithLabel(option_layer, LayerTag);
       InputPuserTag(option_pulserfile, PulserFileTag);
       energycali.FinallyDeterminedFitPars(LayerTag.c_str(),PulserFileTag.c_str());
-    } else {
-      cout<<"输入有误!"<<endl;
     }
 
     cout<<"请选择下一步操作: "<<endl;
@@ -581,7 +573,6 @@ void CSHINESSDDataAnalysisFramework::InputLayerTagWithLabel(Int_t opt_layer, std
   if (opt_layer == 1) layertag = L1STag;
   if (opt_layer == 2) layertag = L2FTag;
   if (opt_layer == 3) layertag = L2BTag;
-  else                cout<<"输入有误!"<<endl;
 }
 
 //______________________________________________________________________________
@@ -627,7 +618,6 @@ void CSHINESSDDataAnalysisFramework::InputLayerAndFileTag(Int_t opt_layer, std::
     if (opt_file == 2) filetag = AlphaCali00_32;
     if (opt_file == 3) filetag = AlphaCali33_48;
     if (opt_file == 4) filetag = AlphaCali00_48;
-    else               cout<<"输入有误!"<<endl;
   }
 }
 
@@ -660,7 +650,6 @@ void CSHINESSDDataAnalysisFramework::InputLayerAngTwoFiles(Int_t opt_layer,std::
     if (opt_file == 2) { filetag1 = Pedestal0000;   filetag2 = AlphaCali05_08; }
     if (opt_file == 3) { filetag1 = Pedestal0000;   filetag2 = AlphaCali00_08; }
     if (opt_file == 4) { filetag1 = AlphaCali00_04; filetag2 = AlphaCali05_08; }
-    else               cout<<"输入有误!"<<endl;
   } else {
     cout<<"请选择对 L2 的哪组文件进行比较: "<<endl;
     cout<<"========================================"<<endl;
@@ -675,7 +664,6 @@ void CSHINESSDDataAnalysisFramework::InputLayerAngTwoFiles(Int_t opt_layer,std::
     if (opt_file == 2) { filetag1 = Pedestal0000;   filetag2 = AlphaCali33_48; }
     if (opt_file == 3) { filetag1 = Pedestal0000;   filetag2 = AlphaCali00_48; }
     if (opt_file == 4) { filetag1 = AlphaCali00_32; filetag2 = AlphaCali33_48; }
-    else               cout<<"输入有误!"<<endl;
   }
 }
 
@@ -689,7 +677,6 @@ void CSHINESSDDataAnalysisFramework::InputPuserTag(Int_t opt, std::string& pulse
   cin >>opt;
   if (opt == 1) pulserfiletag = Height;
   if (opt == 2) pulserfiletag = Switch;
-  else          cout<<"输入有误!"<<endl;
 }
 
 //______________________________________________________________________________
@@ -706,7 +693,6 @@ void CSHINESSDDataAnalysisFramework::InputLayerTag(Int_t opt_layer, std::string&
   cin >>opt_layer;
   if (opt_layer == 1) layertag = L1Tag;
   if (opt_layer == 2) layertag = L2Tag;
-  else                cout<<"输入有误!"<<endl;
 }
 
 //______________________________________________________________________________
@@ -735,7 +721,6 @@ void CSHINESSDDataAnalysisFramework::InputLayerAndAlphaTag(Int_t opt_layer,std::
     if (opt_alphafile == 1) alphafiletag = AlphaCali00_04;
     if (opt_alphafile == 2) alphafiletag = AlphaCali05_08;
     if (opt_alphafile == 3) alphafiletag = AlphaCali00_08;
-    else                    cout<<"输入有误!"<<endl;
   } else {
     cout<<"请选择 L2 的 alpha 合并文件: "<<endl;
     cout<<"==================================="<<endl;
@@ -748,7 +733,6 @@ void CSHINESSDDataAnalysisFramework::InputLayerAndAlphaTag(Int_t opt_layer,std::
     if (opt_alphafile == 1) alphafiletag = AlphaCali00_32;
     if (opt_alphafile == 2) alphafiletag = AlphaCali33_48;
     if (opt_alphafile == 3) alphafiletag = AlphaCali00_48;
-    else                    cout<<"输入有误!"<<endl;
   }
 }
 //******************************************************************************

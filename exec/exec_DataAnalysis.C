@@ -1,4 +1,4 @@
-#include "../include/CSHINEDataAnalysisFramwork.h"
+#include "../include/CSHINEDataAnalysisFramework.h"
 #include <iostream>
 
 using namespace std;
@@ -7,8 +7,8 @@ using namespace std;
 //________________________________
 int main()
 {
-  CSHINEDataAnalysis DataAnalysis;
-  DataAnalysis.CSHINEDataAnalysisFramework();
+  CSHINEDataAnalysisFramework DataAnalysis;
+  DataAnalysis.CSHINEDataAnalysis();
 
   return 0;
 }
