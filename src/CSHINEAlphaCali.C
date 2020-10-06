@@ -118,15 +118,10 @@ void CSHINEAlphaCali::MergeAlphaCaliFiles(const char* layertag, Int_t firstrun, 
 
   std::string L1Tag("L1");
   std::string L2Tag("L2");
-  std::string L1STag("L1S");
   std::string pathROOTFileOut;
   std::string pathROOTFileIn;
-  pathROOTFileOut = Form("%sMapRoot/MapSSD_%s_AlphaCali%02d_%02d.root",PATHROOTFILESFOLDER,layertag,firstrun,lastrun);
-  if (strcmp(layertag,L1STag.c_str())==0) {
-    pathROOTFileIn = Form("%sMapRoot/MapSSD_%s",PATHROOTFILESFOLDER,L1Tag.c_str());
-  } else {
-    pathROOTFileIn = Form("%sMapRoot/MapSSD_%s",PATHROOTFILESFOLDER,L2Tag.c_str());
-  }
+  pathROOTFileOut = Form("%sQualityCheck/QC_MapSSD_%s_AlphaCali%02d_%02d.root",PATHROOTFILESFOLDER,layertag,firstrun,lastrun);
+  pathROOTFileIn  = Form("%sMapRoot/MapSSD_%s",PATHROOTFILESFOLDER,layertag);
   //____________________________________________________________________________
   TFile* FileOut = new TFile(pathROOTFileOut.c_str(), "RECREATE");
   auto*   myData = new TChain("KrPb");

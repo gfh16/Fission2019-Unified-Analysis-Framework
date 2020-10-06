@@ -6,25 +6,26 @@ DIR_INC := include/
 DIR_SRC := src/
 DIR_OBJ := obj/
 DIR_BIN := bin/
+DIR_EXE := exec/
 
 CPP        := g++
 ROOTCFLAGS := -c -g -Wall `root-config --cflags`
-ROOTGLIBS  := `root-config --glibs --libs`
-ROOTLIBS   := -lSpectrum -lMathMore
+ROOTLIBS   := `root-config --glibs --libs`
+ROOTLIBS   += -lSpectrum
+ROOTLIBS   += -lMathMore
 
-TARGET     := QualityCheck
-BIN_TARGET := $(DIR_BIN)$(TARGET)
+TARGET     := exec_SSDDataAnlysis
+PATHSRCS   := exec/exec_SSDDataAnlysis.C
 
-PATHSRCS   := ./Step2_QualityCheck/QualityCheck.C
 SOURCES    := $(shell find $(DIR_SRC) -name "*.C") $(PATHSRCS)
 INCLUDES   := $(shell find $(DIR_INC) -name "*.h")
 OBJECTS    := $(patsubst %.C, %.o, $(SOURCES))
 
-all: $(BIN_TARGET)
 
+all: $(TARGET)
 
-$(BIN_TARGET): $(OBJECTS)
-	$(CPP) $(OBJECTS) $(ROOTGLIBS) $(ROOTLIBS) -o $@
+$(TARGET): $(OBJECTS)
+	$(CPP) $(OBJECTS) $(ROOTLIBS) -o $@
 	rm -f $(OBJECTS)
 
 
@@ -34,4 +35,4 @@ $(BIN_TARGET): $(OBJECTS)
 
 .PHONY: clean
 clean:
-	rm ./*~ ${BIN_TARGET} ./$(DIR_SRC)*.o
+	rm ./*~ ${TARGET} ./$(DIR_SRC)*.o ./$(DIR_EXE)*.o

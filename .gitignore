@@ -7,7 +7,5 @@
 ###----------------------
 # ignore Step2_QualityCheck/figues
 
-Step2_QualityCheck/figures/
-Step4_SSD-Analysis-Framework/Step4.2_HitMultiplicity/output/
-Step1_DataConversion/vmedata/
-Step1_DataConversion/rootdata/
+VMEDAQ_DataConversion/vmedata/
+VMEDAQ_DataConversion/rootdata/

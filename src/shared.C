@@ -30,7 +30,6 @@ const char* PATHFIGURESFOLDER   = "/home/sea/Fission2019-Unified-Analysis-Framew
 const char* PATHROOTFILESFOLDER = "/home/sea/Fission2019_Data/";
 const char* PATHHOMEFOLDER      = "/home/sea/Fission2019-Unified-Analysis-Framework/";
 
-
 //______________________________________________________________________________
 // 服务器上使用
 /*
@@ -39,3 +38,7 @@ const char* PATHFIGURESFOLDER   = "/home/gfh/Fission2019-Unified-Analysis-Framew
 const char* PATHROOTFILESFOLDER = "/data/EXPdata/Fission2019_Data/";
 const char* PATHHOMEFOLDER      = "/home/gfh/Fission2019-Unified-Analysis-Framework/";
 */
+
+const char* NAMERAWFILELIST     = "listRAWfilename.dat";  //原始文件 list的文件名, 用于 Rawdata->RawRoot
+const char* NAMERAWROOTFILELIST = "listROOTfilename.dat"; //RawRoot文件 list 的文件名,用于 RawRoot->MapRoot
+const char* NAMEMAPROOTFILELIST = "listQCfilename.dat";   //MapRoot文件 list 的文件名,用于 QualityCheck

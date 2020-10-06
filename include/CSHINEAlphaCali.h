@@ -34,12 +34,7 @@ public:
   void   CalculateAlphaEnergy();
   void   MergeAlphaCaliFiles(const char*, Int_t, Int_t);
   void   ClickToFindAlphaPeaks(const char*, const char*);
-
   void   CheckAbnormaleChannels_SSD4();
-  void   AlphaCali_SSD4_L1S_CompareAlphaCali00_04And05_08();
-  void   AlphaCali_SSD4_L2F_EstimateCH13_CH14();
-
-  void   SetPoints(Int_t event, Int_t x, Int_t y, TObject* selected); //*SIGNAL*
 
 
 private:
@@ -47,6 +42,11 @@ private:
   Int_t     fNPoints;
   TMarker  *m[2];
   TLine    *l[2];
+
+  void   SetPoints(Int_t event, Int_t x, Int_t y, TObject* selected); //*SIGNAL*
+  void   AlphaCali_SSD4_L1S_CompareAlphaCali00_04And05_08(); // CheckAbnormaleChannels_SSD4()
+  void   AlphaCali_SSD4_L2F_EstimateCH13_CH14(); // CheckAbnormaleChannels_SSD4()
+
 };
 
 

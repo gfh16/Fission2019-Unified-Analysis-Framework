@@ -36,7 +36,7 @@ void CSHINEQualityCheck::QC_TreeReader(const char* pathlistfiles)
     pathpdfout  += "QC_";
     pathpdfout  += pdf_name;
 
-    TString pathrootin = Form("%s/MapRoot/", PATHROOTFILESFOLDER);
+    TString pathrootin = Form("%sMapRoot/", PATHROOTFILESFOLDER);
     pathrootin += filenamelist[i];
 
     TFile* rootfile = new TFile(pathrootin);

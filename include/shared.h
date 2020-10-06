@@ -25,11 +25,13 @@ extern const double ECSICHCUT;
 extern const double CSIPEDESTALSIGMA;
 
 //______________________________________________________________________________
-extern const char* PATHDATAFOLDER;
-extern const char* PATHFIGURESFOLDER;
-extern const char* PATHROOTFILESFOLDER;
-extern const char* PATHHOMEFOLDER;
+extern const char* PATHDATAFOLDER;        // data 数据文件夹绝对路径
+extern const char* PATHFIGURESFOLDER;     // figures 输出文件夹绝对路径
+extern const char* PATHROOTFILESFOLDER;   // root 文件所在文件夹绝对路径
+extern const char* PATHHOMEFOLDER;        // home 目录所在绝对路径 (在不同机器上使用时需要修改)
 
-
+extern const char* NAMERAWFILELIST;       //原始文件 list的文件名, 用于 Rawdata->RawRoot
+extern const char* NAMERAWROOTFILELIST;   //RawRoot文件 list 的文件名,用于 RawRoot->MapRoot
+extern const char* NAMEMAPROOTFILELIST;   //MapRoot文件 list 的文件名,用于 QualityCheck
 
 #endif
