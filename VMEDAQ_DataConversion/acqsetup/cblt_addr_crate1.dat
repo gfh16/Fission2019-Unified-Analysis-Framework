@@ -1,0 +1,4 @@
+* first line: number of CBLT chains in this crate.
+* following line: "CBLT Address(Hex)"  "Number of modules in this chain"  "Output Buffer Address(Hex, the offset of multievent buffer address)"
+1
+0xAA000000 7 0x0000
