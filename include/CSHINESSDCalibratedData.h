@@ -6,6 +6,7 @@
 
 #include <string>
 #include <iostream>
+#include <fstream>
 
 //______________________________________________________________________________
 class CSHINESSDCalibratedData
@@ -48,6 +49,8 @@ private:
   Double_t    *fL1SEMeVCut;        // [NUM_SSD*NUM_STRIP]
   Double_t    *fL2FEMeVCut;        // [NUM_SSD*NUM_STRIP]
   Double_t    *fL2BEMeVCut;        // [NUM_SSD*NUM_STRIP]
+
+  ReadFileModule  readfile;
 };
 
 #endif

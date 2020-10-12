@@ -112,7 +112,7 @@ void CSHINEDataAnalysisFramework::Step2_QualityChecks()
     cout<<"23  Modify Makefile             -- 批量处理质检文件,编译后速度更快"<<endl;
     cout<<"24  make clean                  -- make clean"<<endl;
     cout<<"25  make                        -- make"<<endl;
-    cout<<"26  ./bin/QualityCheck          -- 批量生成质检文件 .pdf 与 .root"<<endl;
+    cout<<"26  ./exec_QualityCheck         -- 批量生成质检文件 .pdf 与 .root"<<endl;
     cout<<"=============================================================="<<endl;
     cout<<"请在此输入您的选项: 21, 22, 23, 24, 25, 26"<<endl;
     cin >>option_step2;
@@ -208,7 +208,6 @@ void CSHINEDataAnalysisFramework::Step12_RawToRawRoot()
     if (option_step12 == 122) system("cd VMEDAQ_DataConversion/ && make clean");
     if (option_step12 == 123) system("cd VMEDAQ_DataConversion/ && make");
     if (option_step12 == 124) system("cd VMEDAQ_DataConversion/ && ./raw2root.sh listRAWfilename.dat");
-    else                      cout<<"输入有误!"<<endl;
 
     cout<<"请选择下一步操作: "<<endl;
     cout<<"1.返回 Step12, 重新进行操作选择"<<endl;
@@ -257,7 +256,6 @@ void CSHINEDataAnalysisFramework::Step13_RawRootToMapRoot()
     if (option_step13 == 133) system("cd VMEDAQ_DataConversion && make clean");
     if (option_step13 == 134) system("cd VMEDAQ_DataConversion && make");
     if (option_step13 == 135) system("cd VMEDAQ_DataConversion && ./ReadRootFile2D listROOTfilename.dat");
-    else                      cout<<"输入有误!"<<endl;
 
     cout<<"请选择下一步操作: "<<endl;
     cout<<"1.返回 Step13, 重新进行操作选择"<<endl;

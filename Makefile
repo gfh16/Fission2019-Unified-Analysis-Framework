@@ -18,8 +18,8 @@ ROOTLIBS   += -lMathMore
 # exec_QualityCheck.C
 # exec_SSDDataAnlysis.C
 
-TARGET     := exec_SSDDataAnlysis
-PATHSRCS   := exec/exec_SSDDataAnlysis.C
+TARGET     := exec_DataAnalysis
+PATHSRCS   := exec/exec_DataAnalysis.C
 
 SOURCES    := $(shell find $(DIR_SRC) -name "*.C") $(PATHSRCS)
 INCLUDES   := $(shell find $(DIR_INC) -name "*.h")

@@ -69,12 +69,12 @@ void CSHINEPedestals::AutoFindPedestals(const char* layertag, const char* fileta
 
   std::string pathRootInFolder(Form("%sQualityCheck/", PATHROOTFILESFOLDER));
   std::string pathRootInput(Form("%sQC_MapSSD_%s_%s.root", pathRootInFolder.c_str(), LayerTagWithOutLabel.c_str(), filetag));
-  std::string pathPDFOutput(Form("%sfigure_Pedestals/SSD_%s_AlphaCaliPedestals_%s.pdf" , PATHFIGURESFOLDER, layertag, filetag));
-  std::string pathPDFbegin (Form("%sfigure_Pedestals/SSD_%s_AlphaCaliPedestals_%s.pdf[", PATHFIGURESFOLDER, layertag, filetag));
-  std::string pathPDFend   (Form("%sfigure_Pedestals/SSD_%s_AlphaCaliPedestals_%s.pdf]", PATHFIGURESFOLDER, layertag, filetag));
-  std::string pathAlphaCaliPedestalsOutput(Form("%sdata_Pedestals/SSD_%s_AlphaCaliPedestals_%s.dat",PATHDATAFOLDER,layertag, filetag));
+  std::string pathPDFOutput(Form("%sfigure_Pedestals/SSD_%s_Pedestals_%s.pdf" , PATHFIGURESFOLDER, layertag, filetag));
+  std::string pathPDFbegin (Form("%sfigure_Pedestals/SSD_%s_Pedestals_%s.pdf[", PATHFIGURESFOLDER, layertag, filetag));
+  std::string pathPDFend   (Form("%sfigure_Pedestals/SSD_%s_Pedestals_%s.pdf]", PATHFIGURESFOLDER, layertag, filetag));
+  std::string pathPedestalsOutput(Form("%sdata_Pedestals/SSD_%s_Pedestals_%s.dat",PATHDATAFOLDER,layertag, filetag));
 
-  FILE * FileOut = fopen(pathAlphaCaliPedestalsOutput.c_str(),"w");
+  FILE * FileOut = fopen(pathPedestalsOutput.c_str(),"w");
   fprintf(FileOut,"* SSDNum   CHNum  Mean  \n");
 
   TFile* FileIn = new TFile(pathRootInput.c_str());

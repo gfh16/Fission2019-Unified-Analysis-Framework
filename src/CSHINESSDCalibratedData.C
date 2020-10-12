@@ -75,7 +75,6 @@ Double_t* CSHINESSDCalibratedData::GetSiEChPedestals(const char* layertag)
   }
 
   Int_t numpar = 2; // pedestal mean, sigma
-  ReadFileModule readfile;
   Double_t*** pedestals = readfile.ReadData(pathDataInput.c_str(),NUM_SSD,NUM_STRIP,numpar);
 
   for (Int_t i=0; i<NUM_SSD; i++) {
@@ -117,7 +116,6 @@ Double_t* CSHINESSDCalibratedData::GetSiEChCut(const char* layertag)
   }
 
   Int_t numpar = 2; // pedestal mean, sigma
-  ReadFileModule readfile;
   Double_t*** pedestals = readfile.ReadData(pathDataInput.c_str(),NUM_SSD,NUM_STRIP,numpar);
 
   for (Int_t i=0; i<NUM_SSD; i++) {
@@ -149,7 +147,6 @@ Double_t* CSHINESSDCalibratedData::GetSiEChCut(const char* layertag, Double_t nu
   }
 
   Int_t numpar = 2; // pedestal mean, sigma
-  ReadFileModule readfile;
   Double_t*** pedestals = readfile.ReadData(pathDataInput.c_str(),NUM_SSD,NUM_STRIP,numpar);
 
   for (Int_t i=0; i<NUM_SSD; i++) {
@@ -171,6 +168,11 @@ Double_t* CSHINESSDCalibratedData::GetSiCaliSlope(const char* layertag)
   std::string pathDataFolder(Form("%sdata_SiEnergyCali/", PATHDATAFOLDER));
   std::string pathDataInput(Form("%sSSD_%s_SiEnergyCaliParameters.dat", pathDataFolder.c_str(), layertag));
 
+  if (!readfile.IsFileExists(pathDataInput.c_str())) {
+    cout<<Form("文件 %s 不存在!", pathDataInput.c_str())<<endl;
+    return NULL;
+  }
+
   Double_t* fSiCaliSlope;
   if (strcmp(layertag,"L1S")==0) {
     fSiCaliSlope = fL1SSlope;
@@ -181,7 +183,6 @@ Double_t* CSHINESSDCalibratedData::GetSiCaliSlope(const char* layertag)
   }
 
   Int_t numpar = 4; // k_ave, h_ave, k_deadlayer, h_deadlayer
-  ReadFileModule readfile;
   Double_t*** pedestals = readfile.ReadData(pathDataInput.c_str(),NUM_SSD,NUM_STRIP,numpar);
 
   for (Int_t i=0; i<NUM_SSD; i++) {
@@ -203,6 +204,11 @@ Double_t* CSHINESSDCalibratedData::GetSiCaliIntercept(const char* layertag)
   std::string pathDataFolder(Form("%sdata_SiEnergyCali/", PATHDATAFOLDER));
   std::string pathDataInput(Form("%sSSD_%s_SiEnergyCaliParameters.dat", pathDataFolder.c_str(), layertag));
 
+  if (!readfile.IsFileExists(pathDataInput.c_str())) {
+    cout<<Form("文件 %s 不存在!", pathDataInput.c_str())<<endl;
+    return NULL;
+  }
+
   Double_t* fSiCaliIntercept;
   if (strcmp(layertag,"L1S")==0) {
     fSiCaliIntercept = fL1SIntercept;
@@ -213,7 +219,6 @@ Double_t* CSHINESSDCalibratedData::GetSiCaliIntercept(const char* layertag)
   }
 
   Int_t numpar = 4; // k_ave, h_ave, k_deadlayer, h_deadlayer
-  ReadFileModule readfile;
   Double_t*** pedestals = readfile.ReadData(pathDataInput.c_str(),NUM_SSD,NUM_STRIP,numpar);
 
   for (Int_t i=0; i<NUM_SSD; i++) {
@@ -280,7 +285,6 @@ Double_t* CSHINESSDCalibratedData::GetCsIEChCut(const char* layertag)
   }
 
   Int_t numpar = 1;
-  ReadFileModule readfile;
   Double_t*** echcut = readfile.ReadData(pathDataInput.c_str(),NUM_SSD,NUM_CSI,numpar);
 
   for (Int_t i=0; i<NUM_SSD; i++) {
@@ -302,7 +306,6 @@ Double_t* CSHINESSDCalibratedData::GetCsIEChCut(const char* layertag, Double_t n
   std::string pathDataInput(Form("%sSSD_%s_EChCut.dat",pathDataFolder.c_str(),layertag));
 
   Int_t numpar = 1;
-  ReadFileModule readfile;
   Double_t*** echcut = readfile.ReadData(pathDataInput.c_str(),NUM_SSD,NUM_CSI,numpar);
 
   for (Int_t i=0; i<NUM_SSD; i++) {
