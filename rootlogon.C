@@ -16,6 +16,9 @@
   gROOT->ProcessLine(".L src/CSHINESiEnergyCali.C");
   gROOT->ProcessLine(".L src/CSHINEAlphaCali.C");
   gROOT->ProcessLine(".L src/CSHINEPulserCali.C");
+  gROOT->ProcessLine(".L src/CSHINEDataAnalysisFramework.C");
+  gROOT->ProcessLine(".L src/CSHINESSDDataAnalysisFramework.C");
+
 
   printf("Welcome to Fission2019-Unified-Analysis-Framework/\n");
 }

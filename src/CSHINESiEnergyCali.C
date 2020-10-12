@@ -49,7 +49,7 @@ void CSHINESiEnergyCali::PulserAndAlphaCali(const char* layertag, const char* pu
   std::string pathAlphaCali05_08;
   std::string pathAlphaCali00_48;
   if (strcmp(layertag,L1STag.c_str())==0) {
-    pathPulserInGain20 = Form("%sdata_PulserCali/SSD_%s_PulserReCali_Gain20_%s.dat",PATHDATAFOLDER,L1STag.c_str(),pulserfiletag);
+    pathPulserInGain20 = Form("%sdata_PulserCali/SSD_%s_PulserReCali_HighGain_%s.dat",PATHDATAFOLDER,L1STag.c_str(),pulserfiletag);
     pathAlphaCali00_08 = Form("%sdata_AlphaCali/SSD_%s_AlphaPeaks_%s.dat",PATHDATAFOLDER,L1STag.c_str(),AlphaCali00_08.c_str());
     pathAlphaCali05_08 = Form("%sdata_AlphaCali/SSD_%s_AlphaPeaks_%s.dat",PATHDATAFOLDER,L1STag.c_str(),AlphaCali05_08.c_str());
   } else {
@@ -717,6 +717,8 @@ void CSHINESiEnergyCali::Check_SSD2_L2F_CH00_CH01(const char* pulserfiletag)
   std::string pathpngPulserCali_SSD2_L2F_CH00_01(Form("%sfigure_SiEnergyCali/CheckPulserCali_SSD2_%s_CH00_CH01_%s.png",PATHFIGURESFOLDER,L2FTag.c_str(),pulserfiletag));
   std::string pathPNGSSD2_L2F_CH00_01_Pars(Form("%sfigure_SiEnergyCali/Check_SSD2_%s_CH00_CH01_Peak1ParameterDistributions.png",PATHFIGURESFOLDER,L2FTag.c_str()));
 
+
+
   Int_t num_peaks             =  11;
   Int_t num_channel           =  2;
   Int_t numpar_PulserIn       =  15;  // a, err_a, b,err_b, pulser1...pulser11
@@ -784,7 +786,7 @@ void CSHINESiEnergyCali::Check_SSD2_L2F_CH00_CH01(const char* pulserfiletag)
   Double_t k_scaleCH[num_channel];
   //Double_t h_scaleCH[num_channel];
   Double_t k_scaleE [num_channel];
-//Double_t h_scaleE [num_channel];
+  //Double_t h_scaleE [num_channel];
 
   Double_t k_sum = 0.;
   Double_t h_sum = 0.;
@@ -1072,7 +1074,7 @@ void CSHINESiEnergyCali::Check_SSD4_L2F_CH13_CH14(const char* pulserfiletag)
   std::string pathAlphaCali00_48(Form("%sdata_AlphaCali/SSD_%s_AlphaPeaks_%s.dat",PATHDATAFOLDER,L2FTag.c_str(),AlphaCali00_48.c_str()));
   std::string pathAlphaEnergiesIn(Form("%sdata_AlphaCali/SSD_AlphaEnergies.dat",PATHDATAFOLDER));
   std::string pathEnergyCaliPars(Form("%sdata_SiEnergyCali/SSD_%s_HeightAndAlphaFitPars.dat",PATHDATAFOLDER,L2FTag.c_str()));
-  std::string pathPulserPedestalIn(Form("%sdata_PulserCali/SSD_%s_PulserCaliPedestals_Pedestal0000.dat",PATHDATAFOLDER,L2FTag.c_str()));
+  std::string pathPulserPedestalIn(Form("%sdata_Pedestals/SSD_%s_PulserCaliPedestals_Pedestal0000.dat",PATHDATAFOLDER,L2FTag.c_str()));
   std::string pathPNGSSD4_L2F_CH13_14_Pars(Form("%sfigure_SiEnergyCali/Check_SSD4_%s_CH13_CH14_Peak1ParameterDistributions.png",PATHFIGURESFOLDER,L2FTag.c_str()));
 
   // 手动设定系数 a 与 b 的范围
@@ -1809,7 +1811,7 @@ void CSHINESiEnergyCali::GetSiEnergyCaliPars(const char* layertag,const char* pu
   //______________________________
   //  对 L1S 进行刻度
   if (strcmp(layertag,"L1S")==0) {
-    pathPulserInGain20 = (Form("%sdata_PulserCali/SSD_%s_PulserReCali_Gain20_%s.dat",PATHDATAFOLDER,layertag,pulserfiletag));
+    pathPulserInGain20 = (Form("%sdata_PulserCali/SSD_%s_PulserReCali_HighGain_%s.dat",PATHDATAFOLDER,layertag,pulserfiletag));
     pathAlphaCali00_08 = (Form("%sdata_AlphaCali/SSD_%s_AlphaPeaks_%s.dat",PATHDATAFOLDER,layertag,AlphaCali00_08.c_str()));
     pathAlphaCali05_08 = (Form("%sdata_AlphaCali/SSD_%s_AlphaPeaks_%s.dat",PATHDATAFOLDER,layertag,AlphaCali05_08.c_str()));
     Double_t*** PulserInGain20 = readfile.ReadData(pathPulserInGain20.c_str(),NUM_SSD,NUM_STRIP,numpar_PulserInGain20);
@@ -1918,7 +1920,7 @@ void CSHINESiEnergyCali::EstimateAlphaChannelEffOnFitPars(const char* layertag, 
   Double_t Ch_Err;
   if (strcmp(layertag,L1STag.c_str())==0) {
     Ch_Err = 0.5;  // 对拟合的 alpha 峰的道址给一个误差
-    pathPulserInGain20 = Form("%sdata_PulserCali/SSD_%s_PulserReCali_Gain20_%s.dat",PATHDATAFOLDER,layertag,pulserfiletag);
+    pathPulserInGain20 = Form("%sdata_PulserCali/SSD_%s_PulserReCali_HighGain_%s.dat",PATHDATAFOLDER,layertag,pulserfiletag);
     pathAlphaCali00_08 = Form("%sdata_AlphaCali/SSD_%s_AlphaPeaks_%s.dat",PATHDATAFOLDER,layertag,AlphaCali00_08.c_str());
     pathAlphaCali05_08 = Form("%sdata_AlphaCali/SSD_%s_AlphaPeaks_%s.dat",PATHDATAFOLDER,layertag,AlphaCali05_08.c_str());
     PulserInGain20 = readfile.ReadData(pathPulserInGain20.c_str(),NUM_SSD,NUM_STRIP,numpar_PulserInGain20);

@@ -30,6 +30,8 @@ public:
   void       ClickToFindPedestals(const char* layertag, const char* filetag);
   void       EstimateErrorsOfPedestals(const char* layertag, const char* filetag1, const char* filetag2);
 
+  void       SetPoints(Int_t, Int_t, Int_t, TObject*); //*SIGNAL*
+  
 
 private:
   Int_t      fIndex = 0;
@@ -37,7 +39,7 @@ private:
   TMarker   *m[2];
   TLine     *l[2];
 
-  void       SetPoints(Int_t event, Int_t x, Int_t y, TObject* selected); //*SIGNAL*
+
 
 };
 

@@ -634,7 +634,7 @@ void CSHINESSDDataAnalysisFramework::InputLayerAngTwoFiles(Int_t opt_layer,std::
   std::string AlphaCali33_48("AlphaCali33_48");
   std::string AlphaCali00_48("AlphaCali00_48");
 
-  InputLayerTag(opt_layer, layertag);
+  InputLayerTagWithLabel(opt_layer, layertag);
 
   if (strcmp(layertag.c_str(), L1STag.c_str())==0) {
     cout<<"请选择对 L1 的哪组文件进行比较: "<<endl;

@@ -65,6 +65,11 @@ Double_t* CSHINESSDCalibratedData::GetSiEChPedestals(const char* layertag)
   std::string pathDataFolder(Form("%sdata_Pedestals/", PATHDATAFOLDER));
   std::string pathDataInput(Form("%sSSD_%s_PulserCaliPedestals_Pedestal0000.dat", pathDataFolder.c_str(), layertag));
 
+  if (!readfile.IsFileExists(pathDataInput.c_str())) {
+    cout<<Form("文件 %s 不存在!", pathDataInput.c_str())<<endl;
+    return NULL;
+  }
+
   Double_t* fSiEChPedestals;
   if (strcmp(layertag,"L1S")==0) {
     fSiEChPedestals = fL1SEChPedestals;
@@ -95,6 +100,11 @@ Double_t* CSHINESSDCalibratedData::GetSiEChCut(const char* layertag)
 {
   std::string pathDataFolder(Form("%sdata_Pedestals/", PATHDATAFOLDER));
   std::string pathDataInput(Form("%sSSD_%s_PulserCaliPedestals_Pedestal0000.dat", pathDataFolder.c_str(), layertag));
+
+  if (!readfile.IsFileExists(pathDataInput.c_str())) {
+    cout<<Form("文件 %s 不存在!", pathDataInput.c_str())<<endl;
+    return NULL;
+  }
 
   Double_t* fSiEChCut;
   Double_t  fSiNumSigma[NUM_SSD];
@@ -136,6 +146,11 @@ Double_t* CSHINESSDCalibratedData::GetSiEChCut(const char* layertag, Double_t nu
 {
   std::string pathDataFolder(Form("%sdata_Pedestals/", PATHDATAFOLDER));
   std::string pathDataInput(Form("%sSSD_%s_PulserCaliPedestals_Pedestal0000.dat", pathDataFolder.c_str(), layertag));
+
+  if (!readfile.IsFileExists(pathDataInput.c_str())) {
+    cout<<Form("文件 %s 不存在!", pathDataInput.c_str())<<endl;
+    return NULL;
+  }
 
   Double_t* fSiEChCut;
   if (strcmp(layertag,"L1S")==0) {
@@ -279,6 +294,11 @@ Double_t* CSHINESSDCalibratedData::GetCsIEChCut(const char* layertag)
   std::string pathDataFolder(Form("%sdata_Pedestals/", PATHDATAFOLDER));
   std::string pathDataInput(Form("%sSSD_%s_EChCut.dat", pathDataFolder.c_str(),layertag));
 
+  if (!readfile.IsFileExists(pathDataInput.c_str())) {
+    cout<<Form("文件 %s 不存在!", pathDataInput.c_str())<<endl;
+    return NULL;
+  }
+
   Double_t fCsINumSigma[NUM_SSD];
   for (Int_t i=0; i<NUM_SSD; i++) {
     fCsINumSigma[i] = NUM_SIGMA_L3A[i];
@@ -304,6 +324,11 @@ Double_t* CSHINESSDCalibratedData::GetCsIEChCut(const char* layertag, Double_t n
 {
   std::string pathDataFolder(Form("%sdata_Pedestals/", PATHDATAFOLDER));
   std::string pathDataInput(Form("%sSSD_%s_EChCut.dat",pathDataFolder.c_str(),layertag));
+
+  if (!readfile.IsFileExists(pathDataInput.c_str())) {
+    cout<<Form("文件 %s 不存在!", pathDataInput.c_str())<<endl;
+    return NULL;
+  }
 
   Int_t numpar = 1;
   Double_t*** echcut = readfile.ReadData(pathDataInput.c_str(),NUM_SSD,NUM_CSI,numpar);
