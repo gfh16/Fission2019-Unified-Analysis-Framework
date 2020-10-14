@@ -8,10 +8,13 @@
 #include <string.h>
 #include <vector>
 
+#include "shared.h"
+
 class Nuclear_masses
 {
 public:
-  Nuclear_masses(const char* file_conf_name = "Masses.conf");
+  //Nuclear_masses(const char* file_conf_name);
+  Nuclear_masses();
   ~Nuclear_masses();
 
   double       GetMass_Z_A    (int Z, int A) const;
@@ -22,6 +25,8 @@ private:
   char      ***fElement_names; // fElement_names[Z][A]
   double       fElectron_mass; // MeV
   double       fUMA_MeV;       // MeV/uma
+
+  std::string  pathMassedConf = "/home/sea/Fission2019-Unified-Analysis-Framework/src/Masses.conf";;
 };
 
 #endif

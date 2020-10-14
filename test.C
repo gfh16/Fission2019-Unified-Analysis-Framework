@@ -1,18 +1,11 @@
-#include "include/CSHINEPedestals.h"
-
-#include "include/CSHINESSDDataAnalysisFramework.h"
-#include <iostream>
-
+#include "include/CSHINEHitPatternRecognition.h"
 using namespace std;
 
 
 void test()
 {
-  std::string pathfile("Makefile");
-  std::string layertag("L1S");
-  std::string filetag("Pedestal0000");
-
-  CSHINESSDDataAnalysisFramework SSDDataAnalysis;
-  SSDDataAnalysis.Step4_SSDDataAnalysisFramework();
-
+  Test_Multi test;
+  //test.Loop();
+  CSHINEHitPatternRecognition hit;
+  hit.GetPunchThroughEnergiesOfLCPs();
 }

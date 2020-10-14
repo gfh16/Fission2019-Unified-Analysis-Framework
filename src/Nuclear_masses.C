@@ -3,7 +3,7 @@
 
 //******************************************************************************
 // 构造函数
-Nuclear_masses::Nuclear_masses (const char* file_conf_name) :
+Nuclear_masses::Nuclear_masses () :
 fElectron_mass(0.510998918),
 fUMA_MeV(931.494028)
 {
@@ -12,7 +12,7 @@ fUMA_MeV(931.494028)
   double mass;
   char   element[2];
   std::fstream file_in;
-  file_in.open(file_conf_name, std::ios::in);
+  file_in.open(pathMassedConf.c_str(), std::ios::in);
   if (!file_in.is_open()) return;
   /*allocazione*/
   fAtomic_masses = (double**) new double*[300];

@@ -292,7 +292,7 @@ Double_t CSHINESSDCalibratedData::GetSiEMeV(Int_t ssdindex, const char* layertag
 Double_t* CSHINESSDCalibratedData::GetCsIEChCut(const char* layertag)
 {
   std::string pathDataFolder(Form("%sdata_Pedestals/", PATHDATAFOLDER));
-  std::string pathDataInput(Form("%sSSD_%s_EChCut.dat", pathDataFolder.c_str(),layertag));
+  std::string pathDataInput(Form("%sSSD_%s_PulserCaliPedestals_Pedestal0000.dat", pathDataFolder.c_str(), layertag));
 
   if (!readfile.IsFileExists(pathDataInput.c_str())) {
     cout<<Form("文件 %s 不存在!", pathDataInput.c_str())<<endl;
@@ -304,12 +304,12 @@ Double_t* CSHINESSDCalibratedData::GetCsIEChCut(const char* layertag)
     fCsINumSigma[i] = NUM_SIGMA_L3A[i];
   }
 
-  Int_t numpar = 1;
+  Int_t numpar = 2;
   Double_t*** echcut = readfile.ReadData(pathDataInput.c_str(),NUM_SSD,NUM_CSI,numpar);
 
   for (Int_t i=0; i<NUM_SSD; i++) {
     for (Int_t j=0; j<NUM_CSI; j++) {
-      fCsIEChCut[i*NUM_CSI+j] = echcut[i][j][0] + fCsINumSigma[i] * CSIPEDESTALSIGMA;
+      fCsIEChCut[i*NUM_CSI+j] = echcut[i][j][0] + fCsINumSigma[i] * echcut[i][j][1];
     }
   }
   // delete, 释放内存
@@ -323,19 +323,19 @@ Double_t* CSHINESSDCalibratedData::GetCsIEChCut(const char* layertag)
 Double_t* CSHINESSDCalibratedData::GetCsIEChCut(const char* layertag, Double_t numsigma)
 {
   std::string pathDataFolder(Form("%sdata_Pedestals/", PATHDATAFOLDER));
-  std::string pathDataInput(Form("%sSSD_%s_EChCut.dat",pathDataFolder.c_str(),layertag));
+  std::string pathDataInput(Form("%sSSD_%s_PulserCaliPedestals_Pedestal0000.dat", pathDataFolder.c_str(), layertag));
 
   if (!readfile.IsFileExists(pathDataInput.c_str())) {
     cout<<Form("文件 %s 不存在!", pathDataInput.c_str())<<endl;
     return NULL;
   }
 
-  Int_t numpar = 1;
+  Int_t numpar = 2;
   Double_t*** echcut = readfile.ReadData(pathDataInput.c_str(),NUM_SSD,NUM_CSI,numpar);
 
   for (Int_t i=0; i<NUM_SSD; i++) {
     for (Int_t j=0; j<NUM_CSI; j++) {
-      fCsIEChCut[i*NUM_CSI+j] = echcut[i][j][0] + numsigma * CSIPEDESTALSIGMA;
+      fCsIEChCut[i*NUM_CSI+j] = echcut[i][j][0] + numsigma * echcut[i][j][1];
     }
   }
   // delete, 释放内存

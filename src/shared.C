@@ -13,15 +13,20 @@ const int NUM_CSI                   =    9;
 const int NUM_MAX_PARTICLES_PER_TEL =    5;
 
 //______________________________________________________________________________
-const double NUM_SIGMA_L1S[4]       =    {5.,  7.,  9.,  20.};
-const double NUM_SIGMA_L2F[4]       =    {5.,  5.,  5.,  5.};
-const double NUM_SIGMA_L2B[4]       =    {5.,  5.,  5.,  5.};
-const double NUM_SIGMA_L3A[4]       =    {12., 5.,  12., 10.};
+const double SIL1THICKNESS[4]       =    {0.304, 0.305, 0.110, 0.070}; //mm
+const double SIL2THICKNESS[4]       =    {1.010, 1.008, 0.526, 0.306}; //mm
+const double CSITHICKNESS           =    50;     //mm
+
+//______________________________________________________________________________
+const double NUM_SIGMA_L1S[4]       =    {5.,  8.,  13., 20.};
+const double NUM_SIGMA_L2F[4]       =    {5.,  5.,  5.,  6.};
+const double NUM_SIGMA_L2B[4]       =    {5.,  5.,  5.,  6.};
+const double NUM_SIGMA_L3A[4]       =    {5.,  8.,  10., 8.};
 
 //______________________________________________________________________________
 //const Double_t ECSICHCUT          =    150.;  // 手动添加
-const double ECSICHCUT              =    80.;   // 手动添加
-const double CSIPEDESTALSIGMA       =    4.;    // 手动添加
+//const double ECSICHCUT            =    80.;   // 手动添加
+//const double CSIPEDESTALSIGMA     =    4.;    // 手动添加
 
 //______________________________________________________________________________
 //本地使用

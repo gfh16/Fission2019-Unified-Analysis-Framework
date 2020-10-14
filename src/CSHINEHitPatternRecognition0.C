@@ -814,19 +814,18 @@ void CSHINEHitPatternRecognition::GetPunchThroughEnergiesOfLCPs()
 
   for (Int_t ssdnum=0; ssdnum<NUM_SSD; ssdnum++) {
     for (Int_t lcp=0; lcp<NUM_LCPs; lcp++) {
-      fLISEModule.GetRangeFromEnergy(Z_A_LCPs[lcp][0], Z_A_LCPs[lcp][1], 10., SiTag.c_str(), 1); // 只为了加载文件
-      Double_t PunchThroughL1 = fLISEModule.GetEnergyFromRange(Z_A_LCPs[lcp][0],Z_A_LCPs[lcp][1],SIL1THICKNESS[ssdnum]*1000,SiTag.c_str(),LiseModel);
+      //Double_t PunchThroughL1 = fLISEModule.GetEnergyFromRange(Z_A_LCPs[lcp][0],Z_A_LCPs[lcp][1],SIL1THICKNESS[ssdnum]*1000,"Si",LiseModel);
+      Double_t PunchThroughL1 = fLISEModule.GetEnergyFromRange(1,1,100.,"Si",1);
+
       FileOut<<setw(10)<<ssdnum<<setw(15)<<SiTag.c_str()<<setw(15)<<SIL1THICKNESS[ssdnum]*1000<<setw(15)
              <<Z_A_LCPs[lcp][0]<<setw(15)<<Z_A_LCPs[lcp][1]<<setw(15)<<PunchThroughL1<<endl;
     }
     for (Int_t lcp=0; lcp<NUM_LCPs; lcp++) {
-      fLISEModule.GetRangeFromEnergy(Z_A_LCPs[lcp][0], Z_A_LCPs[lcp][1], 10., SiTag.c_str(), 1); // 只为了加载文件
       Double_t PunchThroughL2 = fLISEModule.GetEnergyFromRange(Z_A_LCPs[lcp][0],Z_A_LCPs[lcp][1],SIL2THICKNESS[ssdnum]*1000,SiTag.c_str(),LiseModel);
       FileOut<<setw(10)<<ssdnum<<setw(15)<<SiTag.c_str()<<setw(15)<<SIL2THICKNESS[ssdnum]*1000<<setw(15)
              <<Z_A_LCPs[lcp][0]<<setw(15)<<Z_A_LCPs[lcp][1]<<setw(15)<<PunchThroughL2<<endl;
     }
     for (Int_t lcp=0; lcp<NUM_LCPs; lcp++) {
-      fLISEModule.GetRangeFromEnergy(Z_A_LCPs[lcp][0], Z_A_LCPs[lcp][1], 10., CsITag.c_str(), 1); // 只为了加载文件
       Double_t PunchThroughL3 = fLISEModule.GetEnergyFromRange(Z_A_LCPs[lcp][0],Z_A_LCPs[lcp][1],CSITHICKNESS*1000,CsITag.c_str(),LiseModel);
       FileOut<<setw(10)<<ssdnum<<setw(15)<<CsITag.c_str()<<setw(15)<<CSITHICKNESS*1000<<setw(15)
              <<Z_A_LCPs[lcp][0]<<setw(15)<<Z_A_LCPs[lcp][1]<<setw(15)<<PunchThroughL3<<endl;

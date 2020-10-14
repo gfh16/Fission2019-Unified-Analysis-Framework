@@ -14,6 +14,11 @@ extern const int NUM_CSI;
 extern const int NUM_MAX_PARTICLES_PER_TEL;
 
 //______________________________________________________________________________
+extern const double SIL1THICKNESS[4]; //mm
+extern const double SIL2THICKNESS[4]; //mm
+extern const double CSITHICKNESS;     //mm
+
+//______________________________________________________________________________
 extern const double NUM_SIGMA_L1S[4];
 extern const double NUM_SIGMA_L2F[4];
 extern const double NUM_SIGMA_L2B[4];
@@ -21,8 +26,8 @@ extern const double NUM_SIGMA_L3A[4];
 
 //______________________________________________________________________________
 // Setting the Cut for CsI
-extern const double ECSICHCUT;
-extern const double CSIPEDESTALSIGMA;
+//extern const double ECSICHCUT;
+//extern const double CSIPEDESTALSIGMA;
 
 //______________________________________________________________________________
 extern const char* PATHDATAFOLDER;        // data 数据文件夹绝对路径

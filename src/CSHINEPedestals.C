@@ -151,6 +151,12 @@ void CSHINEPedestals::AutoFindPedestals(const char* layertag, const char* fileta
 void CSHINEPedestals::ClickToFindPedestals(const char* layertag, const char* filetag)
 {
   std::string LayerTagWithOutLabel;
+  Int_t Num_CH;
+  if (strcmp(layertag, "L3A") == 0) {
+    Num_CH = NUM_CSI;
+  } else {
+    Num_CH = NUM_STRIP;
+  }
   if (strcmp(layertag,"L1S")==0) {
       LayerTagWithOutLabel = "L1";
   } else {
@@ -186,7 +192,7 @@ void CSHINEPedestals::ClickToFindPedestals(const char* layertag, const char* fil
   TH1D* PedestalHist  [NUM_SSD][NUM_STRIP];
   std::string histname[NUM_SSD][NUM_STRIP];
   for(Int_t i=0; i<NUM_SSD; i++) {
-    for(Int_t j=0; j<NUM_STRIP; j++) {
+    for(Int_t j=0; j<Num_CH; j++) {
       histname[i][j] = Form("SSD%d_%s_E_CH%02d",(i+1),layertag,j);
       PedestalHist[i][j]=(TH1D*)FileIn->Get(histname[i][j].c_str());
     }
@@ -206,7 +212,7 @@ void CSHINEPedestals::ClickToFindPedestals(const char* layertag, const char* fil
 
   Float_t limit[2] = {0};   //定义limit[2]用于存储拟合范围
   for(Int_t i=0; i<NUM_SSD; i++) {
-    for(Int_t j=0; j<NUM_STRIP; j++) {
+    for(Int_t j=0; j<Num_CH; j++) {
       Int_t Option = 2;   // 设置一个标志, 当Option==2时，执行后面的while(Option==2)循环
       if (PedestalHist[i][j] == 0) {
         printf("No data present for SSD%d_%s_CH%02d\n",(i+1),layertag,j);

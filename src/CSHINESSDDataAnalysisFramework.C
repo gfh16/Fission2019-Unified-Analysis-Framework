@@ -174,7 +174,7 @@ void CSHINESSDDataAnalysisFramework::Step44_HitPatternRecognition()
   CSHINEHitPatternRecognition layermulti;
 
   Int_t FisrtRun = 200;
-  Int_t LastRun  = 201;
+  Int_t LastRun  = 210;
 
   layermulti.EstimateLayerMulti(FisrtRun, LastRun);
 }
@@ -562,17 +562,20 @@ void CSHINESSDDataAnalysisFramework::InputLayerTagWithLabel(Int_t opt_layer, std
   std::string L1STag("L1S");
   std::string L2FTag("L2F");
   std::string L2BTag("L2B");
+  std::string L3ATag("L3A");
   cout<<"请选择对哪一层硅条进行处理: "<<endl;
   cout<<"===================="<<endl;
   cout<<"1.L1S"<<endl;
   cout<<"2.L2F"<<endl;
   cout<<"3.L2B"<<endl;
+  cout<<"4.L3A (only for PedestalCali)"<<endl;
   cout<<"====================="<<endl;
   cout<<"请输入您的选项:"<<endl;
   cin >>opt_layer;
   if (opt_layer == 1) layertag = L1STag;
   if (opt_layer == 2) layertag = L2FTag;
   if (opt_layer == 3) layertag = L2BTag;
+  if (opt_layer == 4) layertag = L3ATag;
 }
 
 //______________________________________________________________________________

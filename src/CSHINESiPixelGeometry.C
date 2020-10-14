@@ -39,8 +39,6 @@ CSHINESiPixelGeometry::CSHINESiPixelGeometry()
   fDistFrom2ndMountingHoleToL2F     = 33.50; // mm
 
   fDistFrom2ndMountingHoleToTarget  = new Double_t [NUM_SSD];
-  fL1Thickness                      = new Double_t [NUM_SSD];
-  fL2Thickness                      = new Double_t [NUM_SSD];
   fPhiOfSSDFixedPosition            = new Double_t [NUM_SSD];
   fThetaOfSSDFixedPosition          = new Double_t [NUM_SSD];
   fDistOfL2FToTarget                = new Double_t [NUM_SSD];
@@ -49,15 +47,6 @@ CSHINESiPixelGeometry::CSHINESiPixelGeometry()
   fDistFrom2ndMountingHoleToTarget[1] = 275.50;  // mm
   fDistFrom2ndMountingHoleToTarget[2] = 275.50;  // mm
   fDistFrom2ndMountingHoleToTarget[3] = 215.50;  // mm
-
-  fL1Thickness[0] = 0.304;  // mm
-  fL1Thickness[1] = 0.305;  // mm
-  fL1Thickness[2] = 0.110;  // mm
-  fL1Thickness[3] = 0.070;  // mm
-  fL2Thickness[0] = 1.010;  // mm
-  fL2Thickness[1] = 1.008;  // mm
-  fL2Thickness[2] = 0.526;  // mm
-  fL2Thickness[3] = 0.306;  // mm
 
   fPhiOfSSDFixedPosition[0] = +10.0; // degree
   fPhiOfSSDFixedPosition[1] = -20.0; // degree
@@ -79,8 +68,6 @@ CSHINESiPixelGeometry::CSHINESiPixelGeometry()
 CSHINESiPixelGeometry::~CSHINESiPixelGeometry()
 {
   delete [] fDistFrom2ndMountingHoleToTarget;
-  delete [] fL1Thickness;
-  delete [] fL2Thickness;
   delete [] fPhiOfSSDFixedPosition;
   delete [] fThetaOfSSDFixedPosition;
   delete [] fDistOfL2FToTarget;
@@ -99,13 +86,13 @@ Double_t CSHINESiPixelGeometry::GetWidthPerStrip()
 //______________________________________________________________________________
 Double_t CSHINESiPixelGeometry::Getd1(Int_t ssdnum)
 {
-  return fL1Thickness[ssdnum];
+  return SIL1THICKNESS[ssdnum];
 }
 
 //______________________________________________________________________________
 Double_t CSHINESiPixelGeometry::Getd2(Int_t ssdnum)
 {
-  return fL2Thickness[ssdnum];
+  return SIL2THICKNESS[ssdnum];
 }
 
 //______________________________________________________________________________

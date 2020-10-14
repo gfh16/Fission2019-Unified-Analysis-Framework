@@ -52,9 +52,6 @@ private:
   Double_t     fDistFrom2ndMountingHoleToL2F;    // 硅条第二安装孔到L2F的距离
   Double_t    *fDistFrom2ndMountingHoleToTarget; // [NUM_SSD] 硅条第二安装孔到靶点的距离
 
-  Double_t    *fL1Thickness; // [NUM_SSD] 单面硅条的厚度
-  Double_t    *fL2Thickness; // [NUM_SSD] 双面硅条的厚度
-
   Double_t    *fDistOfL2FToTarget;       // [NUM_SSD] L2F 面到靶点的距离,单位：mm
   Double_t    *fPhiOfSSDFixedPosition;   // [NUM_SSD] 硅条安装的 phi 角,单位：degree
   Double_t    *fThetaOfSSDFixedPosition; // [NUM_SSD] 硅条安装的 theta 角,单位：degree

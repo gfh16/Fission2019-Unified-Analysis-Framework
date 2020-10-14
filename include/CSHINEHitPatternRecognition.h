@@ -1,6 +1,7 @@
 #ifndef CSHINEHITPATTERNRECOGNITION_H
 #define CSHINEHITPATTERNRECOGNITION_H
 
+#include "EnergyLossModule.h"
 #include "CSHINESSDCalibratedData.h"
 #include "TimeAndPercentage.h"
 #include "shared.h"
@@ -14,6 +15,7 @@
 #include <TStyle.h>
 #include <TLegend.h>
 #include <TMultiGraph.h>
+#include <TMath.h>
 
 
 //________________________________
@@ -30,11 +32,14 @@ public:
   Bool_t   GeoConstraint_L3A_L2F(Int_t csiindex, Int_t stripl2f);
   Bool_t   GeoConstraint_L2B_L1S(Int_t stripl2b, Int_t stripl1s);
   Bool_t   GeoConstraint_L2B_L1S(Int_t stripl2b, Int_t stripl1s, Int_t deltastrip);
+  Bool_t   EnergyConstraint_L2B_L2F(Double_t El2b, Double_t El2f, Double_t deltaE);
 
   void     EstimateLayerMulti(Int_t firstrun, Int_t lastrun);
+  void     GetPunchThroughEnergiesOfLCPs();
 
 private:
   CSHINESSDCalibratedData fCSHINESSDCalibratedData;
+  EnergyLossModule        fLISEModule;
 };
 
 #endif
