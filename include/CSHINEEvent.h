@@ -132,6 +132,11 @@ private:
   Double_t     *fInterceptl2f;  // [NUM_SSD*NUM_STRIP]
   Double_t     *fInterceptl2b;  // [NUM_SSD*NUM_STRIP]
 
+  std::vector<Int_t>  fChannels_l1s;
+  std::vector<Int_t>  fChannels_l2f;
+  std::vector<Int_t>  fChannels_l2b;
+  std::vector<Int_t>  fChannels_csi;
+
   CSHINESSDCalibratedData fCSHINESSDCalibratedData;
 };
 //______________________________________________________________________________

@@ -12,17 +12,21 @@
 #include <TChain.h>
 #include <TFile.h>
 #include "include/CSHINEHitPatternRecognition.h"
+#include "include/EnergyLossModule.h"
 
 // Header file for the classes stored in the TTree if any.
 
 class Test_Multi {
 private :
-  CSHINEHitPatternRecognition pattern;
+  CSHINEHitPatternRecognition  fPattern;
+  EnergyLossModule             fLISEModule;
 
+  Double_t                     fL1ResidulE;
+  Double_t                     fL2IncidentE;
 
 public :
-   TTree          *fChain;   //!pointer to the analyzed TTree or TChain
-   Int_t           fCurrent; //!current Tree number in a TChain
+   TTree                      *fChain;   //!pointer to the analyzed TTree or TChain
+   Int_t                       fCurrent; //!current Tree number in a TChain
 
 // Fixed size dimensions of array or collections stored in the TTree if any.
    static constexpr Int_t kMaxSSD1 = 1;
@@ -206,7 +210,7 @@ Test_Multi::Test_Multi(TTree *tree) : fChain(0)
 Test_Multi::~Test_Multi()
 {
    if (!fChain) return;
-   delete fChain->GetCurrentFile();
+  // delete fChain->GetCurrentFile();
 }
 
 Int_t Test_Multi::GetEntry(Long64_t entry)

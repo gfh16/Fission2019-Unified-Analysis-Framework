@@ -14,6 +14,11 @@ extern const int NUM_CSI;
 extern const int NUM_MAX_PARTICLES_PER_TEL;
 
 //______________________________________________________________________________
+// 定义轻粒子的质量
+extern const int    NUM_LCPs;
+extern const int    Z_A_LCPs[16][2];
+
+//______________________________________________________________________________
 extern const double SIL1THICKNESS[4]; //mm
 extern const double SIL2THICKNESS[4]; //mm
 extern const double CSITHICKNESS;     //mm

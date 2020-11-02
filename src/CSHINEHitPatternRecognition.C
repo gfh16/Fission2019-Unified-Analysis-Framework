@@ -106,9 +106,9 @@ Bool_t CSHINEHitPatternRecognition::GeoConstraint_L2B_L1S(Int_t stripl2b, Int_t 
 
 //______________________________________________________________________________
 // 能量判据四: 考虑 L2B 与 L2F 的能量关联
-Bool_t CSHINEHitPatternRecognition::EnergyConstraint_L2B_L2F(Double_t El2b, Double_t El2f, Double_t deltaE)
+Bool_t CSHINEHitPatternRecognition::EnergyConstraint_L2B_L2F(Double_t El2b, Double_t El2f, Double_t ErrRatio)
 {
-  return (TMath::Abs(El2b - El2f) < deltaE);
+  return (TMath::Abs(El2b - El2f)/El2f < ErrRatio);
 }
 //******************************************************************************
 
@@ -795,13 +795,7 @@ void CSHINEHitPatternRecognition::EstimateLayerMulti(Int_t firstrun, Int_t lastr
 void CSHINEHitPatternRecognition::GetPunchThroughEnergiesOfLCPs()
 {
   Int_t NUM_LCPs = 16;
-  Int_t Z_A_LCPs[16][2] = { {1,1}, {1,2}, {1,3},   // H1,  H2,  H3
-                            {2,3}, {2,4}, {2,6},   // He3, He4, He6
-                            {3,6}, {3,7}, {3,8},   // Li6, Li7, Li8
-                            {4,7}, {4,9}, {4,10},  // Be7, Be9, Be10
-                            {5,8}, {5,10},{5,11},  // B8,  B10, B11
-                            {6,12}                 // C12
-                          };
+
   std::string SiTag("Si");
   std::string CsITag("CsI");
   const Int_t LiseModel = 1;

@@ -157,10 +157,10 @@ void CSHINEBuildEvent::BuildLayerEvent(CSHINELayerEvent& layerevent, Int_t ssdin
   layerevent.fL2BMulti = 0;
   layerevent.fCsIMulti = 0;
 
-  vector<Int_t> fChannels_l1s;
-  vector<Int_t> fChannels_l2f;
-  vector<Int_t> fChannels_l2b;
-  vector<Int_t> fChannels_csi;
+  fChannels_l1s.clear();
+  fChannels_l2f.clear();
+  fChannels_l2b.clear();
+  fChannels_csi.clear();
 
   for (Int_t chindex=0; chindex<NUM_STRIP; chindex++) {
     if (echl1s[chindex]>fSiEChcutl1s[ssdindex*NUM_STRIP+chindex]) {
@@ -250,6 +250,7 @@ void CSHINEBuildEvent::BuildLayerEventTree(Int_t firstrun, Int_t lastrun)
   TChain* mychain = new TChain("KrPb");
   for (Int_t i=firstrun; i<(lastrun+1); i++) {
     mychain->Add(Form("%sMapFission2019_Kr_Pb%04d.root",pathRootInputFolder.c_str(),i));
+    //mychain->Add(Form("%sMapSSD_L2_AlphaCali%04d.root",pathRootInputFolder.c_str(),i));
   }
   mychain->SetBranchStatus("*",false);
 

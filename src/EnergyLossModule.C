@@ -16,6 +16,7 @@ EnergyLossModule::~EnergyLossModule()
 
 
 //******************************************************************************
+// 析构函数, delete 掉已定义的 vector
 void EnergyLossModule::Clear()
 {
   ParticleEnergy.clear();
