@@ -65,50 +65,247 @@ Int_t CSHINEHitPatternRecognition::LayerMultiplicity(Int_t ssdindex, const char*
 // 几何判据一: GeoConstraint_L3A_L2B
 Bool_t CSHINEHitPatternRecognition::GeoConstraint_L3A_L2B(Int_t csiindex, Int_t stripl2b)
 {
-  if ((csiindex/3) == 0) {      // csiindex = 0, 1, 2
-    return (stripl2b >= 10 && stripl2b <= 15);
+  if ((csiindex/3)==0) {      // csiindex = 0, 1, 2
+    return (stripl2b>=10 && stripl2b<=15);
   }
-  else if ((csiindex/3) == 1) { // csiindex = 3, 4, 5
-    return (stripl2b >= 5 && stripl2b <= 10);
+  else if ((csiindex/3)==1) { // csiindex = 3, 4, 5
+    return (stripl2b>=5 && stripl2b<=10);
   }
   else {                       // csiindex = 6, 7, 8
-    return (stripl2b >= 0 && stripl2b <= 5);
+    return (stripl2b>=0 && stripl2b<=5);
   }
+}
+
+Bool_t CSHINEHitPatternRecognition::GeoConstraint_L3A_L2B(Int_t csiindex, Int_t* stripl2b, Int_t size)
+{
+  Int_t index = 0;
+  if ((csiindex/3)==0) {  // csiindex = 0, 1, 2
+    for (Int_t i=0; i<size; i++) {
+      if (stripl2b[i]>=10 && stripl2b[i]<=15)  index++ ;
+    }
+  }
+  else if ((csiindex/3)==1) { // csiindex = 3, 4, 5
+    for (Int_t i=0; i<size; i++) {
+      if (stripl2b[i]>=5 && stripl2b[i]<=10)  index++ ;
+    }
+  }
+  else { // csiindex = 6, 7, 8
+    for (Int_t i=0; i<size; i++) {
+      if (stripl2b[i]>=0 && stripl2b[i]<=5)  index++ ;
+    }
+  }
+  return (index != 0) ? true : false;
+}
+
+Bool_t CSHINEHitPatternRecognition::GeoConstraint_L3A_L2B(Int_t* csichs, Int_t stripl2b, Int_t size)
+{
+  Int_t index = 0;
+  if (stripl2b>=0 && stripl2b<=5) {
+    for (Int_t i=0; i<size; i++) {
+      if ((csichs[i]/3)==2)  index++ ;  // csiindex = 6, 7, 8
+    }
+  }
+  else if (stripl2b>=5 && stripl2b<=10) {
+    for (Int_t i=0; i<size; i++) {
+      if ((csichs[i]/3)==1)  index++ ;  // csiindex = 3, 4, 5
+    }
+  }
+  else {
+    for (Int_t i=0; i<size; i++) {
+      if ((csichs[i]/3)==0)  index++ ;  // csiindex = 0, 1, 2
+    }
+  }
+  return (index != 0) ? true : false;
+}
+
+
+Bool_t CSHINEHitPatternRecognition::GeoConstraint_L3A_L2B(Int_t* csichs,
+  Int_t* stripsl2b, Int_t sizecsi, Int_t sizel2b)
+{
+  Int_t index = 0;
+
+  // 注意: 逆向查找时, 先对 L3A 作循环, 还是对 L2B作循环, 结果稍有差异
+  for (Int_t i=0; i<sizecsi; i++) {
+    if ((csichs[i]/3)==2) {
+      for (Int_t j=0; j<sizel2b; j++) {
+        if (stripsl2b[j]>=0 && stripsl2b[j]<=5)  index++ ;   // csiindex = 2, 5, 8
+      }
+    }
+    if ((csichs[i]/3)==1) {
+      for (Int_t j=0; j<sizel2b; j++) {
+        if (stripsl2b[j]>=5 && stripsl2b[j]<=10)  index++ ;   // csiindex = 2, 5, 8
+      }
+    }
+    else {
+      for (Int_t j=0; j<sizel2b; j++) {
+        if (stripsl2b[j]>=10 && stripsl2b[j]<=15)  index++ ;   // csiindex = 2, 5, 8
+      }
+    }
+  }
+  return (index != 0) ? true : false;
 }
 
 //______________________________________________________________________________
 // 几何判据二: GeoConstraint_L3A_L2F
 Bool_t CSHINEHitPatternRecognition::GeoConstraint_L3A_L2F(Int_t csiindex, Int_t stripl2f)
 {
-  if ((csiindex%3) == 0) {      // csiindex = 0, 3, 6
-    return (stripl2f >= 10 && stripl2f <= 15);
+  if ((csiindex%3)==0) {      // csiindex = 0, 3, 6
+    return (stripl2f>=10 && stripl2f<=15);
   }
-  else if ((csiindex%3) == 1) { // csiindex = 1, 4, 7
-    return (stripl2f >= 5 && stripl2f <= 10);
+  else if ((csiindex%3)==1) { // csiindex = 1, 4, 7
+    return (stripl2f>=5 && stripl2f<=10);
   }
   else {                       // csiindex = 2, 5, 8
-    return (stripl2f >= 0 && stripl2f <= 5);
+    return (stripl2f>=0 && stripl2f<=5);
   }
+}
+
+Bool_t CSHINEHitPatternRecognition::GeoConstraint_L3A_L2F(Int_t csiindex, Int_t* stripl2f, Int_t size)
+{
+  Int_t index = 0;
+  if ((csiindex%3)==0) { // csiindex = 0, 3, 6
+    for (Int_t i=0; i<size; i++) {
+      if (stripl2f[i]>=10 && stripl2f[i]<=15)  index++ ;
+    }
+  }
+  else if ((csiindex%3)==1) { // csiindex = 1, 4, 7
+    for (Int_t i=0; i<size; i++) {
+      if (stripl2f[i]>=5 && stripl2f[i]<=10)   index++ ;
+    }
+  }
+  else { // csiindex = 2, 5, 8
+    for (Int_t i=0; i<size; i++) {
+      if (stripl2f[i]>=0 && stripl2f[i]<=5)    index++ ;
+    }
+  }
+  return (index != 0) ? true : false;
+}
+
+Bool_t CSHINEHitPatternRecognition::GeoConstraint_L3A_L2F(Int_t* csichs, Int_t stripl2f, Int_t size)
+{
+  Int_t index = 0;
+  if (stripl2f>=0 && stripl2f<=5) {
+    for (Int_t i=0; i<size; i++) {
+      if ((csichs[i]%3)==2)  index++ ;  // csiindex = 2, 5, 8
+    }
+  }
+  else if (stripl2f>=5 && stripl2f<=10) {
+    for (Int_t i=0; i<size; i++) {
+      if ((csichs[i]%3)==1)  index++ ;  // csiindex = 1, 4, 7
+    }
+  }
+  else {
+    for (Int_t i=0; i<size; i++) {
+      if ((csichs[i]%3)==0)  index++ ;  // csiindex = 0, 3, 6
+    }
+  }
+  return (index != 0) ? true : false;
+}
+
+
+Bool_t CSHINEHitPatternRecognition::GeoConstraint_L3A_L2F(Int_t* csichs,
+  Int_t* stripsl2f, Int_t sizecsi, Int_t sizel2f)
+{
+  Int_t index = 0;
+
+  // 注意: 逆向查找时, 先对 L3A 作循环, 还是对 L2F作循环, 结果稍有差异
+  for (Int_t i=0; i<sizecsi; i++) {
+    if ((csichs[i]%3)==2) {
+      for (Int_t j=0; j<sizel2f; j++) {
+        if (stripsl2f[j]>=0 && stripsl2f[j]<=5)  index++ ;   // csiindex = 2, 5, 8
+      }
+    }
+    if ((csichs[i]%3)==1) {
+      for (Int_t j=0; j<sizel2f; j++) {
+        if (stripsl2f[j]>=5 && stripsl2f[j]<=10)  index++ ;   // csiindex = 2, 5, 8
+      }
+    }
+    else {
+      for (Int_t j=0; j<sizel2f; j++) {
+        if (stripsl2f[j]>=10 && stripsl2f[j]<=15)  index++ ;   // csiindex = 2, 5, 8
+      }
+    }
+  }
+  return (index != 0) ? true : false;
 }
 
 //______________________________________________________________________________
 // 几何判据三: GeoConstraint_L2B_L1S
 Bool_t CSHINEHitPatternRecognition::GeoConstraint_L2B_L1S(Int_t stripl2b, Int_t stripl1s)
 {
-  return (TMath::Abs(stripl2b - stripl1s) <= 1);
+  return (TMath::Abs(stripl2b - stripl1s)<=1);
+}
+
+Bool_t CSHINEHitPatternRecognition::GeoConstraint_L2B_L1S(Int_t stripl2b, Int_t* stripsl1s, Int_t size)
+{
+  Int_t index = 0;
+  for (Int_t i=0; i<size; i++) {
+    if (TMath::Abs(stripl2b - stripsl1s[i])<=1) index++ ;
+  }
+  return (index != 0) ? true : false;
+}
+
+Bool_t CSHINEHitPatternRecognition::GeoConstraint_L2B_L1S(Int_t* stripsl2b, Int_t stripl1s, Int_t size)
+{
+  Int_t index = 0;
+  for (Int_t i=0; i<size; i++) {
+    if (TMath::Abs(stripsl2b[i] - stripl1s)<=1) index++ ;
+  }
+  return (index != 0) ? true : false;
+}
+
+Bool_t CSHINEHitPatternRecognition::GeoConstraint_L2B_L1S(Int_t* stripsl2b, Int_t* stripsl1s, Int_t sizel2b, Int_t sizel1s)
+{
+  Int_t index = 0;
+  for (Int_t i=0; i<sizel2b; i++) {
+    for (Int_t j=0; j<sizel1s; j++) {
+      if (TMath::Abs(stripsl2b[i] - stripsl1s[j])<=1) index++ ;
+    }
+  }
+  return (index != 0) ? true : false;
 }
 
 // 几何判据三: 考虑 L2B 与 L1S 的道址可能相差 0 或 1
 Bool_t CSHINEHitPatternRecognition::GeoConstraint_L2B_L1S(Int_t stripl2b, Int_t stripl1s, Int_t deltastrip)
 {
-  return (TMath::Abs(stripl2b - stripl1s) == deltastrip);
+  return (TMath::Abs(stripl2b - stripl1s)==deltastrip);
 }
+
 
 //______________________________________________________________________________
 // 能量判据四: 考虑 L2B 与 L2F 的能量关联
-Bool_t CSHINEHitPatternRecognition::EnergyConstraint_L2B_L2F(Double_t El2b, Double_t El2f, Double_t ErrRatio)
+Bool_t CSHINEHitPatternRecognition::EneConstraint_L2B_L2F(Double_t El2b, Double_t El2f, Double_t ErrRatio)
 {
-  return (TMath::Abs(El2b - El2f)/El2f < ErrRatio);
+  return (TMath::Abs(El2b - El2f)/El2b < ErrRatio);
+}
+
+Bool_t CSHINEHitPatternRecognition::EneConstraint_L2B_L2F(Double_t El2b, Double_t* El2f, Int_t size, Double_t ErrRatio)
+{
+  Int_t index = 0;
+  for (Int_t i=0; i<size; i++) {
+    if (TMath::Abs(El2b - El2f[i])/El2b < ErrRatio)  index++ ;
+  }
+  return (index != 0) ? true : false;
+}
+
+Bool_t CSHINEHitPatternRecognition::EneConstraint_L2B_L2F(Double_t* El2b, Double_t El2f, Int_t size, Double_t ErrRatio)
+{
+  Int_t index = 0;
+  for (Int_t i=0; i<size; i++) {
+    if (TMath::Abs(El2b[i] - El2f)/El2b[i] < ErrRatio)  index++ ;
+  }
+  return (index != 0) ? true : false;
+}
+
+Bool_t CSHINEHitPatternRecognition::EneConstraint_L2B_L2F(Double_t* El2b, Double_t* El2f, Int_t sizel2b, Int_t sizel2f, Double_t ErrRatio)
+{
+  Int_t index = 0;
+  for (Int_t i=0; i<sizel2b; i++) {
+    for (Int_t j=0; j<sizel2f; j++) {
+      if (TMath::Abs(El2b[i] - El2f[j])/El2b[i] < ErrRatio)  index++ ;
+    }
+  }
+  return (index != 0) ? true : false;
 }
 //******************************************************************************
 

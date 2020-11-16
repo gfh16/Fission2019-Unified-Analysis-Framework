@@ -187,6 +187,14 @@ public :
    virtual void     Loop();
    virtual Bool_t   Notify();
    virtual void     Show(Long64_t entry = -1);
+
+   //user-defined function
+   virtual void     TrackFindingAlgorithm1();
+   virtual void     TrackFindingAlgorithm2();
+   virtual void     CheckCutEffOnMulti();
+   virtual void     CheckL2BL2FEnergyCorrelation();
+   virtual void     CheckEnergyLossL1L2();
+   virtual void     CheckEnergyLossL1L2_Relationship();
 };
 
 #endif
