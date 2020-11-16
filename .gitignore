@@ -9,3 +9,7 @@
 
 VMEDAQ_DataConversion/vmedata/
 VMEDAQ_DataConversion/rootdata/
+
+Test_Multi1.dat
+Test_Multi2.dat
+Test_Multi_WithL1L2EnergyCut.dat
