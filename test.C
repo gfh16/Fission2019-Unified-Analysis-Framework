@@ -7,6 +7,7 @@ void test()
 {
   Test_Multi test;
   test.TrackFindingAlgorithm2();
+//  test.CheckGlobalMultiRatio();
 
   //CSHINEHitPatternRecognition hit;
   //hit.GetPunchThroughEnergiesOfLCPs();

@@ -48,6 +48,11 @@ public:
   Bool_t   EneConstraint_L2B_L2F(Double_t  El2b, Double_t* El2f, Int_t size, Double_t ErrRatio);
   Bool_t   EneConstraint_L2B_L2F(Double_t* El2b, Double_t  El2f, Int_t size, Double_t ErrRatio);
   Bool_t   EneConstraint_L2B_L2F(Double_t* El2b, Double_t* El2f, Int_t sizel2b, Int_t sizel2f, Double_t ErrRatio);
+  Bool_t   EneConstraint_L2B_L2F(Double_t  El2b, Double_t  El2f, Double_t LowErrRatio, Double_t HighErrRatio);
+  Bool_t   EneConstraint_L2B_L2F(Int_t ssdindex, Double_t El2b, Double_t El2f);
+
+  // 对于能穿透 L2 的粒子, 通过 LISE 计算给出 L1, L2 的能损比例, 作为新的约束条件
+  Bool_t   EneConstraint_L1_L2(Int_t ssdindex, Double_t El1, Double_t El2);
 
   void     EstimateLayerMulti(Int_t firstrun, Int_t lastrun);
   void     GetPunchThroughEnergiesOfLCPs();

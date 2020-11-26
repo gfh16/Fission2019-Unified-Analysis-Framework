@@ -13,6 +13,7 @@ const int NUM_CSI                   =    9;
 const int NUM_MAX_PARTICLES_PER_TEL =    5;
 
 //______________________________________________________________________________
+// 定义轻粒子的原子序数(Z)与质量数(A)
 const int NUM_LCPs                  =    16;
 const int Z_A_LCPs[16][2]           = { {1,1}, {1,2}, {1,3},   // H1,  H2,  H3
                                         {2,3}, {2,4}, {2,6},   // He3, He4, He6
@@ -23,20 +24,38 @@ const int Z_A_LCPs[16][2]           = { {1,1}, {1,2}, {1,3},   // H1,  H2,  H3
                                       };
 
 //______________________________________________________________________________
+// 定义每一套硅条望远镜、每一层硅的厚度
 const double SIL1THICKNESS[4]       =    {0.304, 0.305, 0.110, 0.070}; //mm
 const double SIL2THICKNESS[4]       =    {1.010, 1.008, 0.526, 0.306}; //mm
 const double CSITHICKNESS           =    50;     //mm
 
 //______________________________________________________________________________
+// 定义每一层的 Cut 值所使用的 pedestal sigma number
 const double NUM_SIGMA_L1S[4]       =    {5.,  8.,  13., 20.};
 const double NUM_SIGMA_L2F[4]       =    {5.,  5.,  5.,  6.};
 const double NUM_SIGMA_L2B[4]       =    {5.,  5.,  5.,  6.};
 const double NUM_SIGMA_L3A[4]       =    {5.,  8.,  10., 8.};
 
 //______________________________________________________________________________
-//const Double_t ECSICHCUT          =    150.;  // 手动添加
-//const double ECSICHCUT            =    80.;   // 手动添加
-//const double CSIPEDESTALSIGMA     =    4.;    // 手动添加
+// 定义每一层的 Muliplicity Cut
+const double MULTICUT_L1S  =  6;
+const double MULTICUT_L2F  =  5;
+const double MULTICUT_L2B  =  5;
+const double MULTICUT_L3A  =  4;
+
+//______________________________________________________________________________
+// 定义 L2B_L2F Energy Cut
+// 根据实验数据 L2B-L2F 能量关联,决定对不同能区采取不同的 cut
+const double L2BL2F_ENERGYBOUNDARY[4] = {20., 20., 10., 10.};
+const double L2BL2F_LOWENERGYNEGATIVECUT [4] = {-0.15, -0.20, -0.20, -0.10};
+const double L2BL2F_LOWENERGYPOSITIVECUT [4] = { 0.10,  0.10,  0.15,  0.10};
+const double L2BL2F_HIGHENERGYNEGATIVECUT[4] = {-0.15, -0.20, -0.05, -0.05};
+const double L2BL2F_HIGHENERGYPOSITIVECUT[4] = {-0.05, -0.05,  0.05,  0.05};
+
+//______________________________________________________________________________
+// 对于能穿透 L2 的粒子, 通过 LISE 计算给出 L1, L2 的能损比例, 作为新的约束条件
+const double L1L2_ENERGYLOWCUT [4] = {0.10, 0.10, 0.10, 0.10};
+const double L1L2_ENERGYHIGHCUT[4] = {0.40, 0.40, 0.30, 0.30};
 
 //______________________________________________________________________________
 //本地使用

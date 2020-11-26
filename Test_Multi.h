@@ -191,10 +191,19 @@ public :
    //user-defined function
    virtual void     TrackFindingAlgorithm1();
    virtual void     TrackFindingAlgorithm2();
+
    virtual void     CheckCutEffOnMulti();
    virtual void     CheckL2BL2FEnergyCorrelation();
+   virtual void     DetermineL2BL2FEnergyErrRatio();
    virtual void     CheckEnergyLossL1L2();
    virtual void     CheckEnergyLossL1L2_Relationship();
+   virtual void     CheckLayerMultiPercentage();
+   virtual void     CheckGlobalMultiRatio();
+
+   virtual void     DecodefGlobalMulti1();
+   virtual void     DecodefGlobalMulti2();
+   virtual void     DecodefGlobalMulti3();
+
 };
 
 #endif

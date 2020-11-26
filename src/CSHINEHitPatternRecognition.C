@@ -307,6 +307,24 @@ Bool_t CSHINEHitPatternRecognition::EneConstraint_L2B_L2F(Double_t* El2b, Double
   }
   return (index != 0) ? true : false;
 }
+
+Bool_t CSHINEHitPatternRecognition::EneConstraint_L2B_L2F(Int_t ssdindex, Double_t El2b, Double_t El2f)
+{
+  // LowErrRatio 为负数, highErrRatio 为正数
+  if (El2b<L2BL2F_ENERGYBOUNDARY[ssdindex]) {
+    return ((El2b-El2f)/El2b>L2BL2F_LOWENERGYNEGATIVECUT [ssdindex] && (El2b-El2f)/El2b<L2BL2F_LOWENERGYPOSITIVECUT [ssdindex]);
+  }
+  else {
+     return ((El2b-El2f)/El2b>L2BL2F_HIGHENERGYNEGATIVECUT[ssdindex] && (El2b-El2f)/El2b<L2BL2F_HIGHENERGYPOSITIVECUT[ssdindex]);
+  }
+}
+
+//______________________________________________________________________________
+// 能量判据 五 : 对于能穿透 L2 的粒子, 通过 LISE 计算给出 L1, L2 的能损比例, 作为新的约束条件
+Bool_t CSHINEHitPatternRecognition::EneConstraint_L1_L2(Int_t ssdindex, Double_t El1, Double_t El2)
+{
+  return ((El1/El2>L1L2_ENERGYLOWCUT[ssdindex]) && (El1/El2<L1L2_ENERGYHIGHCUT[ssdindex]));
+}
 //******************************************************************************
 
 
