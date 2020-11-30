@@ -1,4 +1,4 @@
-#define Test_Multi_cxx
+//#define Test_Multi_cxx
 #include "Test_Multi.h"
 #include <TH2.h>
 #include <TStyle.h>
@@ -9,6 +9,164 @@
 #include "include/shared.h"
 
 using namespace std;
+
+
+//______________________________________________________________________________
+Test_Multi::Test_Multi(TTree *tree) : fChain(0)
+{
+ // if parameter tree is not specified (or zero), connect the file
+ // used to generate this class and read the Tree.
+   if (tree == 0) {
+      TFile *f = (TFile*)gROOT->GetListOfFiles()->FindObject("/home/sea/Fission2019_Data/CSHINEEvent/EventTree_Run0120-Run0130.root");
+      if (!f || !f->IsOpen()) {
+         f = new TFile("/home/sea/Fission2019_Data/CSHINEEvent/EventTree_Run0120-Run0130.root");
+      }
+      f->GetObject("CSHINEEvent",tree);
+
+   }
+   Init(tree);
+}
+
+Test_Multi::~Test_Multi()
+{
+   if (!fChain) return;
+  // delete fChain->GetCurrentFile();
+}
+
+Int_t Test_Multi::GetEntry(Long64_t entry)
+{
+ // Read contents of entry.
+   if (!fChain) return 0;
+   return fChain->GetEntry(entry);
+}
+
+Long64_t Test_Multi::LoadTree(Long64_t entry)
+{
+ // Set the environment to read one entry
+   if (!fChain) return -5;
+   Long64_t centry = fChain->LoadTree(entry);
+   if (centry < 0) return centry;
+   if (fChain->GetTreeNumber() != fCurrent) {
+      fCurrent = fChain->GetTreeNumber();
+      Notify();
+   }
+   return centry;
+}
+
+void Test_Multi::Init(TTree *tree)
+{
+   // The Init() function is called when the selector needs to initialize
+   // a new tree or chain. Typically here the branch addresses and branch
+   // pointers of the tree will be set.
+   // It is normally not necessary to make changes to the generated
+   // code, but the routine can be extended by the user if needed.
+   // Init() will be called many times when running on PROOF
+   // (once per file to be processed).
+
+   // Set branch addresses and branch pointers
+   if (!tree) return;
+   fChain = tree;
+   fCurrent = -1;
+   fChain->SetMakeClass(1);
+
+   fChain->SetBranchAddress("SSD1.fL1SMulti", &SSD1_fL1SMulti, &b_SSD1_fL1SMulti);
+   fChain->SetBranchAddress("SSD1.fL1SNumStrip", SSD1_fL1SNumStrip, &b_SSD1_fL1SNumStrip);
+   fChain->SetBranchAddress("SSD1.fL1SEMeV", SSD1_fL1SEMeV, &b_SSD1_fL1SEMeV);
+   fChain->SetBranchAddress("SSD1.fL2FMulti", &SSD1_fL2FMulti, &b_SSD1_fL2FMulti);
+   fChain->SetBranchAddress("SSD1.fL2FNumStrip", SSD1_fL2FNumStrip, &b_SSD1_fL2FNumStrip);
+   fChain->SetBranchAddress("SSD1.fL2FEMeV", SSD1_fL2FEMeV, &b_SSD1_fL2FEMeV);
+   fChain->SetBranchAddress("SSD1.fL2BMulti", &SSD1_fL2BMulti, &b_SSD1_fL2BMulti);
+   fChain->SetBranchAddress("SSD1.fL2BNumStrip", SSD1_fL2BNumStrip, &b_SSD1_fL2BNumStrip);
+   fChain->SetBranchAddress("SSD1.fL2BEMeV", SSD1_fL2BEMeV, &b_SSD1_fL2BEMeV);
+   fChain->SetBranchAddress("SSD1.fCsIMulti", &SSD1_fCsIMulti, &b_SSD1_fCsIMulti);
+   fChain->SetBranchAddress("SSD1.fCsINum", SSD1_fCsINum, &b_SSD1_fCsINum);
+   fChain->SetBranchAddress("SSD1.fCsIECh", SSD1_fCsIECh, &b_SSD1_fCsIECh);
+   fChain->SetBranchAddress("SSD2.fL1SMulti", &SSD2_fL1SMulti, &b_SSD2_fL1SMulti);
+   fChain->SetBranchAddress("SSD2.fL1SNumStrip", SSD2_fL1SNumStrip, &b_SSD2_fL1SNumStrip);
+   fChain->SetBranchAddress("SSD2.fL1SEMeV", SSD2_fL1SEMeV, &b_SSD2_fL1SEMeV);
+   fChain->SetBranchAddress("SSD2.fL2FMulti", &SSD2_fL2FMulti, &b_SSD2_fL2FMulti);
+   fChain->SetBranchAddress("SSD2.fL2FNumStrip", SSD2_fL2FNumStrip, &b_SSD2_fL2FNumStrip);
+   fChain->SetBranchAddress("SSD2.fL2FEMeV", SSD2_fL2FEMeV, &b_SSD2_fL2FEMeV);
+   fChain->SetBranchAddress("SSD2.fL2BMulti", &SSD2_fL2BMulti, &b_SSD2_fL2BMulti);
+   fChain->SetBranchAddress("SSD2.fL2BNumStrip", SSD2_fL2BNumStrip, &b_SSD2_fL2BNumStrip);
+   fChain->SetBranchAddress("SSD2.fL2BEMeV", SSD2_fL2BEMeV, &b_SSD2_fL2BEMeV);
+   fChain->SetBranchAddress("SSD2.fCsIMulti", &SSD2_fCsIMulti, &b_SSD2_fCsIMulti);
+   fChain->SetBranchAddress("SSD2.fCsINum", SSD2_fCsINum, &b_SSD2_fCsINum);
+   fChain->SetBranchAddress("SSD2.fCsIECh", SSD2_fCsIECh, &b_SSD2_fCsIECh);
+   fChain->SetBranchAddress("SSD3.fL1SMulti", &SSD3_fL1SMulti, &b_SSD3_fL1SMulti);
+   fChain->SetBranchAddress("SSD3.fL1SNumStrip", SSD3_fL1SNumStrip, &b_SSD3_fL1SNumStrip);
+   fChain->SetBranchAddress("SSD3.fL1SEMeV", SSD3_fL1SEMeV, &b_SSD3_fL1SEMeV);
+   fChain->SetBranchAddress("SSD3.fL2FMulti", &SSD3_fL2FMulti, &b_SSD3_fL2FMulti);
+   fChain->SetBranchAddress("SSD3.fL2FNumStrip", SSD3_fL2FNumStrip, &b_SSD3_fL2FNumStrip);
+   fChain->SetBranchAddress("SSD3.fL2FEMeV", SSD3_fL2FEMeV, &b_SSD3_fL2FEMeV);
+   fChain->SetBranchAddress("SSD3.fL2BMulti", &SSD3_fL2BMulti, &b_SSD3_fL2BMulti);
+   fChain->SetBranchAddress("SSD3.fL2BNumStrip", SSD3_fL2BNumStrip, &b_SSD3_fL2BNumStrip);
+   fChain->SetBranchAddress("SSD3.fL2BEMeV", SSD3_fL2BEMeV, &b_SSD3_fL2BEMeV);
+   fChain->SetBranchAddress("SSD3.fCsIMulti", &SSD3_fCsIMulti, &b_SSD3_fCsIMulti);
+   fChain->SetBranchAddress("SSD3.fCsINum", SSD3_fCsINum, &b_SSD3_fCsINum);
+   fChain->SetBranchAddress("SSD3.fCsIECh", SSD3_fCsIECh, &b_SSD3_fCsIECh);
+   fChain->SetBranchAddress("SSD4.fL1SMulti", &SSD4_fL1SMulti, &b_SSD4_fL1SMulti);
+   fChain->SetBranchAddress("SSD4.fL1SNumStrip", SSD4_fL1SNumStrip, &b_SSD4_fL1SNumStrip);
+   fChain->SetBranchAddress("SSD4.fL1SEMeV", SSD4_fL1SEMeV, &b_SSD4_fL1SEMeV);
+   fChain->SetBranchAddress("SSD4.fL2FMulti", &SSD4_fL2FMulti, &b_SSD4_fL2FMulti);
+   fChain->SetBranchAddress("SSD4.fL2FNumStrip", SSD4_fL2FNumStrip, &b_SSD4_fL2FNumStrip);
+   fChain->SetBranchAddress("SSD4.fL2FEMeV", SSD4_fL2FEMeV, &b_SSD4_fL2FEMeV);
+   fChain->SetBranchAddress("SSD4.fL2BMulti", &SSD4_fL2BMulti, &b_SSD4_fL2BMulti);
+   fChain->SetBranchAddress("SSD4.fL2BNumStrip", SSD4_fL2BNumStrip, &b_SSD4_fL2BNumStrip);
+   fChain->SetBranchAddress("SSD4.fL2BEMeV", SSD4_fL2BEMeV, &b_SSD4_fL2BEMeV);
+   fChain->SetBranchAddress("SSD4.fCsIMulti", &SSD4_fCsIMulti, &b_SSD4_fCsIMulti);
+   fChain->SetBranchAddress("SSD4.fCsINum", SSD4_fCsINum, &b_SSD4_fCsINum);
+   fChain->SetBranchAddress("SSD4.fCsIECh", SSD4_fCsIECh, &b_SSD4_fCsIECh);
+   fChain->SetBranchAddress("Global.fGlobalMulti", &Global_fGlobalMulti, &b_Global_fGlobalMulti);
+   fChain->SetBranchAddress("Global.fGNumOfSSD", &Global_fGNumOfSSD, &b_Global_fGNumOfSSD);
+   fChain->SetBranchAddress("Global.fGL1SNumStrip", &Global_fGL1SNumStrip, &b_Global_fGL1SNumStrip);
+   fChain->SetBranchAddress("Global.fGL1SEMeV", &Global_fGL1SEMeV, &b_Global_fGL1SEMeV);
+   fChain->SetBranchAddress("Global.fGL2FNumStrip", &Global_fGL2FNumStrip, &b_Global_fGL2FNumStrip);
+   fChain->SetBranchAddress("Global.fGL2FEMeV", &Global_fGL2FEMeV, &b_Global_fGL2FEMeV);
+   fChain->SetBranchAddress("Global.fGL2BNumStrip", &Global_fGL2BNumStrip, &b_Global_fGL2BNumStrip);
+   fChain->SetBranchAddress("Global.fGL2BEMeV", &Global_fGL2BEMeV, &b_Global_fGL2BEMeV);
+   fChain->SetBranchAddress("Global.fGCsINum", &Global_fGCsINum, &b_Global_fGCsINum);
+   fChain->SetBranchAddress("Global.fGCsIEMeV", &Global_fGCsIEMeV, &b_Global_fGCsIEMeV);
+   fChain->SetBranchAddress("Global.fGL2FTime", &Global_fGL2FTime, &b_Global_fGL2FTime);
+   fChain->SetBranchAddress("Global.fTheta", &Global_fTheta, &b_Global_fTheta);
+   fChain->SetBranchAddress("Global.fPhi", &Global_fPhi, &b_Global_fPhi);
+   fChain->SetBranchAddress("Global.fTotKinEnergy", &Global_fTotKinEnergy, &b_Global_fTotKinEnergy);
+   fChain->SetBranchAddress("Global.fCalKinEnergy", &Global_fCalKinEnergy, &b_Global_fCalKinEnergy);
+   fChain->SetBranchAddress("Global.fMomentum", &Global_fMomentum, &b_Global_fMomentum);
+   fChain->SetBranchAddress("Global.fBeta", &Global_fBeta, &b_Global_fBeta);
+   fChain->SetBranchAddress("Global.fZ", &Global_fZ, &b_Global_fZ);
+   fChain->SetBranchAddress("Global.fA", &Global_fA, &b_Global_fA);
+   Notify();
+}
+
+Bool_t Test_Multi::Notify()
+{
+   // The Notify() function is called when a new file is opened. This
+   // can be either for a new TTree in a TChain or when when a new TTree
+   // is started when using PROOF. It is normally not necessary to make changes
+   // to the generated code, but the routine can be extended by the
+   // user if needed. The return value is currently not used.
+
+   return kTRUE;
+}
+
+void Test_Multi::Show(Long64_t entry)
+{
+  // Print contents of entry.
+  // If entry is not specified, print current entry
+   if (!fChain) return;
+   fChain->Show(entry);
+}
+
+Int_t Test_Multi::Cut(Long64_t entry)
+{
+  // This function may be called from Loop.
+  // returns  1 if entry is accepted.
+  // returns -1 otherwise.
+   return 1;
+}
+//______________________________________________________________________________
+
 
 //______________________________________________________________________________
 void Test_Multi::Loop()
@@ -58,6 +216,7 @@ void Test_Multi::Loop()
 //______________________________________________________________________________
 // 自定义径迹查找算法1 : 循环-循环-判断-循环-判断-循环-判断
 // 经验证, 算法2 与 算法1 等效 !
+// 算法2 更加简洁明了，为方便起见，使用算法2进行后续分析
 void Test_Multi::TrackFindingAlgorithm1()
 {
   gStyle->SetPalette(1);
@@ -173,7 +332,7 @@ void Test_Multi::TrackFindingAlgorithm1()
 //_______________________________________________________
 // 自定义径迹查找算法2 : 循环-循环-循环-循环-判断-判断-判断-判断
 // 经验证, 算法2 与 算法1 等效 !
-// 为方便起见, 使用算法2进行后续分析
+// 算法2 更加简洁明了，为方便起见，使用算法2进行后续分析
 class LayerEvent
 {
   public:
@@ -202,7 +361,6 @@ class LayerEvent
 
 void Test_Multi::TrackFindingAlgorithm2()
 {
-  Double_t    L2FL2B_EnergyCut = 0.15;
   Int_t       fGlobalMulti;
   Long64_t    nlines;
   Long64_t    effentries = 0;
@@ -469,6 +627,7 @@ void Test_Multi::CheckCutEffOnMulti()
 
 //______________________________________________________________________________
 // 测试 L2B_L2F 能量关联
+// 目的： 为了确定 EL2B 与 EL2F 之间的关系, 以便定量给出这个 EneCut 的大小
 void Test_Multi::CheckL2BL2FEnergyCorrelation()
 {
   gStyle->SetOptStat(1);
@@ -681,7 +840,10 @@ void Test_Multi::CheckL2BL2FEnergyCorrelation()
   c_per->Print(pathL2BL2FEneCorr_EnEratioPer.c_str());
 }
 
+
 //_______________________________________________
+// 目的: 根据上一步的测试结果, 已经确定了 EneCut 的大小
+// 这一步是检查 EneCut 的最终效果
 void Test_Multi::DetermineL2BL2FEnergyErrRatio()
 {
   gStyle->SetOptStat(1);
@@ -883,9 +1045,9 @@ void Test_Multi::DetermineL2BL2FEnergyErrRatio()
 }
 
 
-
 //______________________________________________________________________________
 // 计算不同粒子在每套硅望远镜两层硅中的能损
+// 目的: 为了确定粒子穿透 L2 到达 L3 时, EL1 与 EL2 的比值
 void Test_Multi::CheckEnergyLossL1L2()
 {
   EnergyLossModule eloss;
@@ -915,6 +1077,7 @@ void Test_Multi::CheckEnergyLossL1L2()
 }
 
 //________________________________________________
+// 目的: 为了确定粒子穿透 L2 到达 L3 时, EL1 与 EL2 的比值
 void Test_Multi::CheckEnergyLossL1L2_Relationship()
 {
   gStyle->SetOptStat(0);
@@ -1147,6 +1310,7 @@ void Test_Multi::CheckEnergyLossL1L2_Relationship()
 
 //______________________________________________________________________________
 // 检查每一层 hit=1, 2, 3,... 所占的比例
+//目的是在使用算法进行模式识别前，先对每一层的 multi 作出一个大致的 cut
 void Test_Multi::CheckLayerMultiPercentage()
 {
   std::string pathDataOut("data/data_HitPatternRecognition/CheckLayerMultiPercentage_Run120-130.dat");
@@ -1368,14 +1532,72 @@ void Test_Multi::CheckGlobalMultiRatio()
 
 
 //______________________________________________________________________________
-// 解码 fGlobalMulit = 1的事件, 即检查是否有异常事件
-void Test_Multi::DecodefGlobalMulti1()
+// 使用平行坐标显示每一层数据的关联
+void Test_Multi::CheckParallelDraw(const char* fglobalmulti)
 {
+  gROOT->cd();
+
+  TNtuple* nt = new TNtuple("nt", "NTUPLE", "fg:CsINum:L2BNum:L2FNum:L1SNum:EL1S:EL2F:EL2B:EL3A");
+  nt->ReadFile(Form("data/Test_Multi_%s.dat", fglobalmulti));
+
+  TCanvas* cans1 = new TCanvas("cans1","cans1",800,600);
+  cans1->cd();
+  nt->Draw("L1SNum:L2FNum:L2BNum:CsINum","","PARA");
+  cans1->Print(Form("figures/figure_HitPatternRecognition/%s_SSD1_Para_L1S_L2F_L2B_L3A.png",fglobalmulti));
+
+  TCanvas* cans2 = new TCanvas("cans2","cans2",800,600);
+  cans2->cd();
+  nt->Draw("L1SNum:L2BNum:CsINum","","PARA");
+  cans2->Print(Form("figures/figure_HitPatternRecognition/%s_SSD1_Para_L1S_L2B_L3A.png",fglobalmulti));
+
+  TCanvas* cans3 = new TCanvas("cans3","cans3",800,600);
+  cans3->cd();
+  nt->Draw("L1SNum:L2FNum:CsINum","","PARA");
+  cans3->Print(Form("figures/figure_HitPatternRecognition/%s_SSD1_Para_L1S_L2F_L3A.png",fglobalmulti));
+
+  TCanvas* cans4 = new TCanvas("cans4","cans4",800,600);
+  cans4->cd();
+  nt->Draw("EL1S:EL2F:EL2B:EL3A","","PARA");
+  cans4->Print(Form("figures/figure_HitPatternRecognition/%s_SSD1_Para_EL1S_EL2F_EL2B_L3A.png",fglobalmulti));
+}
+//******************************************************************************
+
+
+
+
+//******************************************************************************
+// Test_Multi 的子类 DecodefGlobalMulti1
+// 解码 fGlobalMulit = 1的事件, 即检查是否有异常事件
+
+DecodefGlobalMulti1::DecodefGlobalMulti1()
+{}
+
+DecodefGlobalMulti1::~DecodefGlobalMulti1()
+{}
+
+//______________________________________________
+void DecodefGlobalMulti1::Check_fGlobalMulti1()
+{
+  gStyle->SetOptStat(kFALSE);
+
+  // 读取 .root 文件
   TFile* myfile = new TFile("/home/sea/Fission2019_Data/TrackFindingAlgorithm2.root","READONLY");
   if (!myfile->IsOpen()) {
     cout<<"Open file failded."<<endl;
     return;
   }
+
+  ofstream FileOut("data/Test_Multi_fGlobalMulti1.dat");
+  FileOut<<setw(10)<<"# MultiGlobal"<<setw(10)<<"CSI"<<setw(10)<<"L2B"
+         <<setw(10)<<"L2F"<<setw(10)<<"L1S"<<setw(10)<<"EL1S"
+         <<setw(10)<<"EL2F"<<setw(10)<<"EL2B"<<setw(10)<<"ECsI"
+         <<endl;
+
+  // 定义一维直方图, 画出每一层的能谱
+  TH1D* hist_EL1S = new TH1D("hist_EL1S","hist_EL1S",150,0.,150.);
+  TH1D* hist_EL2F = new TH1D("hist_EL2F","hist_EL2F",300,0.,300.);
+  TH1D* hist_EL2B = new TH1D("hist_EL2B","hist_EL2B",300,0.,300);
+  TH1D* hist_EL3A = new TH1D("hist_EL3A","hist_EL3A",400,0.,4000);
 
   Int_t SSD1_GlobalMulti;
   std::vector<Int_t>    SSD1_L1SNumStrip;
@@ -1404,21 +1626,182 @@ void Test_Multi::DecodefGlobalMulti1()
 
   for (Long64_t ientry=0; ientry<nentries; ientry++) {
     mytree->GetEntry(ientry);
-
-    //___________________________________________
+    //______________________________
     // 打印 fGlobleMulti = 1 的事件
+    if (SSD1_GlobalMulti != 1) continue;
+    for (Int_t i=0; i<SSD1_GlobalMulti; i++) {
+      FileOut<<setw(7)<<i+1
+             <<setw(12)<<SSD1_CsINum[i]
+             <<setw(10)<<SSD1_L2BNumStrip[i]
+             <<setw(10)<<SSD1_L2FNumStrip[i]
+             <<setw(10)<<SSD1_L1SNumStrip[i]
+             <<setw(13)<<SSD1_L1SEMeV[i]
+             <<setw(10)<<SSD1_L2FEMeV[i]
+             <<setw(10)<<SSD1_L2BEMeV[i]
+             <<setw(10)<<SSD1_CsIECh[i]
+             <<endl;
+
+      hist_EL1S->Fill(SSD1_L1SEMeV[i]);
+      hist_EL2F->Fill(SSD1_L2FEMeV[i]);
+      hist_EL2B->Fill(SSD1_L2BEMeV[i]);
+      hist_EL3A->Fill(SSD1_CsIECh[i]);
+    }
+  }
+
+  // 画图
+  TCanvas* cans = new TCanvas("cans","cans",1200,1000);
+  cans->Divide(2,2);
+
+  cans->cd(1);
+  gPad->SetLeftMargin(0.12);
+  gPad->SetBottomMargin(0.12);
+  hist_EL1S->Draw();
+  hist_EL1S->SetTitle("");
+  hist_EL1S->SetLineColor(kRed);
+  hist_EL1S->SetLineWidth(2);
+  hist_EL1S->GetXaxis()->SetTitle("SSD1_EL1S");
+  hist_EL1S->GetXaxis()->SetTitleSize(0.06);
+  hist_EL1S->GetXaxis()->CenterTitle(kTRUE);
+  hist_EL1S->GetXaxis()->SetLabelSize(0.06);
+  hist_EL1S->GetXaxis()->SetNdivisions(505);
+  hist_EL1S->GetYaxis()->SetLabelSize(0.06);
+  hist_EL1S->GetYaxis()->SetNdivisions(505);
+
+  cans->cd(2);
+  gPad->SetLeftMargin(0.12);
+  gPad->SetBottomMargin(0.12);
+  hist_EL2F->Draw();
+  hist_EL2F->SetTitle("");
+  hist_EL2F->SetLineColor(kRed);
+  hist_EL2F->SetLineWidth(2);
+  hist_EL2F->GetXaxis()->SetTitle("SSD1_EL2F");
+  hist_EL2F->GetXaxis()->SetTitleSize(0.06);
+  hist_EL2F->GetXaxis()->CenterTitle(kTRUE);
+  hist_EL2F->GetXaxis()->SetLabelSize(0.06);
+  hist_EL2F->GetXaxis()->SetNdivisions(505);
+  hist_EL2F->GetYaxis()->SetLabelSize(0.06);
+  hist_EL2F->GetYaxis()->SetNdivisions(505);
+
+  cans->cd(3);
+  gPad->SetLeftMargin(0.12);
+  gPad->SetBottomMargin(0.12);
+  hist_EL2B->Draw();
+  hist_EL2B->SetTitle("");
+  hist_EL2B->SetLineColor(kRed);
+  hist_EL2B->SetLineWidth(2);
+  hist_EL2B->GetXaxis()->SetTitle("SSD1_EL2B");
+  hist_EL2B->GetXaxis()->SetTitleSize(0.06);
+  hist_EL2B->GetXaxis()->CenterTitle(kTRUE);
+  hist_EL2B->GetXaxis()->SetLabelSize(0.06);
+  hist_EL2B->GetXaxis()->SetNdivisions(505);
+  hist_EL2B->GetYaxis()->SetLabelSize(0.06);
+  hist_EL2B->GetYaxis()->SetNdivisions(505);
+
+  cans->cd(4);
+  gPad->SetLeftMargin(0.12);
+  gPad->SetBottomMargin(0.12);
+  hist_EL3A->Draw();
+  hist_EL3A->SetTitle("");
+  hist_EL3A->SetLineColor(kRed);
+  hist_EL3A->SetLineWidth(2);
+  hist_EL3A->GetXaxis()->SetTitle("SSD1_EL3A");
+  hist_EL3A->GetXaxis()->SetTitleSize(0.06);
+  hist_EL3A->GetXaxis()->CenterTitle(kTRUE);
+  hist_EL3A->GetXaxis()->SetLabelSize(0.06);
+  hist_EL3A->GetXaxis()->SetNdivisions(505);
+  hist_EL3A->GetYaxis()->SetLabelSize(0.06);
+  hist_EL3A->GetYaxis()->SetNdivisions(505);
+
+  cans->Print("figures/figure_HitPatternRecognition/fGlobalMulti1_SSD1_EnergySpectrum.png");
+}
+
+//_______________________________________________
+void DecodefGlobalMulti1::ParaDraw_fGlobalMulti1()
+{
+  CheckParallelDraw("fGlobalMulti1");
+}
+
+//******************************************************************************
+
+
+
+//******************************************************************************
+// Test_Multi 的子类 DecodefGlobalMulti2
+// 解码 fGlobalMulit = 2的事件
+
+DecodefGlobalMulti2::DecodefGlobalMulti2()
+{}
+
+DecodefGlobalMulti2::~DecodefGlobalMulti2()
+{}
+
+
+//______________________________________________
+void DecodefGlobalMulti2::Check_fGlobalMulti2()
+{
+  gStyle->SetOptStat(kFALSE);
+
+  // 读取 .root 文件
+  TFile* myfile = new TFile("/home/sea/Fission2019_Data/TrackFindingAlgorithm2.root","READONLY");
+  if (!myfile->IsOpen()) {
+    cout<<"Open file failded."<<endl;
+    return;
+  }
+
+  ofstream FileOut("data/Test_Multi_fGlobalMulti2.dat");
+  FileOut<<setw(10)<<"# MultiGlobal"<<setw(10)<<"CSI"<<setw(10)<<"L2B"
+         <<setw(10)<<"L2F"<<setw(10)<<"L1S"<<setw(10)<<"EL1S"
+         <<setw(10)<<"EL2F"<<setw(10)<<"EL2B"<<setw(10)<<"ECsI"
+         <<endl;
+
+  Int_t SSD1_GlobalMulti;
+  std::vector<Int_t>    SSD1_L1SNumStrip;
+  std::vector<Double_t> SSD1_L1SEMeV;
+  std::vector<Int_t>    SSD1_L2FNumStrip;
+  std::vector<Double_t> SSD1_L2FEMeV;
+  std::vector<Int_t>    SSD1_L2BNumStrip;
+  std::vector<Double_t> SSD1_L2BEMeV;
+  std::vector<Int_t>    SSD1_CsINum;
+  std::vector<Int_t>    SSD1_CsIECh;
+
+  TTree* mytree = (TTree*)myfile->Get("TrackEvent");
+  Long64_t nentries = mytree->GetEntries();
+  cout<<"Found nentries = "<<nentries<<endl;
+
+  mytree->SetMakeClass(1);  // 如果 tree 的 branch 使用了自定义的类, 则这条语句不能省略！！！
+  mytree->SetBranchAddress("SSD1.GlobalMulti",  &SSD1_GlobalMulti);
+  mytree->SetBranchAddress("SSD1.L1SNumStrip",  &SSD1_L1SNumStrip);
+  mytree->SetBranchAddress("SSD1.L1SEMeV",      &SSD1_L1SEMeV);
+  mytree->SetBranchAddress("SSD1.L2FNumStrip",  &SSD1_L2FNumStrip);
+  mytree->SetBranchAddress("SSD1.L2FEMeV",      &SSD1_L2FEMeV);
+  mytree->SetBranchAddress("SSD1.L2BNumStrip",  &SSD1_L2BNumStrip);
+  mytree->SetBranchAddress("SSD1.L2BEMeV",      &SSD1_L2BEMeV);
+  mytree->SetBranchAddress("SSD1.CsINum",       &SSD1_CsINum);
+  mytree->SetBranchAddress("SSD1.CsIECh",       &SSD1_CsIECh);
+
+  for (Long64_t ientry=0; ientry<nentries; ientry++) {
+    mytree->GetEntry(ientry);
+    //______________________________
+    // 打印 fGlobleMulti = 2 的事件
+    if (SSD1_GlobalMulti != 2) continue;
+    for (Int_t i=0; i<SSD1_GlobalMulti; i++) {
+      FileOut<<setw(7)<<i+1
+             <<setw(12)<<SSD1_CsINum[i]
+             <<setw(10)<<SSD1_L2BNumStrip[i]
+             <<setw(10)<<SSD1_L2FNumStrip[i]
+             <<setw(10)<<SSD1_L1SNumStrip[i]
+             <<setw(13)<<SSD1_L1SEMeV[i]
+             <<setw(10)<<SSD1_L2FEMeV[i]
+             <<setw(10)<<SSD1_L2BEMeV[i]
+             <<setw(10)<<SSD1_CsIECh[i]
+             <<endl;
+    }
   }
 }
 
 
-//______________________________________________________________________________
-// 解码 fGlobalMulit = 2 的事件
-// GlobalMulit = 2 事件有多种情况，需要先分类后处理
-void Test_Multi::DecodefGlobalMulti2()
-{}
-
-
-//______________________________________________________________________________
-// 解码 fGlobalMulit = 3 的事件
-void Test_Multi::DecodefGlobalMulti3()
-{}
+//_______________________________________________
+void DecodefGlobalMulti2::ParaDraw_fGlobalMulti2()
+{
+  CheckParallelDraw("fGlobalMulti2");
+}

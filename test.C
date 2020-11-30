@@ -6,7 +6,11 @@ using namespace std;
 void test()
 {
   Test_Multi test;
-  test.TrackFindingAlgorithm2();
+  DecodefGlobalMulti2 decode;
+
+  decode.ParaDraw_fGlobalMulti2();
+
+//  test.CheckGlobalMultiRatio();
 //  test.CheckGlobalMultiRatio();
 
   //CSHINEHitPatternRecognition hit;
