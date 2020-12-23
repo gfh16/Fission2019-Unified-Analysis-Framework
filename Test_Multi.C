@@ -47,26 +47,26 @@ void Test_Multi::Init(TTree* tree)
    fCurrent = -1;
    fChain->SetMakeClass(1);
 
-   fChain->SetBranchAddress("LayerEvent.fL1SMulti",    &LayerEvent_fL1SMulti);
-   fChain->SetBranchAddress("LayerEvent.fL1SSSDNum",   &LayerEvent_fL1SSSDNum);
-   fChain->SetBranchAddress("LayerEvent.fL1SNumStrip", &LayerEvent_fL1SNumStrip);
-   fChain->SetBranchAddress("LayerEvent.fL1SEMeV",     &LayerEvent_fL1SEMeV);
-   fChain->SetBranchAddress("LayerEvent.fL2FMulti",    &LayerEvent_fL2FMulti);
-   fChain->SetBranchAddress("LayerEvent.fL2FSSDNum",   &LayerEvent_fL2FSSDNum);
-   fChain->SetBranchAddress("LayerEvent.fL2FNumStrip", &LayerEvent_fL2FNumStrip);
-   fChain->SetBranchAddress("LayerEvent.fL2FEMeV",     &LayerEvent_fL2FEMeV);
-   fChain->SetBranchAddress("LayerEvent.fL2BMulti",    &LayerEvent_fL2BMulti);
-   fChain->SetBranchAddress("LayerEvent.fL2BSSDNum",   &LayerEvent_fL2BSSDNum);
-   fChain->SetBranchAddress("LayerEvent.fL2BNumStrip", &LayerEvent_fL2BNumStrip);
-   fChain->SetBranchAddress("LayerEvent.fL2BEMeV",     &LayerEvent_fL2BEMeV);
-   fChain->SetBranchAddress("LayerEvent.fCsIMulti",    &LayerEvent_fCsIMulti);
-   fChain->SetBranchAddress("LayerEvent.fCsISSDNum",   &LayerEvent_fCsISSDNum);
-   fChain->SetBranchAddress("LayerEvent.fCsINum",      &LayerEvent_fCsINum);
-   fChain->SetBranchAddress("LayerEvent.fCsIECh",      &LayerEvent_fCsIECh);
-   fChain->SetBranchAddress("LayerEvent.fSSDL1SMulti", &LayerEvent_fSSDL1SMulti);
-   fChain->SetBranchAddress("LayerEvent.fSSDL2FMulti", &LayerEvent_fSSDL2FMulti);
-   fChain->SetBranchAddress("LayerEvent.fSSDL2BMulti", &LayerEvent_fSSDL2BMulti);
-   fChain->SetBranchAddress("LayerEvent.fSSDCsIMulti", &LayerEvent_fSSDCsIMulti);
+   fChain->SetBranchAddress("LayerEvent.fL1SMulti",            &LayerEvent_fL1SMulti);
+   fChain->SetBranchAddress("LayerEvent.fL1SSSDNum",    &LayerEvent_fL1SSSDNum);
+   fChain->SetBranchAddress("LayerEvent.fL1SNumStrip",  &LayerEvent_fL1SNumStrip);
+   fChain->SetBranchAddress("LayerEvent.fL1SEMeV",           &LayerEvent_fL1SEMeV);
+   fChain->SetBranchAddress("LayerEvent.fL2FMulti",            &LayerEvent_fL2FMulti);
+   fChain->SetBranchAddress("LayerEvent.fL2FSSDNum",    &LayerEvent_fL2FSSDNum);
+   fChain->SetBranchAddress("LayerEvent.fL2FNumStrip",  &LayerEvent_fL2FNumStrip);
+   fChain->SetBranchAddress("LayerEvent.fL2FEMeV",           &LayerEvent_fL2FEMeV);
+   fChain->SetBranchAddress("LayerEvent.fL2BMulti",           &LayerEvent_fL2BMulti);
+   fChain->SetBranchAddress("LayerEvent.fL2BSSDNum",    &LayerEvent_fL2BSSDNum);
+   fChain->SetBranchAddress("LayerEvent.fL2BNumStrip",  &LayerEvent_fL2BNumStrip);
+   fChain->SetBranchAddress("LayerEvent.fL2BEMeV",          &LayerEvent_fL2BEMeV);
+   fChain->SetBranchAddress("LayerEvent.fCsIMulti",            &LayerEvent_fCsIMulti);
+   fChain->SetBranchAddress("LayerEvent.fCsISSDNum",    &LayerEvent_fCsISSDNum);
+   fChain->SetBranchAddress("LayerEvent.fCsINum",            &LayerEvent_fCsINum);
+   fChain->SetBranchAddress("LayerEvent.fCsIECh",              &LayerEvent_fCsIECh);
+   fChain->SetBranchAddress("LayerEvent.fSSDL1SMulti",  &LayerEvent_fSSDL1SMulti);
+   fChain->SetBranchAddress("LayerEvent.fSSDL2FMulti",  &LayerEvent_fSSDL2FMulti);
+   fChain->SetBranchAddress("LayerEvent.fSSDL2BMulti",  &LayerEvent_fSSDL2BMulti);
+   fChain->SetBranchAddress("LayerEvent.fSSDCsIMulti",   &LayerEvent_fSSDCsIMulti);
 
    Notify();
 }
@@ -349,17 +349,17 @@ void Test_Multi::CheckGlobalMultiRatio(Int_t ssdindex)
   cout<<"Found nentries = "<<nentries<<endl;
 
   mytree->SetMakeClass(1);  // 如果 tree 的 branch 使用了自定义的类, 则这条语句不能省略！！！
-  mytree->SetBranchAddress("TrackEvent.fGlobalMulti",    &TrackEvent_fGlobalMulti);
+  mytree->SetBranchAddress("TrackEvent.fGlobalMulti",         &TrackEvent_fGlobalMulti);
   mytree->SetBranchAddress("TrackEvent.fSSDGlobalMulti", &TrackEvent_fSSDGlobalMulti);
-  mytree->SetBranchAddress("TrackEvent.fGSSDNum",        &TrackEvent_fGSSDNum);
+  mytree->SetBranchAddress("TrackEvent.fGSSDNum",            &TrackEvent_fGSSDNum);
   mytree->SetBranchAddress("TrackEvent.fGL1SNumStrip",   &TrackEvent_fGL1SNumStrip);
-  mytree->SetBranchAddress("TrackEvent.fGL1SEMeV",       &TrackEvent_fGL1SEMeV);
+  mytree->SetBranchAddress("TrackEvent.fGL1SEMeV",            &TrackEvent_fGL1SEMeV);
   mytree->SetBranchAddress("TrackEvent.fGL2FNumStrip",   &TrackEvent_fGL2FNumStrip);
-  mytree->SetBranchAddress("TrackEvent.fGL2FEMeV",       &TrackEvent_fGL2FEMeV);
+  mytree->SetBranchAddress("TrackEvent.fGL2FEMeV",            &TrackEvent_fGL2FEMeV);
   mytree->SetBranchAddress("TrackEvent.fGL2BNumStrip",   &TrackEvent_fGL2BNumStrip);
-  mytree->SetBranchAddress("TrackEvent.fGL2BEMeV",       &TrackEvent_fGL2BEMeV);
-  mytree->SetBranchAddress("TrackEvent.fGCsINum",        &TrackEvent_fGCsINum);
-  mytree->SetBranchAddress("TrackEvent.fGCsIECh",        &TrackEvent_fGCsIECh);
+  mytree->SetBranchAddress("TrackEvent.fGL2BEMeV",            &TrackEvent_fGL2BEMeV);
+  mytree->SetBranchAddress("TrackEvent.fGCsINum",               &TrackEvent_fGCsINum);
+  mytree->SetBranchAddress("TrackEvent.fGCsIECh",                 &TrackEvent_fGCsIECh);
 
   for (Long64_t ientry=0; ientry<nentries; ientry++) {
     mytree->GetEntry(ientry);
