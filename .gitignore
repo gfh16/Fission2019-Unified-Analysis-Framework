@@ -13,3 +13,4 @@ VMEDAQ_DataConversion/rootdata/
 data/Test_Multi.dat
 data/Test_Multi_L1L2EnergyCut.dat
 data/Test_Multi_fGlobalMulti1.dat
+data/data_Test_Multi/
