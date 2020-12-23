@@ -9,7 +9,7 @@
 
   gROOT->ProcessLine(".L src/CSHINESSDCalibratedData.C");
   gROOT->ProcessLine(".L src/CSHINESiPixelGeometry.C");
-  gROOT->ProcessLine(".L src/CSHINEHitPatternRecognition.C");
+  gROOT->ProcessLine(".L src/CSHINETrackReconstruction.C");
   gROOT->ProcessLine(".L src/CSHINEEvent.C");
   gROOT->ProcessLine(".L src/CSHINEPedestals.C");
   gROOT->ProcessLine(".L src/CSHINEQualityCheck.C");

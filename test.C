@@ -1,4 +1,4 @@
-#include "include/CSHINEHitPatternRecognition.h"
+#include "include/CSHINETrackReconstruction.h"
 #include "include/CSHINEEvent.h"
 
 using namespace std;
@@ -6,15 +6,15 @@ using namespace std;
 void test()
 {
   Test_Multi test;
-  DecodefGlobalMulti2 decode;
+  test.AddTrackEventToLayerEvent();
 
-  decode.ParaDraw_fGlobalMulti2();
 
-//  test.CheckGlobalMultiRatio();
-//  test.CheckGlobalMultiRatio();
+//  DecodefGlobalMulti2 decode;
+//  decode.GlobalMulti2_CalcModeRatio();
 
-  //CSHINEHitPatternRecognition hit;
+
+  //CSHINETrackReconstruction hit;
   //hit.GetPunchThroughEnergiesOfLCPs();
-  //CSHINEBuildEvent build;
-  //build.BuildLayerEventTree(200, 400);
+//  CSHINEBuildEvent build;
+//  build.BuildLayerEventTree(120, 130);
 }
