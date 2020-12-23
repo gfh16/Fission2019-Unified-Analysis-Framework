@@ -30,7 +30,7 @@ void CSHINESSDDataAnalysisFramework::Step4_SSDDataAnalysisFramework()
     cout<<"41.Step41_PedestalCali()           --  Pedestal 刻度"<<endl;
     cout<<"42.Step42_SiEnergyCali()           --  硅条能量刻度"<<endl;
     cout<<"43.Step43_SiPixellation()          --  硅条的像素化"<<endl;
-    cout<<"44.Step44_HitPatternRecognition()  --  LCPs 模式识别"<<endl;
+    cout<<"44.Step44_TrackReconstruction()  --  SSD 径迹重建"<<endl;
     cout<<"45.Step45_CsIEnergyCali()          --  CsI 能量刻度"<<endl;
     cout<<"46.Step46_ParticleIdentification() --  PID"<<endl;
     cout<<"47.Step47_EventTree()              --  最终数据存储"<<endl;
@@ -41,7 +41,7 @@ void CSHINESSDDataAnalysisFramework::Step4_SSDDataAnalysisFramework()
     if (option_step4 == 41)  Step41_PedestalCali();
     if (option_step4 == 42)  Step42_SiEnergyCali();
     if (option_step4 == 43)  Step43_SiPixellation();
-    if (option_step4 == 44)  Step44_HitPatternRecognition();
+    if (option_step4 == 44)  Step44_TrackReconstruction();
     if (option_step4 == 45)  Step45_CsIEnergyCali();
     if (option_step4 == 46)  Step46_ParticleIdentification();
     if (option_step4 == 47)  Step47_EventTree();
@@ -169,9 +169,9 @@ void CSHINESSDDataAnalysisFramework::Step43_SiPixellation()
 }
 
 //______________________________________________________________________________
-void CSHINESSDDataAnalysisFramework::Step44_HitPatternRecognition()
+void CSHINESSDDataAnalysisFramework::Step44_TrackReconstruction()
 {
-  CSHINEHitPatternRecognition layermulti;
+  CSHINETrackReconstruction layermulti;
 
   Int_t FisrtRun = 200;
   Int_t LastRun  = 210;

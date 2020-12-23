@@ -1,4 +1,4 @@
-#include "../include/CSHINEHitPatternRecognition.h"
+#include "../include/CSHINETrackReconstruction.h"
 using namespace std;
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -18,15 +18,15 @@ using namespace std;
 
 
 //******************************************************************************
-CSHINEHitPatternRecognition::CSHINEHitPatternRecognition()
+CSHINETrackReconstruction::CSHINETrackReconstruction()
 {
-  //cout<<"Enter class CSHINEHitPatternRecognition!"<<endl;
+  //cout<<"Enter class CSHINETrackReconstruction!"<<endl;
 }
 
 //______________________________________________________________________________
-CSHINEHitPatternRecognition::~CSHINEHitPatternRecognition()
+CSHINETrackReconstruction::~CSHINETrackReconstruction()
 {
-  //cout<<"Exit class CSHINEHitPatternRecognition!"<<endl;
+  //cout<<"Exit class CSHINETrackReconstruction!"<<endl;
 }
 //******************************************************************************
 
@@ -36,7 +36,7 @@ CSHINEHitPatternRecognition::~CSHINEHitPatternRecognition()
 //                            1. SSD 各层的多重性
 //
 // 计算每一层的多重数
-Int_t CSHINEHitPatternRecognition::LayerMultiplicity(Int_t ssdindex, const char* layertag,
+Int_t CSHINETrackReconstruction::LayerMultiplicity(Int_t ssdindex, const char* layertag,
   Int_t* ech, Double_t* echcut)
 {
   Int_t multi = 0;
@@ -63,7 +63,7 @@ Int_t CSHINEHitPatternRecognition::LayerMultiplicity(Int_t ssdindex, const char*
 //                          2. 确定粒子入射位置的约束条件
 //
 // 几何判据一: GeoConstraint_L3A_L2B
-Bool_t CSHINEHitPatternRecognition::GeoConstraint_L3A_L2B(Int_t csiindex, Int_t stripl2b)
+Bool_t CSHINETrackReconstruction::GeoConstraint_L3A_L2B(Int_t csiindex, Int_t stripl2b)
 {
   if ((csiindex/3)==0) {      // csiindex = 0, 1, 2
     return (stripl2b>=10 && stripl2b<=15);
@@ -76,7 +76,7 @@ Bool_t CSHINEHitPatternRecognition::GeoConstraint_L3A_L2B(Int_t csiindex, Int_t 
   }
 }
 
-Bool_t CSHINEHitPatternRecognition::GeoConstraint_L3A_L2B(Int_t csiindex, Int_t* stripl2b, Int_t size)
+Bool_t CSHINETrackReconstruction::GeoConstraint_L3A_L2B(Int_t csiindex, Int_t* stripl2b, Int_t size)
 {
   Int_t index = 0;
   if ((csiindex/3)==0) {  // csiindex = 0, 1, 2
@@ -97,7 +97,7 @@ Bool_t CSHINEHitPatternRecognition::GeoConstraint_L3A_L2B(Int_t csiindex, Int_t*
   return (index != 0) ? true : false;
 }
 
-Bool_t CSHINEHitPatternRecognition::GeoConstraint_L3A_L2B(Int_t* csichs, Int_t stripl2b, Int_t size)
+Bool_t CSHINETrackReconstruction::GeoConstraint_L3A_L2B(Int_t* csichs, Int_t stripl2b, Int_t size)
 {
   Int_t index = 0;
   if (stripl2b>=0 && stripl2b<=5) {
@@ -119,7 +119,7 @@ Bool_t CSHINEHitPatternRecognition::GeoConstraint_L3A_L2B(Int_t* csichs, Int_t s
 }
 
 
-Bool_t CSHINEHitPatternRecognition::GeoConstraint_L3A_L2B(Int_t* csichs,
+Bool_t CSHINETrackReconstruction::GeoConstraint_L3A_L2B(Int_t* csichs,
   Int_t* stripsl2b, Int_t sizecsi, Int_t sizel2b)
 {
   Int_t index = 0;
@@ -147,7 +147,7 @@ Bool_t CSHINEHitPatternRecognition::GeoConstraint_L3A_L2B(Int_t* csichs,
 
 //______________________________________________________________________________
 // 几何判据二: GeoConstraint_L3A_L2F
-Bool_t CSHINEHitPatternRecognition::GeoConstraint_L3A_L2F(Int_t csiindex, Int_t stripl2f)
+Bool_t CSHINETrackReconstruction::GeoConstraint_L3A_L2F(Int_t csiindex, Int_t stripl2f)
 {
   if ((csiindex%3)==0) {      // csiindex = 0, 3, 6
     return (stripl2f>=10 && stripl2f<=15);
@@ -160,7 +160,7 @@ Bool_t CSHINEHitPatternRecognition::GeoConstraint_L3A_L2F(Int_t csiindex, Int_t 
   }
 }
 
-Bool_t CSHINEHitPatternRecognition::GeoConstraint_L3A_L2F(Int_t csiindex, Int_t* stripl2f, Int_t size)
+Bool_t CSHINETrackReconstruction::GeoConstraint_L3A_L2F(Int_t csiindex, Int_t* stripl2f, Int_t size)
 {
   Int_t index = 0;
   if ((csiindex%3)==0) { // csiindex = 0, 3, 6
@@ -181,7 +181,7 @@ Bool_t CSHINEHitPatternRecognition::GeoConstraint_L3A_L2F(Int_t csiindex, Int_t*
   return (index != 0) ? true : false;
 }
 
-Bool_t CSHINEHitPatternRecognition::GeoConstraint_L3A_L2F(Int_t* csichs, Int_t stripl2f, Int_t size)
+Bool_t CSHINETrackReconstruction::GeoConstraint_L3A_L2F(Int_t* csichs, Int_t stripl2f, Int_t size)
 {
   Int_t index = 0;
   if (stripl2f>=0 && stripl2f<=5) {
@@ -203,7 +203,7 @@ Bool_t CSHINEHitPatternRecognition::GeoConstraint_L3A_L2F(Int_t* csichs, Int_t s
 }
 
 
-Bool_t CSHINEHitPatternRecognition::GeoConstraint_L3A_L2F(Int_t* csichs,
+Bool_t CSHINETrackReconstruction::GeoConstraint_L3A_L2F(Int_t* csichs,
   Int_t* stripsl2f, Int_t sizecsi, Int_t sizel2f)
 {
   Int_t index = 0;
@@ -231,12 +231,12 @@ Bool_t CSHINEHitPatternRecognition::GeoConstraint_L3A_L2F(Int_t* csichs,
 
 //______________________________________________________________________________
 // 几何判据三: GeoConstraint_L2B_L1S
-Bool_t CSHINEHitPatternRecognition::GeoConstraint_L2B_L1S(Int_t stripl2b, Int_t stripl1s)
+Bool_t CSHINETrackReconstruction::GeoConstraint_L2B_L1S(Int_t stripl2b, Int_t stripl1s)
 {
   return (TMath::Abs(stripl2b - stripl1s)<=1);
 }
 
-Bool_t CSHINEHitPatternRecognition::GeoConstraint_L2B_L1S(Int_t stripl2b, Int_t* stripsl1s, Int_t size)
+Bool_t CSHINETrackReconstruction::GeoConstraint_L2B_L1S(Int_t stripl2b, Int_t* stripsl1s, Int_t size)
 {
   Int_t index = 0;
   for (Int_t i=0; i<size; i++) {
@@ -245,7 +245,7 @@ Bool_t CSHINEHitPatternRecognition::GeoConstraint_L2B_L1S(Int_t stripl2b, Int_t*
   return (index != 0) ? true : false;
 }
 
-Bool_t CSHINEHitPatternRecognition::GeoConstraint_L2B_L1S(Int_t* stripsl2b, Int_t stripl1s, Int_t size)
+Bool_t CSHINETrackReconstruction::GeoConstraint_L2B_L1S(Int_t* stripsl2b, Int_t stripl1s, Int_t size)
 {
   Int_t index = 0;
   for (Int_t i=0; i<size; i++) {
@@ -254,7 +254,7 @@ Bool_t CSHINEHitPatternRecognition::GeoConstraint_L2B_L1S(Int_t* stripsl2b, Int_
   return (index != 0) ? true : false;
 }
 
-Bool_t CSHINEHitPatternRecognition::GeoConstraint_L2B_L1S(Int_t* stripsl2b, Int_t* stripsl1s, Int_t sizel2b, Int_t sizel1s)
+Bool_t CSHINETrackReconstruction::GeoConstraint_L2B_L1S(Int_t* stripsl2b, Int_t* stripsl1s, Int_t sizel2b, Int_t sizel1s)
 {
   Int_t index = 0;
   for (Int_t i=0; i<sizel2b; i++) {
@@ -266,7 +266,7 @@ Bool_t CSHINEHitPatternRecognition::GeoConstraint_L2B_L1S(Int_t* stripsl2b, Int_
 }
 
 // 几何判据三: 考虑 L2B 与 L1S 的道址可能相差 0 或 1
-Bool_t CSHINEHitPatternRecognition::GeoConstraint_L2B_L1S(Int_t stripl2b, Int_t stripl1s, Int_t deltastrip)
+Bool_t CSHINETrackReconstruction::GeoConstraint_L2B_L1S(Int_t stripl2b, Int_t stripl1s, Int_t deltastrip)
 {
   return (TMath::Abs(stripl2b - stripl1s)==deltastrip);
 }
@@ -274,54 +274,54 @@ Bool_t CSHINEHitPatternRecognition::GeoConstraint_L2B_L1S(Int_t stripl2b, Int_t 
 
 //______________________________________________________________________________
 // 能量判据四: 考虑 L2B 与 L2F 的能量关联
-Bool_t CSHINEHitPatternRecognition::EneConstraint_L2B_L2F(Double_t El2b, Double_t El2f, Double_t ErrRatio)
+Bool_t CSHINETrackReconstruction::EneConstraint_L2B_L2F(Double_t El2b, Double_t El2f, Double_t ErrRatio)
 {
-  return (TMath::Abs(El2b - El2f)/El2b < ErrRatio);
+  return (TMath::Abs(El2b - El2f)/El2f < ErrRatio);
 }
 
-Bool_t CSHINEHitPatternRecognition::EneConstraint_L2B_L2F(Double_t El2b, Double_t* El2f, Int_t size, Double_t ErrRatio)
+Bool_t CSHINETrackReconstruction::EneConstraint_L2B_L2F(Double_t El2b, Double_t* El2f, Int_t size, Double_t ErrRatio)
 {
   Int_t index = 0;
   for (Int_t i=0; i<size; i++) {
-    if (TMath::Abs(El2b - El2f[i])/El2b < ErrRatio)  index++ ;
+    if (TMath::Abs(El2b - El2f[i])/El2f[i] < ErrRatio)  index++ ;
   }
   return (index != 0) ? true : false;
 }
 
-Bool_t CSHINEHitPatternRecognition::EneConstraint_L2B_L2F(Double_t* El2b, Double_t El2f, Int_t size, Double_t ErrRatio)
+Bool_t CSHINETrackReconstruction::EneConstraint_L2B_L2F(Double_t* El2b, Double_t El2f, Int_t size, Double_t ErrRatio)
 {
   Int_t index = 0;
   for (Int_t i=0; i<size; i++) {
-    if (TMath::Abs(El2b[i] - El2f)/El2b[i] < ErrRatio)  index++ ;
+    if (TMath::Abs(El2b[i] - El2f)/El2f < ErrRatio)  index++ ;
   }
   return (index != 0) ? true : false;
 }
 
-Bool_t CSHINEHitPatternRecognition::EneConstraint_L2B_L2F(Double_t* El2b, Double_t* El2f, Int_t sizel2b, Int_t sizel2f, Double_t ErrRatio)
+Bool_t CSHINETrackReconstruction::EneConstraint_L2B_L2F(Double_t* El2b, Double_t* El2f, Int_t sizel2b, Int_t sizel2f, Double_t ErrRatio)
 {
   Int_t index = 0;
   for (Int_t i=0; i<sizel2b; i++) {
     for (Int_t j=0; j<sizel2f; j++) {
-      if (TMath::Abs(El2b[i] - El2f[j])/El2b[i] < ErrRatio)  index++ ;
+      if (TMath::Abs(El2b[i] - El2f[j])/El2f[j] < ErrRatio)  index++ ;
     }
   }
   return (index != 0) ? true : false;
 }
 
-Bool_t CSHINEHitPatternRecognition::EneConstraint_L2B_L2F(Int_t ssdindex, Double_t El2b, Double_t El2f)
+Bool_t CSHINETrackReconstruction::EneConstraint_L2B_L2F(Int_t ssdindex, Double_t El2b, Double_t El2f)
 {
   // LowErrRatio 为负数, highErrRatio 为正数
   if (El2b<L2BL2F_ENERGYBOUNDARY[ssdindex]) {
-    return ((El2b-El2f)/El2b>L2BL2F_LOWENERGYNEGATIVECUT [ssdindex] && (El2b-El2f)/El2b<L2BL2F_LOWENERGYPOSITIVECUT [ssdindex]);
+    return ((El2b-El2f)/El2f>L2BL2F_LOWENERGYNEGATIVECUT [ssdindex] && (El2b-El2f)/El2f<L2BL2F_LOWENERGYPOSITIVECUT [ssdindex]);
   }
   else {
-     return ((El2b-El2f)/El2b>L2BL2F_HIGHENERGYNEGATIVECUT[ssdindex] && (El2b-El2f)/El2b<L2BL2F_HIGHENERGYPOSITIVECUT[ssdindex]);
+     return ((El2b-El2f)/El2f>L2BL2F_HIGHENERGYNEGATIVECUT[ssdindex] && (El2b-El2f)/El2f<L2BL2F_HIGHENERGYPOSITIVECUT[ssdindex]);
   }
 }
 
 //______________________________________________________________________________
 // 能量判据 五 : 对于能穿透 L2 的粒子, 通过 LISE 计算给出 L1, L2 的能损比例, 作为新的约束条件
-Bool_t CSHINEHitPatternRecognition::EneConstraint_L1_L2(Int_t ssdindex, Double_t El1, Double_t El2)
+Bool_t CSHINETrackReconstruction::EneConstraint_L1_L2(Int_t ssdindex, Double_t El1, Double_t El2)
 {
   return ((El1/El2>L1L2_ENERGYLOWCUT[ssdindex]) && (El1/El2<L1L2_ENERGYHIGHCUT[ssdindex]));
 }
@@ -364,7 +364,7 @@ Double_t EventRatio(Int_t ssdindex, const char* layertag, Int_t entries_large, I
 //
 //  gfh, 2020-09-02
 ////////////////////////////////////////////////////////////////////////////////
-void CSHINEHitPatternRecognition::EstimateLayerMulti(Int_t firstrun, Int_t lastrun)
+void CSHINETrackReconstruction::EstimateLayerMulti(Int_t firstrun, Int_t lastrun)
 {
   gStyle->SetPalette(1);
 
@@ -384,11 +384,11 @@ void CSHINEHitPatternRecognition::EstimateLayerMulti(Int_t firstrun, Int_t lastr
   std::string L3ATag("L3A");
 
   std::string pathRootInputFolder(Form("%sMapRoot/", PATHROOTFILESFOLDER));
-  std::string pathLayerMultiPNDOut(Form("%sfigure_HitPatternRecognition/Layer_MultiRatio_Run%03d-Run%03d.png",PATHFIGURESFOLDER,firstrun,lastrun));
-  std::string pathSSDMultiPNDOut  (Form("%sfigure_HitPatternRecognition/SSD_MultiRatio_Run%03d-Run%03d.png",  PATHFIGURESFOLDER,firstrun,lastrun));
+  std::string pathLayerMultiPNDOut(Form("%sfigure_TrackReconstruction/Layer_MultiRatio_Run%03d-Run%03d.png",PATHFIGURESFOLDER,firstrun,lastrun));
+  std::string pathSSDMultiPNDOut  (Form("%sfigure_TrackReconstruction/SSD_MultiRatio_Run%03d-Run%03d.png",  PATHFIGURESFOLDER,firstrun,lastrun));
   std::string pathMultiCheckOut[NUM_SSD];
   for (Int_t i=0; i<NUM_SSD; i++) {
-    pathMultiCheckOut[i] = Form("%sfigure_HitPatternRecognition/SSD%d_MultiCheck_Run%03d-Run%03d.png",PATHFIGURESFOLDER,i+1,firstrun,lastrun);
+    pathMultiCheckOut[i] = Form("%sfigure_TrackReconstruction/SSD%d_MultiCheck_Run%03d-Run%03d.png",PATHFIGURESFOLDER,i+1,firstrun,lastrun);
   }
 
   TChain* mychain = new TChain("KrPb");
@@ -448,7 +448,7 @@ void CSHINEHitPatternRecognition::EstimateLayerMulti(Int_t firstrun, Int_t lastr
   Double_t* L3AEChCut[NPoints];
 
   CSHINESSDCalibratedData     calidata[NPoints];
-  CSHINEHitPatternRecognition hitpattern;
+  CSHINETrackReconstruction hitpattern;
 
   // 计算每一层的 EChCut
   for (Int_t np=0; np<NPoints; np++) {
@@ -1007,7 +1007,7 @@ void CSHINEHitPatternRecognition::EstimateLayerMulti(Int_t firstrun, Int_t lastr
 
 
 //******************************************************************************
-void CSHINEHitPatternRecognition::GetPunchThroughEnergiesOfLCPs()
+void CSHINETrackReconstruction::GetPunchThroughEnergiesOfLCPs()
 {
   Int_t NUM_LCPs = 16;
 
@@ -1016,7 +1016,7 @@ void CSHINEHitPatternRecognition::GetPunchThroughEnergiesOfLCPs()
   const Int_t LiseModel = 1;
   //LiseModel=1 is good for low energy， J.F.Ziegler et al, Pergamon Press, NY (low energy)
 
-  std::string pathPunchThroughOut(Form("%sdata_HitPatternRecognition/PunchThroughEnergies_of_LCPs.dat", PATHDATAFOLDER));
+  std::string pathPunchThroughOut(Form("%sdata_TrackReconstruction/PunchThroughEnergies_of_LCPs.dat", PATHDATAFOLDER));
   ofstream FileOut(pathPunchThroughOut.c_str());
   FileOut<<setw(10)<<"*SSDNum"<<setw(20)<<"material"<<setw(15)<<"thickness/um"<<setw(15)<<"Charge(Z)"
          <<setw(15)<<"Mass(A)"<<setw(25)<<"PunchThroughEnergy/MeV"<<endl;

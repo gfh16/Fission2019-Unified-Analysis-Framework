@@ -8,7 +8,7 @@
 #include "CSHINESiEnergyCali.h"
 #include "CSHINESiPixelGeometry.h"
 #include "CSHINEEvent.h"
-#include "CSHINEHitPatternRecognition.h"
+#include "CSHINETrackReconstruction.h"
 
 
 //______________________________________________________________________________
@@ -22,7 +22,7 @@ public:
   void   Step41_PedestalCali();
   void   Step42_SiEnergyCali();
   void   Step43_SiPixellation();
-  void   Step44_HitPatternRecognition();
+  void   Step44_TrackReconstruction();
   void   Step45_CsIEnergyCali();
   void   Step46_ParticleIdentification();
   void   Step47_EventTree();

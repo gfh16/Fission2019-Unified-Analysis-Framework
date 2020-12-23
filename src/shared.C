@@ -31,7 +31,8 @@ const double CSITHICKNESS           =    50;     //mm
 
 //______________________________________________________________________________
 // 定义每一层的 Cut 值所使用的 pedestal sigma number
-const double NUM_SIGMA_L1S[4]       =    {5.,  8.,  13., 20.};
+const double NUM_SIGMA_L1S[4]       =    {12.,  8.,  13., 20.}; // used for check charge sharing
+//const double NUM_SIGMA_L1S[4]       =    {5.,  8.,  13., 20.};
 const double NUM_SIGMA_L2F[4]       =    {5.,  5.,  5.,  6.};
 const double NUM_SIGMA_L2B[4]       =    {5.,  5.,  5.,  6.};
 const double NUM_SIGMA_L3A[4]       =    {5.,  8.,  10., 8.};
@@ -46,16 +47,28 @@ const double MULTICUT_L3A  =  4;
 //______________________________________________________________________________
 // 定义 L2B_L2F Energy Cut
 // 根据实验数据 L2B-L2F 能量关联,决定对不同能区采取不同的 cut
-const double L2BL2F_ENERGYBOUNDARY[4] = {20., 20., 10., 10.};
+const double L2BL2F_ENERGYBOUNDARY[4] = {10., 10., 10., 10.};
+/*
 const double L2BL2F_LOWENERGYNEGATIVECUT [4] = {-0.15, -0.20, -0.20, -0.10};
 const double L2BL2F_LOWENERGYPOSITIVECUT [4] = { 0.10,  0.10,  0.15,  0.10};
 const double L2BL2F_HIGHENERGYNEGATIVECUT[4] = {-0.15, -0.20, -0.05, -0.05};
 const double L2BL2F_HIGHENERGYPOSITIVECUT[4] = {-0.05, -0.05,  0.05,  0.05};
+*/
+const double L2BL2F_LOWENERGYNEGATIVECUT [4] = {-0.20, -0.20, -0.20, -0.20};
+const double L2BL2F_LOWENERGYPOSITIVECUT [4] = { 0.15,  0.15,  0.15,  0.15};
+const double L2BL2F_HIGHENERGYNEGATIVECUT[4] = {-0.15, -0.20, -0.05, -0.05};
+const double L2BL2F_HIGHENERGYPOSITIVECUT[4] = {-0.05, -0.05,  0.05,  0.05};
+
 
 //______________________________________________________________________________
 // 对于能穿透 L2 的粒子, 通过 LISE 计算给出 L1, L2 的能损比例, 作为新的约束条件
-const double L1L2_ENERGYLOWCUT [4] = {0.10, 0.10, 0.10, 0.10};
-const double L1L2_ENERGYHIGHCUT[4] = {0.40, 0.40, 0.30, 0.30};
+/*
+const double L1L2_ENERGYLOWCUT [4] = {0.05, 0.05, 0.05, 0.05};
+const double L1L2_ENERGYHIGHCUT[4] = {0.40, 0.40, 0.40, 0.40};
+*/
+const double L1L2_ENERGYLOWCUT [4] = {0.05, 0.05, 0.05, 0.05};
+const double L1L2_ENERGYHIGHCUT[4] = {0.60, 0.60, 0.60, 0.60};
+
 
 //______________________________________________________________________________
 //本地使用

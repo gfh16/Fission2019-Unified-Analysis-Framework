@@ -31,7 +31,7 @@ void CSHINEDataAnalysisFramework::CSHINEDataAnalysis()
     cout<<"1.Step1_DataConversion()         --  数据格式转换"<<endl;
     cout<<"2.Step2_QualityChecks()          --  数据检查"<<endl;
     cout<<"3.Step3_PPACAnalysisFramework()  --  PPAC 数据分析框架"<<endl;
-    cout<<"4.Step4_HitPatternRecognition()  --  硅条望远镜数据分析框架"<<endl;
+    cout<<"4.Step4_SSDAnalysisFramework()   --  硅条望远镜数据分析框架"<<endl;
     cout<<"============================================================="<<endl;
     cout<<"请在此输入您的选项: 1, 2, 3, 4"<<endl;
     cin >>option_step;

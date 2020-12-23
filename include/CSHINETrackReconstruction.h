@@ -1,5 +1,5 @@
-#ifndef CSHINEHITPATTERNRECOGNITION_H
-#define CSHINEHITPATTERNRECOGNITION_H
+#ifndef CSHINETrackReconstruction_H
+#define CSHINETrackReconstruction_H
 
 #include "EnergyLossModule.h"
 #include "CSHINESSDCalibratedData.h"
@@ -19,11 +19,11 @@
 
 
 //________________________________
-class CSHINEHitPatternRecognition
+class CSHINETrackReconstruction
 {
 public:
-  CSHINEHitPatternRecognition();
-  ~CSHINEHitPatternRecognition();
+  CSHINETrackReconstruction();
+  ~CSHINETrackReconstruction();
 
   // 在这里定义需要进行的操作
   Int_t    LayerMultiplicity   (Int_t, const char*, Int_t*, Double_t*); // ssdindex, layertag, ech[], echcut[]
