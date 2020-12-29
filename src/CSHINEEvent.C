@@ -38,9 +38,9 @@ CSHINEGlobalEvent::~CSHINEGlobalEvent()
 // 创建、填充 Event
 CSHINEBuildEvent::CSHINEBuildEvent()
 {
-  fSiEChcutl1s  = fCSHINESSDCalibratedData.GetSiEChCut ("L1S");
-  fSiEChcutl2f  = fCSHINESSDCalibratedData.GetSiEChCut ("L2F");
-  fSiEChcutl2b  = fCSHINESSDCalibratedData.GetSiEChCut ("L2B");
+  fSiEChcutl1s   = fCSHINESSDCalibratedData.GetSiEChCut ("L1S");
+  fSiEChcutl2f    = fCSHINESSDCalibratedData.GetSiEChCut ("L2F");
+  fSiEChcutl2b   = fCSHINESSDCalibratedData.GetSiEChCut ("L2B");
   fCsIEChcutl3a = fCSHINESSDCalibratedData.GetCsIEChCut("L3A");
 
   fSlopel1s     = fCSHINESSDCalibratedData.GetSiCaliSlope("L1S");
@@ -111,10 +111,10 @@ void CSHINEBuildEvent::BuildLayerEvent(CSHINELayerEvent& layerevent,
 {
   //_________________________________________________
   // 1.获取 multipicity, 并将点火的 channel index 存进 vector
-  layerevent.fL1SMulti = 0;
-  layerevent.fL2FMulti = 0;
-  layerevent.fL2BMulti = 0;
-  layerevent.fCsIMulti = 0;
+  layerevent.fL1SMulti  = 0;
+  layerevent.fL2FMulti  = 0;
+  layerevent.fL2BMulti  = 0;
+  layerevent.fCsIMulti    = 0;
 
   LayerEvent(layerevent, 0, ssd1echl1s, ssd1echl2f, ssd1echl2b, ssd1echcsi);
   LayerEvent(layerevent, 1, ssd2echl1s, ssd2echl2f, ssd2echl2b, ssd2echcsi);
@@ -124,7 +124,7 @@ void CSHINEBuildEvent::BuildLayerEvent(CSHINELayerEvent& layerevent,
     layerevent.fL1SMulti += layerevent.fSSDL1SMulti[i];
     layerevent.fL2FMulti += layerevent.fSSDL2FMulti[i];
     layerevent.fL2BMulti += layerevent.fSSDL2BMulti[i];
-    layerevent.fCsIMulti += layerevent.fSSDCsIMulti[i];
+    layerevent.fCsIMulti  += layerevent.fSSDCsIMulti[i];
   }
 
 }

@@ -4,26 +4,25 @@ using namespace std;
 
 ////////////////////////////////////////////////////////////////////////////////
 // SSD1 && SSD4 硅条本体坐标系定义:          // SSD2 && SSD3 硅条本体坐标系定义:
-//                          EB=0               EB=0
-//  EF=0 +-------------------+ EF=0            +-------------------+
-//       |        Y'         |                 |        Y'         |
-//       |        /|\        |                 |        /|\        |
-//       |         |         |                 |         |         |
-//       |         |         |                 |         |         |
-//       | <-------O'        |                 | <-------O'        |
-//       | X'                |                 | X'                |
-//       |  (从靶点看向硅条)   |                 |  (从靶点看向硅条)    |
-//       |                   |                 |                   |
-//       +-------------------+            EF=0 +-------------------+ EF=0
-//                          EB=0             EB=0
+//
+//  EF=0        +-------------------------+         EF=15 +--------------------------+
+//                     |              Y'                     |                       |                       Y'             |
+//                    |                  /|\                |                        |                   /|\               |
+//                    |                   |                   |                       |                    |                  |
+//                    |                  |                   |                         |                  |                  |
+//                    |    <-------O'                |                         | <-------O'                   |
+//                   | X'                                 |                          |    X'                              |
+//                   |  (从靶点看向硅条)  |                         |  (从靶点看向硅条)  |
+//  EF=15    +------------------------+            EF=0  +-----------------------+
+//                EB=15                      EB=0                     EB=0                           EB=15
 //
 // 实验室系定义:
 //     束流方向
-//       /||
-//        |
-//        |
-// <----- O (靶点)
-// X
+//            /|\ Z
+//             |
+//             |
+//   <----- O (靶点)
+//    X
 //
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -31,17 +30,17 @@ using namespace std;
 //******************************************************************************
 CSHINESiPixelGeometry::CSHINESiPixelGeometry()
 {
-  fWidthPerStrip                    = 1.95;  // 条宽, mm
-  fWidthPerGap                      = 0.05;  // 相邻条缝宽m, mm
-  fDistOfAdjacentStrips             = 2.00;  // 条中心间距, mm
+  fWidthPerStrip                 =  1.95;  // 条宽, mm
+  fWidthPerGap                   =  0.05;  // 相邻条缝宽m, mm
+  fDistOfAdjacentStrips    =  2.00;  // 条中心间距, mm
 
-  fDistFromL1FToL2F                 = 7.50; // mm
-  fDistFrom2ndMountingHoleToL2F     = 33.50; // mm
+  fDistFromL1FToL2F  = 7.50; // mm
+  fDistFrom2ndMountingHoleToL2F  = 33.50; // mm
 
   fDistFrom2ndMountingHoleToTarget  = new Double_t [NUM_SSD];
-  fPhiOfSSDFixedPosition            = new Double_t [NUM_SSD];
-  fThetaOfSSDFixedPosition          = new Double_t [NUM_SSD];
-  fDistOfL2FToTarget                = new Double_t [NUM_SSD];
+  fPhiOfSSDFixedPosition   = new Double_t [NUM_SSD];
+  fThetaOfSSDFixedPosition  = new Double_t [NUM_SSD];
+  fDistOfL2FToTarget   = new Double_t [NUM_SSD];
 
   fDistFrom2ndMountingHoleToTarget[0] = 315.50;  // mm
   fDistFrom2ndMountingHoleToTarget[1] = 275.50;  // mm

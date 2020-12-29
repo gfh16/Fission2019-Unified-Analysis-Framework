@@ -68,7 +68,7 @@ void CSHINESiEnergyCali::PulserAndAlphaCali(const char* layertag, const char* pu
                   <<"h2"<<setw(12)<<"k3"<<setw(12)<<"h3"<<setw(16)<<"k11=1./k1"<<setw(12)<<"h11=-h1/k1"<<setw(12)
                   <<"k22=1./k2"<<setw(12)<<"h22=-h2/k2"<<setw(12)<<"k33=1./k3"<<setw(13)<<"h33=-h3/k3\n";
   //____________________________________________________________________________
-  Int_t numpar_PulserIn       = 3;  // a, err_a, b
+  Int_t numpar_PulserIn  = 3;               // a, err_a, b
   Int_t numpar_PulserInGain20 = 3;  // a, err_a, b
   Int_t numpar_AlphaCali00_08 = 3;  // peak1, peak2, peak3
   Int_t numpar_AlphaCali05_08 = 3;  // peak1, peak2, peak3
@@ -238,22 +238,22 @@ void CSHINESiEnergyCali::EstimatePedestals(const char* layertag, const char* pul
   if (strcmp(layertag,"L1S")==0) index = 0;
   if (strcmp(layertag,"L2F")==0) index = 1;
   if (strcmp(layertag,"L2B")==0) index = 2;
-  Double_t PedestalRangeLow   [3] = { 50., 30.,  30. };
-  Double_t PedestalRangeUp    [3] = { 130.,130., 160.};
-  Double_t ErrorRangeLow      [3] = {-25., -35., -25.};
-  Double_t ErrorRangeUp       [3] = { 0.,  -5.,   0.};
+  Double_t PedestalRangeLow[3] = { 50., 30.,  30. };
+  Double_t PedestalRangeUp[3] = { 130.,130., 160.};
+  Double_t ErrorRangeLow[3] = {-25., -35., -25.};
+  Double_t ErrorRangeUp[3] = { 0.,  -5.,   0.};
   //Double_t RelativeErrRangeLow[3] = {-30., -40., -50.};
   //Double_t RelativeErrRangeUp [3] = { 0.,  -5.,   0.};
-  Double_t latex_PedestalUp    = 0.9 * (PedestalRangeUp   [index] - PedestalRangeLow   [index]) + PedestalRangeLow[index];
-  Double_t latex_PedestalLow   = 0.1 * (PedestalRangeUp   [index] - PedestalRangeLow   [index]) + PedestalRangeLow[index];
-  Double_t latex_ErrorUp       = 0.9 * (ErrorRangeUp      [index] - ErrorRangeLow      [index]) + ErrorRangeLow[index];
+  Double_t latex_PedestalUp = 0.9 * (PedestalRangeUp   [index] - PedestalRangeLow   [index]) + PedestalRangeLow[index];
+  Double_t latex_PedestalLow = 0.1 * (PedestalRangeUp   [index] - PedestalRangeLow   [index]) + PedestalRangeLow[index];
+  Double_t latex_ErrorUp = 0.9 * (ErrorRangeUp      [index] - ErrorRangeLow      [index]) + ErrorRangeLow[index];
   //Double_t latex_RelativeErrUp = 0.9 * (RelativeErrRangeUp[index] - RelativeErrRangeLow[index]) + RelativeErrRangeLow[index];
   //____________________________________________________________________________
   Int_t numpar_PedestalsIn = 2;
   Int_t numpar_ParsInput   = 8; // a1,b1,a2,b2,a3,b3,a11,b11... b11是截距
   ReadFileModule readfile;
   Double_t*** PedestalIn = readfile.ReadData(pathPedestalsInput.c_str(),NUM_SSD,NUM_STRIP,numpar_PedestalsIn);
-  Double_t*** ParsInput  = readfile.ReadData(pathParsInput.c_str(),NUM_SSD,NUM_STRIP,numpar_ParsInput);
+  Double_t*** ParsInput = readfile.ReadData(pathParsInput.c_str(),NUM_SSD,NUM_STRIP,numpar_ParsInput);
 
   Double_t SSDCHNum[NUM_SSD][NUM_STRIP];
   Double_t PulserPedestals[NUM_SSD][NUM_STRIP];
@@ -717,8 +717,6 @@ void CSHINESiEnergyCali::Check_SSD2_L2F_CH00_CH01(const char* pulserfiletag)
   std::string pathpngPulserCali_SSD2_L2F_CH00_01(Form("%sfigure_SiEnergyCali/CheckPulserCali_SSD2_%s_CH00_CH01_%s.png",PATHFIGURESFOLDER,L2FTag.c_str(),pulserfiletag));
   std::string pathPNGSSD2_L2F_CH00_01_Pars(Form("%sfigure_SiEnergyCali/Check_SSD2_%s_CH00_CH01_Peak1ParameterDistributions.png",PATHFIGURESFOLDER,L2FTag.c_str()));
 
-
-
   Int_t num_peaks             =  11;
   Int_t num_channel           =  2;
   Int_t numpar_PulserIn       =  15;  // a, err_a, b,err_b, pulser1...pulser11
@@ -1174,7 +1172,7 @@ void CSHINESiEnergyCali::Check_SSD4_L2F_CH13_CH14(const char* pulserfiletag)
   k_SumPeaks_average = (k_sum-k[13]-k[14]+k_SumPeaks[0]+k_SumPeaks[1])/NUM_STRIP;
   h_SumPeaks_average = (h_sum-h[13]-h[14]+h_SumPeaks[0]+h_SumPeaks[1])/NUM_STRIP;
   k_SumPeaks_average_scale = (k_SumPeaks_average - SSD4_L2F_k_RangeLow) * k_scalfactor + 2;
-  h_SumPeaks_average_scale = (h_SumPeaks_average - SSD4_L2F_h_RangeUp)  * h_scalfactor - 2;
+  h_SumPeaks_average_scale = (h_SumPeaks_average - SSD4_L2F_h_RangeUp) * h_scalfactor - 2;
 
   //____________________________________________________________________________
   // Draw the par Distributions

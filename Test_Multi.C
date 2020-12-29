@@ -8,78 +8,78 @@ using namespace std;
 //______________________________________________________________________________
 Test_Multi::Test_Multi(TTree *tree) : fChain(0)
 {
- // if parameter tree is not specified (or zero), connect the file
- // used to generate this class and read the Tree.
-   if (tree == 0) {
-      TFile *f = (TFile*)gROOT->GetListOfFiles()->FindObject("/home/sea/Fission2019_Data/CSHINEEvent/EventTree_Run0120-Run0130.root");
-      if (!f || !f->IsOpen()) {
-         f = new TFile("/home/sea/Fission2019_Data/CSHINEEvent/EventTree_Run0120-Run0130.root");
-      }
-      f->GetObject("LayerEvent",tree);
-   }
-   Init(tree);
+  // if parameter tree is not specified (or zero), connect the file
+  // used to generate this class and read the Tree.
+  if (tree == 0) {
+    TFile *f = (TFile*)gROOT->GetListOfFiles()->FindObject("/home/sea/Fission2019_Data/CSHINEEvent/EventTree_Run0120-Run0130.root");
+    if (!f || !f->IsOpen()) {
+      f = new TFile("/home/sea/Fission2019_Data/CSHINEEvent/EventTree_Run0120-Run0130.root");
+    }
+    f->GetObject("LayerEvent",tree);
+  }
+  Init(tree);
 }
 
 Test_Multi::~Test_Multi()
 {
-   if (!fChain) return;
+  if (!fChain) return;
   // delete fChain->GetCurrentFile();
 }
 
 Long64_t Test_Multi::LoadTree(Long64_t entry)
 {
- // Set the environment to read one entry
-   if (!fChain) return -5;
-   Long64_t centry = fChain->LoadTree(entry);
-   if (centry < 0) return centry;
-   if (fChain->GetTreeNumber() != fCurrent) {
-      fCurrent = fChain->GetTreeNumber();
-      Notify();
-   }
-   return centry;
+  // Set the environment to read one entry
+  if (!fChain) return -5;
+  Long64_t centry = fChain->LoadTree(entry);
+  if (centry < 0) return centry;
+  if (fChain->GetTreeNumber() != fCurrent) {
+    fCurrent = fChain->GetTreeNumber();
+    Notify();
+  }
+  return centry;
 }
 
 void Test_Multi::Init(TTree* tree)
 {
-   // Set branch addresses and branch pointers
-   if (!tree) return;
-   fChain = tree;
-   fCurrent = -1;
-   fChain->SetMakeClass(1);
+  // Set branch addresses and branch pointers
+  if (!tree) return;
+  fChain = tree;
+  fCurrent = -1;
+  fChain->SetMakeClass(1);
 
-   fChain->SetBranchAddress("LayerEvent.fL1SMulti",            &LayerEvent_fL1SMulti);
-   fChain->SetBranchAddress("LayerEvent.fL1SSSDNum",    &LayerEvent_fL1SSSDNum);
-   fChain->SetBranchAddress("LayerEvent.fL1SNumStrip",  &LayerEvent_fL1SNumStrip);
-   fChain->SetBranchAddress("LayerEvent.fL1SEMeV",           &LayerEvent_fL1SEMeV);
-   fChain->SetBranchAddress("LayerEvent.fL2FMulti",            &LayerEvent_fL2FMulti);
-   fChain->SetBranchAddress("LayerEvent.fL2FSSDNum",    &LayerEvent_fL2FSSDNum);
-   fChain->SetBranchAddress("LayerEvent.fL2FNumStrip",  &LayerEvent_fL2FNumStrip);
-   fChain->SetBranchAddress("LayerEvent.fL2FEMeV",           &LayerEvent_fL2FEMeV);
-   fChain->SetBranchAddress("LayerEvent.fL2BMulti",           &LayerEvent_fL2BMulti);
-   fChain->SetBranchAddress("LayerEvent.fL2BSSDNum",    &LayerEvent_fL2BSSDNum);
-   fChain->SetBranchAddress("LayerEvent.fL2BNumStrip",  &LayerEvent_fL2BNumStrip);
-   fChain->SetBranchAddress("LayerEvent.fL2BEMeV",          &LayerEvent_fL2BEMeV);
-   fChain->SetBranchAddress("LayerEvent.fCsIMulti",            &LayerEvent_fCsIMulti);
-   fChain->SetBranchAddress("LayerEvent.fCsISSDNum",    &LayerEvent_fCsISSDNum);
-   fChain->SetBranchAddress("LayerEvent.fCsINum",            &LayerEvent_fCsINum);
-   fChain->SetBranchAddress("LayerEvent.fCsIECh",              &LayerEvent_fCsIECh);
-   fChain->SetBranchAddress("LayerEvent.fSSDL1SMulti",  &LayerEvent_fSSDL1SMulti);
-   fChain->SetBranchAddress("LayerEvent.fSSDL2FMulti",  &LayerEvent_fSSDL2FMulti);
-   fChain->SetBranchAddress("LayerEvent.fSSDL2BMulti",  &LayerEvent_fSSDL2BMulti);
-   fChain->SetBranchAddress("LayerEvent.fSSDCsIMulti",   &LayerEvent_fSSDCsIMulti);
+  fChain->SetBranchAddress("LayerEvent.fL1SMulti",            &LayerEvent_fL1SMulti);
+  fChain->SetBranchAddress("LayerEvent.fL1SSSDNum",    &LayerEvent_fL1SSSDNum);
+  fChain->SetBranchAddress("LayerEvent.fL1SNumStrip",  &LayerEvent_fL1SNumStrip);
+  fChain->SetBranchAddress("LayerEvent.fL1SEMeV",           &LayerEvent_fL1SEMeV);
+  fChain->SetBranchAddress("LayerEvent.fL2FMulti",            &LayerEvent_fL2FMulti);
+  fChain->SetBranchAddress("LayerEvent.fL2FSSDNum",    &LayerEvent_fL2FSSDNum);
+  fChain->SetBranchAddress("LayerEvent.fL2FNumStrip",   &LayerEvent_fL2FNumStrip);
+  fChain->SetBranchAddress("LayerEvent.fL2FEMeV",            &LayerEvent_fL2FEMeV);
+  fChain->SetBranchAddress("LayerEvent.fL2BMulti",            &LayerEvent_fL2BMulti);
+  fChain->SetBranchAddress("LayerEvent.fL2BSSDNum",    &LayerEvent_fL2BSSDNum);
+  fChain->SetBranchAddress("LayerEvent.fL2BNumStrip",  &LayerEvent_fL2BNumStrip);
+  fChain->SetBranchAddress("LayerEvent.fL2BEMeV",           &LayerEvent_fL2BEMeV);
+  fChain->SetBranchAddress("LayerEvent.fCsIMulti",             &LayerEvent_fCsIMulti);
+  fChain->SetBranchAddress("LayerEvent.fCsISSDNum",     &LayerEvent_fCsISSDNum);
+  fChain->SetBranchAddress("LayerEvent.fCsINum",             &LayerEvent_fCsINum);
+  fChain->SetBranchAddress("LayerEvent.fCsIECh",               &LayerEvent_fCsIECh);
+  fChain->SetBranchAddress("LayerEvent.fSSDL1SMulti",   &LayerEvent_fSSDL1SMulti);
+  fChain->SetBranchAddress("LayerEvent.fSSDL2FMulti",   &LayerEvent_fSSDL2FMulti);
+  fChain->SetBranchAddress("LayerEvent.fSSDL2BMulti",  &LayerEvent_fSSDL2BMulti);
+  fChain->SetBranchAddress("LayerEvent.fSSDCsIMulti",    &LayerEvent_fSSDCsIMulti);
 
-   Notify();
+  Notify();
 }
 
 Bool_t Test_Multi::Notify()
 {
-   // The Notify() function is called when a new file is opened. This
-   // can be either for a new TTree in a TChain or when when a new TTree
-   // is started when using PROOF. It is normally not necessary to make changes
-   // to the generated code, but the routine can be extended by the
-   // user if needed. The return value is currently not used.
+  // The Notify() function is called when a new file is opened. This
+  // can be either for a new TTree in a TChain or when when a new TTree
+  // is started when using PROOF. It is normally not necessary to make changes
+  // to the generated code, but the routine can be extended by the
+  // user if needed. The return value is currently not used.
 
-   return kTRUE;
+  return kTRUE;
 }
 //______________________________________________________________________________
 
@@ -119,17 +119,15 @@ void Test_Multi::Loop()
 
   Long64_t nbytes = 0, nb = 0;
   for (Long64_t jentry=0; jentry<nentries;jentry++) {
-      Long64_t ientry = LoadTree(jentry);
-      if (ientry < 0) break;
-      nb = fChain->GetEntry(jentry);   nbytes += nb;
-      // if (Cut(ientry) < 0) continue;
-   }
+    Long64_t ientry = LoadTree(jentry);
+    if (ientry < 0) break;
+    nb = fChain->GetEntry(jentry);   nbytes += nb;
+    // if (Cut(ientry) < 0) continue;
+  }
 }
-//______________________________________________________________________________
+//______________________________________________________________________
 
-
-
-//______________________________________________________________________________
+//______________________________________________________________________
 // 自定义径迹查找算法1 : 循环-循环-判断-循环-判断-循环-判断
 // 自定义径迹查找算法2 : 循环-循环-循环-循环-判断-判断-判断-判断
 // 经验证, 算法2 与 算法1 等效 !
@@ -138,9 +136,9 @@ void Test_Multi::Loop()
 void Test_Multi::TrackReconstructionAlgorithm()
 {
   Int_t  globalmulti;
-  Int_t  ssdglobalmulti;                      // 每一个SSD的 globalmulti
-  Int_t  count_satisfiedmulticut[4]  =  {0};  // 满足初步 multi cut 计数
-  Int_t  count_effentries       [4]  =  {0};  // globalmulti>0 的计数
+  Int_t  ssdglobalmulti;                                       // 每一个SSD的 globalmulti
+  Int_t  count_satisfiedmulticut[4]  =  {0};   // 满足初步 multi cut 计数
+  Int_t  count_effentries  [4]  =  {0};                 // globalmulti>0 的计数
 
   TimeAndPercentage timeper;
 
@@ -153,7 +151,7 @@ void Test_Multi::TrackReconstructionAlgorithm()
     FileOut[i].open(Form("data/data_Test_Multi/SSD%d_Test_Multi_L1L2EnergyCut.dat",i+1));
   }
 
-  //____________________________________________________________________________
+  //_____________________________________________________________________
   Long64_t nentries = fChain->GetEntriesFast();
   cout<<"nentries = "<<nentries<<endl;
 
@@ -164,18 +162,16 @@ void Test_Multi::TrackReconstructionAlgorithm()
     if (ientry < 0) break;
     nb = fChain->GetEntry(jentry);   nbytes += nb;
     // if (Cut(ientry) < 0) continue;
-
     timeper.PrintPercentageAndRemainingTime(jentry, nentries);
-
     globalmulti = 0 ;
     for (Int_t numtel=0; numtel<NUM_SSD; numtel++) {
 
       ssdglobalmulti = 0;
 
-      if ((LayerEvent_fSSDCsIMulti[numtel]>0 && LayerEvent_fSSDCsIMulti[numtel]<=MULTICUT_L3A) &&
-          (LayerEvent_fSSDL2BMulti[numtel]>0 && LayerEvent_fSSDL2BMulti[numtel]<=MULTICUT_L2B) &&
-          (LayerEvent_fSSDL2FMulti[numtel]>0 && LayerEvent_fSSDL2FMulti[numtel]<=MULTICUT_L2F) &&
-          (LayerEvent_fSSDL1SMulti[numtel]>0 && LayerEvent_fSSDL1SMulti[numtel]<=MULTICUT_L1S))   // 给定初步的 multi cut
+      if ((LayerEvent_fSSDCsIMulti[numtel]>0 && LayerEvent_fSSDCsIMulti[numtel]  <=MULTICUT_L3A) &&
+       (LayerEvent_fSSDL2BMulti[numtel]>0 && LayerEvent_fSSDL2BMulti[numtel]<=MULTICUT_L2B) &&
+       (LayerEvent_fSSDL2FMulti[numtel]>0 && LayerEvent_fSSDL2FMulti[numtel] <=MULTICUT_L2F)  &&
+       (LayerEvent_fSSDL1SMulti[numtel]>0 && LayerEvent_fSSDL1SMulti[numtel]<=MULTICUT_L1S))   // 给定初步的 multi cut
       {
         count_satisfiedmulticut[numtel]++;
 
@@ -185,12 +181,12 @@ void Test_Multi::TrackReconstructionAlgorithm()
               for (Int_t l1smulti=0; l1smulti<LayerEvent_fL1SMulti; l1smulti++) {   //逐层循环,遍历所有可能的组合
 
                 if (LayerEvent_fCsISSDNum[csimulti]==numtel && LayerEvent_fL2BSSDNum[l2bmulti]==numtel &&
-                    LayerEvent_fL2FSSDNum[l2fmulti]==numtel && LayerEvent_fL1SSSDNum[l1smulti]==numtel)  // 对每个SSD分开讨论
+                  LayerEvent_fL2FSSDNum[l2fmulti]==numtel && LayerEvent_fL1SSSDNum[l1smulti]==numtel)  // 对每个SSD分开讨论
                 {
                   if (fPattern.GeoConstraint_L3A_L2B(LayerEvent_fCsINum[csimulti], LayerEvent_fL2BNumStrip[l2bmulti])      &&
-                      fPattern.EneConstraint_L2B_L2F(numtel, LayerEvent_fL2BEMeV[l2bmulti], LayerEvent_fL2FEMeV[l2fmulti]) &&
-                      fPattern.GeoConstraint_L3A_L2F(LayerEvent_fCsINum[csimulti], LayerEvent_fL2FNumStrip[l2fmulti])      &&
-                      fPattern.GeoConstraint_L2B_L1S(LayerEvent_fL2BNumStrip[l2bmulti], LayerEvent_fL1SNumStrip[l1smulti])) // 应用几何约束条件与L2的能量约束条件
+                    fPattern.EneConstraint_L2B_L2F(numtel, LayerEvent_fL2BEMeV[l2bmulti], LayerEvent_fL2FEMeV[l2fmulti]) &&
+                    fPattern.GeoConstraint_L3A_L2F(LayerEvent_fCsINum[csimulti], LayerEvent_fL2FNumStrip[l2fmulti])  &&
+                    fPattern.GeoConstraint_L2B_L1S(LayerEvent_fL2BNumStrip[l2bmulti], LayerEvent_fL1SNumStrip[l1smulti])) // 应用几何约束条件与L2的能量约束条件
                   {
                     if (!fPattern.EneConstraint_L1_L2(numtel, LayerEvent_fL1SEMeV[l1smulti], LayerEvent_fL2FEMeV[l2fmulti])) continue; //利用L1-L2的能量约束条件
                     globalmulti++;
@@ -207,19 +203,19 @@ void Test_Multi::TrackReconstructionAlgorithm()
                     fTrackEvent.fGL1SEMeV.push_back(LayerEvent_fL1SEMeV[l1smulti]);
 
                     FileOut[numtel]<<setw(10)<<"M_L3A = "<<setw(2)<<LayerEvent_fSSDCsIMulti[numtel]
-                                   <<setw(10)<<"M_L2B = "<<setw(2)<<LayerEvent_fSSDL2BMulti[numtel]
-                                   <<setw(10)<<"M_L2F = "<<setw(2)<<LayerEvent_fSSDL2FMulti[numtel]
-                                   <<setw(10)<<"M_L1S = "<<setw(2)<<LayerEvent_fSSDL1SMulti[numtel]
-                                   <<setw(15)<<"MultiGlobal = "<<ssdglobalmulti
-                                   <<setw(10)<<"CSI  = "<<setw(2)<<LayerEvent_fCsINum[csimulti]
-                                   <<setw(10)<<"L2B  = "<<setw(2)<<LayerEvent_fL2BNumStrip[l2bmulti]
-                                   <<setw(10)<<"L2F  = "<<setw(2)<<LayerEvent_fL2FNumStrip[l2fmulti]
-                                   <<setw(10)<<"L1S  = "<<setw(2)<<LayerEvent_fL1SNumStrip[l1smulti]
-                                   <<setw(10)<<"EL1S = "<<setw(7)<<LayerEvent_fL1SEMeV[l1smulti]
-                                   <<setw(10)<<"EL2F = "<<setw(7)<<LayerEvent_fL2FEMeV[l2fmulti]
-                                   <<setw(10)<<"EL2B = "<<setw(7)<<LayerEvent_fL2BEMeV[l2bmulti]
-                                   <<setw(10)<<"ECsI = "<<setw(4)<<LayerEvent_fCsIECh[csimulti]
-                                   <<endl;
+                           <<setw(10)<<"M_L2B = "<<setw(2)<<LayerEvent_fSSDL2BMulti[numtel]
+                           <<setw(10)<<"M_L2F = "<<setw(2)<<LayerEvent_fSSDL2FMulti[numtel]
+                           <<setw(10)<<"M_L1S = "<<setw(2)<<LayerEvent_fSSDL1SMulti[numtel]
+                           <<setw(15)<<"MultiGlobal = "<<ssdglobalmulti
+                           <<setw(10)<<"CSI  = "<<setw(2)<<LayerEvent_fCsINum[csimulti]
+                           <<setw(10)<<"L2B  = "<<setw(2)<<LayerEvent_fL2BNumStrip[l2bmulti]
+                           <<setw(10)<<"L2F  = "<<setw(2)<<LayerEvent_fL2FNumStrip[l2fmulti]
+                           <<setw(10)<<"L1S  = "<<setw(2)<<LayerEvent_fL1SNumStrip[l1smulti]
+                           <<setw(10)<<"EL1S = "<<setw(7)<<LayerEvent_fL1SEMeV[l1smulti]
+                           <<setw(10)<<"EL2F = "<<setw(7)<<LayerEvent_fL2FEMeV[l2fmulti]
+                           <<setw(10)<<"EL2B = "<<setw(7)<<LayerEvent_fL2BEMeV[l2bmulti]
+                           <<setw(10)<<"ECsI = "<<setw(4)<<LayerEvent_fCsIECh[csimulti]
+                           <<endl;
                   }
                 }
               }
@@ -238,41 +234,43 @@ void Test_Multi::TrackReconstructionAlgorithm()
   myfile->Close();
 
   for (Int_t i=0; i<NUM_SSD; i++) {
-     cout<<Form("count_satisfiedmulticut[%d] = ",i+1)<<count_satisfiedmulticut[i]<<setw(30)
-         <<Form("count_effentries[%d] = ",i+1)<<count_effentries[i]<<endl;
+    cout<<Form("count_satisfiedmulticut[%d] = ",i+1)<<count_satisfiedmulticut[i]<<setw(30)
+      <<Form("count_effentries[%d] = ",i+1)<<count_effentries[i]<<endl;
   }
 }
-//______________________________________________________________________________
+//______________________________________________________________________
 
 
-//______________________________________________________________________________
+//______________________________________________________________________
 // 将 TrackReconstructionAlgorithm 生成的 TrackEvent
 // 以 fridend 的形式添加到 LayerEvent 中
-void Test_Multi::AddTrackEventToLayerEvent()
+void Test_Multi::CheckTrackEvent()
 {
-  TFile* friendfile = new TFile("/home/sea/Fission2019_Data/CSHINEEvent/EventTree_Run0120-Run0130.root");
-  TFile* myfile     = new TFile("/home/sea/Fission2019_Data/TrackReconstructionEvent.root");
-
-  TTree* friendtree = (TTree*)friendfile->Get("LayerEvent");
-  TTree* mytree     = (TTree*)myfile->Get("TrackEvent");
-  mytree->AddFriend(friendtree, "LayerEvent");
+  TFile*  myfile    = new TFile("/home/sea/Fission2019_Data/TrackReconstructionEvent.root");
+  if (!myfile || !myfile->IsOpen()) {
+    cout<<Form("File %s not founded.",  myfile->GetName());
+    return;
+  }
+  
+  TTree* mytree = (TTree*)myfile->Get("TrackEvent");
+  mytree->SetMakeClass(1);
+  mytree->SetBranchAddress("LayerEvent.f");
 
   Long64_t nentries = mytree->GetEntriesFast();
   cout<<"nentries = "<<nentries<<endl;
 
-
-  mytree->Draw("TrackEvent.fSSDGlobalMulti[1]","TrackEvent.fSSDGlobalMulti[1]>0 \
-                && (LayerEvent.fSSDL1SMulti[1]>0 && LayerEvent.fSSDL1SMulti[1]<=6)  \
-                && (LayerEvent.fSSDL2FMulti[1]>0 && LayerEvent.fSSDL2FMulti[1]<=5)  \
-                && (LayerEvent.fSSDL2BMulti[1]>0 && LayerEvent.fSSDL2BMulti[1]<=5)  \
-                && (LayerEvent.fSSDCsIMulti[1]>0 && LayerEvent.fSSDCsIMulti[1]<=4)");
+  for (Long64_t ientry=0; ientry<nentries; ientry++) {
+    mytree->GetEntry(ientry);
+    fChain->GetEntry(ientry);
+    cout<<"LayerEvent_fL1SMulti = "<<LayerEvent_fSSDL1SMulti[1]<<endl;
+  }
 
 }
 
 
 
 
-//______________________________________________________________________________
+//______________________________________________________________________
 // 测试约束条件对事件数的影响
 // 计算每个条件对每一层的贡献
 // 这里只是计算 L2FL2B_EnergyCut = 0.15 的情况
@@ -280,46 +278,46 @@ void Test_Multi::CheckCutEffOnMulti()
 {}
 
 
-//______________________________________________________________________________
+//______________________________________________________________________
 void Test_Multi::CheckL2BL2FEnergyCorrelation()
 {}
 
 
-//______________________________________________________________________________
+//______________________________________________________________________
 void Test_Multi::DetermineL2BL2FEnergyErrRatio()
 {}
 
 
-//______________________________________________________________________________
+//______________________________________________________________________
 void Test_Multi::CheckEnergyLossL1L2()
 {}
 
 
-//______________________________________________________________________________
+//______________________________________________________________________
 void Test_Multi::CheckEnergyLossL1L2_Relationship()
 {}
 
 
-//______________________________________________________________________________
+//______________________________________________________________________
 void Test_Multi::CheckEnergyLossL1L2_Expdata()
 {}
 
 
-//______________________________________________________________________________
+//______________________________________________________________________
 void Test_Multi::CheckLayerMultiPercentage()
 {
 
 }
 
 
-//______________________________________________________________________________
+//______________________________________________________________________
 // 分析不同 fGlobalMulti 下的 fGlobalMulti 的比例
 // 这一步的分析依赖于 TrackReconstructionAlgorithm() 生成的 TrackEvent 文件
 void Test_Multi::CheckGlobalMultiRatio(Int_t ssdindex)
 {
   // 定义变量， 以用于计算不同 fGlobalMulti 的比例
-  Int_t    nummulti          =  7;     // 考察 globalmulti<nummulti 的情况
-  Int_t    globalmulti[7]    = {0};
+  Int_t  nummulti = 7;     // 考察 globalmulti<nummulti 的情况
+  Int_t  globalmulti[7] = {0};
   Double_t multiratio_0[7]   = {0.};
   Double_t sumratio_0        =  0.;
   Double_t multiratio_1[7]   = {0.};
@@ -332,17 +330,17 @@ void Test_Multi::CheckGlobalMultiRatio(Int_t ssdindex)
     return;
   }
 
-  Int_t                   TrackEvent_fGlobalMulti;
-  std::vector<Int_t>      TrackEvent_fSSDGlobalMulti;
-  std::vector<Int_t>      TrackEvent_fGSSDNum;
-  std::vector<Int_t>      TrackEvent_fGL1SNumStrip;
+  Int_t                                       TrackEvent_fGlobalMulti;
+  std::vector<Int_t>            TrackEvent_fSSDGlobalMulti;
+  std::vector<Int_t>            TrackEvent_fGSSDNum;
+  std::vector<Int_t>            TrackEvent_fGL1SNumStrip;
   std::vector<Double_t>   TrackEvent_fGL1SEMeV;
-  std::vector<Int_t>      TrackEvent_fGL2FNumStrip;
+  std::vector<Int_t>             TrackEvent_fGL2FNumStrip;
   std::vector<Double_t>   TrackEvent_fGL2FEMeV;
-  std::vector<Int_t>      TrackEvent_fGL2BNumStrip;
+  std::vector<Int_t>            TrackEvent_fGL2BNumStrip;
   std::vector<Double_t>   TrackEvent_fGL2BEMeV;
-  std::vector<Int_t>      TrackEvent_fGCsINum;
-  std::vector<Int_t>      TrackEvent_fGCsIECh;
+  std::vector<Int_t>            TrackEvent_fGCsINum;
+  std::vector<Int_t>            TrackEvent_fGCsIECh;
 
   TTree* mytree = (TTree*)myfile->Get("TrackEvent");
   Long64_t nentries = mytree->GetEntries();
@@ -392,37 +390,37 @@ void Test_Multi::CheckGlobalMultiRatio(Int_t ssdindex)
 }
 
 
-//______________________________________________________________________________
+//______________________________________________________________________
 void Test_Multi::GlobalMulti_ExtractData(Int_t globalmulti)
 {}
 
 
-//______________________________________________________________________________
+//______________________________________________________________________
 void Test_Multi::CheckParallelDraw(const char* fglobalmulti)
 {}
 
 
-//______________________________________________________________________________
+//______________________________________________________________________
 void Test_Multi::CheckL2L3DEEPlot(const char* fglobalmulti)
 {}
 
 
-//______________________________________________________________________________
+//______________________________________________________________________
 void Test_Multi::CheckL1L2DEEPlot(const char* fglobalmulti)
 {}
 
 
-//______________________________________________________________________________
+//______________________________________________________________________
 void Test_Multi::CheckChargeSharingEffect_L1(Int_t ssdindex)
 {}
 
 
-//______________________________________________________________________________
+//______________________________________________________________________
 void Test_Multi::ChangeModeToNumber(std::string mode, Int_t& l3a, Int_t& l2b, Int_t& l2f, Int_t& l1s)
 {}
 
 
-//______________________________________________________________________________
+//______________________________________________________________________
 Bool_t Test_Multi::IsModeMatched(Int_t mode_index, Int_t ch1, Int_t ch2)
 {
   return true;

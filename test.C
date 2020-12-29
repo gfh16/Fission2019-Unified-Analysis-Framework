@@ -6,7 +6,7 @@ using namespace std;
 void test()
 {
   Test_Multi test;
-  test.AddTrackEventToLayerEvent();
+  test.CheckTrackEvent();
 
 
 //  DecodefGlobalMulti2 decode;
