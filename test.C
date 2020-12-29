@@ -1,11 +1,12 @@
 #include "include/CSHINETrackReconstruction.h"
 #include "include/CSHINEEvent.h"
+#include "include/CSHINECsIEnergyCali.h"
 
 using namespace std;
 
 void test()
 {
-  Test_Multi test;
+  Test_Multi test(120, 130);
   test.CheckTrackEvent();
 
 
@@ -17,4 +18,7 @@ void test()
   //hit.GetPunchThroughEnergiesOfLCPs();
 //  CSHINEBuildEvent build;
 //  build.BuildLayerEventTree(120, 130);
+
+//  CSHINECsIEnergyCali csicali;
+//  csicali.GenerateDEEFITData(120,130);
 }

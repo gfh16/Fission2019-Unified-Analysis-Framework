@@ -43,12 +43,12 @@ CSHINEBuildEvent::CSHINEBuildEvent()
   fSiEChcutl2b   = fCSHINESSDCalibratedData.GetSiEChCut ("L2B");
   fCsIEChcutl3a = fCSHINESSDCalibratedData.GetCsIEChCut("L3A");
 
-  fSlopel1s     = fCSHINESSDCalibratedData.GetSiCaliSlope("L1S");
-  fSlopel2f     = fCSHINESSDCalibratedData.GetSiCaliSlope("L2F");
-  fSlopel2b     = fCSHINESSDCalibratedData.GetSiCaliSlope("L2B");
+  fSlopel1s   = fCSHINESSDCalibratedData.GetSiCaliSlope("L1S");
+  fSlopel2f    = fCSHINESSDCalibratedData.GetSiCaliSlope("L2F");
+  fSlopel2b   = fCSHINESSDCalibratedData.GetSiCaliSlope("L2B");
 
   fInterceptl1s = fCSHINESSDCalibratedData.GetSiCaliIntercept("L1S");
-  fInterceptl2f = fCSHINESSDCalibratedData.GetSiCaliIntercept("L2F");
+  fInterceptl2f  = fCSHINESSDCalibratedData.GetSiCaliIntercept("L2F");
   fInterceptl2b = fCSHINESSDCalibratedData.GetSiCaliIntercept("L2B");
 }
 
@@ -186,10 +186,10 @@ void CSHINEBuildEvent::BuildLayerEventTree(Int_t firstrun, Int_t lastrun)
     time.PrintPercentageAndRemainingTime(jentry, nentries);
 
     buildevent.BuildLayerEvent(layerevent,
-                               SSD_L1S_E[0],SSD_L2F_E[0],SSD_L2B_E[0],SSD_L3A_E[0],
-                               SSD_L1S_E[1],SSD_L2F_E[1],SSD_L2B_E[1],SSD_L3A_E[1],
-                               SSD_L1S_E[2],SSD_L2F_E[2],SSD_L2B_E[2],SSD_L3A_E[2],
-                               SSD_L1S_E[3],SSD_L2F_E[3],SSD_L2B_E[3],SSD_L3A_E[3]);
+                 SSD_L1S_E[0],SSD_L2F_E[0],SSD_L2B_E[0],SSD_L3A_E[0],
+                 SSD_L1S_E[1],SSD_L2F_E[1],SSD_L2B_E[1],SSD_L3A_E[1],
+                 SSD_L1S_E[2],SSD_L2F_E[2],SSD_L2B_E[2],SSD_L3A_E[2],
+                 SSD_L1S_E[3],SSD_L2F_E[3],SSD_L2B_E[3],SSD_L3A_E[3]);
     mytree->Fill();
     layerevent.Swap();
   }

@@ -22,6 +22,8 @@ private :
   CSHINESSDCalibratedData       fSiEChCut;
   Double_t                                           fL1ResidulE;
   Double_t                                           fL2IncidentE;
+  Int_t                                                    fFirstRun;
+  Int_t                                                    fLastRun;
 
 public :
   EnergyLossModule                      fLISEModule;
@@ -61,12 +63,10 @@ public :
   std::vector<Int_t>                 LayerEvent_fSSDCsIMulti;  //[NUM_SSD]
 
 
-  Test_Multi(TTree *tree=0);
+  Test_Multi(Int_t firstrun, Int_t lastrun);
   virtual ~Test_Multi();
-  virtual Long64_t LoadTree(Long64_t entry);
   virtual void     Init(TTree *tree);
-  virtual void     Loop();
-  virtual Bool_t   Notify();
+
 
   //_________________________________________
   //user-defined function

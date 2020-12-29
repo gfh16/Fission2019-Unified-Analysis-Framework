@@ -6,7 +6,6 @@
   gROOT->ProcessLine(".L src/TimeAndPercentage.C");
   gROOT->ProcessLine(".L src/shared.C");
   gROOT->ProcessLine(".L src/ReadFileModule.C");
-
   gROOT->ProcessLine(".L src/CSHINESSDCalibratedData.C");
   gROOT->ProcessLine(".L src/CSHINESiPixelGeometry.C");
   gROOT->ProcessLine(".L src/CSHINETrackReconstruction.C");
@@ -16,10 +15,10 @@
   gROOT->ProcessLine(".L src/CSHINESiEnergyCali.C");
   gROOT->ProcessLine(".L src/CSHINEAlphaCali.C");
   gROOT->ProcessLine(".L src/CSHINEPulserCali.C");
+  gROOT->ProcessLine(".L src/CSHINECsIEnergyCali.C");
   gROOT->ProcessLine(".L src/CSHINEDataAnalysisFramework.C");
   gROOT->ProcessLine(".L src/CSHINESSDDataAnalysisFramework.C");
   gROOT->ProcessLine(".L Test_Multi.C");
-
 
   printf("Welcome to Fission2019-Unified-Analysis-Framework/\n");
 }

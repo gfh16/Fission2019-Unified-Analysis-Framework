@@ -6,17 +6,18 @@ using namespace std;
 
 
 //______________________________________________________________________________
-Test_Multi::Test_Multi(TTree *tree) : fChain(0)
+Test_Multi::Test_Multi(Int_t firstrun, Int_t lastrun) : fChain(0)
 {
-  // if parameter tree is not specified (or zero), connect the file
-  // used to generate this class and read the Tree.
-  if (tree == 0) {
-    TFile *f = (TFile*)gROOT->GetListOfFiles()->FindObject("/home/sea/Fission2019_Data/CSHINEEvent/EventTree_Run0120-Run0130.root");
-    if (!f || !f->IsOpen()) {
-      f = new TFile("/home/sea/Fission2019_Data/CSHINEEvent/EventTree_Run0120-Run0130.root");
-    }
-    f->GetObject("LayerEvent",tree);
+  fFirstRun = firstrun;
+  fLastRun = lastrun;
+
+  std::string pathrootfilein(Form("/home/sea/Fission2019_Data/CSHINEEvent/EventTree_Run%04d-Run%04d.root", fFirstRun, fLastRun));
+  TTree* tree = 0;
+  TFile* f = (TFile*)gROOT->GetListOfFiles()->FindObject(pathrootfilein.c_str());
+  if (!f || !f->IsOpen()) {
+    f = new TFile(pathrootfilein.c_str());
   }
+  f->GetObject("LayerEvent",tree);
   Init(tree);
 }
 
@@ -26,18 +27,6 @@ Test_Multi::~Test_Multi()
   // delete fChain->GetCurrentFile();
 }
 
-Long64_t Test_Multi::LoadTree(Long64_t entry)
-{
-  // Set the environment to read one entry
-  if (!fChain) return -5;
-  Long64_t centry = fChain->LoadTree(entry);
-  if (centry < 0) return centry;
-  if (fChain->GetTreeNumber() != fCurrent) {
-    fCurrent = fChain->GetTreeNumber();
-    Notify();
-  }
-  return centry;
-}
 
 void Test_Multi::Init(TTree* tree)
 {
@@ -67,65 +56,10 @@ void Test_Multi::Init(TTree* tree)
   fChain->SetBranchAddress("LayerEvent.fSSDL2FMulti",   &LayerEvent_fSSDL2FMulti);
   fChain->SetBranchAddress("LayerEvent.fSSDL2BMulti",  &LayerEvent_fSSDL2BMulti);
   fChain->SetBranchAddress("LayerEvent.fSSDCsIMulti",    &LayerEvent_fSSDCsIMulti);
-
-  Notify();
 }
 
-Bool_t Test_Multi::Notify()
-{
-  // The Notify() function is called when a new file is opened. This
-  // can be either for a new TTree in a TChain or when when a new TTree
-  // is started when using PROOF. It is normally not necessary to make changes
-  // to the generated code, but the routine can be extended by the
-  // user if needed. The return value is currently not used.
-
-  return kTRUE;
-}
-//______________________________________________________________________________
-
-
-//______________________________________________________________________________
-void Test_Multi::Loop()
-{
-//______________________________________________________________________________
-//   In a ROOT session, you can do:
-//      root> .L Test_Multi.C
-//      root> Test_Multi t
-//      root> t.GetEntry(12); // Fill t data members with entry number 12
-//      root> t.Show(16);     // Read and show values of entry 16
-//      root> t.Loop();       // Loop on all entries
-//
-
-//     This is the loop skeleton where:
-//    jentry is the global entry number in the chain
-//    ientry is the entry number in the current Tree
-//  Note that the argument to GetEntry must be:
-//    jentry for TChain::GetEntry
-//    ientry for TTree::GetEntry and TBranch::GetEntry
-//
-//       To read only selected branches, Insert statements like:
-// METHOD1:
-//    fChain->SetBranchStatus("*",0);  // disable all branches
-//    fChain->SetBranchStatus("branchname",1);  // activate branchname
-// METHOD2: replace line
-//    fChain->GetEntry(jentry);       //read all branches
-//by  b_branchname->GetEntry(ientry); //read only this branch
-//______________________________________________________________________________
-
-  if (fChain == 0) return;
-
-  Long64_t nentries = fChain->GetEntriesFast();
-  cout<<"nentries = "<<nentries<<endl;
-
-  Long64_t nbytes = 0, nb = 0;
-  for (Long64_t jentry=0; jentry<nentries;jentry++) {
-    Long64_t ientry = LoadTree(jentry);
-    if (ientry < 0) break;
-    nb = fChain->GetEntry(jentry);   nbytes += nb;
-    // if (Cut(ientry) < 0) continue;
-  }
-}
 //______________________________________________________________________
+
 
 //______________________________________________________________________
 // 自定义径迹查找算法1 : 循环-循环-判断-循环-判断-循环-判断
@@ -155,13 +89,10 @@ void Test_Multi::TrackReconstructionAlgorithm()
   Long64_t nentries = fChain->GetEntriesFast();
   cout<<"nentries = "<<nentries<<endl;
 
-  Long64_t nbytes = 0, nb = 0;
-  for (Long64_t jentry=0; jentry<nentries;jentry++) {
+  for (Long64_t jentry=0; jentry<nentries; jentry++) {
+    
+    fChain->GetEntry(jentry);
 
-    Long64_t ientry = LoadTree(jentry);
-    if (ientry < 0) break;
-    nb = fChain->GetEntry(jentry);   nbytes += nb;
-    // if (Cut(ientry) < 0) continue;
     timeper.PrintPercentageAndRemainingTime(jentry, nentries);
     globalmulti = 0 ;
     for (Int_t numtel=0; numtel<NUM_SSD; numtel++) {
@@ -251,18 +182,18 @@ void Test_Multi::CheckTrackEvent()
     cout<<Form("File %s not founded.",  myfile->GetName());
     return;
   }
-  
+
   TTree* mytree = (TTree*)myfile->Get("TrackEvent");
   mytree->SetMakeClass(1);
-  mytree->SetBranchAddress("LayerEvent.f");
+  //mytree->SetBranchAddress("LayerEvent.f");
 
   Long64_t nentries = mytree->GetEntriesFast();
   cout<<"nentries = "<<nentries<<endl;
 
   for (Long64_t ientry=0; ientry<nentries; ientry++) {
-    mytree->GetEntry(ientry);
-    fChain->GetEntry(ientry);
-    cout<<"LayerEvent_fL1SMulti = "<<LayerEvent_fSSDL1SMulti[1]<<endl;
+  //  mytree->GetEntry(ientry);
+  //  fChain->GetEntry(ientry);
+  //  cout<<"LayerEvent_fL1SMulti = "<<LayerEvent_fSSDL1SMulti[1]<<endl;
   }
 
 }
