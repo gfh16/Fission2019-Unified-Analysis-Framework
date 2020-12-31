@@ -1,5 +1,5 @@
 ////////////////////////////////
-// MGraphFrame implementation 
+// MGraphFrame implementation
 // Author: Enrico De Filippo (2010)
 // v0.2 for deefit 1.1
 ////////////////////////////////
@@ -10,7 +10,7 @@
 
 
 //Constructor
-//Define the graphical interface 
+//Define the graphical interface
 MGraphFrame::MGraphFrame(const TGWindow *p, const TGWindow *main, MInfo *info) :
  TGTransientFrame(p, main, 10, 10, kVerticalFrame)
 {
@@ -35,21 +35,21 @@ MGraphFrame::MGraphFrame(const TGWindow *p, const TGWindow *main, MInfo *info) :
  TGLabel *labper = new TGLabel(hmiddle,"Event's percentage:");
  fslperc = new TGHSlider(hmiddle,178, kSlider2 | kScaleBoth);
  fslperc->SetRange(0,100);
- fslperc->SetPosition(10); 
+ fslperc->SetPosition(10);
  TGHorizontal3DLine *fline = new TGHorizontal3DLine(hmiddle);
 
  hmiddle->AddFrame(labper, new TGLayoutHints(kLHintsLeft | kLHintsCenterY, 2, 5, 2, 2));
  hmiddle->AddFrame(fslperc, new TGLayoutHints(kLHintsLeft | kLHintsCenterY, 2, 5, 2, 2));
- hmiddle->AddFrame(fline, new TGLayoutHints(kLHintsLeft | kLHintsTop | 
+ hmiddle->AddFrame(fline, new TGLayoutHints(kLHintsLeft | kLHintsTop |
                    kLHintsExpandX, -310, 5, 50, 2));
  AddFrame(hmiddle, new TGLayoutHints(kLHintsTop | kLHintsExpandX, 4, 4, 3, 3));
- 
+
  TGHorizontalFrame *hbottom = new TGHorizontalFrame(this, 10, 10);
  TGTextButton *fdraw = new TGTextButton(hbottom,"  DONE  ");
  TGTextButton *fexit = new TGTextButton(hbottom," CANCEL ");
  hbottom->AddFrame(fdraw, new TGLayoutHints(kLHintsLeft | kLHintsCenterY, 5, 5, 10, 2));
  hbottom->AddFrame(fexit, new TGLayoutHints(kLHintsLeft | kLHintsCenterY, 35, 5, 10, 2));
- AddFrame(hbottom, new TGLayoutHints(kLHintsTop | kLHintsCenterX, 0, 0, 3, 3)); 
+ AddFrame(hbottom, new TGLayoutHints(kLHintsTop | kLHintsCenterX, 0, 0, 3, 3));
 
  // Create status bar
  Int_t parts[] = { 80, 20 };
@@ -59,7 +59,7 @@ MGraphFrame::MGraphFrame(const TGWindow *p, const TGWindow *main, MInfo *info) :
  AddFrame(fStatus, new TGLayoutHints(kLHintsBottom | kLHintsLeft | kLHintsExpandX, 2, 2, 1, 1));
 
 
- fexit->Connect("Clicked()","MGraphFrame",this,"CloseWindow()"); 
+ fexit->Connect("Clicked()","MGraphFrame",this,"CloseWindow()");
  fdraw->Connect("Clicked()","MGraphFrame",this,"GetData()");
  fslperc->Connect("Released()","MGraphFrame",this,"PrintSlider()");
 
@@ -78,7 +78,7 @@ MGraphFrame::MGraphFrame(const TGWindow *p, const TGWindow *main, MInfo *info) :
               kMWMFuncAll | kMWMFuncResize    | kMWMFuncMaximize |
                             kMWMFuncMinimize,
                kMWMInputModeless);
- 
+
 
  MapWindow();
  PrintSlider();
@@ -87,15 +87,15 @@ MGraphFrame::MGraphFrame(const TGWindow *p, const TGWindow *main, MInfo *info) :
 
 //Destructor
 MGraphFrame::~MGraphFrame()
-{ 
- 
+{
+
 }
 
 void MGraphFrame::CloseWindow()
 {
  finfo->fperc = 0;
  finfo->fok = false;
- DeleteWindow(); 
+ DeleteWindow();
 }
 
 void MGraphFrame::GetData()
@@ -110,7 +110,7 @@ void MGraphFrame::GetData()
  strcpy(oldbuffer, fdata->GetString());
  finfo->fperc = fslperc->GetPosition();
  finfo->fok = true;
- DeleteWindow(); 
+ DeleteWindow();
 }
 
 //Print the current selection in status bar
@@ -120,6 +120,3 @@ void MGraphFrame::PrintSlider()
  sprintf(msg, "Event's Percentage %d (%%)",fslperc->GetPosition());
  fStatus->SetText(msg,0);
 }
-
-
-

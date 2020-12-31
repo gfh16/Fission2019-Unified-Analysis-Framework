@@ -6,8 +6,8 @@ using namespace std;
 
 void test()
 {
-  Test_Multi test(120, 130);
-  test.CheckTrackEvent();
+// Test_Multi test(120, 130);
+//  test.TrackReconstructionAlgorithm();
 
 
 //  DecodefGlobalMulti2 decode;
@@ -19,6 +19,6 @@ void test()
 //  CSHINEBuildEvent build;
 //  build.BuildLayerEventTree(120, 130);
 
-//  CSHINECsIEnergyCali csicali;
-//  csicali.GenerateDEEFITData(120,130);
+ CSHINECsIEnergyCali csicali(120, 130);
+ csicali.RunDEEFitCode();
 }

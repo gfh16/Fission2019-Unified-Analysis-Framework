@@ -76,7 +76,7 @@ void Test_Multi::TrackReconstructionAlgorithm()
 
   TimeAndPercentage timeper;
 
-  TFile* myfile = new TFile("/home/sea/Fission2019_Data/TrackReconstructionEvent.root","RECREATE");
+  TFile* myfile = new TFile(Form("/home/sea/Fission2019_Data/TrackReconstructionEvent_Run%04d-Run%04d.root", fFirstRun, fLastRun),"RECREATE");
   TTree* mytree = new TTree("TrackEvent","TrackEvent Tree");
   mytree->Branch("TrackEvent.", "CSHINETrackEvent", &fTrackEvent, 32000, 2);
 
@@ -90,7 +90,7 @@ void Test_Multi::TrackReconstructionAlgorithm()
   cout<<"nentries = "<<nentries<<endl;
 
   for (Long64_t jentry=0; jentry<nentries; jentry++) {
-    
+
     fChain->GetEntry(jentry);
 
     timeper.PrintPercentageAndRemainingTime(jentry, nentries);

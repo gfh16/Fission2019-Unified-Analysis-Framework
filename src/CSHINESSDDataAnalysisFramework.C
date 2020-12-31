@@ -30,7 +30,7 @@ void CSHINESSDDataAnalysisFramework::Step4_SSDDataAnalysisFramework()
     cout<<"41.Step41_PedestalCali()           --  Pedestal 刻度"<<endl;
     cout<<"42.Step42_SiEnergyCali()           --  硅条能量刻度"<<endl;
     cout<<"43.Step43_SiPixellation()          --  硅条的像素化"<<endl;
-    cout<<"44.Step44_TrackReconstruction()  --  SSD 径迹重建"<<endl;
+    cout<<"44.Step44_TrackReconstruction()    --  SSD 径迹重建"<<endl;
     cout<<"45.Step45_CsIEnergyCali()          --  CsI 能量刻度"<<endl;
     cout<<"46.Step46_ParticleIdentification() --  PID"<<endl;
     cout<<"47.Step47_EventTree()              --  最终数据存储"<<endl;

@@ -122,7 +122,7 @@ void CSHINEDataAnalysisFramework::Step2_QualityChecks()
     if (option_step2 == 23)  system("vim Makefile");
     if (option_step2 == 24)  system("make clean");
     if (option_step2 == 25)  system("make -j16");
-    if (option_step2 == 26)  { cout<<pathFileout.c_str()<<endl; system("./exec_QualityCheck"); }
+    if (option_step2 == 26)  { cout<<pathFileout.c_str()<<endl; system("cd exec/ && ./exec_QualityCheck"); }
 
     cout<<"请选择下一步操作: "<<endl;
     cout<<"1.返回 Step2, 重新进行操作选择"<<endl;
