@@ -1,0 +1,341 @@
+# include "../include/CSHINEParticleIdentification.h"
+using namespace std;
+
+
+//______________________________________________________________________________
+CSHINEDEEFITPID::CSHINEDEEFITPID()
+{}
+
+CSHINEDEEFITPID::~CSHINEDEEFITPID()
+{}
+//______________________________________________________________________________
+
+
+//______________________________________________________________________________
+// 在本次实验中, 将借助 DEEFIT 工具进行 CsI 晶体的能量刻度
+// 由于 DEEFIT 对数据格式有要求, 因此首先需要将实验数据存成 DEEFIT 格式： 3个branch
+// tree->SetBranch("numtel", &numtel, "numtel/s");
+// tree->SetBranch("desipgf",&desipgf,"desipgf/f");
+// ree->SetBranch("fastpg",  &fastpg, "fastpg/s");
+void CSHINEDEEFITPID::GenerateDEEFITData(Int_t firstrun, Int_t lastrun)
+{
+	std::string pathrootfilein(Form("/home/sea/Fission2019_Data/TrackReconstructionEvent_Run%04d-Run%04d.root", firstrun, lastrun));
+  std::string pathrootfileout(Form("/home/sea/Fission2019_Data/DEEFITData_Run%04d-%04d.root", firstrun, lastrun));
+
+ // 新建 root 文件
+  TFile* newfile = new TFile(pathrootfileout.c_str(), "RECREATE");
+  if (!newfile || !newfile->IsOpen()) {
+    cout<<Form("File %s not found.\n", pathrootfileout.c_str());
+    return;
+  }
+ // 创建 DEEFIT tree
+  fdeefitdata = new DEEFITTreeData;
+  TTree* newtree = new TTree("h1", "DEEFIT tree for Fission2019");
+  newtree->Branch("numtel", &fdeefitdata->numtel, "numtel/S"); // number of CsI
+  newtree->Branch("desipgf",&fdeefitdata->desipgf,"desipgf/F");// dESi
+  newtree->Branch("fastpg", &fdeefitdata->fastpg, "fastpg/S"); // ECsI
+
+  Int_t TrackEvent_fGlobalMulti;
+  std::vector<Int_t> TrackEvent_fGSSDNum;
+  std::vector<Double_t> TrackEvent_fGL2FEMeV;
+  std::vector<Int_t> TrackEvent_fGCsINum;
+  std::vector<Int_t> TrackEvent_fGCsIECh;
+ // 读取 TrackEvent，用于生成 DEFFIT 数据
+  TFile* readfile = new TFile(pathrootfilein.c_str(), "READONLY");
+  TTree* readtree = (TTree*)readfile->Get("TrackEvent");
+  readtree->SetMakeClass(1);
+ // 只打开需要的 branch
+  readtree->SetBranchStatus("*", 0);
+  readtree->SetBranchStatus("TrackEvent.fGlobalMulti", 1);
+  readtree->SetBranchStatus("TrackEvent.fGSSDNum", 1);
+  readtree->SetBranchStatus("TrackEvent.fGL2FEMeV",1);
+  readtree->SetBranchStatus("TrackEvent.fGCsINum", 1);
+  readtree->SetBranchStatus("TrackEvent.fGCsIECh", 1);
+ // SetBranchAddress
+  readtree->SetBranchAddress("TrackEvent.fGlobalMulti", &TrackEvent_fGlobalMulti);
+  readtree->SetBranchAddress("TrackEvent.fGSSDNum", &TrackEvent_fGSSDNum);
+  readtree->SetBranchAddress("TrackEvent.fGL2FEMeV",&TrackEvent_fGL2FEMeV);
+  readtree->SetBranchAddress("TrackEvent.fGCsINum", &TrackEvent_fGCsINum);
+  readtree->SetBranchAddress("TrackEvent.fGCsIECh", &TrackEvent_fGCsIECh);
+
+  Long64_t nentries = readtree->GetEntries();
+  cout<<"nentries = "<<nentries<<endl;
+  for (Long64_t ientry=0; ientry<nentries; ientry++) {
+    readtree->GetEntry(ientry);
+
+    if (TrackEvent_fGlobalMulti==1) {
+      fdeefitdata->numtel  = (UShort_t)TrackEvent_fGSSDNum[0]*9 + TrackEvent_fGCsINum[0];
+      fdeefitdata->desipgf = (Float_t) TrackEvent_fGL2FEMeV[0];
+      fdeefitdata->fastpg  = (UShort_t)TrackEvent_fGCsIECh[0];
+    }
+    newtree->Fill();
+  }
+  newfile->Write();
+  newfile->Close();
+  readfile->Close();
+}
+
+
+//______________________________________________________________________________
+// DEEFIT 是意大利国家核物理研究院 INFN-LNS 为 CHIMERA 探测器开发的一套
+// 用于硅望远镜粒子鉴别的工具
+// DEEFIT 的源文件请参考 DEEFIT/ 文件夹下的：
+// ** MDEEFrame.h && MDEEFrame.C ： DEEFIT 的框架与主体
+// ** MTree.h && MTree.C : DEFFIT 输入数据的结构要求
+void CSHINEDEEFITPID::RunDEEFITCode()
+{
+  system("cd DEEFIT/ && ./deefit_S");
+}
+
+
+//——————————————————————————————————————————————————————————————————————————————
+//           以下函数都是从 DEFFIT 程序中直接移植过来的
+//        ------------------------------------------
+// Double_t   DEEFITFunc14(DEEFITParticle& p, Double_t* par)
+// Double_t **LoadFitParam(const char* name);
+// Int_t      Get_Charge(Int_t ntel, Double_t de, Double_t fast, Int_t* iter, Double_t* zeta, Double_t* par);
+// Double_t   Get_Mass(Int_t ntel, Int_t charge, Double_t de, Double_t fast, Int_t* iter, Double_t* par);
+
+//______________________________________________________________________________
+//              定义 DEEFIT 采用的拟合函数 func14
+// Function for DE-E identification based on formulas from
+//   *** N. Le Neindre et al. NIM A490 (2002) 251 ***
+// modified following the formula of W. Gawlikowicz for Light-Energy relation in CsI(Tl)
+//   *** W. Gawlikowicz, NIM A491 (2002) 181. ***
+// Adapted by Amalia Pop following ref.:
+//   *** J. Blicharska et al. LNS report 2005 ***
+// This formula needs 14 fit parameters
+Double_t CSHINEDEEFITPID::DEEFITFunc14(DEEFITParticle& p, Double_t* par)
+{
+  Double_t X = p.E;
+  Double_t Z = p.Z;
+  Double_t A = p.A;
+  Double_t xx, exp1, exp2, res=1.0;
+  Double_t reslog, ene;
+
+  if(Z==0 && A==0) return par[12];
+
+  xx = X-par[13];
+  bool foffset = false; //this is true for fitting procedure, false for the analysis
+  //if xx<0 never reached from data analysis
+  if(xx<=0) {
+    if(foffset) xx = X;
+    else return res;
+  }
+
+  exp1   = par[2] + par[3] + 1;
+  exp2   = 1./exp1;
+  reslog = log(1.+ par[9]*Z)*(1. - exp(-par[10]*pow(Z,par[11])))/Z;
+  ene    = par[6]*reslog*xx ;
+  ene    = ene + par[7]*Z*sqrt(A)*log(1. + par[8]*reslog*xx);
+  res    = pow(ene,exp1)
+         + pow((par[4]*pow(Z,par[0])*pow(A,par[1])),exp1)
+         + par[5]*pow(Z,2)*pow(A,par[2])*pow(ene,par[3]);
+
+  res    = pow(res,exp2) - ene + par[12];
+  return res;
+}
+
+
+//______________________________________________________________________________
+// 读取 DEFFIT 中 Func14 的拟合参数
+// 拟合采用的是 14 参数的公式， 因此参数有 14 个
+// LoadDEEFITPars() 由 DEEFIT 中函数 LoadFitParam（）变形而来
+//     void MDEEFrame::LoadFitParam(const char *name)
+Double_t** CSHINEDEEFITPID::LoadDEEFITPars(const char* pathParsFile)
+{
+  Int_t    ntel, np, lm;
+  Double_t param[fMAXFP], chi2;
+  Int_t    km;  // 源程序中, ecalcmass km; 没搞清楚 ecalcmass 是什么类型; 这里用 Int_t 代替
+
+  Double_t** fvpar = NULL;
+	fvpar = new Double_t* [NUM_SSD*NUM_CSI]; // four Si-Si-CsI telescopes, 36 CsI crystals in total
+  for (Int_t i=0; i<NUM_SSD*NUM_CSI; i++) {
+    fvpar[i] = new Double_t[fMAXFP];
+	}
+
+  ifstream in(pathParsFile, ios::in);
+  if (in) {
+    while(!in.eof()) {
+			// 这里的按行读取数据的方式与 DEEFIT 元代码稍有不同！ 但不影响正常使用！
+			std::string LineRead;
+      std::getline(in, LineRead);
+			LineRead.assign(LineRead.substr(0, LineRead.find('*')));
+      if(LineRead.empty()) continue;
+      if(LineRead.find_first_not_of(' ')==std::string::npos) continue;
+      std::istringstream LineStream(LineRead);
+
+      LineStream>>ntel>>lm>>np;
+      km = (Int_t) lm;
+      if(!LineStream.fail()) {
+        for(Int_t i=0; i<np; i++) {
+          LineStream>>param[i];
+          fvpar[ntel][i] = param[i];
+        }
+        LineStream>>chi2;
+      }
+    }
+    cout<<"Parameter table value loaded from file: "<<pathParsFile<<endl;
+    in.close();
+  }
+  return fvpar;
+}
+
+
+//______________________________________________________________________________
+Int_t CSHINEDEEFITPID::GetDEEFITCharge(Int_t ntel, Double_t de, Double_t fast,
+	Int_t* iter, Double_t* zeta, Double_t* par)
+{
+	const Int_t maxiter = 500, zlim = 4;
+  Int_t    cres  = 1, izeta;
+  Double_t zmin  = 1, zmax = zlim, ztest, atest = 0, yy, dist;
+  Double_t amass = 0, amassp = 0, amassm = 0;
+  Bool_t   found = kFALSE;
+  MPart    p;
+
+  *iter = 0;
+  *zeta = 0.0;
+  while(*iter < maxiter) {
+    (*iter)++;
+    ztest = (zmin + zmax) / 2.0;
+
+	  atest = 2.0*ztest;
+	  if(atest == 1) atest=2.;
+
+    p.x = fast;
+    p.Z = ztest;
+    p.A = atest;
+    yy = DEEFITFunc14(p,par);;
+    if(yy == 1.0) {
+	    cres = 0;
+	    return cres;
+    }
+    if((Int_t)(zmin + 0.5) == (Int_t)(zmax + 0.5)) {
+	    found = kTRUE;
+	    break;
+    }
+    if((de - yy)>=0) {
+	    zmin = ztest;
+	    continue;
+    }
+		else {
+	    zmax = ztest;
+	    continue;
+    }
+  }
+  if(!found) {
+    cout<<"Get_Charge>> Convergenze not reached"<<endl;
+  }
+  cres = (Int_t)(zmin+0.5);
+  izeta = cres;
+  if(cres > zlim) {
+  *zeta = izeta;
+  return cres;
+}
+
+  // dispersion around mean charge value
+  p.x = fast;
+  p.Z = izeta;
+	amass  = 2.0*izeta;
+	amassp = 2.0*(izeta + 1);
+	amassm = 2.0*(izeta - 1);
+
+  p.A = amass;
+  yy = DEEFITFunc14(p,par);
+  dist = de - yy;
+  if(dist >= 0.0) {
+	  p.Z = izeta + 1;
+	  p.A = amassp;  //z+1
+	  *zeta = (Double_t) izeta + dist/(DEEFITFunc14(p,par) - yy);
+  }
+  else {
+	  p.Z = izeta - 1;
+	  p.A = amassm;  //zeta-1
+	  *zeta = (Double_t) izeta + dist/(yy- (izeta>1 ? DEEFITFunc14(p,par) : 0.));
+  }
+  if(*zeta>0 && *zeta<0.5) *zeta = 0.51;
+  return cres;
+}
+
+
+//______________________________________________________________________________
+Double_t CSHINEDEEFITPID::GetDEEFITMass(Int_t ntel, Int_t charge, Double_t de,
+	Double_t fast, Int_t* iter, Double_t* par)
+{
+	const Int_t maxiter = 1000;
+  Bool_t   found = kFALSE;
+  Double_t amin, amax;
+  Double_t Amin[] = {0, 2, 4, 6, 7, 9, 11, 13, 14, 17, 19, 21, 22, 23};
+  Double_t Amax[] = {6, 10, 11, 12, 13, 15, 18, 26, 29, 32, 35, 36, 38, 41};
+  Double_t mass = 0.0, fmass, yy, atest, dist, dmin=0.10;
+  MPart p;
+
+  *iter = 0;
+  amin = Amin[charge-1];
+  amax = Amax[charge-1];
+
+  p.x = fast;
+  p.Z = charge;
+  while(*iter < maxiter) {
+    (*iter)++;
+    atest = (amax + amin) / 2.0;
+    p.A = atest;
+    yy = DEEFITFunc14(p,par);
+    if(yy == 1.0) return 0.0;
+
+    dist = de - yy;
+    if(fabs(dist) <= dmin) {
+      found = kTRUE;
+      break;
+    }
+    if((de - yy)>=0) {
+      amin = atest;
+      continue;
+    }
+    else {
+      amax = atest;
+      continue;
+    }
+  }  //end convergenze loop
+
+  if(!found) {
+    if(amin == amax) return 0.0;
+    else {
+      if(charge > 1) {
+        cout<<"Get_Mass>> Warning: charge convergenze failed:  Z="<<charge<<endl;
+      }
+    }
+  }
+
+  mass = Int_t(atest + 0.5);
+  p.A = mass;
+  yy = DEEFITFunc14(p,par);
+  if(yy == 1.0) return 0.0;
+  if(mass == 0) return 0;
+
+ // calculate dispersion around mean mass value
+  dist = de - yy;
+  if(dist >= 0.0) {
+    p.A = mass + 1.;
+    fmass = mass + dist/(DEEFITFunc14(p,par) - yy);
+  }
+  else {
+    p.A = mass - 1.;
+    fmass = mass + dist/(yy - DEEFITFunc14(p,par));
+  }
+  if(int(fmass + 0.5) != int(mass + 0.5)) {
+    if(dist > 0) fmass = int(mass + 0.5) + 0.501;
+    else fmass = int(fmass + 0.5) + 0.499;
+ }
+ if((fmass > 0) && (fmass < 0.5)) fmass = 0.51;
+ if(fmass < 0) fmass = 0.51;
+ return fmass;
+}
+
+
+//______________________________________________________________________________
+CSHINEStraighteningPID::CSHINEStraighteningPID(Int_t firstrun, Int_t lastrun)
+{}
+
+CSHINEStraighteningPID::~CSHINEStraighteningPID()
+{}

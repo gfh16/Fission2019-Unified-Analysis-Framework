@@ -1,6 +1,7 @@
 #include "include/CSHINETrackReconstruction.h"
 #include "include/CSHINEEvent.h"
-#include "include/CSHINECsIEnergyCali.h"
+#include "include/CSHINEParticleIdentification.h"
+#include "include/TimeAndPercentage.h"
 
 using namespace std;
 
@@ -19,6 +20,13 @@ void test()
 //  CSHINEBuildEvent build;
 //  build.BuildLayerEventTree(120, 130);
 
- CSHINECsIEnergyCali csicali(120, 130);
- csicali.RunDEEFitCode();
+ CSHINEDEEFITPID cali;
+ cali.RunDEEFITCode();
+
+//  Int_t num = 10000;
+//  TimeAndPercentage timer;
+//  for (Int_t i=0; i<num; i++) {
+//    timer.PrintPercentageAndRemainingTime(i, num);
+
+//  }
 }
