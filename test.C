@@ -21,7 +21,7 @@ void test()
 //  build.BuildLayerEventTree(120, 130);
 
  CSHINEDEEFITPID cali;
- cali.RunDEEFITCode();
+ cali.DEEFITRunCode();
 
 //  Int_t num = 10000;
 //  TimeAndPercentage timer;

@@ -17,7 +17,7 @@ CSHINEDEEFITPID::~CSHINEDEEFITPID()
 // tree->SetBranch("numtel", &numtel, "numtel/s");
 // tree->SetBranch("desipgf",&desipgf,"desipgf/f");
 // ree->SetBranch("fastpg",  &fastpg, "fastpg/s");
-void CSHINEDEEFITPID::GenerateDEEFITData(Int_t firstrun, Int_t lastrun)
+void CSHINEDEEFITPID::DEEFITGenerateData(Int_t firstrun, Int_t lastrun)
 {
 	std::string pathrootfilein(Form("/home/sea/Fission2019_Data/TrackReconstructionEvent_Run%04d-Run%04d.root", firstrun, lastrun));
   std::string pathrootfileout(Form("/home/sea/Fission2019_Data/DEEFITData_Run%04d-%04d.root", firstrun, lastrun));
@@ -82,7 +82,7 @@ void CSHINEDEEFITPID::GenerateDEEFITData(Int_t firstrun, Int_t lastrun)
 // DEEFIT 的源文件请参考 DEEFIT/ 文件夹下的：
 // ** MDEEFrame.h && MDEEFrame.C ： DEEFIT 的框架与主体
 // ** MTree.h && MTree.C : DEFFIT 输入数据的结构要求
-void CSHINEDEEFITPID::RunDEEFITCode()
+void CSHINEDEEFITPID::DEEFITRunCode()
 {
   system("cd DEEFIT/ && ./deefit_S");
 }
@@ -142,7 +142,7 @@ Double_t CSHINEDEEFITPID::DEEFITFunc14(DEEFITParticle& p, Double_t* par)
 // 拟合采用的是 14 参数的公式， 因此参数有 14 个
 // LoadDEEFITPars() 由 DEEFIT 中函数 LoadFitParam（）变形而来
 //     void MDEEFrame::LoadFitParam(const char *name)
-Double_t** CSHINEDEEFITPID::LoadDEEFITPars(const char* pathParsFile)
+Double_t** CSHINEDEEFITPID::DEEFITLoadPars(const char* pathParsFile)
 {
   Int_t    ntel, np, lm;
   Double_t param[fMAXFP], chi2;
@@ -183,122 +183,129 @@ Double_t** CSHINEDEEFITPID::LoadDEEFITPars(const char* pathParsFile)
 
 
 //______________________________________________________________________________
-Int_t CSHINEDEEFITPID::GetDEEFITCharge(Int_t ntel, Double_t de, Double_t fast,
-	Int_t* iter, Double_t* zeta, Double_t* par)
+Int_t CSHINEDEEFITPID::DEEFITGetCharge(Double_t* par, Double_t de, Double_t fast, Double_t* zeta)
 {
-	const Int_t maxiter = 500, zlim = 4;
+	const Int_t maxiter = 500;
+	const Int_t zlim = 6; // 设定 Z 的寻找范围,可根据实验数据实际情况进行修改
   Int_t    cres  = 1, izeta;
   Double_t zmin  = 1, zmax = zlim, ztest, atest = 0, yy, dist;
   Double_t amass = 0, amassp = 0, amassm = 0;
   Bool_t   found = kFALSE;
-  MPart    p;
+  DEEFITParticle p;
 
-  *iter = 0;
+  // 二分法迭代求解电荷数 Z
+  Int_t iter = 0;
   *zeta = 0.0;
-  while(*iter < maxiter) {
-    (*iter)++;
-    ztest = (zmin + zmax) / 2.0;
+  while(iter < maxiter) {
+    iter++;
+    ztest = (zmin + zmax)/2.0;  // 二分法查找最接近的电荷数 Z
 
-	  atest = 2.0*ztest;
-	  if(atest == 1) atest=2.;
-
-    p.x = fast;
+	  atest = 2.0*ztest;          // GetCharge 时,假定原子核为 N=Z， A=2*Z
+	  if(atest == 1) atest = 2.;  // 这里将源代码化简了,源代码中进行了分类讨论,使用
+		                            // GetEMass((Int_t)(ztest+0.5)),GetMassCharity(Int_t(ztest+0.5));
+    p.E = fast;
     p.Z = ztest;
     p.A = atest;
-    yy = DEEFITFunc14(p,par);;
+    yy = DEEFITFunc14(p, par);   // 给定 E(CsI),计算 yy==dE(Si)
     if(yy == 1.0) {
 	    cres = 0;
 	    return cres;
     }
-    if((Int_t)(zmin + 0.5) == (Int_t)(zmax + 0.5)) {
+    if((Int_t)(zmin + 0.5) == (Int_t)(zmax + 0.5)) { //如果 |zmin-zmax|<1,则表示找到了 Z
 	    found = kTRUE;
 	    break;
     }
-    if((de - yy)>=0) {
+    if((de - yy) >= 0) { // 若实验点>计算点(即实验点在计算点上方),则另 zmin = ztest，即在上半段继续寻找合适的 Z
 	    zmin = ztest;
 	    continue;
     }
-		else {
+		else { // 若实验点<计算点(即实验点在计算点下方),则另 zmax = ztest，即在下半段继续寻找合适的 Z
 	    zmax = ztest;
 	    continue;
     }
-  }
-  if(!found) {
+  } // 迭代结束
+
+  if(!found) { // 没找到合适的 Z
     cout<<"Get_Charge>> Convergenze not reached"<<endl;
   }
-  cres = (Int_t)(zmin+0.5);
+
+  cres = (Int_t)(zmin + 0.5);
   izeta = cres;
   if(cres > zlim) {
-  *zeta = izeta;
-  return cres;
-}
+    *zeta = izeta;
+    return cres; // 如果找到的 (Int_t)(zmin + 0.5) 超出预定范围 zlim, 则返回当前计算值
+  }              // 否则,将进行下一步判断
 
+  //___________________________________________
+  // 根据前面得到的 cres(Z), 计算 Z 弥散 *zeta
   // dispersion around mean charge value
-  p.x = fast;
-  p.Z = izeta;
 	amass  = 2.0*izeta;
 	amassp = 2.0*(izeta + 1);
 	amassm = 2.0*(izeta - 1);
-
+  p.E = fast;
+  p.Z = izeta;
   p.A = amass;
-  yy = DEEFITFunc14(p,par);
-  dist = de - yy;
+  yy = DEEFITFunc14(p, par);
+  dist = de - yy; //计算实验值与Func14()计算值的偏差
   if(dist >= 0.0) {
 	  p.Z = izeta + 1;
-	  p.A = amassp;  //z+1
-	  *zeta = (Double_t) izeta + dist/(DEEFITFunc14(p,par) - yy);
+	  p.A = amassp;  //zeta+1
+	  *zeta = (Double_t) izeta + dist/(DEEFITFunc14(p, par) - yy); // 计算 izeta 对 Z 的偏离
   }
   else {
 	  p.Z = izeta - 1;
 	  p.A = amassm;  //zeta-1
-	  *zeta = (Double_t) izeta + dist/(yy- (izeta>1 ? DEEFITFunc14(p,par) : 0.));
+	  *zeta = (Double_t) izeta + dist/(yy- (izeta>1 ? DEEFITFunc14(p, par) : 0.));
   }
-  if(*zeta>0 && *zeta<0.5) *zeta = 0.51;
+  if(*zeta>0 && *zeta<0.5) *zeta = 0.51; // 对于无意义的情况,初始化 *zeta = 0.51
+
   return cres;
 }
 
 
 //______________________________________________________________________________
-Double_t CSHINEDEEFITPID::GetDEEFITMass(Int_t ntel, Int_t charge, Double_t de,
-	Double_t fast, Int_t* iter, Double_t* par)
+Double_t CSHINEDEEFITPID::DEEFITGetMass(Double_t* par, Int_t charge, Double_t de, Double_t fast)
 {
 	const Int_t maxiter = 1000;
   Bool_t   found = kFALSE;
   Double_t amin, amax;
-  Double_t Amin[] = {0, 2, 4, 6, 7, 9, 11, 13, 14, 17, 19, 21, 22, 23};
+  Double_t Amin[] = {0, 2,  4,  6,  7,  9,  11, 13, 14, 17, 19, 21, 22, 23};
   Double_t Amax[] = {6, 10, 11, 12, 13, 15, 18, 26, 29, 32, 35, 36, 38, 41};
-  Double_t mass = 0.0, fmass, yy, atest, dist, dmin=0.10;
-  MPart p;
+  Double_t mass = 0.0, fmass, yy, atest, dist;
+	Double_t dmin = 0.10; // 设定 dE 能量误差范围
+  DEEFITParticle p;
 
-  *iter = 0;
+  Int_t iter = 0;
   amin = Amin[charge-1];
   amax = Amax[charge-1];
 
-  p.x = fast;
+  p.E = fast;
   p.Z = charge;
-  while(*iter < maxiter) {
-    (*iter)++;
-    atest = (amax + amin) / 2.0;
+
+	// 二分法迭代求解质量 (Double_t) A
+  while(iter < maxiter) {
+    iter++;
+    atest = (amax + amin)/2.0;
     p.A = atest;
-    yy = DEEFITFunc14(p,par);
+    yy = DEEFITFunc14(p, par);
     if(yy == 1.0) return 0.0;
 
     dist = de - yy;
-    if(fabs(dist) <= dmin) {
+    if(fabs(dist) <= dmin) { // 如果实验值与计算值小于设定误差,则表明找到了合适的 A
       found = kTRUE;
       break;
     }
-    if((de - yy)>=0) {
+    if((de - yy) >= 0) { // 在上半段继续寻找 A
       amin = atest;
       continue;
     }
-    else {
+    else { // 在下半段继续寻找 A
       amax = atest;
       continue;
     }
-  }  //end convergenze loop
+  }  // 迭代结束
 
-  if(!found) {
+  if(!found) { // 找不到合适的 A
     if(amin == amax) return 0.0;
     else {
       if(charge > 1) {
@@ -307,29 +314,32 @@ Double_t CSHINEDEEFITPID::GetDEEFITMass(Int_t ntel, Int_t charge, Double_t de,
     }
   }
 
-  mass = Int_t(atest + 0.5);
+  mass = (Int_t)(atest + 0.5);
   p.A = mass;
-  yy = DEEFITFunc14(p,par);
+  yy = DEEFITFunc14(p, par);
   if(yy == 1.0) return 0.0;
-  if(mass == 0) return 0;
+  if(mass == 0) return 0.0;
 
+ //_________________________________________________
+ // 根据带弥散的质量 A
  // calculate dispersion around mean mass value
   dist = de - yy;
   if(dist >= 0.0) {
-    p.A = mass + 1.;
-    fmass = mass + dist/(DEEFITFunc14(p,par) - yy);
+    p.A = mass + 1.;  // A + 1
+    fmass = mass + dist/(DEEFITFunc14(p, par) - yy);
   }
   else {
-    p.A = mass - 1.;
-    fmass = mass + dist/(yy - DEEFITFunc14(p,par));
+    p.A = mass - 1.;  // A - 1
+    fmass = mass + dist/(yy - DEEFITFunc14(p, par));
   }
-  if(int(fmass + 0.5) != int(mass + 0.5)) {
-    if(dist > 0) fmass = int(mass + 0.5) + 0.501;
-    else fmass = int(fmass + 0.5) + 0.499;
- }
- if((fmass > 0) && (fmass < 0.5)) fmass = 0.51;
- if(fmass < 0) fmass = 0.51;
- return fmass;
+  if((Int_t)(fmass + 0.5) != (Int_t)(mass + 0.5)) {   // 如果 fmass 与 mass 不靠近同一个整数
+    if(dist > 0) fmass = (Int_t)(mass + 0.5) + 0.501; // 实验点落在 A,A+1 的中点附近
+    else fmass = (Int_t)(fmass + 0.5) + 0.499;        // 实验点落在 A-1，A的中点附近
+  }
+  if((fmass > 0) && (fmass < 0.5)) fmass = 0.51; // 对于无意义的情况,初始化 fmass = 0.51
+  if(fmass < 0) fmass = 0.51; // 对于无意义的情况,初始化 fmass = 0.51
+
+  return fmass;
 }
 
 
