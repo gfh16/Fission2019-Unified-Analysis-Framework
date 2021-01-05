@@ -20,8 +20,8 @@ void test()
 //  CSHINEBuildEvent build;
 //  build.BuildLayerEventTree(120, 130);
 
- CSHINEDEEFITPID cali;
- cali.DEEFITRunCode();
+ CSHINEStraighteningPID cali;
+ cali.StraighteningExtractPointsAndFit();
 
 //  Int_t num = 10000;
 //  TimeAndPercentage timer;

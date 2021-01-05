@@ -344,8 +344,90 @@ Double_t CSHINEDEEFITPID::DEEFITGetMass(Double_t* par, Int_t charge, Double_t de
 
 
 //______________________________________________________________________________
-CSHINEStraighteningPID::CSHINEStraighteningPID(Int_t firstrun, Int_t lastrun)
+CSHINEStraighteningPID::CSHINEStraighteningPID()
 {}
 
 CSHINEStraighteningPID::~CSHINEStraighteningPID()
 {}
+
+
+//______________________________________________________________________________
+void CSHINEStraighteningPID::StraighteningBuildDEEPlot()
+{}
+
+
+//______________________________________________________________________________
+// 用传统的方法进行粒子鉴别, 手动选点，拟合, 保存拟合参数, 以用于后续的粒子鉴别
+// 需要根据实际情况修改 ExtractDEEPointsGUI/DoMarker.C
+// 修改root文件路径: Cut_analyser->Initial_RootFile("dE1_dE2_Spec.root");
+// 修改 Maker 输出文件路径/名称: Cut_analyser->Set_CutFile_Name("../data/data_PID/Cut_SingleCh.data", "h2_dE1_dE2");
+// 修改输出拟合参数文件路径/名称: Cut_analyser->Set_FitParsFile_Name("../data/data_PID/FitPars.dat");
+void CSHINEStraighteningPID::StraighteningExtractPointsAndFit()
+{
+	system("cd ExtractDEEPointsGUI/ && root -l DoMarker.C");
+}
+
+
+//______________________________________________________________________________
+// 将 PID 带子"拉直"的方法策略如下:
+//  1.根据 dE(Exp) 与 dE(Calc) 判断粒子所属带子范围, 其中每条带子的 Z, A 已知.
+//  2.根据实验点到相邻带子的距离, 计算 PID 数
+//  3.定义标准 PID数： (Double_t) PID = Z + 0.2*(A-2*Z)
+// **** 对应于对称核, PID = Z, 以此为标准，计算每个实验点的 PID 数
+void CSHINEStraighteningPID::StraighteningGetExpPIDNumber(const char* pathRootFile)
+{
+	Int_t Num_of_Particles = 0;
+	Int_t TelIndex[1000] = {0};
+	Int_t ParticleIndex[1000];
+	Int_t Z_charge[1000] = {0};
+	Int_t A_mass  [1000] = {0};
+	Double_t fitpars[1000][8]; // 8 fit parameters, fit_func = [0]/x + pol6
+
+	ifstream in(pathRootFile, ios::in);
+	if (in) {
+		while(!in.eof()) {
+			std::string LineRead;
+			std::getline(in, LineRead);
+			LineRead.assign(LineRead.substr(0, LineRead.find('#')));
+			if(LineRead.empty()) continue;
+			if(LineRead.find_first_not_of(' ')==std::string::npos) continue;
+			std::istringstream LineStream(LineRead);
+
+			LineStream>>TelIndex[Num_of_Particles]>>ParticleIndex[Num_of_Particles];
+	    LineStream>>Z_charge[Num_of_Particles]>>A_mass[Num_of_Particles];
+      for (Int_t i=0; i<8; i++) {
+				LineStream>>fitpars[Num_of_Particles][i];
+			}
+			Num_of_Particles++;
+		}
+		in.close();
+	}
+
+
+}
+
+
+//______________________________________________________________________________
+// fit_func = [0]/x + pol6
+//          = [0]/x+[1]+[2]*x+[3]*x*x+[4]*x*x*x+[5]*x*x*x*x+[6]*x*x*x*x*x+[7]*x*x*x*x*x*x
+Double_t CSHINEStraighteningPID::DoCalcdEMeV(Double_t Ex, Double_t* pars, Int_t ParsNum)
+{
+	Double_t calc_dE = 0.;
+	if (Ex == 0.) {
+		cout<<"Invalid Ex!"<<endl;
+		return -99.;
+	}
+	for (Int_t i=0; i<ParsNum; i++) {
+    calc_dE += pars[i]*pow(Ex, i-1); //
+  }
+	return calc_dE;
+}
+
+
+//______________________________________________________________________________
+// 定义标准 PID数： (Double_t) PID = Z + 0.2*(A-2*Z)
+// 详见参考文献: L.Tassan-Got, Nucl.Instr.and Meth.B 194(2002)503.
+Double_t CSHINEStraighteningPID::StdPIDNumber(Int_t Z_charge, Int_t A_mass)
+{
+	return Z_charge + 0.2*(A_mass - 2*Z_charge);
+}

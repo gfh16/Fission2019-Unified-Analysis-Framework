@@ -20,6 +20,7 @@
   gROOT->ProcessLine(".L src/CSHINEDataAnalysisFramework.C");
   gROOT->ProcessLine(".L src/CSHINESSDDataAnalysisFramework.C");
   gROOT->ProcessLine(".L Test_Multi.C");
+  gROOT->ProcessLine(".L ExtractDEEPointsGUI/ExtractDEEPointsGUI.C+");
 
   printf("Welcome to Fission2019-Unified-Analysis-Framework/\n");
 }

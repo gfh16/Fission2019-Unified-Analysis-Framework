@@ -45,13 +45,21 @@ private:
 };
 
 
-
 //******************************************************************************
 // "拉直法" : 将个带状结构 "拉直" 后再进行粒子鉴别
 class CSHINEStraighteningPID
 {
-  CSHINEStraighteningPID(Int_t firstrun, Int_t lastrun);
+public:
+  CSHINEStraighteningPID();
   ~CSHINEStraighteningPID();
+
+  void          StraighteningBuildDEEPlot();
+  void          StraighteningExtractPointsAndFit();
+  void          StraighteningGetExpPIDNumber(const char* pathRootFile, Int_t NParticles);
+
+  Double_t      DoCalcdEMeV(Double_t Ex, Double_t* par, Int_t ParsNum);
+  Double_t      StdPIDNumber(Int_t Z_charge, Int_t A_mass);
+
 };
 
 
