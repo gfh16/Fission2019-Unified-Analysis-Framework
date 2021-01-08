@@ -85,7 +85,8 @@ private:
   TGLabel               *xx[NUM_POINTS], *yy[NUM_POINTS];
   TGNumberEntryField    *addx[NUM_POINTS], *addy[NUM_POINTS];
   TGSimpleTable         *PointTable;
-  TGGroupFrame          *margins;
+  TGGroupFrame          *margins_draw;
+  TGGroupFrame          *margins_id;
   TextMargin            *Particle_Entry;
   TextMargin            *Tele_Entry;
   TextMargin            *Charge_Entry;

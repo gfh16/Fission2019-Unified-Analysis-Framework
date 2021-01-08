@@ -264,7 +264,7 @@ Int_t CSHINEDEEFITPID::DEEFITGetCharge(Double_t* par, Double_t de, Double_t fast
 
 
 //______________________________________________________________________________
-Double_t CSHINEDEEFITPID::DEEFITGetMass(Double_t* par, Int_t charge, Double_t de, Double_t fast)
+Double_t CSHINEDEEFITPID::DEEFITGetMass(Double_t* par, Int_t charge, Double_t de, Double_t fast, Int_t* imass)
 {
 	const Int_t maxiter = 1000;
   Bool_t   found = kFALSE;
@@ -274,6 +274,8 @@ Double_t CSHINEDEEFITPID::DEEFITGetMass(Double_t* par, Int_t charge, Double_t de
   Double_t mass = 0.0, fmass, yy, atest, dist;
 	Double_t dmin = 0.10; // 设定 dE 能量误差范围
   DEEFITParticle p;
+
+	*imass = 0;
 
   Int_t iter = 0;
   amin = Amin[charge-1];
@@ -313,8 +315,9 @@ Double_t CSHINEDEEFITPID::DEEFITGetMass(Double_t* par, Int_t charge, Double_t de
       }
     }
   }
+  imass = (Int_t)(atest + 0.5)
+  mass  = imass;
 
-  mass = (Int_t)(atest + 0.5);
   p.A = mass;
   yy = DEEFITFunc14(p, par);
   if(yy == 1.0) return 0.0;
@@ -371,18 +374,22 @@ void CSHINEStraighteningPID::StraighteningExtractPointsAndFit()
 //______________________________________________________________________________
 // 将 PID 带子"拉直"的方法策略如下:
 //  1.根据 dE(Exp) 与 dE(Calc) 判断粒子所属带子范围, 其中每条带子的 Z, A 已知.
-//  2.根据实验点到相邻带子的距离, 计算 PID 数
-//  3.定义标准 PID数： (Double_t) PID = Z + 0.2*(A-2*Z)
+//  2.根据已知的 Z, A 标定 PID 数： (Double_t) PID = Z + 0.2*(A-2*Z)
+//  3.根据实验点到标定刻度线的距离, 计算实验点的 PID 数
 // **** 对应于对称核, PID = Z, 以此为标准，计算每个实验点的 PID 数
 void CSHINEStraighteningPID::StraighteningGetExpPIDNumber(const char* pathRootFile)
 {
-	Int_t Num_of_Particles = 0;
-	Int_t TelIndex[1000] = {0};
-	Int_t ParticleIndex[1000];
-	Int_t Z_charge[1000] = {0};
-	Int_t A_mass  [1000] = {0};
-	Double_t fitpars[1000][8]; // 8 fit parameters, fit_func = [0]/x + pol6
+	Int_t Num_of_Particle[100]    = {-99};      // [tel]
+	Int_t Z_charge[100][100]      = {{-99}};    // [tel][partilce]
+	Int_t A_mass[100][100]        = {{-99}};    // [tel][partilce]
+	Double_t fitpars[100][100][8] = {{{-99.}}}; // [tel][particle][pars], fit_func = [0]/x + pol6
 
+  Int_t TeleIndex = -99;
+	Int_t NParticles = -99; // number of particles of a DEE plot
+	Double_t Calc_dE1[100] = {-99.};
+	Double_t PID_Num = -99.;
+
+  // 读取拟合参数
 	ifstream in(pathRootFile, ios::in);
 	if (in) {
 		while(!in.eof()) {
@@ -393,17 +400,88 @@ void CSHINEStraighteningPID::StraighteningGetExpPIDNumber(const char* pathRootFi
 			if(LineRead.find_first_not_of(' ')==std::string::npos) continue;
 			std::istringstream LineStream(LineRead);
 
-			LineStream>>TelIndex[Num_of_Particles]>>ParticleIndex[Num_of_Particles];
-	    LineStream>>Z_charge[Num_of_Particles]>>A_mass[Num_of_Particles];
+	    Int_t teleindex, particleindex;
+			LineStream>>teleindex>>particleindex;
+			LineStream>>Z_charge[teleindex][particleindex]>>A_mass[teleindex][particleindex];
+
       for (Int_t i=0; i<8; i++) {
-				LineStream>>fitpars[Num_of_Particles][i];
+				LineStream>>fitpars[teleindex][particleindex][i];
 			}
-			Num_of_Particles++;
+			Num_of_Particle[teleindex]++;
 		}
 		in.close();
 	}
 
+  // 读取 tree 数据
+	// 需要很具实际的 tree 数据结构来修改 !!!
+	TFile* file_in = new TFile(pathRootFile, "READONLY");
+	if (!file_in->IsOpen()) {
+    cout<<"Open file failded."<<endl;
+    return;
+  }
 
+	Int_t                   TrackEvent_fGlobalMulti;
+  std::vector<Int_t>      TrackEvent_fSSDGlobalMulti;
+  std::vector<Int_t>      TrackEvent_fGSSDNum;
+  std::vector<Int_t>      TrackEvent_fGL1SNumStrip;
+  std::vector<Double_t>   TrackEvent_fGL1SEMeV;
+  std::vector<Int_t>      TrackEvent_fGL2FNumStrip;
+  std::vector<Double_t>   TrackEvent_fGL2FEMeV;
+  std::vector<Int_t>      TrackEvent_fGL2BNumStrip;
+  std::vector<Double_t>   TrackEvent_fGL2BEMeV;
+  std::vector<Int_t>      TrackEvent_fGCsINum;
+  std::vector<Int_t>      TrackEvent_fGCsIECh;
+  TTree* mytree = (TTree*) file_in->Get("TrackEvent");
+  Long64_t nentries = mytree->GetEntries();
+  cout<<"Found nentries = "<<nentries<<endl;
+
+  mytree->SetMakeClass(1);  // 如果 tree 的 branch 使用了自定义的类, 则这条语句不能省略！！！
+  mytree->SetBranchAddress("TrackEvent.fGlobalMulti",    &TrackEvent_fGlobalMulti);
+  mytree->SetBranchAddress("TrackEvent.fSSDGlobalMulti", &TrackEvent_fSSDGlobalMulti);
+  mytree->SetBranchAddress("TrackEvent.fGSSDNum",        &TrackEvent_fGSSDNum);
+  mytree->SetBranchAddress("TrackEvent.fGL1SNumStrip",   &TrackEvent_fGL1SNumStrip);
+  mytree->SetBranchAddress("TrackEvent.fGL1SEMeV",       &TrackEvent_fGL1SEMeV);
+  mytree->SetBranchAddress("TrackEvent.fGL2FNumStrip",   &TrackEvent_fGL2FNumStrip);
+  mytree->SetBranchAddress("TrackEvent.fGL2FEMeV",       &TrackEvent_fGL2FEMeV);
+  mytree->SetBranchAddress("TrackEvent.fGL2BNumStrip",   &TrackEvent_fGL2BNumStrip);
+  mytree->SetBranchAddress("TrackEvent.fGL2BEMeV",       &TrackEvent_fGL2BEMeV);
+  mytree->SetBranchAddress("TrackEvent.fGCsINum",        &TrackEvent_fGCsINum);
+  mytree->SetBranchAddress("TrackEvent.fGCsIECh",        &TrackEvent_fGCsIECh);
+
+	for (Long64_t ientry=0; ientry<nentries; ientry++) {
+    mytree->GetEntry(ientry);
+
+    // for L2F_CsI PID
+    for (Int_t multi=0; multi<TrackEvent_fGlobalMulti; multi++)  // loop on all particles in one entry
+		{
+      TeleIndex = TrackEvent_fGSSDNum[multi]*9 + TrackEvent_fGCsINum[multi]; // the global number of csi
+			NParticles = Num_of_Particle[TeleIndex];
+			for (Int_t np=0; np<NParticles; np++) { // loop one all functions of the current DEE-Plot
+        Calc_dE1[np] = DoCalcdEMeV(TrackEvent_fGCsIECh[multi], fitpars[TeleIndex][np], 8);
+			}
+
+			if (TrackEvent_fGL2FEMeV[multi]<=0) PID_Num = 0.;
+      // 分析质子线以下的实验点
+      if (0<TrackEvent_fGL2FEMeV[multi] && TrackEvent_fGL2FEMeV[multi]<=Calc_dE1[0]) {
+        PID_Num = 0. + (StdPIDNumber(Z_charge[TeleIndex][0],A_mass[TeleIndex][0]) - 0.)*(TrackEvent_fGL2FEMeV[multi] - 0.)/(Calc_dE1[0] - 0.);
+      }
+      // 分析质子线以上，最大 PID 线以下的实验点
+      if (Calc_dE1[0]<TrackEvent_fGL2FEMeV[multi] && TrackEvent_fGL2FEMeV[multi]<=Calc_dE1[NParticles-1]) {
+        for (Int_t np=1; np<NParticles; np++) {
+          if (Calc_dE1[np-1]<TrackEvent_fGL2FEMeV[multi] && TrackEvent_fGL2FEMeV[multi]<=Calc_dE1[np]) {
+            PID_Num = StdPIDNumber(Z_charge[TeleIndex][np-1],A_mass[TeleIndex][np-1])
+                    + (StdPIDNumber(Z_charge[TeleIndex][np],A_mass[TeleIndex][np]) - StdPIDNumber(Z_charge[TeleIndex][np-1],A_mass[TeleIndex][np-1]))
+                    * (TrackEvent_fGL2FEMeV[multi] - Calc_dE1[np-1])/(Calc_dE1[np] - Calc_dE1[np-1]);
+          }
+        }
+      }
+      // 分析超出最高 PID 线的实验点
+      if (TrackEvent_fGL2FEMeV[multi]>Calc_dE1[NParticles-1]) {
+        PID_Num = StdPIDNumber(Z_charge[TeleIndex][NParticles-1],A_mass[TeleIndex][NParticles-1])
+                * TrackEvent_fGL2FEMeV[multi]/Calc_dE1[NParticles-1];
+      }
+		}
+	}
 }
 
 

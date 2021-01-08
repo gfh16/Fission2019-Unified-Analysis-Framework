@@ -69,20 +69,25 @@ void ExtractDEEPointsGUI::Initial_GUI(Int_t xPixel, Int_t yPixel)
   TGVerticalFrame *controls = new TGVerticalFrame(this);
   AddFrame(controls, new TGLayoutHints(kLHintsRight|kLHintsExpandY,5,5,0,5));
 
-  // control margins of the detector ID and run Number
-  margins = new TGGroupFrame(controls,"ID Panel");
-  margins->SetTitlePos(TGGroupFrame::kCenter);
-  Tele_Entry = new TextMargin(margins, "DEEPlotNo");
-  Particle_Entry = new TextMargin(margins, "ParticleNo");
-  Charge_Entry = new TextMargin(margins, "ChargeNo");
-  Mass_Entry = new TextMargin(margins, "MassNo");
-  margins->AddFrame(Tele_Entry, new TGLayoutHints(kLHintsExpandX,0,0,10,5));
-  margins->AddFrame(Particle_Entry, new TGLayoutHints(kLHintsExpandX|kLHintsExpandY,0,0,10,5));
-  margins->AddFrame(Charge_Entry, new TGLayoutHints(kLHintsExpandX,0,0,10,5));
-  margins->AddFrame(Mass_Entry, new TGLayoutHints(kLHintsExpandX,0,0,10,5));
-  draw = new TGTextButton(margins, "Draw");
-  margins->AddFrame(draw, new TGLayoutHints(kLHintsExpandX,0,0,10,5));
-  controls->AddFrame(margins, new TGLayoutHints(kLHintsExpandX,0,0,20,5));
+  // control margins of drawing
+  margins_draw = new TGGroupFrame(controls,"Draw Panel");
+  margins_draw->SetTitlePos(TGGroupFrame::kCenter);
+  Tele_Entry = new TextMargin(margins_draw, "DEEPlotNo");
+  margins_draw->AddFrame(Tele_Entry, new TGLayoutHints(kLHintsExpandX,0,0,10,5));
+  draw = new TGTextButton(margins_draw, "Draw");
+  margins_draw->AddFrame(draw, new TGLayoutHints(kLHintsExpandX,0,0,10,5));
+  controls->AddFrame(margins_draw, new TGLayoutHints(kLHintsExpandX,0,0,20,5));
+
+  // control margins of particle ID
+  margins_id = new TGGroupFrame(controls,"ID Panel");
+  margins_id->SetTitlePos(TGGroupFrame::kCenter);
+  Particle_Entry = new TextMargin(margins_id, "ParticleNo");
+  Charge_Entry = new TextMargin(margins_id, "ChargeNo");
+  Mass_Entry = new TextMargin(margins_id, "MassNo");
+  margins_id->AddFrame(Particle_Entry, new TGLayoutHints(kLHintsExpandX|kLHintsExpandY,0,0,10,5));
+  margins_id->AddFrame(Charge_Entry, new TGLayoutHints(kLHintsExpandX,0,0,10,5));
+  margins_id->AddFrame(Mass_Entry, new TGLayoutHints(kLHintsExpandX,0,0,10,5));
+  controls->AddFrame(margins_id, new TGLayoutHints(kLHintsExpandX,0,0,20,5));
 
   // for chosing the mode
    WorkMode_bg = new TGButtonGroup(controls,"Working Modes",kVerticalFrame);
@@ -96,10 +101,10 @@ void ExtractDEEPointsGUI::Initial_GUI(Int_t xPixel, Int_t yPixel)
  // record, delete, write cut markers
   TGGroupFrame* cut = new TGGroupFrame(controls,"Cut Markers");
   cut->SetTitlePos(TGGroupFrame::kCenter);
-  record = new TGTextButton(cut, "Record");
-  cut->AddFrame(record,new TGLayoutHints(kLHintsExpandX,0,0,10,5));
   clear = new TGTextButton(cut, "Delete");
   cut->AddFrame(clear,new TGLayoutHints(kLHintsExpandX,0,0,10,5));
+  record = new TGTextButton(cut, "Record");
+  cut->AddFrame(record,new TGLayoutHints(kLHintsExpandX,0,0,10,5));
   Write_File = new TGTextButton(cut, "&Save Markers");
   cut->AddFrame(Write_File,new TGLayoutHints(kLHintsExpandX,0,0,10,5));
   controls->AddFrame(cut, new TGLayoutHints(kLHintsExpandX,0,0,20,5));
@@ -342,7 +347,7 @@ void ExtractDEEPointsGUI::DoMarkersFit()
   }
   TCanvas* c1_tem = fEcanvas->GetCanvas();
   TGraph* g1 = new TGraph(NUM_POINTS, DeltaE, Energy);
-  TF1* fit_func = new TF1("fit_func","[0]/x+[1]+[2]*x+[3]*x*x+[4]*x*x*x+[5]*x*x*x*x+[6]*x*x*x*x*x+[7]*x*x*x*x*x*x",0,4000);
+  TF1* fit_func = new TF1("fit_func","[0]/x+[1]+[2]*x+[3]*x*x+[4]*x*x*x+[5]*x*x*x*x+[6]*x*x*x*x*x+[7]*x*x*x*x*x*x",DeltaE[0]*0.9,DeltaE[NUM_POINTS-1]*1.1);
   g1->Fit("fit_func","","", DeltaE[0]*0.9, DeltaE[NUM_POINTS-1]*1.1);
   fit_func->Draw("AL SAME");
   fit_func->SetLineColor(kOrange);

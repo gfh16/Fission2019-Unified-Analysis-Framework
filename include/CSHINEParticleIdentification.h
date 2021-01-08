@@ -37,7 +37,7 @@ public:
   Double_t   DEEFITFunc14(DEEFITParticle& p, Double_t* par); // 定义 Func14 函数
   Double_t **DEEFITLoadPars(const char* pathParsFile);       // 加载已有 Func14 的拟合参数
   Int_t      DEEFITGetCharge(Double_t* par, Double_t de, Double_t fast, Double_t* zeta); // 提取电荷数: 拟合参数, dE, E, (Double_t)Z
-  Double_t   DEEFITGetMass(Double_t* par, Int_t charge, Double_t de, Double_t fast);     // 提取质量数(double型): 拟合参数, 电荷数 Z, dE, E
+  Double_t   DEEFITGetMass(Double_t* par, Int_t charge, Double_t de, Double_t fast, Int_t* imass);     // 提取质量数(double型): 拟合参数, 电荷数 Z, dE, E
 
 private:
   DEEFITTreeData  *fdeefitdata;
@@ -55,7 +55,7 @@ public:
 
   void          StraighteningBuildDEEPlot();
   void          StraighteningExtractPointsAndFit();
-  void          StraighteningGetExpPIDNumber(const char* pathRootFile, Int_t NParticles);
+  void          StraighteningGetExpPIDNumber(const char* pathRootFile);
 
   Double_t      DoCalcdEMeV(Double_t Ex, Double_t* par, Int_t ParsNum);
   Double_t      StdPIDNumber(Int_t Z_charge, Int_t A_mass);

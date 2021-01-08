@@ -261,34 +261,34 @@ void Test_Multi::CheckGlobalMultiRatio(Int_t ssdindex)
     return;
   }
 
-  Int_t                                       TrackEvent_fGlobalMulti;
-  std::vector<Int_t>            TrackEvent_fSSDGlobalMulti;
-  std::vector<Int_t>            TrackEvent_fGSSDNum;
-  std::vector<Int_t>            TrackEvent_fGL1SNumStrip;
+  Int_t                   TrackEvent_fGlobalMulti;
+  std::vector<Int_t>      TrackEvent_fSSDGlobalMulti;
+  std::vector<Int_t>      TrackEvent_fGSSDNum;
+  std::vector<Int_t>      TrackEvent_fGL1SNumStrip;
   std::vector<Double_t>   TrackEvent_fGL1SEMeV;
-  std::vector<Int_t>             TrackEvent_fGL2FNumStrip;
+  std::vector<Int_t>      TrackEvent_fGL2FNumStrip;
   std::vector<Double_t>   TrackEvent_fGL2FEMeV;
-  std::vector<Int_t>            TrackEvent_fGL2BNumStrip;
+  std::vector<Int_t>      TrackEvent_fGL2BNumStrip;
   std::vector<Double_t>   TrackEvent_fGL2BEMeV;
-  std::vector<Int_t>            TrackEvent_fGCsINum;
-  std::vector<Int_t>            TrackEvent_fGCsIECh;
+  std::vector<Int_t>      TrackEvent_fGCsINum;
+  std::vector<Int_t>      TrackEvent_fGCsIECh;
 
   TTree* mytree = (TTree*)myfile->Get("TrackEvent");
   Long64_t nentries = mytree->GetEntries();
   cout<<"Found nentries = "<<nentries<<endl;
 
   mytree->SetMakeClass(1);  // 如果 tree 的 branch 使用了自定义的类, 则这条语句不能省略！！！
-  mytree->SetBranchAddress("TrackEvent.fGlobalMulti",         &TrackEvent_fGlobalMulti);
+  mytree->SetBranchAddress("TrackEvent.fGlobalMulti",    &TrackEvent_fGlobalMulti);
   mytree->SetBranchAddress("TrackEvent.fSSDGlobalMulti", &TrackEvent_fSSDGlobalMulti);
-  mytree->SetBranchAddress("TrackEvent.fGSSDNum",            &TrackEvent_fGSSDNum);
+  mytree->SetBranchAddress("TrackEvent.fGSSDNum",        &TrackEvent_fGSSDNum);
   mytree->SetBranchAddress("TrackEvent.fGL1SNumStrip",   &TrackEvent_fGL1SNumStrip);
-  mytree->SetBranchAddress("TrackEvent.fGL1SEMeV",            &TrackEvent_fGL1SEMeV);
+  mytree->SetBranchAddress("TrackEvent.fGL1SEMeV",       &TrackEvent_fGL1SEMeV);
   mytree->SetBranchAddress("TrackEvent.fGL2FNumStrip",   &TrackEvent_fGL2FNumStrip);
-  mytree->SetBranchAddress("TrackEvent.fGL2FEMeV",            &TrackEvent_fGL2FEMeV);
+  mytree->SetBranchAddress("TrackEvent.fGL2FEMeV",       &TrackEvent_fGL2FEMeV);
   mytree->SetBranchAddress("TrackEvent.fGL2BNumStrip",   &TrackEvent_fGL2BNumStrip);
-  mytree->SetBranchAddress("TrackEvent.fGL2BEMeV",            &TrackEvent_fGL2BEMeV);
-  mytree->SetBranchAddress("TrackEvent.fGCsINum",               &TrackEvent_fGCsINum);
-  mytree->SetBranchAddress("TrackEvent.fGCsIECh",                 &TrackEvent_fGCsIECh);
+  mytree->SetBranchAddress("TrackEvent.fGL2BEMeV",       &TrackEvent_fGL2BEMeV);
+  mytree->SetBranchAddress("TrackEvent.fGCsINum",        &TrackEvent_fGCsINum);
+  mytree->SetBranchAddress("TrackEvent.fGCsIECh",        &TrackEvent_fGCsIECh);
 
   for (Long64_t ientry=0; ientry<nentries; ientry++) {
     mytree->GetEntry(ientry);
