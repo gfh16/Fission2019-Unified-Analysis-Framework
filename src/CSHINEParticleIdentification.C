@@ -315,8 +315,8 @@ Double_t CSHINEDEEFITPID::DEEFITGetMass(Double_t* par, Int_t charge, Double_t de
       }
     }
   }
-  imass = (Int_t)(atest + 0.5)
-  mass  = imass;
+  *imass = (Int_t)(atest + 0.5);
+  mass = *imass;
 
   p.A = mass;
   yy = DEEFITFunc14(p, par);

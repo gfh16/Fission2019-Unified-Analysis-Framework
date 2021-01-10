@@ -7,8 +7,8 @@ using namespace std;
 
 void test()
 {
-// Test_Multi test(120, 130);
-//  test.TrackReconstructionAlgorithm();
+ Test_Multi test(120, 130);
+  test.CheckGlobalMultiRatio(0);
 
 
 //  DecodefGlobalMulti2 decode;
@@ -20,8 +20,8 @@ void test()
 //  CSHINEBuildEvent build;
 //  build.BuildLayerEventTree(120, 130);
 
- CSHINEStraighteningPID cali;
- cali.StraighteningExtractPointsAndFit();
+// CSHINEStraighteningPID cali;
+// cali.StraighteningExtractPointsAndFit();
 
 //  Int_t num = 10000;
 //  TimeAndPercentage timer;

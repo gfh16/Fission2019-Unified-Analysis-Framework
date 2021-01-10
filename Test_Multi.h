@@ -19,48 +19,48 @@
 class Test_Multi {
 
 private :
-  CSHINESSDCalibratedData       fSiEChCut;
-  Double_t                                           fL1ResidulE;
-  Double_t                                           fL2IncidentE;
-  Int_t                                                    fFirstRun;
-  Int_t                                                    fLastRun;
+  CSHINESSDCalibratedData     fSiEChCut;
+  Double_t                    fL1ResidulE;
+  Double_t                    fL2IncidentE;
+  Int_t                       fFirstRun;
+  Int_t                       fLastRun;
 
 public :
-  EnergyLossModule                      fLISEModule;
+  EnergyLossModule            fLISEModule;
   CSHINETrackReconstruction   fPattern;
-  CSHINETrackEvent                       fTrackEvent;
-  TTree                                                *fChain;   //!pointer to the analyzed TTree or TChain
-  Int_t                                                    fCurrent; //!current Tree number in a TChain
+  CSHINETrackEvent            fTrackEvent;
+  TTree                      *fChain;   //!pointer to the analyzed TTree or TChain
+  Int_t                       fCurrent; //!current Tree number in a TChain
 
   //___________________________________________________
   // 定义变量，用于提取 LayerEvent Tree
   // Declaration of leaf types
 
   // for L1S
-  Int_t                                           LayerEvent_fL1SMulti;
-  std::vector<Int_t>                LayerEvent_fL1SSSDNum;     //[LayerEvent_fL1SMulti]
-  std::vector<Int_t>                LayerEvent_fL1SNumStrip;   //[LayerEvent_fL1SMulti]
+  Int_t                       LayerEvent_fL1SMulti;
+  std::vector<Int_t>          LayerEvent_fL1SSSDNum;     //[LayerEvent_fL1SMulti]
+  std::vector<Int_t>          LayerEvent_fL1SNumStrip;   //[LayerEvent_fL1SMulti]
   std::vector<Double_t>       LayerEvent_fL1SEMeV;       //[LayerEvent_fL1SMulti]
   // for L2F
-  Int_t                                           LayerEvent_fL2FMulti;
-  std::vector<Int_t>                LayerEvent_fL2FSSDNum;    //[LayerEvent_fL2FMulti]
-  std::vector<Int_t>                LayerEvent_fL2FNumStrip;  //[LayerEvent_fL2FMulti]
+  Int_t                       LayerEvent_fL2FMulti;
+  std::vector<Int_t>          LayerEvent_fL2FSSDNum;    //[LayerEvent_fL2FMulti]
+  std::vector<Int_t>          LayerEvent_fL2FNumStrip;  //[LayerEvent_fL2FMulti]
   std::vector<Double_t>       LayerEvent_fL2FEMeV;      //[LayerEvent_fL2FMulti]
   // for L2B
-  Int_t                                            LayerEvent_fL2BMulti;
-  std::vector<Int_t>                 LayerEvent_fL2BSSDNum;    //[LayerEvent_fL2BMulti]
-  std::vector<Int_t>                 LayerEvent_fL2BNumStrip;  //[LayerEvent_fL2BMulti]
-  std::vector<Double_t>        LayerEvent_fL2BEMeV;      //[LayerEvent_fL2BMulti]
+  Int_t                       LayerEvent_fL2BMulti;
+  std::vector<Int_t>          LayerEvent_fL2BSSDNum;    //[LayerEvent_fL2BMulti]
+  std::vector<Int_t>          LayerEvent_fL2BNumStrip;  //[LayerEvent_fL2BMulti]
+  std::vector<Double_t>       LayerEvent_fL2BEMeV;      //[LayerEvent_fL2BMulti]
   // CsI
-  Int_t                                            LayerEvent_fCsIMulti;
-  std::vector<Int_t>                 LayerEvent_fCsISSDNum;    //[LayerEvent_fCsIMulti]
-  std::vector<Int_t>                 LayerEvent_fCsINum;       //[LayerEvent_fCsIMulti]
-  std::vector<Int_t>                 LayerEvent_fCsIECh;       //[LayerEvent_fCsIMulti]
+  Int_t                       LayerEvent_fCsIMulti;
+  std::vector<Int_t>          LayerEvent_fCsISSDNum;    //[LayerEvent_fCsIMulti]
+  std::vector<Int_t>          LayerEvent_fCsINum;       //[LayerEvent_fCsIMulti]
+  std::vector<Int_t>          LayerEvent_fCsIECh;       //[LayerEvent_fCsIMulti]
 
-  std::vector<Int_t>                 LayerEvent_fSSDL1SMulti;  //[NUM_SSD]
-  std::vector<Int_t>                 LayerEvent_fSSDL2FMulti;  //[NUM_SSD]
-  std::vector<Int_t>                 LayerEvent_fSSDL2BMulti;  //[NUM_SSD]
-  std::vector<Int_t>                 LayerEvent_fSSDCsIMulti;  //[NUM_SSD]
+  std::vector<Int_t>          LayerEvent_fSSDL1SMulti;  //[NUM_SSD]
+  std::vector<Int_t>          LayerEvent_fSSDL2FMulti;  //[NUM_SSD]
+  std::vector<Int_t>          LayerEvent_fSSDL2BMulti;  //[NUM_SSD]
+  std::vector<Int_t>          LayerEvent_fSSDCsIMulti;  //[NUM_SSD]
 
 
   Test_Multi(Int_t firstrun, Int_t lastrun);
