@@ -41,10 +41,10 @@ extern const double MULTICUT_L3A;
 //______________________________________________________________________________
 // 定义 L2B_L2F Energy Cut
 extern const double L2BL2F_ENERGYBOUNDARY[4];
-extern const double L2BL2F_LOWENERGYNEGATIVECUT [4];
-extern const double L2BL2F_LOWENERGYPOSITIVECUT [4];
-extern const double L2BL2F_HIGHENERGYNEGATIVECUT[4];
-extern const double L2BL2F_HIGHENERGYPOSITIVECUT[4];
+extern const double L2BL2F_LOWENERGYLOWCUT[4];
+extern const double L2BL2F_LOWENERGYHIGHCUT[4];
+extern const double L2BL2F_HIGHENERGYLOWCUT[4];
+extern const double L2BL2F_HIGHENERGYHIGHCUT[4];
 
 //______________________________________________________________________________
 // 对于能穿透 L2 的粒子, 通过 LISE 计算给出 L1, L2 的能损比例, 作为新的约束条件

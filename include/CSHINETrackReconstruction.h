@@ -25,34 +25,38 @@ public:
   CSHINETrackReconstruction();
   ~CSHINETrackReconstruction();
 
-  // 在这里定义需要进行的操作
+  //   在这里定义需要进行的操作
+  // ------------------------
+  // 计算每一层的多重数
   Int_t    LayerMultiplicity   (Int_t, const char*, Int_t*, Double_t*); // ssdindex, layertag, ech[], echcut[]
 
-  Bool_t   GeoConstraint_L3A_L2B(Int_t  csiindex, Int_t  stripl2b);
-  Bool_t   GeoConstraint_L3A_L2B(Int_t  csiindex, Int_t* stripsl2b, Int_t size);
-  Bool_t   GeoConstraint_L3A_L2B(Int_t* csichs,   Int_t  stripl2b,  Int_t size);
-  Bool_t   GeoConstraint_L3A_L2B(Int_t* csichs,   Int_t* stripsl2b, Int_t sizecsi, Int_t sizel2b);
-
-  Bool_t   GeoConstraint_L3A_L2F(Int_t  csiindex, Int_t  stripl2f);
-  Bool_t   GeoConstraint_L3A_L2F(Int_t  csiindex, Int_t* stripsl2f, Int_t size);
-  Bool_t   GeoConstraint_L3A_L2F(Int_t* csichs,   Int_t  stripl2f,  Int_t size);
-  Bool_t   GeoConstraint_L3A_L2F(Int_t* csichs,   Int_t* stripsl2f, Int_t sizecsi, Int_t sizel2f);
-
-  Bool_t   GeoConstraint_L2B_L1S(Int_t  stripl2b,  Int_t  stripl1s);
-  Bool_t   GeoConstraint_L2B_L1S(Int_t  stripl2b,  Int_t* stripsl1s, Int_t size);
-  Bool_t   GeoConstraint_L2B_L1S(Int_t* stripsl2b, Int_t  stripl1s,  Int_t size);
-  Bool_t   GeoConstraint_L2B_L1S(Int_t* stripsl2b, Int_t* stripsl1s, Int_t sizel2b, Int_t sizel1s);
-  Bool_t   GeoConstraint_L2B_L1S(Int_t  stripl2b,  Int_t  stripl1s,  Int_t deltastrip);
-
-  Bool_t   EneConstraint_L2B_L2F(Double_t  El2b, Double_t  El2f, Double_t ErrRatio);
-  Bool_t   EneConstraint_L2B_L2F(Double_t  El2b, Double_t* El2f, Int_t size, Double_t ErrRatio);
-  Bool_t   EneConstraint_L2B_L2F(Double_t* El2b, Double_t  El2f, Int_t size, Double_t ErrRatio);
-  Bool_t   EneConstraint_L2B_L2F(Double_t* El2b, Double_t* El2f, Int_t sizel2b, Int_t sizel2f, Double_t ErrRatio);
-  Bool_t   EneConstraint_L2B_L2F(Double_t  El2b, Double_t  El2f, Double_t LowErrRatio, Double_t HighErrRatio);
-  Bool_t   EneConstraint_L2B_L2F(Int_t ssdindex, Double_t El2b, Double_t El2f);
+  // L3A_L2B 几何约束
+  Bool_t   IsGeoConstraint_L3A_L2B(Int_t csiindex, Int_t  stripl2b);
+  Bool_t   IsGeoConstraint_L3A_L2B(Int_t ssdindex, Int_t csinum, Int_t csissdnum,Int_t l2bmulti, Int_t* l2bstrip, Int_t* l2bssdnum);
+  Bool_t   IsGeoConstraint_L3A_L2B(Int_t ssdindex, Int_t csimulti, Int_t* csinum, Int_t* csissdnum, Int_t l2bstrip, Int_t l2bssdnum);
+  Bool_t   IsGeoConstraint_L3A_L2B(Int_t ssdindex, Int_t csimulti, Int_t* csinum,Int_t* csissdnum, Int_t l2bmulti, Int_t* l2bstrip, Int_t* l2bssdnum);
+  // L3A_L2F 几何约束
+  Bool_t   IsGeoConstraint_L3A_L2F(Int_t csiindex, Int_t stripl2f);
+  Bool_t   IsGeoConstraint_L3A_L2F(Int_t ssdindex, Int_t csinum, Int_t csissdnum, Int_t l2fmulti, Int_t* l2fstrip, Int_t* l2fssdnum);
+  Bool_t   IsGeoConstraint_L3A_L2F(Int_t ssdindex, Int_t csimulti, Int_t* csinum, Int_t* csissdnum, Int_t l2fstrip, Int_t l2fssdnum);
+  Bool_t   IsGeoConstraint_L3A_L2F(Int_t ssdindex, Int_t csimulti, Int_t* csinum, Int_t* csissdnum, Int_t l2fmulti, Int_t* l2fstrip, Int_t* l2fssdnum);
+  // L2B_L1S 几何约束
+  Bool_t   IsGeoConstraint_L2B_L1S(Int_t stripl2b, Int_t stripl1s);
+  Bool_t   IsGeoConstraint_L2B_L1S(Int_t stripl2b, Int_t stripl1s, Int_t deltastrip);
+  Bool_t   IsGeoConstraint_L2B_L1S(Int_t ssdindex, Int_t l2bstrip, Int_t l2bssdnum, Int_t l1smulti, Int_t* l1sstrip, Int_t* l1sssdnum);
+  Bool_t   IsGeoConstraint_L2B_L1S(Int_t ssdindex, Int_t l2bmulti, Int_t* l2bstrip, Int_t* l2bssdnum, Int_t l1sstrip, Int_t l1sssdnum);
+  Bool_t   IsGeoConstraint_L2B_L1S(Int_t ssdindex, Int_t l2bmulti, Int_t* l2bstrip, Int_t* l2bssdnum, Int_t l1smulti, Int_t* l1sstrip, Int_t* l1sssdnum);
+  // L2B_L2F 能量约束
+  Bool_t   IsEneConstraint_L2B_L2F(Double_t El2b, Double_t El2f, Double_t ErrRatio);
+  Bool_t   IsEneConstraint_L2B_L2F(Int_t ssdindex, Double_t El2b, Int_t l2bssdnum, Int_t l2fmulti, Double_t* El2f, Int_t* l2fssdnum, Double_t ErrRatio);
+  Bool_t   IsEneConstraint_L2B_L2F(Int_t ssdindex, Int_t l2bmulti, Double_t* El2b, Int_t* l2bssdnum, Double_t El2f, Int_t l2fssdnum, Double_t ErrRatio);
+  Bool_t   IsEneConstraint_L2B_L2F(Int_t ssdindex, Int_t l2bmulti, Double_t* El2b, Int_t* l2bssdnum, Int_t l2fmulti, Double_t* El2f, Int_t* l2fssdnum, Double_t ErrRatio);
+  Bool_t   IsEneConstraint_L2B_L2F(Int_t ssdindex, Int_t l2bmulti, Double_t* El2b, Int_t* l2bssdnum, Int_t l2fmulti, Double_t* El2f, Int_t* l2fssdnum);
+  Bool_t   IsEneConstraint_L2B_L2F(Int_t ssdindex, Double_t El2b, Double_t El2f);
 
   // 对于能穿透 L2 的粒子, 通过 LISE 计算给出 L1, L2 的能损比例, 作为新的约束条件
-  Bool_t   EneConstraint_L1_L2(Int_t ssdindex, Double_t El1, Double_t El2);
+  Bool_t   IsEneConstraint_L1S_L2F(Int_t ssdindex, Double_t El1, Double_t El2);
+  Bool_t   IsEneConstraint_L1S_L2F(Int_t ssdindex, Int_t l1smulti, Double_t* El1s, Int_t* l1sssdnum, Int_t l2fmulti, Double_t* El2f, Int_t* l2fssdnum);
 
   void     EstimateLayerMulti(Int_t firstrun, Int_t lastrun);
   void     GetPunchThroughEnergiesOfLCPs();

@@ -7,26 +7,30 @@ using namespace std;
 
 void test()
 {
- Test_Multi test(120, 130);
-  test.CheckGlobalMultiRatio(0);
-
-
-//  DecodefGlobalMulti2 decode;
-//  decode.GlobalMulti2_CalcModeRatio();
-
-
-  //CSHINETrackReconstruction hit;
-  //hit.GetPunchThroughEnergiesOfLCPs();
+  //_______________________________________
+  // step1: build layerevent
 //  CSHINEBuildEvent build;
 //  build.BuildLayerEventTree(120, 130);
 
-// CSHINEStraighteningPID cali;
-// cali.StraighteningExtractPointsAndFit();
+  //_______________________________________________
+  // step2: 径迹重建前的一些测试与检查
+  Test_Multi test(120, 130);
 
-//  Int_t num = 10000;
-//  TimeAndPercentage timer;
-//  for (Int_t i=0; i<num; i++) {
-//    timer.PrintPercentageAndRemainingTime(i, num);
+//  test.CheckL2BL2FEnergyCorrelation(0);
+//  test.CheckL2BL2FEnergyCorrelation(1);
+//  test.CheckL2BL2FEnergyCorrelation(2);
+//  test.CheckL2BL2FEnergyCorrelation(3);
 
-//  }
+//  test.DetermineL2BL2FEnergyErrRatio();
+
+//  test.CheckEnergyLossL1L2();
+//  test.CheckEnergyLossL1L2_Relationship(1);
+//  test.CheckEnergyLossL1L2_Expdata();
+
+//  test.CheckLayerMultiPercentage();
+//  test.TrackReconstructionAlgorithm();
+
+//  test.CheckTrackReconstructionResult();
+
+  test.CheckGlobalMultiRatio();
 }

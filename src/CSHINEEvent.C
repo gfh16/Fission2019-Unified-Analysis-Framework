@@ -1,5 +1,5 @@
 #include "../include/CSHINEEvent.h"
-
+using namespace std;
 
 //******************************************************************************
 // 定义 CSHINELayerEvent
@@ -39,16 +39,16 @@ CSHINEGlobalEvent::~CSHINEGlobalEvent()
 CSHINEBuildEvent::CSHINEBuildEvent()
 {
   fSiEChcutl1s   = fCSHINESSDCalibratedData.GetSiEChCut ("L1S");
-  fSiEChcutl2f    = fCSHINESSDCalibratedData.GetSiEChCut ("L2F");
+  fSiEChcutl2f   = fCSHINESSDCalibratedData.GetSiEChCut ("L2F");
   fSiEChcutl2b   = fCSHINESSDCalibratedData.GetSiEChCut ("L2B");
-  fCsIEChcutl3a = fCSHINESSDCalibratedData.GetCsIEChCut("L3A");
+  fCsIEChcutl3a  = fCSHINESSDCalibratedData.GetCsIEChCut("L3A");
 
-  fSlopel1s   = fCSHINESSDCalibratedData.GetSiCaliSlope("L1S");
-  fSlopel2f    = fCSHINESSDCalibratedData.GetSiCaliSlope("L2F");
-  fSlopel2b   = fCSHINESSDCalibratedData.GetSiCaliSlope("L2B");
+  fSlopel1s = fCSHINESSDCalibratedData.GetSiCaliSlope("L1S");
+  fSlopel2f = fCSHINESSDCalibratedData.GetSiCaliSlope("L2F");
+  fSlopel2b = fCSHINESSDCalibratedData.GetSiCaliSlope("L2B");
 
   fInterceptl1s = fCSHINESSDCalibratedData.GetSiCaliIntercept("L1S");
-  fInterceptl2f  = fCSHINESSDCalibratedData.GetSiCaliIntercept("L2F");
+  fInterceptl2f = fCSHINESSDCalibratedData.GetSiCaliIntercept("L2F");
   fInterceptl2b = fCSHINESSDCalibratedData.GetSiCaliIntercept("L2B");
 }
 
@@ -156,8 +156,8 @@ void CSHINEBuildEvent::BuildLayerEventTree(Int_t firstrun, Int_t lastrun)
                                   firstrun, lastrun), "RECREATE");
   TTree* mytree = new TTree("LayerEvent", "CSHINE SSDLayerEvent");
 
-  CSHINEBuildEvent    buildevent;
-  CSHINELayerEvent    layerevent;
+  CSHINEBuildEvent  buildevent;
+  CSHINELayerEvent  layerevent;
 
   mytree->Branch("LayerEvent.", "CSHINELayerEvent", &layerevent,  32000, 2);
 

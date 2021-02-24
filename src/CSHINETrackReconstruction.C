@@ -61,84 +61,61 @@ Int_t CSHINETrackReconstruction::LayerMultiplicity(Int_t ssdindex, const char* l
 
 //******************************************************************************
 //                          2. 确定粒子入射位置的约束条件
-//
+//                        -----------------------------
 // 几何判据一: GeoConstraint_L3A_L2B
-Bool_t CSHINETrackReconstruction::GeoConstraint_L3A_L2B(Int_t csiindex, Int_t stripl2b)
+//---------------------------------
+// One_CsI <---> One_L2BStrip
+Bool_t CSHINETrackReconstruction::IsGeoConstraint_L3A_L2B(Int_t csiindex, Int_t stripl2b)
 {
-  if ((csiindex/3)==0) {      // csiindex = 0, 1, 2
-    return (stripl2b>=10 && stripl2b<=15);
-  }
-  else if ((csiindex/3)==1) { // csiindex = 3, 4, 5
-    return (stripl2b>=5 && stripl2b<=10);
-  }
-  else {                       // csiindex = 6, 7, 8
-    return (stripl2b>=0 && stripl2b<=5);
-  }
+  Bool_t index = false;
+  if ((csiindex/3)==0 && (stripl2b>=10 && stripl2b<=15)) index = true; // csiindex = 0, 1, 2
+  if ((csiindex/3)==1 && (stripl2b>=5  && stripl2b<=10)) index = true; // csiindex = 3, 4, 5
+  if ((csiindex/3)==2 && (stripl2b>=0  && stripl2b<=5))  index = true; // csiindex = 6, 7, 8
+  return (index==true) ? true : false;
 }
 
-Bool_t CSHINETrackReconstruction::GeoConstraint_L3A_L2B(Int_t csiindex, Int_t* stripl2b, Int_t size)
+// One_CsI <---> L2B_Surface
+Bool_t CSHINETrackReconstruction::IsGeoConstraint_L3A_L2B(Int_t ssdindex, Int_t csinum,
+  Int_t csissdnum, Int_t l2bmulti, Int_t* l2bstrip, Int_t* l2bssdnum)
 {
   Int_t index = 0;
-  if ((csiindex/3)==0) {  // csiindex = 0, 1, 2
-    for (Int_t i=0; i<size; i++) {
-      if (stripl2b[i]>=10 && stripl2b[i]<=15)  index++ ;
-    }
-  }
-  else if ((csiindex/3)==1) { // csiindex = 3, 4, 5
-    for (Int_t i=0; i<size; i++) {
-      if (stripl2b[i]>=5 && stripl2b[i]<=10)  index++ ;
-    }
-  }
-  else { // csiindex = 6, 7, 8
-    for (Int_t i=0; i<size; i++) {
-      if (stripl2b[i]>=0 && stripl2b[i]<=5)  index++ ;
+  for (Int_t l2b=0; l2b<l2bmulti; l2b++) {
+    if (csissdnum==ssdindex && l2bssdnum[l2b]==ssdindex) {
+      if (csinum/3==0 && (l2bstrip[l2b]>=10 && l2bstrip[l2b]<=15)) index++;
+      if (csinum/3==1 && (l2bstrip[l2b]>=5  && l2bstrip[l2b]<=10)) index++;
+      if (csinum/3==2 && (l2bstrip[l2b]>=0  && l2bstrip[l2b]<=5))  index++;
     }
   }
   return (index != 0) ? true : false;
 }
 
-Bool_t CSHINETrackReconstruction::GeoConstraint_L3A_L2B(Int_t* csichs, Int_t stripl2b, Int_t size)
+// CsI_Array <---> One_L2BStrip
+Bool_t CSHINETrackReconstruction::IsGeoConstraint_L3A_L2B(Int_t ssdindex, Int_t csimulti,
+  Int_t* csinum, Int_t* csissdnum, Int_t l2bstrip, Int_t l2bssdnum)
 {
   Int_t index = 0;
-  if (stripl2b>=0 && stripl2b<=5) {
-    for (Int_t i=0; i<size; i++) {
-      if ((csichs[i]/3)==2)  index++ ;  // csiindex = 6, 7, 8
-    }
-  }
-  else if (stripl2b>=5 && stripl2b<=10) {
-    for (Int_t i=0; i<size; i++) {
-      if ((csichs[i]/3)==1)  index++ ;  // csiindex = 3, 4, 5
-    }
-  }
-  else {
-    for (Int_t i=0; i<size; i++) {
-      if ((csichs[i]/3)==0)  index++ ;  // csiindex = 0, 1, 2
+  for (Int_t csi=0; csi<csimulti; csi++) {
+    if (csissdnum[csi]==ssdindex && l2bssdnum==ssdindex) {
+      if (csinum[csi]/3==0 && (l2bstrip>=10 && l2bstrip<=15)) index++;
+      if (csinum[csi]/3==1 && (l2bstrip>=5  && l2bstrip<=10)) index++;
+      if (csinum[csi]/3==2 && (l2bstrip>=0  && l2bstrip<=5))  index++;
     }
   }
   return (index != 0) ? true : false;
 }
 
 
-Bool_t CSHINETrackReconstruction::GeoConstraint_L3A_L2B(Int_t* csichs,
-  Int_t* stripsl2b, Int_t sizecsi, Int_t sizel2b)
+// Csi_Array <---> L2B_Surface
+Bool_t CSHINETrackReconstruction::IsGeoConstraint_L3A_L2B(Int_t ssdindex, Int_t csimulti,
+  Int_t* csinum, Int_t* csissdnum, Int_t l2bmulti, Int_t* l2bstrip, Int_t* l2bssdnum)
 {
   Int_t index = 0;
-
-  // 注意: 逆向查找时, 先对 L3A 作循环, 还是对 L2B作循环, 结果稍有差异
-  for (Int_t i=0; i<sizecsi; i++) {
-    if ((csichs[i]/3)==2) {
-      for (Int_t j=0; j<sizel2b; j++) {
-        if (stripsl2b[j]>=0 && stripsl2b[j]<=5)  index++ ;   // csiindex = 2, 5, 8
-      }
-    }
-    if ((csichs[i]/3)==1) {
-      for (Int_t j=0; j<sizel2b; j++) {
-        if (stripsl2b[j]>=5 && stripsl2b[j]<=10)  index++ ;   // csiindex = 2, 5, 8
-      }
-    }
-    else {
-      for (Int_t j=0; j<sizel2b; j++) {
-        if (stripsl2b[j]>=10 && stripsl2b[j]<=15)  index++ ;   // csiindex = 2, 5, 8
+  for (Int_t csi=0; csi<csimulti; csi++) {
+    for (Int_t l2b=0; l2b<l2bmulti; l2b++) {
+      if (csissdnum[csi]==ssdindex && l2bssdnum[l2b]==ssdindex) {
+        if (csinum[csi]/3==0 && (l2bstrip[l2b]>=10 && l2bstrip[l2b]<=15)) index++;
+        if (csinum[csi]/3==1 && (l2bstrip[l2b]>=5  && l2bstrip[l2b]<=10)) index++;
+        if (csinum[csi]/3==2 && (l2bstrip[l2b]>=0  && l2bstrip[l2b]<=5))  index++;
       }
     }
   }
@@ -147,82 +124,59 @@ Bool_t CSHINETrackReconstruction::GeoConstraint_L3A_L2B(Int_t* csichs,
 
 //______________________________________________________________________________
 // 几何判据二: GeoConstraint_L3A_L2F
-Bool_t CSHINETrackReconstruction::GeoConstraint_L3A_L2F(Int_t csiindex, Int_t stripl2f)
+//---------------------------------
+// One_CsI <---> One_L2FStrip
+Bool_t CSHINETrackReconstruction::IsGeoConstraint_L3A_L2F(Int_t csiindex, Int_t stripl2f)
 {
-  if ((csiindex%3)==0) {      // csiindex = 0, 3, 6
-    return (stripl2f>=10 && stripl2f<=15);
-  }
-  else if ((csiindex%3)==1) { // csiindex = 1, 4, 7
-    return (stripl2f>=5 && stripl2f<=10);
-  }
-  else {                       // csiindex = 2, 5, 8
-    return (stripl2f>=0 && stripl2f<=5);
-  }
+  Bool_t index = false;
+  if ((csiindex%3)==0 && (stripl2f>=10 && stripl2f<=15)) index = true; // csiindex = 0, 3, 6
+  if ((csiindex%3)==1 && (stripl2f>=5  && stripl2f<=10)) index = true; // csiindex = 1, 4, 7
+  if ((csiindex%3)==2 && (stripl2f>=0  && stripl2f<=5))  index = true; // csiindex = 2, 5, 8
+  return (index==true) ? true : false;
 }
 
-Bool_t CSHINETrackReconstruction::GeoConstraint_L3A_L2F(Int_t csiindex, Int_t* stripl2f, Int_t size)
+// CsI_Array <---> One_L2FStrip
+Bool_t CSHINETrackReconstruction::IsGeoConstraint_L3A_L2F(Int_t ssdindex, Int_t csimulti,
+  Int_t* csinum, Int_t* csissdnum, Int_t l2fstrip, Int_t l2fssdnum)
 {
   Int_t index = 0;
-  if ((csiindex%3)==0) { // csiindex = 0, 3, 6
-    for (Int_t i=0; i<size; i++) {
-      if (stripl2f[i]>=10 && stripl2f[i]<=15)  index++ ;
-    }
-  }
-  else if ((csiindex%3)==1) { // csiindex = 1, 4, 7
-    for (Int_t i=0; i<size; i++) {
-      if (stripl2f[i]>=5 && stripl2f[i]<=10)   index++ ;
-    }
-  }
-  else { // csiindex = 2, 5, 8
-    for (Int_t i=0; i<size; i++) {
-      if (stripl2f[i]>=0 && stripl2f[i]<=5)    index++ ;
+  for (Int_t csi=0; csi<csimulti; csi++) {
+    if (csissdnum[csi]==ssdindex && l2fssdnum==ssdindex) {
+      if (csinum[csi]%3==0 && (l2fstrip>=10 && l2fstrip<=15)) index++;
+      if (csinum[csi]%3==1 && (l2fstrip>=5  && l2fstrip<=10)) index++;
+      if (csinum[csi]%3==2 && (l2fstrip>=0  && l2fstrip<=5))  index++;
     }
   }
   return (index != 0) ? true : false;
 }
 
-Bool_t CSHINETrackReconstruction::GeoConstraint_L3A_L2F(Int_t* csichs, Int_t stripl2f, Int_t size)
+// One_CsI <---> L2F_Surface
+Bool_t CSHINETrackReconstruction::IsGeoConstraint_L3A_L2F(Int_t ssdindex, Int_t csinum,
+  Int_t csissdnum, Int_t l2fmulti, Int_t* l2fstrip, Int_t* l2fssdnum)
 {
   Int_t index = 0;
-  if (stripl2f>=0 && stripl2f<=5) {
-    for (Int_t i=0; i<size; i++) {
-      if ((csichs[i]%3)==2)  index++ ;  // csiindex = 2, 5, 8
-    }
-  }
-  else if (stripl2f>=5 && stripl2f<=10) {
-    for (Int_t i=0; i<size; i++) {
-      if ((csichs[i]%3)==1)  index++ ;  // csiindex = 1, 4, 7
-    }
-  }
-  else {
-    for (Int_t i=0; i<size; i++) {
-      if ((csichs[i]%3)==0)  index++ ;  // csiindex = 0, 3, 6
+  for (Int_t l2f=0; l2f<l2fmulti; l2f++) {
+    if (csissdnum==ssdindex && l2fssdnum[l2f]==ssdindex) {
+      if (csinum%3==0 && (l2fstrip[l2f]>=10 && l2fstrip[l2f]<=15)) index++;
+      if (csinum%3==1 && (l2fstrip[l2f]>=5  && l2fstrip[l2f]<=10)) index++;
+      if (csinum%3==2 && (l2fstrip[l2f]>=0  && l2fstrip[l2f]<=5))  index++;
     }
   }
   return (index != 0) ? true : false;
 }
 
-
-Bool_t CSHINETrackReconstruction::GeoConstraint_L3A_L2F(Int_t* csichs,
-  Int_t* stripsl2f, Int_t sizecsi, Int_t sizel2f)
+// CsI_Array <---> L2F_Surface
+Bool_t CSHINETrackReconstruction::IsGeoConstraint_L3A_L2F(Int_t ssdindex, Int_t csimulti,
+  Int_t* csinum, Int_t* csissdnum, Int_t l2fmulti, Int_t* l2fstrip, Int_t* l2fssdnum)
 {
   Int_t index = 0;
-
-  // 注意: 逆向查找时, 先对 L3A 作循环, 还是对 L2F作循环, 结果稍有差异
-  for (Int_t i=0; i<sizecsi; i++) {
-    if ((csichs[i]%3)==2) {
-      for (Int_t j=0; j<sizel2f; j++) {
-        if (stripsl2f[j]>=0 && stripsl2f[j]<=5)  index++ ;   // csiindex = 2, 5, 8
-      }
-    }
-    if ((csichs[i]%3)==1) {
-      for (Int_t j=0; j<sizel2f; j++) {
-        if (stripsl2f[j]>=5 && stripsl2f[j]<=10)  index++ ;   // csiindex = 2, 5, 8
-      }
-    }
-    else {
-      for (Int_t j=0; j<sizel2f; j++) {
-        if (stripsl2f[j]>=10 && stripsl2f[j]<=15)  index++ ;   // csiindex = 2, 5, 8
+  // 注意: 逆向查找时, 先对 L3A 作循环, 还是对 L2B作循环, 结果稍有差异
+  for (Int_t csi=0; csi<csimulti; csi++) {
+    for (Int_t l2f=0; l2f<l2fmulti; l2f++) {
+      if (csissdnum[csi]==ssdindex && l2fssdnum[l2f]==ssdindex) {
+        if (csinum[csi]%3==0 && (l2fstrip[l2f]>=10 && l2fstrip[l2f]<=15)) index++;
+        if (csinum[csi]%3==1 && (l2fstrip[l2f]>=5  && l2fstrip[l2f]<=10)) index++;
+        if (csinum[csi]%3==2 && (l2fstrip[l2f]>=0  && l2fstrip[l2f]<=5))  index++;
       }
     }
   }
@@ -231,100 +185,182 @@ Bool_t CSHINETrackReconstruction::GeoConstraint_L3A_L2F(Int_t* csichs,
 
 //______________________________________________________________________________
 // 几何判据三: GeoConstraint_L2B_L1S
-Bool_t CSHINETrackReconstruction::GeoConstraint_L2B_L1S(Int_t stripl2b, Int_t stripl1s)
+//-----------------------------------
+// One_L2BStrip <---> One_L1SStrip
+Bool_t CSHINETrackReconstruction::IsGeoConstraint_L2B_L1S(Int_t stripl2b, Int_t stripl1s)
 {
   return (TMath::Abs(stripl2b - stripl1s)<=1);
 }
 
-Bool_t CSHINETrackReconstruction::GeoConstraint_L2B_L1S(Int_t stripl2b, Int_t* stripsl1s, Int_t size)
+// One_L2BStrip <---> One_L1SStrip
+Bool_t CSHINETrackReconstruction::IsGeoConstraint_L2B_L1S(Int_t stripl2b, Int_t stripl1s, Int_t deltastrip)
 {
-  Int_t index = 0;
-  for (Int_t i=0; i<size; i++) {
-    if (TMath::Abs(stripl2b - stripsl1s[i])<=1) index++ ;
-  }
-  return (index != 0) ? true : false;
+  return (TMath::Abs(stripl2b - stripl1s)==deltastrip);
 }
 
-Bool_t CSHINETrackReconstruction::GeoConstraint_L2B_L1S(Int_t* stripsl2b, Int_t stripl1s, Int_t size)
+// One_L2BStrip <---> L1S_Surface
+Bool_t CSHINETrackReconstruction::IsGeoConstraint_L2B_L1S(Int_t ssdindex, Int_t l2bstrip,
+  Int_t l2bssdnum, Int_t l1smulti, Int_t* l1sstrip, Int_t* l1sssdnum)
 {
   Int_t index = 0;
-  for (Int_t i=0; i<size; i++) {
-    if (TMath::Abs(stripsl2b[i] - stripl1s)<=1) index++ ;
-  }
-  return (index != 0) ? true : false;
-}
-
-Bool_t CSHINETrackReconstruction::GeoConstraint_L2B_L1S(Int_t* stripsl2b, Int_t* stripsl1s, Int_t sizel2b, Int_t sizel1s)
-{
-  Int_t index = 0;
-  for (Int_t i=0; i<sizel2b; i++) {
-    for (Int_t j=0; j<sizel1s; j++) {
-      if (TMath::Abs(stripsl2b[i] - stripsl1s[j])<=1) index++ ;
+  for (Int_t l1s=0; l1s<l1smulti; l1s++) {
+    if (l2bssdnum==ssdindex && l1sssdnum[l1s]==ssdindex) {
+      if (TMath::Abs(l2bstrip - l1sstrip[l1s])<=1) index++ ;
     }
   }
   return (index != 0) ? true : false;
 }
 
-// 几何判据三: 考虑 L2B 与 L1S 的道址可能相差 0 或 1
-Bool_t CSHINETrackReconstruction::GeoConstraint_L2B_L1S(Int_t stripl2b, Int_t stripl1s, Int_t deltastrip)
+// L2B_Surface <---> One_L1SStrip
+Bool_t CSHINETrackReconstruction::IsGeoConstraint_L2B_L1S(Int_t ssdindex, Int_t l2bmulti,
+  Int_t* l2bstrip, Int_t* l2bssdnum, Int_t l1sstrip, Int_t l1sssdnum)
 {
-  return (TMath::Abs(stripl2b - stripl1s)==deltastrip);
+  Int_t index = 0;
+  for (Int_t l2b=0; l2b<l2bmulti; l2b++) {
+    if (l2bssdnum[l2b]==ssdindex && l1sssdnum==ssdindex) {
+      if (TMath::Abs(l2bstrip[l2b] - l1sstrip)<=1) index++ ;
+    }
+  }
+  return (index != 0) ? true : false;
+}
+
+// L2B_Surface <---> L1S_Surface
+Bool_t CSHINETrackReconstruction::IsGeoConstraint_L2B_L1S(Int_t ssdindex, Int_t l2bmulti,
+  Int_t* l2bstrip, Int_t* l2bssdnum, Int_t l1smulti, Int_t* l1sstrip, Int_t* l1sssdnum)
+{
+  Int_t index = 0;
+  for (Int_t l2b=0; l2b<l2bmulti; l2b++) {
+    for (Int_t l1s=0; l1s<l1smulti; l1s++) {
+      if (l2bssdnum[l2b]==ssdindex && l1sssdnum[l1s]==ssdindex) {
+        if (TMath::Abs(l2bstrip[l2b] - l1sstrip[l1s])<=1) index++ ;
+      }
+    }
+  }
+  return (index != 0) ? true : false;
 }
 
 
 //______________________________________________________________________________
 // 能量判据四: 考虑 L2B 与 L2F 的能量关联
-Bool_t CSHINETrackReconstruction::EneConstraint_L2B_L2F(Double_t El2b, Double_t El2f, Double_t ErrRatio)
+//-------------------------------------
+// One_L2BStrip <---> One_L2FStrip
+Bool_t CSHINETrackReconstruction::IsEneConstraint_L2B_L2F(Double_t El2b, Double_t El2f, Double_t ErrRatio)
 {
   return (TMath::Abs(El2b - El2f)/El2f < ErrRatio);
 }
 
-Bool_t CSHINETrackReconstruction::EneConstraint_L2B_L2F(Double_t El2b, Double_t* El2f, Int_t size, Double_t ErrRatio)
+// One_L2BStrip <---> L2F_Surface
+Bool_t CSHINETrackReconstruction::IsEneConstraint_L2B_L2F(Int_t ssdindex, Double_t El2b,
+  Int_t l2bssdnum, Int_t l2fmulti, Double_t* El2f, Int_t* l2fssdnum, Double_t ErrRatio)
 {
   Int_t index = 0;
-  for (Int_t i=0; i<size; i++) {
-    if (TMath::Abs(El2b - El2f[i])/El2f[i] < ErrRatio)  index++ ;
-  }
-  return (index != 0) ? true : false;
-}
-
-Bool_t CSHINETrackReconstruction::EneConstraint_L2B_L2F(Double_t* El2b, Double_t El2f, Int_t size, Double_t ErrRatio)
-{
-  Int_t index = 0;
-  for (Int_t i=0; i<size; i++) {
-    if (TMath::Abs(El2b[i] - El2f)/El2f < ErrRatio)  index++ ;
-  }
-  return (index != 0) ? true : false;
-}
-
-Bool_t CSHINETrackReconstruction::EneConstraint_L2B_L2F(Double_t* El2b, Double_t* El2f, Int_t sizel2b, Int_t sizel2f, Double_t ErrRatio)
-{
-  Int_t index = 0;
-  for (Int_t i=0; i<sizel2b; i++) {
-    for (Int_t j=0; j<sizel2f; j++) {
-      if (TMath::Abs(El2b[i] - El2f[j])/El2f[j] < ErrRatio)  index++ ;
+  for (Int_t l2f=0; l2f<l2fmulti; l2f++) {
+    if (l2bssdnum==ssdindex && l2fssdnum[l2f]==ssdindex) {
+      if (TMath::Abs(El2b - El2f[l2f])/El2f[l2f] < ErrRatio)  index++ ;
     }
   }
   return (index != 0) ? true : false;
 }
 
-Bool_t CSHINETrackReconstruction::EneConstraint_L2B_L2F(Int_t ssdindex, Double_t El2b, Double_t El2f)
+// L2B_Surface <---> One_L2FStrip
+Bool_t CSHINETrackReconstruction::IsEneConstraint_L2B_L2F(Int_t ssdindex, Int_t l2bmulti,
+  Double_t* El2b, Int_t* l2bssdnum, Double_t El2f, Int_t l2fssdnum, Double_t ErrRatio)
+{
+  Int_t index = 0;
+  for (Int_t l2b=0; l2b<l2bmulti; l2b++) {
+    if (l2bssdnum[l2b]==ssdindex && l2fssdnum==ssdindex) {
+      if (TMath::Abs(El2b[l2b] - El2f)/El2f < ErrRatio)  index++ ;
+    }
+  }
+  return (index != 0) ? true : false;
+}
+
+// L2B_Surface <---> L2F_Surface
+Bool_t CSHINETrackReconstruction::IsEneConstraint_L2B_L2F(Int_t ssdindex, Int_t l2bmulti,
+  Double_t* El2b, Int_t* l2bssdnum, Int_t l2fmulti, Double_t* El2f, Int_t* l2fssdnum, Double_t ErrRatio)
+{
+  Int_t index = 0;
+  for (Int_t l2b=0; l2b<l2bmulti; l2b++) {
+    for (Int_t l2f=0; l2f<l2fmulti; l2f++) {
+      if (l2bssdnum[l2b]==ssdindex && l2fssdnum[l2f]==ssdindex) {
+        if (TMath::Abs(El2b[l2b] - El2f[l2f])/El2f[l2f] < ErrRatio)  index++ ;
+      }
+    }
+  }
+  return (index != 0) ? true : false;
+}
+
+// L2B_Surface <---> L2F_Surface
+Bool_t CSHINETrackReconstruction::IsEneConstraint_L2B_L2F(Int_t ssdindex, Int_t l2bmulti,
+  Double_t* El2b, Int_t* l2bssdnum, Int_t l2fmulti, Double_t* El2f, Int_t* l2fssdnum)
+{
+  Int_t index = 0;
+  for (Int_t l2b=0; l2b<l2bmulti; l2b++) {
+    for (Int_t l2f=0; l2f<l2fmulti; l2f++) {
+      if (l2bssdnum[l2b]==ssdindex && l2fssdnum[l2f]==ssdindex)
+      {
+        if (El2f[l2f]<L2BL2F_ENERGYBOUNDARY[ssdindex])
+        {
+          if ((El2b[l2b]-El2f[l2f])/El2f[l2f]>L2BL2F_LOWENERGYLOWCUT[ssdindex] &&
+              (El2b[l2b]-El2f[l2f])/El2f[l2f]<L2BL2F_LOWENERGYHIGHCUT[ssdindex])
+          {
+            index++ ;
+          }
+        }
+        else
+        {
+          if ((El2b[l2b]-El2f[l2f])/El2f[l2f]>L2BL2F_HIGHENERGYLOWCUT[ssdindex] &&
+              (El2b[l2b]-El2f[l2f])/El2f[l2f]<L2BL2F_HIGHENERGYHIGHCUT[ssdindex])
+          {
+            index++ ;
+          }
+        }
+      }
+    }
+  }
+  return (index != 0) ? true : false;
+}
+
+// 根据前面的测试结果, 确定每个 SSD 的 L2B-L2F 能量关联
+Bool_t CSHINETrackReconstruction::IsEneConstraint_L2B_L2F(Int_t ssdindex, Double_t El2b, Double_t El2f)
 {
   // LowErrRatio 为负数, highErrRatio 为正数
-  if (El2b<L2BL2F_ENERGYBOUNDARY[ssdindex]) {
-    return ((El2b-El2f)/El2f>L2BL2F_LOWENERGYNEGATIVECUT [ssdindex] && (El2b-El2f)/El2f<L2BL2F_LOWENERGYPOSITIVECUT [ssdindex]);
+  if (El2f<L2BL2F_ENERGYBOUNDARY[ssdindex]) {
+    return ((El2b-El2f)/El2f>L2BL2F_LOWENERGYLOWCUT[ssdindex] && (El2b-El2f)/El2f<L2BL2F_LOWENERGYHIGHCUT[ssdindex]);
   }
   else {
-     return ((El2b-El2f)/El2f>L2BL2F_HIGHENERGYNEGATIVECUT[ssdindex] && (El2b-El2f)/El2f<L2BL2F_HIGHENERGYPOSITIVECUT[ssdindex]);
+    return ((El2b-El2f)/El2f>L2BL2F_HIGHENERGYLOWCUT[ssdindex] && (El2b-El2f)/El2f<L2BL2F_HIGHENERGYHIGHCUT[ssdindex]);
   }
 }
 
 //______________________________________________________________________________
 // 能量判据 五 : 对于能穿透 L2 的粒子, 通过 LISE 计算给出 L1, L2 的能损比例, 作为新的约束条件
-Bool_t CSHINETrackReconstruction::EneConstraint_L1_L2(Int_t ssdindex, Double_t El1, Double_t El2)
+//--------------------------------
+// One_L1SStrip <---> One_L2FStrip
+Bool_t CSHINETrackReconstruction::IsEneConstraint_L1S_L2F(Int_t ssdindex, Double_t El1s, Double_t El2f)
 {
-  return ((El1/El2>L1L2_ENERGYLOWCUT[ssdindex]) && (El1/El2<L1L2_ENERGYHIGHCUT[ssdindex]));
+  return ((El1s/El2f>L1L2_ENERGYLOWCUT[ssdindex]) && (El1s/El2f<L1L2_ENERGYHIGHCUT[ssdindex]));
 }
+
+
+// L1S_Surface <---> L2F_Surface
+Bool_t CSHINETrackReconstruction::IsEneConstraint_L1S_L2F(Int_t ssdindex, Int_t l1smulti,
+  Double_t* El1s, Int_t* l1sssdnum, Int_t l2fmulti, Double_t* El2f, Int_t* l2fssdnum)
+{
+  Int_t index = 0;
+  for (Int_t l2f=0; l2f<l2fmulti; l2f++) {
+    for (Int_t l1s=0; l1s<l1smulti; l1s++) {
+      if (l2fssdnum[l2f]==ssdindex && l1sssdnum[l1s]==ssdindex) {
+        if ((El1s[l1s]/El2f[l2f]>L1L2_ENERGYLOWCUT[ssdindex]) && (El1s[l1s]/El2f[l2f]<L1L2_ENERGYHIGHCUT[ssdindex]))
+        {
+          index++;
+        }
+      }
+    }
+  }
+  return (index != 0) ? true : false;
+}
+
 //******************************************************************************
 
 

@@ -3,11 +3,11 @@ using namespace std;
 
 //______________________________________________________________________________
 CSHINECsIEnergyCali::CSHINECsIEnergyCali(Int_t firstrun, Int_t lastrun)
-{}
+{;}
 
 //_________________________________________
 CSHINECsIEnergyCali::~CSHINECsIEnergyCali()
-{}
+{;}
 //______________________________________________________________________________
 
 
@@ -22,6 +22,23 @@ CSHINECsIEnergyCali::~CSHINECsIEnergyCali()
 // 2. EMeV: ECh ---------------> (ECh, dESi) ----------> (ECh, EMeV)
 //
 void CSHINECsIEnergyCali::GetDEEFITCsIEnergyPoints()
-{
+{}
 
+
+//______________________________________________________________________________
+// load DEEFITFunc14() 拟合参数
+Double_t** CSHINECsIEnergyCali::DEEFITLoadPars(const char* pathParsFile)
+{
+	return NULL;
 }
+
+
+//______________________________________________________________________________
+// 使用 TCutG 对所有的同位素作 cut
+void CSHINECsIEnergyCali::DoGraphicalCut()
+{}
+
+//______________________________________________________________________________
+// 使用 "投影法" 取点 (ECh, EMeV)
+void CSHINECsIEnergyCali::GetProjectionCsIEnergPoints()
+{}

@@ -831,31 +831,35 @@ void Test_Multi::TrackReconstructionAlgorithm()
 // 检查径迹算法:
 // 1.检查径迹识别效率: fglobalmulti>=1 的事件数/满足 multicut 的事件数
 // 2.event-by-evnt 检查径迹重建的有效性
+//    2.1 MultiCutData: 列举满足 multicut 的事件
+//    2.2 TrackData: 列举满足 multicut && 满足所有约束条件的事件
 void Test_Multi::CheckTrackReconstructionResult()
 {
   Int_t count_multicut[4] = {0};
   Int_t count_track[4] = {0};
-  Int_t count_global[4];
-  Int_t count_globalmulti0[4] = {0};
-  Int_t track_cand_total[4];
-  Int_t track_cand_No[4];
-
-  Bool_t Is_Geo_L3AL2B = kFALSE;
-  Bool_t Is_Geo_L3AL2F = kFALSE;
-  Bool_t Is_Geo_L2BL1S = kFALSE;
-  Bool_t Is_Ene_L2BL2F = kFALSE;
-  Bool_t Is_Ene_L1SL2F = kFALSE;
+  Int_t count_index[4];
+  Bool_t Geo_L3AL2B = kFALSE;
+  Bool_t Geo_L3AL2F = kFALSE;
+  Bool_t Geo_L2BL1S = kFALSE;
+  Bool_t Ene_L2BL2F = kFALSE;
+  Bool_t Ene_L1SL2F = kFALSE;
 
   std::string pathTrackEventRoot("/home/sea/Fission2019_Data/TrackReconstructionEvent_Run0120-Run0130.root");
 
+  ofstream MultiCutDataOut[NUM_SSD];
   ofstream TrackDataOut[NUM_SSD];
   for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    MultiCutDataOut[ssdindex].open(Form("data/data_Test_Multi/SSD%d_MultiCutData.dat", ssdindex+1));
     TrackDataOut[ssdindex].open(Form("data/data_Test_Multi/SSD%d_TrackData.dat", ssdindex+1));
-    TrackDataOut[ssdindex]<<setw(7)<<"EntryNo."<<setw(10)<<"EntryID"<<setw(15)<<"MultiGlobal"
-        <<setw(17)<<"Track_Cand._Tot"<<setw(17)<<"Track_Cand._No."<<setw(10)<<"Track ?"
+
+    MultiCutDataOut[ssdindex]<<setw(7)<<"EntryID"<<setw(15)<<"MultiGlobal"
         <<setw(10)<<"M_L3A"<<setw(10)<<"M_L2B"<<setw(10)<<"M_L2F"<<setw(11)<<"M_L1S"
-        <<setw(15)<<"Is_Geo_L3AL2B"<<setw(15)<<"Is_Geo_L3AL2F"<<setw(15)<<"Is_Ene_L2BL2F"
-        <<setw(15)<<"Is_Geo_L2BL1S"<<setw(15)<<"Is_Ene_L1SL2F"<<endl;
+        <<setw(15)<<"Geo_L3AL2B"<<setw(15)<<"Geo_L3AL2F"<<setw(15)<<"Ene_L2BL2F"
+        <<setw(15)<<"Geo_L2BL1S"<<setw(15)<<"Ene_L1SL2F"<<endl;
+    TrackDataOut[ssdindex]<<setw(7)<<"EntryID"<<setw(15)<<"MultiGlobal"
+        <<setw(10)<<"M_L3A"<<setw(10)<<"M_L2B"<<setw(10)<<"M_L2F"<<setw(11)<<"M_L1S"
+        <<setw(15)<<"Geo_L3AL2B"<<setw(15)<<"Geo_L3AL2F"<<setw(15)<<"Ene_L2BL2F"
+        <<setw(15)<<"Geo_L2BL1S"<<setw(15)<<"Ene_L1SL2F"<<endl;
   }
 
   TFile* myfile = new TFile(pathTrackEventRoot.c_str());
@@ -874,31 +878,20 @@ void Test_Multi::CheckTrackReconstructionResult()
   mytree->SetBranchStatus("TrackEvent.fSSDGlobalMulti", kTRUE);
   mytree->SetBranchAddress("TrackEvent.fSSDGlobalMulti", &TrackEvent_fSSDGlobalMulti);
 
-  cout<<setw(7)<<"EventNo."<<setw(10)<<"EntryID"<<setw(15)<<"MultiGlobal"
-      <<setw(17)<<"Track_Cand._Tot"<<setw(17)<<"Track_Cand._No."<<setw(10)<<"Track ?"
-      <<setw(10)<<"M_L3A"<<setw(10)<<"M_L2B"<<setw(10)<<"M_L2F"<<setw(11)<<"M_L1S"
-      <<setw(15)<<"Is_Geo_L3AL2B"<<setw(15)<<"Is_Geo_L3AL2F"<<setw(15)<<"Is_Ene_L2BL2F"
-      <<setw(15)<<"Is_Geo_L2BL1S"<<setw(15)<<"Is_Ene_L1SL2F"<<endl;
-
   for (Long64_t ientry=0; ientry<nentries; ientry++) {
 
-    mytree->GetEntry(ientry);  // TrackEvent
+    mytree->GetEntry(ientry);
     fChain->GetEntry(ientry);
     timeper.PrintPercentageAndRemainingTime(ientry, nentries);
 
     for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
-
       if ((LayerEvent_fSSDCsIMulti[ssdindex]>0 && LayerEvent_fSSDCsIMulti[ssdindex]<=MULTICUT_L3A) &&
           (LayerEvent_fSSDL2BMulti[ssdindex]>0 && LayerEvent_fSSDL2BMulti[ssdindex]<=MULTICUT_L2B) &&
           (LayerEvent_fSSDL2FMulti[ssdindex]>0 && LayerEvent_fSSDL2FMulti[ssdindex]<=MULTICUT_L2F) &&
           (LayerEvent_fSSDL1SMulti[ssdindex]>0 && LayerEvent_fSSDL1SMulti[ssdindex]<=MULTICUT_L1S))
       {
         count_multicut[ssdindex]++;
-        count_global[ssdindex] = 0;
-        track_cand_total[ssdindex] = 0;
-        track_cand_No[ssdindex] = 0;
-
-        if (TrackEvent_fSSDGlobalMulti[ssdindex] == 0) count_globalmulti0[ssdindex]++;
+        count_index[ssdindex] = 0;
 
         for (Int_t csimulti=0; csimulti<LayerEvent_fCsIMulti; csimulti++) {
           for (Int_t l2bmulti=0; l2bmulti<LayerEvent_fL2BMulti; l2bmulti++) {
@@ -908,54 +901,29 @@ void Test_Multi::CheckTrackReconstructionResult()
                 if (LayerEvent_fCsISSDNum[csimulti]==ssdindex && LayerEvent_fL2BSSDNum[l2bmulti]==ssdindex &&
                     LayerEvent_fL2FSSDNum[l2fmulti]==ssdindex && LayerEvent_fL1SSSDNum[l1smulti]==ssdindex)  // 对每个SSD分开讨论
                 {
-                  Is_Geo_L3AL2B = fPattern.IsGeoConstraint_L3A_L2B(LayerEvent_fCsINum[csimulti], LayerEvent_fL2BNumStrip[l2bmulti]);
-                  Is_Geo_L3AL2F = fPattern.IsGeoConstraint_L3A_L2F(LayerEvent_fCsINum[csimulti], LayerEvent_fL2FNumStrip[l2fmulti]);
-                  Is_Geo_L2BL1S = fPattern.IsGeoConstraint_L2B_L1S(LayerEvent_fL2BNumStrip[l2bmulti], LayerEvent_fL1SNumStrip[l1smulti]);
-                  Is_Ene_L2BL2F = fPattern.IsEneConstraint_L2B_L2F(ssdindex, LayerEvent_fL2BEMeV[l2bmulti], LayerEvent_fL2FEMeV[l2fmulti]);
-                  Is_Ene_L1SL2F = fPattern.IsEneConstraint_L1S_L2F(ssdindex, LayerEvent_fL1SEMeV[l1smulti], LayerEvent_fL2FEMeV[l2fmulti]);
-                  if (Is_Geo_L3AL2B && Is_Geo_L3AL2F && Is_Geo_L2BL1S && Is_Ene_L2BL2F && Is_Ene_L1SL2F)
+                  Geo_L3AL2B = fPattern.IsGeoConstraint_L3A_L2B(LayerEvent_fCsINum[csimulti], LayerEvent_fL2BNumStrip[l2bmulti]);
+                  Geo_L3AL2F = fPattern.IsGeoConstraint_L3A_L2F(LayerEvent_fCsINum[csimulti], LayerEvent_fL2FNumStrip[l2fmulti]);
+                  Geo_L2BL1S = fPattern.IsGeoConstraint_L2B_L1S(LayerEvent_fL2BNumStrip[l2bmulti], LayerEvent_fL1SNumStrip[l1smulti]);
+                  Ene_L2BL2F = fPattern.IsEneConstraint_L2B_L2F(ssdindex, LayerEvent_fL2BEMeV[l2bmulti], LayerEvent_fL2FEMeV[l2fmulti]);
+                  Ene_L1SL2F = fPattern.IsEneConstraint_L1S_L2F(ssdindex, LayerEvent_fL1SEMeV[l1smulti], LayerEvent_fL2FEMeV[l2fmulti]);
+                  if (Geo_L3AL2B && Geo_L3AL2F && Geo_L2BL1S && Ene_L2BL2F && Ene_L1SL2F)
                   {
-                    count_global[ssdindex]++;
-                  }
-                  track_cand_total[ssdindex] = LayerEvent_fSSDCsIMulti[ssdindex] * LayerEvent_fSSDL2BMulti[ssdindex]
-                                             * LayerEvent_fSSDL2FMulti[ssdindex] * LayerEvent_fSSDL1SMulti[ssdindex];
-
-                  // 只关心 fglobalmulti=0 的事件, 检查有没有误扔掉的事件
-                  if (TrackEvent_fSSDGlobalMulti[ssdindex] == 0) {
-                    cout<<setw(3)<<count_globalmulti0[ssdindex]<<setw(10)<<ientry<<setw(13)<<TrackEvent_fSSDGlobalMulti[ssdindex]
-                        <<setw(15)<<track_cand_total[ssdindex]<<setw(15)<<track_cand_No[ssdindex]
-                        <<setw(15)<<((Is_Geo_L3AL2B*Is_Geo_L3AL2F*Is_Geo_L2BL1S*Is_Ene_L2BL2F*Is_Ene_L1SL2F>0) ? "Y" : "N")
-                        <<setw(12)<<LayerEvent_fSSDCsIMulti[ssdindex]<<setw(10)<<LayerEvent_fSSDL2BMulti[ssdindex]
-                        <<setw(10)<<LayerEvent_fSSDL2FMulti[ssdindex]<<setw(10)<<LayerEvent_fSSDL1SMulti[ssdindex]
-                        <<setw(15)<<Is_Geo_L3AL2B<<setw(15)<<Is_Geo_L3AL2F
-                        <<setw(15)<<Is_Geo_L2BL1S<<setw(15)<<Is_Ene_L2BL2F
-                        <<setw(15)<<Is_Ene_L1SL2F<<endl;
-
-                    TrackDataOut[ssdindex]<<setw(3)<<count_globalmulti0[ssdindex]<<setw(10)<<ientry
-                        <<setw(13)<<TrackEvent_fSSDGlobalMulti[ssdindex]
-                        <<setw(15)<<track_cand_total[ssdindex]<<setw(15)<<track_cand_No[ssdindex]
-                        <<setw(15)<<((Is_Geo_L3AL2B*Is_Geo_L3AL2F*Is_Geo_L2BL1S*Is_Ene_L2BL2F*Is_Ene_L1SL2F>0) ? "Y" : "N")
-                        <<setw(12)<<LayerEvent_fSSDCsIMulti[ssdindex]<<setw(10)<<LayerEvent_fSSDL2BMulti[ssdindex]
-                        <<setw(10)<<LayerEvent_fSSDL2FMulti[ssdindex]<<setw(10)<<LayerEvent_fSSDL1SMulti[ssdindex]
-                        <<setw(15)<<Is_Geo_L3AL2B<<setw(15)<<Is_Geo_L3AL2F
-                        <<setw(15)<<Is_Geo_L2BL1S<<setw(15)<<Is_Ene_L2BL2F
-                        <<setw(15)<<Is_Ene_L1SL2F<<endl;
-
-                    track_cand_No[ssdindex]++;
+                    count_index[ssdindex]++;
                   }
                 }
               }
             }
           }
         }
-        if (count_global[ssdindex]>0) {
+        if (count_index[ssdindex]>0) {
           count_track[ssdindex]++;
+        }
+        else {
+
         }
       }
     }
   }
-
-  // 输出径迹查找效率: N_track/N_multi
   cout<<endl;
   for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
     Double_t eff_ratio = (Double_t) count_track[ssdindex]/count_multicut[ssdindex];
@@ -966,66 +934,84 @@ void Test_Multi::CheckTrackReconstructionResult()
 
 
 //______________________________________________________________________
-// 分析不同 fGlobalMulti 所占的比例
-void Test_Multi::CheckGlobalMultiRatio()
+// 分析不同 fGlobalMulti 下的 fGlobalMulti 的比例
+// 这一步的分析依赖于 TrackReconstructionAlgorithm() 生成的 TrackEvent 文件
+void Test_Multi::CheckGlobalMultiRatio(Int_t ssdindex)
 {
   // 定义变量， 以用于计算不同 fGlobalMulti 的比例
-  Int_t    nummulti = 7;
-  Int_t    globalmulti[4][7]  = {{0}};
-  Double_t multiratio_from0[4][7] = {{0.}};
-  Double_t multiratio_from1[4][7] = {{0.}};
-  Double_t ratiosum_from0[4]      = {0.};
-  Double_t ratiosum_from1[4]      = {0.};
+  Int_t    nummulti = 7;  // 考察 globalmulti<nummulti 的情况
+  Int_t    globalmulti[7]  = {0};
+  Double_t multiratio_0[7] = {0.};
+  Double_t sumratio_0      =  0.;
+  Double_t multiratio_1[7] = {0.};
+  Double_t sumratio_1      =  0.;
+  Long64_t count = 0;
 
-  std::string pathTrackEventRoot = "/home/sea/Fission2019_Data/TrackReconstructionEvent_Run0120-Run0130.root";
-  TFile* myfile = new TFile(pathTrackEventRoot.c_str(), "READONLY");
-  if (!myfile || !myfile->IsOpen()) {
-    cout<<Form("File %s not founded.",  myfile->GetName());
+  TFile* myfile = new TFile("/home/sea/Fission2019_Data/TrackReconstructionEvent_Run0120-Run0130.root","READONLY");
+  if (!myfile->IsOpen()) {
+    cout<<"Open file failded."<<endl;
     return;
   }
+
+  Int_t                   TrackEvent_fGlobalMulti;
+  std::vector<Int_t>      TrackEvent_fSSDGlobalMulti;
+  std::vector<Int_t>      TrackEvent_fGSSDNum;
+  std::vector<Int_t>      TrackEvent_fGL1SNumStrip;
+  std::vector<Double_t>   TrackEvent_fGL1SEMeV;
+  std::vector<Int_t>      TrackEvent_fGL2FNumStrip;
+  std::vector<Double_t>   TrackEvent_fGL2FEMeV;
+  std::vector<Int_t>      TrackEvent_fGL2BNumStrip;
+  std::vector<Double_t>   TrackEvent_fGL2BEMeV;
+  std::vector<Int_t>      TrackEvent_fGCsINum;
+  std::vector<Int_t>      TrackEvent_fGCsIECh;
+
   TTree* mytree = (TTree*)myfile->Get("TrackEvent");
   Long64_t nentries = mytree->GetEntries();
   cout<<"Found nentries = "<<nentries<<endl;
 
-  std::vector<Int_t>      TrackEvent_fSSDGlobalMulti;
   mytree->SetMakeClass(1);  // 如果 tree 的 branch 使用了自定义的类, 则这条语句不能省略！！！
+  mytree->SetBranchAddress("TrackEvent.fGlobalMulti",    &TrackEvent_fGlobalMulti);
   mytree->SetBranchAddress("TrackEvent.fSSDGlobalMulti", &TrackEvent_fSSDGlobalMulti);
+  mytree->SetBranchAddress("TrackEvent.fGSSDNum",        &TrackEvent_fGSSDNum);
+  mytree->SetBranchAddress("TrackEvent.fGL1SNumStrip",   &TrackEvent_fGL1SNumStrip);
+  mytree->SetBranchAddress("TrackEvent.fGL1SEMeV",       &TrackEvent_fGL1SEMeV);
+  mytree->SetBranchAddress("TrackEvent.fGL2FNumStrip",   &TrackEvent_fGL2FNumStrip);
+  mytree->SetBranchAddress("TrackEvent.fGL2FEMeV",       &TrackEvent_fGL2FEMeV);
+  mytree->SetBranchAddress("TrackEvent.fGL2BNumStrip",   &TrackEvent_fGL2BNumStrip);
+  mytree->SetBranchAddress("TrackEvent.fGL2BEMeV",       &TrackEvent_fGL2BEMeV);
+  mytree->SetBranchAddress("TrackEvent.fGCsINum",        &TrackEvent_fGCsINum);
+  mytree->SetBranchAddress("TrackEvent.fGCsIECh",        &TrackEvent_fGCsIECh);
 
   for (Long64_t ientry=0; ientry<nentries; ientry++) {
     mytree->GetEntry(ientry);
 
-    for (Int_t ssdindex=0; ssdindex<4; ssdindex++) {
-      for (Int_t i=0; i<nummulti; i++) {
-        if (TrackEvent_fSSDGlobalMulti[ssdindex]==i)   globalmulti[ssdindex][i]++;
-      }
-    }
-  }
-
-  for (Int_t ssdindex=0; ssdindex<4; ssdindex++) {
-    cout<<"------------------"<<endl;
-    cout<<Form("For SSD%d :\n",ssdindex+1)<<endl;
-
-    // 计算比例，从 globalmulti = 0 算起
+    //___________________________________________
+    // 统计不同 fGlobalMult 的计数
     for (Int_t i=0; i<nummulti; i++) {
-      multiratio_from0[ssdindex][i] = (Double_t) globalmulti[ssdindex][i]/nentries;
-      ratiosum_from0[ssdindex] += multiratio_from0[ssdindex][i];
-      cout<<Form("multi%d = ", i)<<multiratio_from0[ssdindex][i]<<setw(12);
+      if (TrackEvent_fSSDGlobalMulti[ssdindex]==i)   globalmulti[i]++;
     }
-    cout<<ratiosum_from0[ssdindex]<<endl;
-
-    // 计算比例，从 globalmulti = 1 算起
-    for (Int_t i=1; i<nummulti; i++) {
-      multiratio_from1[ssdindex][i] = (Double_t) globalmulti[ssdindex][i]/(nentries-globalmulti[ssdindex][0]); // 剔除 fGlobalMulti=0 的情况
-      ratiosum_from1[ssdindex] += multiratio_from1[ssdindex][i];
-      cout<<Form("multi%d = ", i)<<multiratio_from1[ssdindex][i]<<setw(12);
-    }
-    cout<<ratiosum_from1[ssdindex]<<endl;
   }
+
+  // 计算比例，从 globalmulti = 0 算起
+  for (Int_t i=0; i<nummulti; i++) {
+    multiratio_0[i] = (Double_t) globalmulti[i]/nentries;
+    sumratio_0 += multiratio_0[i];
+    cout<<Form("multi%d", i)<<" "<<multiratio_0[i]<<setw(12);
+  }
+  cout<<sumratio_0<<endl;
+
+  // 计算比例，从 globalmulti = 1 算起
+  for (Int_t i=1; i<nummulti; i++) {
+    multiratio_1[i] = (Double_t) globalmulti[i]/(nentries-globalmulti[0]); // 剔除 fGlobalMulti=0 的情况
+    sumratio_1 += multiratio_1[i];
+    cout<<Form("multi%d", i)<<" "<<multiratio_1[i]<<setw(12);
+    count += globalmulti[i];
+  }
+  cout<<sumratio_1<<endl;
+  cout<<"count = "<<count<<endl;
 
   myfile->Close();
 }
-
-
 
 void Test_Multi::GlobalMulti_ExtractData(Int_t globalmulti)
 {}

@@ -239,9 +239,9 @@ void CSHINESiEnergyCali::EstimatePedestals(const char* layertag, const char* pul
   if (strcmp(layertag,"L2F")==0) index = 1;
   if (strcmp(layertag,"L2B")==0) index = 2;
   Double_t PedestalRangeLow[3] = { 50., 30.,  30. };
-  Double_t PedestalRangeUp[3] = { 130.,130., 160.};
-  Double_t ErrorRangeLow[3] = {-25., -35., -25.};
-  Double_t ErrorRangeUp[3] = { 0.,  -5.,   0.};
+  Double_t PedestalRangeUp[3]  = { 130.,130., 160.};
+  Double_t ErrorRangeLow[3]    = {-25., -35., -25.};
+  Double_t ErrorRangeUp[3]     = { 0.,  -5.,   0.};
   //Double_t RelativeErrRangeLow[3] = {-30., -40., -50.};
   //Double_t RelativeErrRangeUp [3] = { 0.,  -5.,   0.};
   Double_t latex_PedestalUp = 0.9 * (PedestalRangeUp   [index] - PedestalRangeLow   [index]) + PedestalRangeLow[index];
