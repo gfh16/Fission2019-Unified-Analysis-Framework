@@ -9,12 +9,12 @@ void test()
 {
   //_______________________________________
   // step1: build layerevent
-//  CSHINEBuildEvent build;
-//  build.BuildLayerEventTree(120, 130);
+  CSHINEBuildEvent build;
+  build.BuildLayerEventTree(120, 200);
 
   //_______________________________________________
   // step2: 径迹重建前的一些测试与检查
-  Test_Multi test(120, 130);
+//  Test_Multi test(120, 130);
 
 //  test.CheckL2BL2FEnergyCorrelation(0);
 //  test.CheckL2BL2FEnergyCorrelation(1);
@@ -32,5 +32,13 @@ void test()
 
 //  test.CheckTrackReconstructionResult();
 
-  test.CheckGlobalMultiRatio();
+//  test.CheckGlobalMultiRatio();
+
+//    test.CheckClusterSize_Si();
+//   test.CalcClusterSize_Equal2_ERatio();
+
+// 粒子鉴别
+//   CSHINEDEEFITPID deefit(120, 130);
+//   deefit.CheckL2L3EnergyCorrelation();
+
 }

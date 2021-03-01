@@ -59,6 +59,9 @@ CSHINEBuildEvent::~CSHINEBuildEvent()
 
 
 //******************************************************************************
+// 刻度时发现, SSD2_L2F_CH[0] 与 SSD2_L2F_CH[1] 异常
+// 实验中发现, SSD4_L2F_CH[13] 与 SSD4_L2F_CH[14] 信号异常
+// 处理方法: 直接将以上 4 个 channel 扔掉
 void CSHINEBuildEvent::LayerEvent(CSHINELayerEvent& layerevent, Int_t ssdindex,
   Int_t* echl1s, Int_t* echl2f, Int_t* echl2b, Int_t* echcsi)
 {
@@ -74,11 +77,30 @@ void CSHINEBuildEvent::LayerEvent(CSHINELayerEvent& layerevent, Int_t ssdindex,
     }
     // for L2F
     if (echl2f[chindex]>fSiEChcutl2f[ssdindex*NUM_STRIP+chindex]) {
-      SSDL2FMulti++;
-      layerevent.fL2FSSDNum.push_back(ssdindex);
-      layerevent.fL2FNumStrip.push_back(chindex);
-      layerevent.fL2FEMeV.push_back(fSlopel2f[ssdindex*NUM_STRIP+chindex]*echl2f[chindex]+fInterceptl2f[ssdindex*NUM_STRIP+chindex]);
-    }
+      if (ssdindex==0 || ssdindex==2) {
+        SSDL2FMulti++;
+        layerevent.fL2FSSDNum.push_back(ssdindex);
+        layerevent.fL2FNumStrip.push_back(chindex);
+        layerevent.fL2FEMeV.push_back(fSlopel2f[ssdindex*NUM_STRIP+chindex]*echl2f[chindex]+fInterceptl2f[ssdindex*NUM_STRIP+chindex]);
+      }
+      if (ssdindex==1) {
+        if (chindex!=0 && chindex!=1) { // 对于 SSD2_L2F, 扔掉 CH[0] 与 CH[1]
+          SSDL2FMulti++;
+          layerevent.fL2FSSDNum.push_back(ssdindex);
+          layerevent.fL2FNumStrip.push_back(chindex);
+          layerevent.fL2FEMeV.push_back(fSlopel2f[ssdindex*NUM_STRIP+chindex]*echl2f[chindex]+fInterceptl2f[ssdindex*NUM_STRIP+chindex]);
+        }
+      }
+      if (ssdindex==3) {
+        if (chindex!=13 && chindex!=14) { // 对于 SSD4_L2F, 扔掉 CH[13] 与 CH[14]
+          SSDL2FMulti++;
+          layerevent.fL2FSSDNum.push_back(ssdindex);
+          layerevent.fL2FNumStrip.push_back(chindex);
+          layerevent.fL2FEMeV.push_back(fSlopel2f[ssdindex*NUM_STRIP+chindex]*echl2f[chindex]+fInterceptl2f[ssdindex*NUM_STRIP+chindex]);
+        }
+        }
+      }
+
     // for L2B
     if (echl2b[chindex]>fSiEChcutl2b[ssdindex*NUM_STRIP+chindex]) {
       SSDL2BMulti++;

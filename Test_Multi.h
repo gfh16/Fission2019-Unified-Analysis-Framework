@@ -85,8 +85,10 @@ public :
   //___________________________________________
   //           电荷分配效应
   //         --------------
-  virtual void     CheckChargeSharingEffect_L1(Int_t ssdindex);
-
+  virtual void     CheckClusterSize_Si();
+  virtual void     CalcClusterSize_Equal2_ERatio();
+  virtual void     CalcCluseterSize_SiLayer(Int_t layermulti, vector<Int_t> numstrip, Int_t& clustersize);
+  virtual void     ClusterSize_Equal2_SiLayer(Int_t layermulti, vector<Int_t> numstrip, vector<Double_t> ene, Double_t& eratio, Int_t* strip);
 
   //_________________________________________
   //          径迹重建 与 相关检测
@@ -96,6 +98,7 @@ public :
   // 径迹重建事件检查
   virtual void     CheckTrackReconstructionResult();  //检查径迹查找算法得到的 trackevent 是否合理
   virtual void     CheckGlobalMultiRatio(); // 检查不同 globalmulti 所占的比例
+
   virtual void     GlobalMulti_ExtractData(Int_t globalmulti);
   virtual void     CheckParallelDraw(const char* fglobalmulti);
   virtual void     CheckL2L3DEEPlot(const char* fglobalmulti);

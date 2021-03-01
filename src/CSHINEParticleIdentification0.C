@@ -60,6 +60,9 @@ void CSHINEDEEFITPID::Init(TTree* tree)
 // 产生 DEEFIT 数据前, 先检查 L2L3 的能量关联是否正常
 void CSHINEDEEFITPID::CheckL2L3EnergyCorrelation()
 {
+	Double_t ECh_CsI, EMeV_L2F;
+	Int_t Num_CsI, Num_L2B, Num_L2F;
+
 	TH2D* hist_L2L3[NUM_SSD][NUM_CSI];
 	for (Int_t i=0; i<NUM_SSD; i++) {
 		for (Int_t j=0; j<NUM_CSI; j++) {
@@ -75,12 +78,22 @@ void CSHINEDEEFITPID::CheckL2L3EnergyCorrelation()
     timeper.PrintPercentageAndRemainingTime(ientry, nentries);
 
 		for(Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
-			if (LayerEvent_fSSDL2FMulti[ssdindex]==1 && LayerEvent_fSSDCsIMulti[ssdindex]==1) {
+			if (LayerEvent_fSSDCsIMulti[ssdindex]==1 && LayerEvent_fSSDL2FMulti[ssdindex]==1) {
         for (Int_t csimulti=0; csimulti<LayerEvent_fCsIMulti; csimulti++) {
-					for (Int_t l2fmulti=0; l2fmulti<LayerEvent_fL2FMulti; l2fmulti++) {
-						if (LayerEvent_fCsISSDNum[csimulti]==ssdindex && LayerEvent_fL2FSSDNum[l2fmulti]==ssdindex)
-						{
-							hist_L2L3[ssdindex][LayerEvent_fCsINum[csimulti]]->Fill(LayerEvent_fCsIECh[csimulti], LayerEvent_fL2FEMeV[l2fmulti]);
+					for (Int_t l2bmulti=0; l2bmulti<LayerEvent_fL2BMulti; l2bmulti++) {
+				  	for (Int_t l2fmulti=0; l2fmulti<LayerEvent_fL2FMulti; l2fmulti++) {
+							if (LayerEvent_fCsISSDNum[csimulti]==ssdindex && LayerEvent_fL2BSSDNum[l2bmulti]==ssdindex
+								&& LayerEvent_fL2FSSDNum[l2fmulti]==ssdindex)
+							{
+								Num_CsI = LayerEvent_fCsINum[csimulti];
+								Num_L2B = LayerEvent_fL2BNumStrip[l2bmulti];
+								Num_L2F = LayerEvent_fL2FNumStrip[l2fmulti];
+
+
+								if (Condition.IsGeoConstraint_L3A_L2F() && Condition.IsGeoConstraint_L3A_L2B() &&
+							      Condition.IsEneConstraint_L2B_L2F(ssdindex, ))
+								hist_L2L3[ssdindex][]->Fill(LayerEvent_fCsIECh[csimulti], LayerEvent_fL2FEMeV[l2fmulti]);
+							}
 						}
 					}
 				}
@@ -94,7 +107,6 @@ void CSHINEDEEFITPID::CheckL2L3EnergyCorrelation()
 			hist_L2L3[i][j]->Draw("COLZ");
 		}
 	}
-
 }
 
 

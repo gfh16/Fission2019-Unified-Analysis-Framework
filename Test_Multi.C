@@ -555,7 +555,7 @@ void Test_Multi::CheckEnergyLossL1L2_Expdata()
               fPattern.IsGeoConstraint_L2B_L1S(ssdindex, LayerEvent_fL2BMulti, LayerEvent_fL2BNumStrip.data(), LayerEvent_fL2BSSDNum.data(),
                                                LayerEvent_fL1SNumStrip[l1s], LayerEvent_fL1SSSDNum[l1s]))
           {
-            if (ssdindex==3 && (LayerEvent_fL2FNumStrip[l2f]==0 || LayerEvent_fL2FNumStrip[l2f]==1)) continue;
+            //if (ssdindex==3 && (LayerEvent_fL2FNumStrip[l2f]==0 || LayerEvent_fL2FNumStrip[l2f]==1)) continue;
             ratio_E1E2[ssdindex] = LayerEvent_fL1SEMeV[l1s]/LayerEvent_fL2FEMeV[l2f]*100;  // 单位: %
             hist[ssdindex]->Fill(ratio_E1E2[ssdindex]);
           }
@@ -698,9 +698,502 @@ void Test_Multi::CheckLayerMultiPercentage()
 //______________________________________________________________________________
 //                电荷分配效应
 //             -----------------
-void Test_Multi::CheckChargeSharingEffect_L1(Int_t ssdindex)
-{}
+//____________________________________
+// 检查实验数据中: 如果硅条中有相邻的条点火, 则定义这样相邻条的数目为 ClusterSize
+/* //这一段用于检查每种 clustersize 的情况
+if (ClusterSize_L2F==2) {
+  cout<<"SSD"<<ssdindex<<setw(10)<<LayerEvent_fSSDL2FMulti[ssdindex]<<setw(10)<<ClusterSize_L2F<<setw(10);
+  for (Int_t i=0; i<LayerEvent_fL2FMulti; i++) {
+    if (LayerEvent_fL2FSSDNum[i]==ssdindex) {
+      cout<<setw(10)<<LayerEvent_fL2FNumStrip[i];
+    }
+  }
+  cout<<endl;
+} */
+void Test_Multi::CheckClusterSize_Si()
+{
+  Int_t NBins = 2000;
+  Int_t Count_ClusterSize_L1S;
+  Int_t Count_ClusterSize_L2F;
+  Int_t Count_ClusterSize_L2B;
+  Int_t CountSum_ClusterSize_L1S;
+  Int_t CountSum_ClusterSize_L2F;
+  Int_t CountSum_ClusterSize_L2B;
 
+  Double_t Ratio_ClusterSize_L1S;
+  Double_t Ratio_ClusterSize_L2F;
+  Double_t Ratio_ClusterSize_L2B;
+  Double_t RatioSum_ClusterSize_L1S;
+  Double_t RatioSum_ClusterSize_L2F;
+  Double_t RatioSum_ClusterSize_L2B;
+
+  Int_t Count_L1SMulti_ge1[4] = {0};
+  Int_t Count_L2FMulti_ge1[4] = {0};
+  Int_t Count_L2BMulti_ge1[4] = {0};
+
+  Int_t ClusterSize_L1S = -99;
+  Int_t ClusterSize_L2F = -99;
+  Int_t ClusterSize_L2B = -99;
+
+  Int_t count_L1S[4] = {0};
+  Int_t count_L2F[4] = {0};
+  Int_t count_L2B[4] = {0};
+
+  std::vector<Int_t> NumStrip_L1S;
+  std::vector<Int_t> NumStrip_L2F;
+  std::vector<Int_t> NumStrip_L2B;
+
+  std::string HistName_L1S[NUM_SSD];
+  std::string HistName_L2F[NUM_SSD];
+  std::string HistName_L2B[NUM_SSD];
+  TH1I* hist_ClusterSize_L1S[NUM_SSD];
+  TH1I* hist_ClusterSize_L2F[NUM_SSD];
+  TH1I* hist_ClusterSize_L2B[NUM_SSD];
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    HistName_L1S[ssdindex] = Form("SSD%d_L1S_ClusterSize",ssdindex+1);
+    HistName_L2F[ssdindex] = Form("SSD%d_L2F_ClusterSize",ssdindex+1);
+    HistName_L2B[ssdindex] = Form("SSD%d_L2B_ClusterSize",ssdindex+1);
+    hist_ClusterSize_L1S[ssdindex] = new TH1I(HistName_L1S[ssdindex].c_str(), HistName_L1S[ssdindex].c_str(), NBins, 0, NBins);
+    hist_ClusterSize_L2F[ssdindex] = new TH1I(HistName_L2F[ssdindex].c_str(), HistName_L2F[ssdindex].c_str(), NBins, 0, NBins);
+    hist_ClusterSize_L2B[ssdindex] = new TH1I(HistName_L2B[ssdindex].c_str(), HistName_L2B[ssdindex].c_str(), NBins, 0, NBins);
+  }
+
+  Long64_t nentries = fChain->GetEntriesFast();
+  cout<<"nentries = "<<nentries<<endl;
+  for (Long64_t ientry=0; ientry<nentries;ientry++) {
+
+    fChain->GetEntry(ientry);
+    timeper.PrintPercentageAndRemainingTime(ientry, nentries);
+
+    for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+      if (LayerEvent_fSSDL1SMulti[ssdindex]>=1) Count_L1SMulti_ge1[ssdindex]++;
+      if (LayerEvent_fSSDL2FMulti[ssdindex]>=1) Count_L2FMulti_ge1[ssdindex]++;
+      if (LayerEvent_fSSDL2BMulti[ssdindex]>=1) Count_L2BMulti_ge1[ssdindex]++;
+
+      // for L1S
+      if (LayerEvent_fSSDL1SMulti[ssdindex]>=2 && LayerEvent_fSSDL1SMulti[ssdindex]<=MULTICUT_L1S) {
+        for (Int_t l1smulti=0; l1smulti<LayerEvent_fL1SMulti; l1smulti++) {
+          if (LayerEvent_fL1SSSDNum[l1smulti]==ssdindex) {
+            NumStrip_L1S.push_back(LayerEvent_fL1SNumStrip[l1smulti]);
+          }
+        }
+        CalcCluseterSize_SiLayer(LayerEvent_fSSDL1SMulti[ssdindex], NumStrip_L1S, ClusterSize_L1S);
+        hist_ClusterSize_L1S[ssdindex]->Fill(ClusterSize_L1S);
+      }
+
+      // for L2F
+      if (LayerEvent_fSSDL2FMulti[ssdindex]>=2 && LayerEvent_fSSDL2FMulti[ssdindex]<=MULTICUT_L2F) {
+        for (Int_t l2fmulti=0; l2fmulti<LayerEvent_fL2FMulti; l2fmulti++) {
+          if (LayerEvent_fL2FSSDNum[l2fmulti]==ssdindex) {
+            NumStrip_L2F.push_back(LayerEvent_fL2FNumStrip[l2fmulti]);
+          }
+        }
+        CalcCluseterSize_SiLayer(LayerEvent_fSSDL2FMulti[ssdindex], NumStrip_L2F, ClusterSize_L2F);
+        hist_ClusterSize_L2F[ssdindex]->Fill(ClusterSize_L2F);
+      }
+      // for L2B
+      if (LayerEvent_fSSDL2BMulti[ssdindex]>=2 && LayerEvent_fSSDL2BMulti[ssdindex]<=MULTICUT_L2B) {
+        for (Int_t l2bmulti=0; l2bmulti<LayerEvent_fL2BMulti; l2bmulti++) {
+          if (LayerEvent_fL2BSSDNum[l2bmulti]==ssdindex) {
+            NumStrip_L2B.push_back(LayerEvent_fL2BNumStrip[l2bmulti]);
+          }
+        }
+        CalcCluseterSize_SiLayer(LayerEvent_fSSDL2BMulti[ssdindex], NumStrip_L2B, ClusterSize_L2B);
+        hist_ClusterSize_L2B[ssdindex]->Fill(ClusterSize_L2B);
+      }
+      NumStrip_L1S.clear();
+      NumStrip_L2F.clear();
+      NumStrip_L2B.clear();
+    }
+  }
+
+  // 统计 ClusterSize 的取值与比例
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    CountSum_ClusterSize_L1S = 0;
+    CountSum_ClusterSize_L2F = 0;
+    CountSum_ClusterSize_L2B = 0;
+    RatioSum_ClusterSize_L1S = 0.;
+    RatioSum_ClusterSize_L2F = 0.;
+    RatioSum_ClusterSize_L2B = 0.;
+    // L1S
+    cout<<endl;
+    cout<<Form("SSD%d_L1S\n", ssdindex+1);
+    for (Int_t nbin=1; nbin<NBins+1; nbin++) {
+      Count_ClusterSize_L1S = hist_ClusterSize_L1S[ssdindex]->GetBinContent(nbin);
+      if (Count_ClusterSize_L1S!=0) {
+        Ratio_ClusterSize_L1S = (Double_t) Count_ClusterSize_L1S/Count_L1SMulti_ge1[ssdindex];
+        cout<<left<<setw(30)<<Form("ClusterSize = %d", nbin-1)<<left<<setw(30)<<Form("count = %d",Count_ClusterSize_L1S);
+        cout<<setprecision(4)<<left<<setw(10)<<"Ratio = "<<Ratio_ClusterSize_L1S<<endl;
+        CountSum_ClusterSize_L1S += Count_ClusterSize_L1S;
+        RatioSum_ClusterSize_L1S += Ratio_ClusterSize_L1S;
+      }
+    }
+    cout<<"Count_L1SMulti_ge1 = "<<Count_L1SMulti_ge1[ssdindex]<<endl;
+    cout<<"CountSum_L1S = "<<CountSum_ClusterSize_L1S<<endl;
+    cout<<"RatioSum_L1S = "<<RatioSum_ClusterSize_L1S<<endl;
+
+    // L2F
+    cout<<endl;
+    cout<<Form("SSD%d_L2F\n", ssdindex+1);
+    for (Int_t nbin=1; nbin<NBins+1; nbin++) {
+      Count_ClusterSize_L2F = hist_ClusterSize_L2F[ssdindex]->GetBinContent(nbin);
+      if (Count_ClusterSize_L2F!=0) {
+        Ratio_ClusterSize_L2F = (Double_t) Count_ClusterSize_L2F/Count_L2FMulti_ge1[ssdindex];
+        cout<<left<<setw(30)<<Form("ClusterSize = %d", nbin-1)<<left<<setw(30)<<Form("count = %d",Count_ClusterSize_L2F);
+        cout<<setprecision(4)<<left<<setw(10)<<"Ratio = "<<Ratio_ClusterSize_L2F<<endl;
+        CountSum_ClusterSize_L2F += Count_ClusterSize_L2F;
+        RatioSum_ClusterSize_L2F += Ratio_ClusterSize_L2F;
+      }
+    }
+    cout<<"Count_L2FMulti_ge1 = "<<Count_L2FMulti_ge1[ssdindex]<<endl;
+    cout<<"CountSum_L2F = "<<CountSum_ClusterSize_L2F<<endl;
+    cout<<"RatioSum_L2F = "<<RatioSum_ClusterSize_L2F<<endl;
+    // L2B
+    cout<<endl;
+    cout<<Form("SSD%d_L2B\n", ssdindex+1);
+    for (Int_t nbin=1; nbin<NBins+1; nbin++) {
+      Count_ClusterSize_L2B = hist_ClusterSize_L2B[ssdindex]->GetBinContent(nbin);
+      if (Count_ClusterSize_L2B!=0) {
+        Ratio_ClusterSize_L2B = (Double_t) Count_ClusterSize_L2B/Count_L2BMulti_ge1[ssdindex];
+        cout<<left<<setw(30)<<Form("ClusterSize = %d", nbin-1)<<left<<setw(30)<<Form("count = %d",Count_ClusterSize_L2B);
+        cout<<setprecision(4)<<left<<setw(10)<<"Ratio = "<<Ratio_ClusterSize_L2B<<endl;
+        CountSum_ClusterSize_L2B += Count_ClusterSize_L2B;
+        RatioSum_ClusterSize_L2B += Ratio_ClusterSize_L2B;
+      }
+    }
+    cout<<"Count_L2BMulti_ge1 = "<<Count_L2BMulti_ge1[ssdindex]<<endl;
+    cout<<"CountSum_L2B = "<<CountSum_ClusterSize_L2B<<endl;
+    cout<<"RatioSum_L2B = "<<RatioSum_ClusterSize_L2B<<endl;
+  }
+
+  TCanvas* cans_L1S = new TCanvas("cans_L1S", "cans_L1S", 1000, 1000);
+  TCanvas* cans_L2F = new TCanvas("cans_L2F", "cans_L2F", 1000, 1000);
+  TCanvas* cans_L2B = new TCanvas("cans_L2B", "cans_L2B", 1000, 1000);
+  cans_L1S->Divide(2,2);
+  cans_L2F->Divide(2,2);
+  cans_L2B->Divide(2,2);
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    cans_L1S->cd(ssdindex+1);
+    gPad->SetLogy();
+    hist_ClusterSize_L1S[ssdindex]->Draw();
+
+    cans_L2F->cd(ssdindex+1);
+    gPad->SetLogy();
+    hist_ClusterSize_L2F[ssdindex]->Draw();
+
+    cans_L2B->cd(ssdindex+1);
+    gPad->SetLogy();
+    hist_ClusterSize_L2B[ssdindex]->Draw();
+  }
+}
+
+//_________________________
+// 对 cluster 进行分类
+void Test_Multi::CalcCluseterSize_SiLayer(Int_t layermulti, vector<Int_t> numstrip, Int_t& clustersize)
+{
+  // layermulti = 2 的情况
+  if (layermulti==2) {
+    if (numstrip[0]-numstrip[1] == -1)        clustersize = 2;  // ---**------
+    else                                      clustersize = 0;  // ---*--*----
+  }
+  // layermulti = 3 的情况:
+  if (layermulti==3) {
+    if (numstrip[0]-numstrip[2] == -2)        clustersize = 3; //----***------
+    else if (numstrip[0]-numstrip[1] == -1)   clustersize = 2; //--**---*-----
+    else if (numstrip[1]-numstrip[2] == -1)   clustersize = 2; //--*---**-----
+    else                                      clustersize = 0; //---*--*----*--
+  }
+  // layermulti = 4 的情况
+  if (layermulti==4) {
+    if (numstrip[0]-numstrip[3] == -3)        clustersize = 4; //----****------
+    else if (numstrip[0]-numstrip[2] == -2)   clustersize = 3; //---***--*-----
+    else if (numstrip[1]-numstrip[3] == -2)   clustersize = 3; //---*---***----
+    else if (numstrip[0]-numstrip[1] == -1) {
+      if (numstrip[2]-numstrip[3] == -1)      clustersize = 22;//---**---**---
+      else                                    clustersize = 2; //---**--*--*--
+    }
+    else if (numstrip[1]-numstrip[2] == -1)   clustersize = 2; //---*--**---*--
+    else if (numstrip[2]-numstrip[3] == -1)   clustersize = 2; //---*--*--**---
+    else                                      clustersize = 0; //--*--*--*--*--
+  }
+  // layermulti = 5 的情况
+  if (layermulti==5) {
+    if (numstrip[0]-numstrip[4] == -4)        clustersize = 5; //---*****-----
+    else if (numstrip[0]-numstrip[3] == -3)   clustersize = 4; //---****--*---
+    else if (numstrip[1]-numstrip[4] == -3)   clustersize = 4; //---*--****---
+    else if (numstrip[0]-numstrip[2] == -2) {
+      if (numstrip[3]-numstrip[4] == -1)      clustersize = 23;//---***--**---
+      else                                    clustersize = 3; //--***--*--*--
+    }
+    else if (numstrip[1]-numstrip[3] == -2)   clustersize = 3; //--*--***-*---
+    else if (numstrip[2]-numstrip[4] == -2) {
+      if (numstrip[0]-numstrip[1] == -1)      clustersize = 23;//--**--***----
+      else                                    clustersize = 3; //--*--*--***--
+    }
+    else if (numstrip[0]-numstrip[1] == -1) {
+      if ((numstrip[2]-numstrip[3] == -1) || (numstrip[3]-numstrip[4] == -1))  clustersize = 122; //---**--**--*-- or ---**--*--**---
+      else                                    clustersize = 2; //---**--*--*--*--
+    }
+    else if (numstrip[1]-numstrip[2] == -1) {
+      if (numstrip[3]-numstrip[4] == -1)      clustersize = 122;  //--*--**---**--
+      else                                    clustersize = 2; //--*--**--*--*--
+    }
+    else if (numstrip[2]-numstrip[3] == -1)   clustersize = 2; //--*--*--**--*--
+    else if (numstrip[3]-numstrip[4] == -1)   clustersize = 2; //--*--*--*--**--
+    else                                      clustersize = 0; //--*--*--*--*--*--
+  }
+  // layermulti = 6 的情况
+  if (layermulti==6) {
+    if (numstrip[0]-numstrip[5] == -5)        clustersize = 6; //---******----
+    else if (numstrip[0]-numstrip[4] == -4)   clustersize = 5; //---*****--*--
+    else if (numstrip[1]-numstrip[5] == -4)   clustersize = 5; //---*--*****--
+    else if (numstrip[0]-numstrip[3] == -3) {
+      if (numstrip[4]-numstrip[5] == -1)      clustersize = 24;//---****--**--
+      else                                    clustersize = 4; //---****--*--*--
+    }
+    else if (numstrip[1]-numstrip[4] == -3)   clustersize = 4; //---*--****--*--
+    else if (numstrip[2]-numstrip[5] == -3) {
+      if (numstrip[0]-numstrip[1] == -1)      clustersize = 24;//--**--****--
+      else                                    clustersize = 4; //--*--*--****--
+    }
+    else if (numstrip[0]-numstrip[2] == -2) {
+      if (numstrip[3]-numstrip[5] == -2)      clustersize = 33; //---***---***--
+      else if ((numstrip[3]-numstrip[4] == -1) || (numstrip[3]-numstrip[4] == -1)) clustersize = 123; //--***--**--*-- or --***--*--**--
+      else                                    clustersize = 3; //--***--*--*--*--
+    }
+    else if (numstrip[1]-numstrip[3] == -2) {
+      if (numstrip[4]-numstrip[5] == -1)      clustersize = 123; //--*--***--**--
+      else                                    clustersize = 3; //---*--***--*--*--
+    }
+    else if (numstrip[2]-numstrip[4] == -2) {
+      if (numstrip[0]-numstrip[1] == -1)      clustersize = 123; //--**---***--*--
+      else                                    clustersize = 3; //--*--*--***--*--
+    }
+    else if (numstrip[3]-numstrip[5] == -2) {
+      if ((numstrip[0]-numstrip[1] == -1) || (numstrip[1]-numstrip[2] == -1))  clustersize = 123; //--**--*--***-- or --*--**--***--
+      else                                    clustersize = 3; //--*--*--*--***--
+    }
+    else if (numstrip[0]-numstrip[1] == -1) {
+      if (numstrip[2]-numstrip[3] == -1) {
+        if (numstrip[4]-numstrip[5] == -1)   clustersize = 222; //--**--**--**--
+        else                                 clustersize = 1122;//--**--**--*--*--
+      }
+      else if (numstrip[3]-numstrip[4] == -1)  clustersize = 1122; //--**--*--**-*--
+      else if (numstrip[4]-numstrip[5] == -1)  clustersize = 1122; //--**--*--*--**--
+      else                                     clustersize = 2; //--**--*--*--*--*--
+    }
+    else if  (numstrip[1]-numstrip[2] == -1) {
+      if (numstrip[3]-numstrip[4] == -1)       clustersize = 1122; //--*--**--**--*--
+      else if (numstrip[4]-numstrip[5] == -1)  clustersize = 1122; //--*--**--*--**--
+      else                                     clustersize = 2; //--*--**--*--*--*--
+    }
+    else if (numstrip[2]-numstrip[3] == -1) {
+      if (numstrip[4]-numstrip[5] == -1)      clustersize = 1122; //--*--*--**--**--
+      else                                    clustersize = 2; //--*--*--**--*--*--
+    }
+    else if (numstrip[3]-numstrip[4] == -1)   clustersize = 2; //--*--*--*--**--*--
+    else if (numstrip[4]-numstrip[5] == -1)   clustersize = 2; //--*--*--*--*--**--
+    else                                      clustersize = 0; //--*--*--*--*--*--*--
+  }
+}
+
+//__________________________________________________
+// 经过以上 CheckClusterSize_Si() 的分析, charge charing
+// 只需考虑 clustersize=2 的情况即可 ！
+Double_t CalcRatio(Double_t e1, Double_t e2)
+{
+  return (e1 > e2 ? e2/e1 : e1/e2);
+}
+void Test_Multi::CalcClusterSize_Equal2_ERatio()
+{
+  Int_t strip[2];
+  Int_t ClusterSize_L2F = -99;
+
+  Double_t ERatio_L1S = -99.;
+  Double_t ERatio_L2F = -99.;
+  Double_t ERatio_L2B = -99.;
+  std::vector<Int_t> NumStrip_L1S;
+  std::vector<Int_t> NumStrip_L2F;
+  std::vector<Int_t> NumStrip_L2B;
+  std::vector<Double_t> EMeV_L1S;
+  std::vector<Double_t> EMeV_L2F;
+  std::vector<Double_t> EMeV_L2B;
+
+  std::string HistNameStripDist_L2F[NUM_SSD];
+  std::string HistName_L1S[NUM_SSD];
+  std::string HistName_L2F[NUM_SSD];
+  std::string HistName_L2B[NUM_SSD];
+  TH1D* hist_StripDist_L2F[NUM_SSD];
+  TH1D* hist_ERatio_L1S[NUM_SSD];
+  TH1D* hist_ERatio_L2F[NUM_SSD];
+  TH1D* hist_ERatio_L2B[NUM_SSD];
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    HistNameStripDist_L2F[ssdindex] = Form("SSD%d_L2F_StripDist", ssdindex+1);
+    HistName_L1S[ssdindex] = Form("SSD%d_L1S_ERatio",ssdindex+1);
+    HistName_L2F[ssdindex] = Form("SSD%d_L2F_ERatio",ssdindex+1);
+    HistName_L2B[ssdindex] = Form("SSD%d_L2B_ERatio",ssdindex+1);
+    hist_StripDist_L2F[ssdindex] = new TH1D(HistNameStripDist_L2F[ssdindex].c_str(), HistNameStripDist_L2F[ssdindex].c_str(), 17, -0.5, 16.5);
+    hist_ERatio_L1S[ssdindex] = new TH1D(HistName_L1S[ssdindex].c_str(), HistName_L1S[ssdindex].c_str(), 100, 0, 1);
+    hist_ERatio_L2F[ssdindex] = new TH1D(HistName_L2F[ssdindex].c_str(), HistName_L2F[ssdindex].c_str(), 100, 0, 1);
+    hist_ERatio_L2B[ssdindex] = new TH1D(HistName_L2B[ssdindex].c_str(), HistName_L2B[ssdindex].c_str(), 100, 0, 1);
+  }
+
+  Long64_t nentries = fChain->GetEntriesFast();
+  cout<<"nentries = "<<nentries<<endl;
+  for (Long64_t ientry=0; ientry<nentries;ientry++) {
+
+    fChain->GetEntry(ientry);
+    timeper.PrintPercentageAndRemainingTime(ientry, nentries);
+
+    for (Int_t ssdindex=0; ssdindex<NUM_STRIP; ssdindex++) {
+
+      // for L1S
+      if (LayerEvent_fSSDL1SMulti[ssdindex]>=2 && LayerEvent_fSSDL1SMulti[ssdindex]<=MULTICUT_L1S) {
+        for (Int_t l1smulti=0; l1smulti<LayerEvent_fL1SMulti; l1smulti++) {
+          if (LayerEvent_fL1SSSDNum[l1smulti]==ssdindex) {
+            NumStrip_L1S.push_back(LayerEvent_fL1SNumStrip[l1smulti]);
+            EMeV_L1S.push_back(LayerEvent_fL1SEMeV[l1smulti]);
+          }
+        }
+        ClusterSize_Equal2_SiLayer(LayerEvent_fSSDL1SMulti[ssdindex], NumStrip_L1S, EMeV_L1S, ERatio_L1S, strip);
+        hist_ERatio_L1S[ssdindex]->Fill(ERatio_L1S);
+      }
+      // for L2F
+      if (LayerEvent_fSSDL2FMulti[ssdindex]>=2 && LayerEvent_fSSDL2FMulti[ssdindex]<=MULTICUT_L2F) {
+        for (Int_t l2fmulti=0; l2fmulti<LayerEvent_fL2FMulti; l2fmulti++) {
+          NumStrip_L2F.push_back(LayerEvent_fL2FNumStrip[l2fmulti]);
+          EMeV_L2F.push_back(LayerEvent_fL2FEMeV[l2fmulti]);
+        }
+        ClusterSize_Equal2_SiLayer(LayerEvent_fSSDL2FMulti[ssdindex], NumStrip_L2F, EMeV_L2F, ERatio_L2F, strip);
+        hist_ERatio_L2F[ssdindex]->Fill(ERatio_L2F);
+      }
+      // for L2B
+      if (LayerEvent_fSSDL2BMulti[ssdindex]>=2 && LayerEvent_fSSDL2BMulti[ssdindex]<=MULTICUT_L2B) {
+        for (Int_t l2bmulti=0; l2bmulti<LayerEvent_fL2BMulti; l2bmulti++) {
+          if (LayerEvent_fL2BSSDNum[l2bmulti]==ssdindex) {
+            NumStrip_L2B.push_back(LayerEvent_fL2BNumStrip[l2bmulti]);
+            EMeV_L2B.push_back(LayerEvent_fL2BEMeV[l2bmulti]);
+          }
+        }
+        ClusterSize_Equal2_SiLayer(LayerEvent_fSSDL2BMulti[ssdindex], NumStrip_L2B, EMeV_L2B, ERatio_L2B, strip);
+        hist_ERatio_L2B[ssdindex]->Fill(ERatio_L2B);
+      }
+      NumStrip_L1S.clear();
+      NumStrip_L2F.clear();
+      NumStrip_L2B.clear();
+      EMeV_L1S.clear();
+      EMeV_L2F.clear();
+      EMeV_L2B.clear();
+    }
+  }
+
+  TCanvas* cans_L2F_StripDist = new TCanvas("cans_L2F_StripDist", "cans_L2F_StripDist", 1000, 1000);
+  TCanvas* cans_L1S = new TCanvas("cans_L1S", "cans_L1S", 1000, 1000);
+  TCanvas* cans_L2F = new TCanvas("cans_L2F", "cans_L2F", 1000, 1000);
+  TCanvas* cans_L2B = new TCanvas("cans_L2B", "cans_L2B", 1000, 1000);
+  cans_L2F_StripDist->Divide(2,2);
+  cans_L1S->Divide(2,2);
+  cans_L2F->Divide(2,2);
+  cans_L2B->Divide(2,2);
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    cans_L1S->cd(ssdindex+1);
+    hist_ERatio_L1S[ssdindex]->Draw();
+
+    cans_L2F->cd(ssdindex+1);
+    hist_ERatio_L2F[ssdindex]->Draw();
+
+    cans_L2B->cd(ssdindex+1);
+    hist_ERatio_L2B[ssdindex]->Draw();
+
+    cans_L2F_StripDist->cd(ssdindex+1);
+    hist_StripDist_L2F[ssdindex]->Draw();
+  }
+}
+
+
+//______________________________
+// 计算 clustersize = 2 时两个能量的比值
+void Test_Multi::ClusterSize_Equal2_SiLayer(Int_t layermulti, vector<Int_t> numstrip,
+  vector<Double_t> ene, Double_t& eratio, Int_t* strip)
+{
+  if (layermulti==2 && (numstrip[0]-numstrip[1] == -1)) {
+    eratio = CalcRatio(ene[0], ene[1]); //---**------
+    strip[0] = numstrip[0]; strip[1] = numstrip[1];
+  }
+  // multi = 3
+  if (layermulti==3) {
+    if ((numstrip[0]-numstrip[2]!=-2)&&(numstrip[0]-numstrip[1]==-1)) {
+      eratio = CalcRatio(ene[0], ene[1]); //--**---*-----
+      strip[0] = numstrip[0]; strip[1] = numstrip[1];
+    }
+    if ((numstrip[0]-numstrip[2]!=-2)&&(numstrip[1]-numstrip[2]==-1)) {
+      eratio = CalcRatio(ene[1], ene[2]);  //--*---**-----
+      strip[0] = numstrip[1]; strip[1] = numstrip[2];
+    }
+  }
+  // multi = 4
+  if (layermulti==4) {
+    if ((numstrip[0]-numstrip[1]==-1)&&(numstrip[1]-numstrip[2]!=-1)&&(numstrip[2]-numstrip[3]!=-1)) {
+      eratio = CalcRatio(ene[0], ene[1]); //---**--*--*--
+      strip[0] = numstrip[0]; strip[1] = numstrip[1];
+    }
+    if ((numstrip[0]-numstrip[1]!=-1)&&(numstrip[1]-numstrip[2]==-1)&&(numstrip[2]-numstrip[3]!=-1)) {
+      eratio = CalcRatio(ene[1], ene[2]); //---*--**---*--
+      strip[0] = numstrip[1]; strip[1] = numstrip[2];
+    }
+    if ((numstrip[0]-numstrip[1]!=-1)&&(numstrip[1]-numstrip[2]!=-1)&&(numstrip[2]-numstrip[3]==-1)) {
+      eratio = CalcRatio(ene[2], ene[3]); //---*--*--**---
+      strip[0] = numstrip[2]; strip[1] = numstrip[3];
+    }
+  }
+  // multi = 5
+  if (layermulti==5) {
+    if ((numstrip[0]-numstrip[1]==-1)&&(numstrip[1]-numstrip[2]!=-1)&&(numstrip[2]-numstrip[3]!=-1)&&(numstrip[3]-numstrip[4]!=-1)) {
+      eratio = CalcRatio(ene[0], ene[1]); //---**--*--*--*--
+      strip[0] = numstrip[0]; strip[1] = numstrip[1];
+    }
+    if ((numstrip[0]-numstrip[1]!=-1)&&(numstrip[1]-numstrip[2]==-1)&&(numstrip[2]-numstrip[3]!=-1)&&(numstrip[3]-numstrip[4]!=-1)) {
+      eratio = CalcRatio(ene[1], ene[2]); //--*--**--*--*--
+      strip[0] = numstrip[1]; strip[1] = numstrip[2];
+    }
+    if ((numstrip[0]-numstrip[1]!=-1)&&(numstrip[1]-numstrip[2]!=-1)&&(numstrip[2]-numstrip[3]==-1)&&(numstrip[3]-numstrip[4]!=-1)) {
+      eratio = CalcRatio(ene[2], ene[3]); //--*--*--**--*--
+      strip[0] = numstrip[2]; strip[1] = numstrip[3];
+    }
+    if ((numstrip[0]-numstrip[1]!=-1)&&(numstrip[1]-numstrip[2]!=-1)&&(numstrip[2]-numstrip[3]!=-1)&&(numstrip[3]-numstrip[4]==-1)) {
+      eratio = CalcRatio(ene[3], ene[4]); //--*--*--*--**--
+      strip[0] = numstrip[3]; strip[1] = numstrip[4];
+    }
+  }
+  // mulit = 6
+  if (layermulti==6) {
+    if ((numstrip[0]-numstrip[1]==-1)&&(numstrip[1]-numstrip[2]!=-1)&&(numstrip[2]-numstrip[3]!=-1)&&
+        (numstrip[3]-numstrip[4]!=-1)&&(numstrip[4]-numstrip[5]!=-1)) {
+      eratio = CalcRatio(ene[0], ene[1]); //--**--*--*--*--*--
+      strip[0] = numstrip[0]; strip[1] = numstrip[1];
+    }
+    if ((numstrip[0]-numstrip[1]!=-1)&&(numstrip[1]-numstrip[2]==-1)&&(numstrip[2]-numstrip[3]!=-1)&&
+        (numstrip[3]-numstrip[4]!=-1)&&(numstrip[4]-numstrip[5]!=-1)) {
+      eratio = CalcRatio(ene[1], ene[2]); //--*--**--*--*--*--
+      strip[0] = numstrip[1]; strip[1] = numstrip[2];
+    }
+    if ((numstrip[0]-numstrip[1]!=-1)&&(numstrip[1]-numstrip[2]!=-1)&&(numstrip[2]-numstrip[3]==-1)&&
+        (numstrip[3]-numstrip[4]!=-1)&&(numstrip[4]-numstrip[5]!=-1)) {
+      eratio = CalcRatio(ene[2], ene[3]); //--*--*--**--*--*--
+      strip[0] = numstrip[2]; strip[1] = numstrip[3];
+    }
+    if ((numstrip[0]-numstrip[1]!=-1)&&(numstrip[1]-numstrip[2]!=-1)&&(numstrip[2]-numstrip[3]!=-1)&&
+        (numstrip[3]-numstrip[4]==-1)&&(numstrip[4]-numstrip[5]!=-1)) {
+      eratio = CalcRatio(ene[3], ene[4]); //--*--*--*--**--*--
+      strip[0] = numstrip[3]; strip[1] = numstrip[4];
+    }
+    if ((numstrip[0]-numstrip[1]!=-1)&&(numstrip[1]-numstrip[2]!=-1)&&(numstrip[2]-numstrip[3]!=-1)&&
+        (numstrip[3]-numstrip[4]!=-1)&&(numstrip[4]-numstrip[5]==-1)) {
+      eratio = CalcRatio(ene[4], ene[5]); //--*--*--*--*--**--
+      strip[0] = numstrip[4]; strip[1] = numstrip[5];
+    }
+  }
+}
 
 
 //______________________________________________________________________________
@@ -971,11 +1464,11 @@ void Test_Multi::CheckGlobalMultiRatio()
 {
   // 定义变量， 以用于计算不同 fGlobalMulti 的比例
   Int_t    nummulti = 7;
-  Int_t    globalmulti[4][7]  = {{0}};
-  Double_t multiratio_from0[4][7] = {{0.}};
-  Double_t multiratio_from1[4][7] = {{0.}};
-  Double_t ratiosum_from0[4]      = {0.};
-  Double_t ratiosum_from1[4]      = {0.};
+  Int_t    globalmulti[NUM_SSD][7]  = {{0}};
+  Double_t multiratio_from0[NUM_SSD][7] = {{0.}};
+  Double_t multiratio_from1[NUM_SSD][7] = {{0.}};
+  Double_t ratiosum_from0[NUM_SSD]      = {0.};
+  Double_t ratiosum_from1[NUM_SSD]      = {0.};
 
   std::string pathTrackEventRoot = "/home/sea/Fission2019_Data/TrackReconstructionEvent_Run0120-Run0130.root";
   TFile* myfile = new TFile(pathTrackEventRoot.c_str(), "READONLY");
@@ -994,14 +1487,14 @@ void Test_Multi::CheckGlobalMultiRatio()
   for (Long64_t ientry=0; ientry<nentries; ientry++) {
     mytree->GetEntry(ientry);
 
-    for (Int_t ssdindex=0; ssdindex<4; ssdindex++) {
+    for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
       for (Int_t i=0; i<nummulti; i++) {
         if (TrackEvent_fSSDGlobalMulti[ssdindex]==i)   globalmulti[ssdindex][i]++;
       }
     }
   }
 
-  for (Int_t ssdindex=0; ssdindex<4; ssdindex++) {
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
     cout<<"------------------"<<endl;
     cout<<Form("For SSD%d :\n",ssdindex+1)<<endl;
 
