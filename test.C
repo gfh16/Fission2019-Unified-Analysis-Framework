@@ -45,10 +45,11 @@ void test()
    CSHINECheckDEEPlot deefitcheck(150, 160);
 //   deefitcheck.CheckL2L3EnergyCorrelation();
 //   deefitcheck.CheckL1L2EnergyCorrelation();
-   deefitcheck.CheckL1L2EnergyCorrelation_Uncalibrated();
+//   deefitcheck.CheckL1L2EnergyCorrelation_Uncalibrated();
 
 //__________________________________________________
 //  使用 DEEFIT 方法进行粒子鉴别
+    CSHINEDEEFITPID deefit(150, 300);
 //   deefit.DEEFITGenerateData();
-//   deefit.DEEFITRunCode();
+   deefit.DEEFITRunCode();
 }
