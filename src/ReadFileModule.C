@@ -80,7 +80,7 @@ void ReadFileModule::AddChain(TChain* chain, const char* LayerTag, Int_t* dataar
     dataarray[j] = 0;
   }
   std::string SSD_E_bname;
-  SSD_E_bname = Form("SSD%d_%s_E", index+1, LayerTag);
+  SSD_E_bname = Form("SSD%d_%s", index+1, LayerTag); // e.g. SSD2_L2F_E, SSD2_L2F_T
   chain->SetBranchStatus(SSD_E_bname.c_str(), true);
   chain->SetBranchAddress(SSD_E_bname.c_str(), dataarray);
 }

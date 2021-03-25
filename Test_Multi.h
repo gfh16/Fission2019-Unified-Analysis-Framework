@@ -88,7 +88,11 @@ public :
   virtual void     CheckClusterSize_Si();
   virtual void     CalcClusterSize_Equal2_ERatio();
   virtual void     CalcCluseterSize_SiLayer(Int_t layermulti, vector<Int_t> numstrip, Int_t& clustersize);
-  virtual void     ClusterSize_Equal2_SiLayer(Int_t layermulti, vector<Int_t> numstrip, vector<Double_t> ene, Double_t& eratio, Int_t* strip);
+  virtual void     ClusterSize_Equal2_SiLayer(Int_t layermulti, vector<Int_t> numstrip, vector<Double_t> ene, Int_t* strip, Double_t* efound, Double_t& eratio);
+
+  virtual void     ClusterSize_Equal2_CsI();
+  virtual void     CheckCrossTalk_CsI();
+  virtual Bool_t   IsAdj_CsI(Int_t n1, Int_t n2); //判断两块 CsI 是否相邻
 
   //_________________________________________
   //          径迹重建 与 相关检测

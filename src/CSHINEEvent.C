@@ -63,7 +63,7 @@ CSHINEBuildEvent::~CSHINEBuildEvent()
 // 实验中发现, SSD4_L2F_CH[13] 与 SSD4_L2F_CH[14] 信号异常
 // 处理方法: 直接将以上 4 个 channel 扔掉
 void CSHINEBuildEvent::LayerEvent(CSHINELayerEvent& layerevent, Int_t ssdindex,
-  Int_t* echl1s, Int_t* echl2f, Int_t* echl2b, Int_t* echcsi)
+  Int_t* echl1s, Int_t* echl2f, Int_t* echl2b, Int_t* echcsi, Int_t* timel2f)
 {
   SSDL1SMulti=0, SSDL2FMulti=0, SSDL2BMulti=0, SSDCsIMulti=0;
 
@@ -82,6 +82,7 @@ void CSHINEBuildEvent::LayerEvent(CSHINELayerEvent& layerevent, Int_t ssdindex,
         layerevent.fL2FSSDNum.push_back(ssdindex);
         layerevent.fL2FNumStrip.push_back(chindex);
         layerevent.fL2FEMeV.push_back(fSlopel2f[ssdindex*NUM_STRIP+chindex]*echl2f[chindex]+fInterceptl2f[ssdindex*NUM_STRIP+chindex]);
+        layerevent.fL2FTime.push_back(timel2f[chindex]);
       }
       if (ssdindex==1) {
         if (chindex!=0 && chindex!=1) { // 对于 SSD2_L2F, 扔掉 CH[0] 与 CH[1]
@@ -89,6 +90,7 @@ void CSHINEBuildEvent::LayerEvent(CSHINELayerEvent& layerevent, Int_t ssdindex,
           layerevent.fL2FSSDNum.push_back(ssdindex);
           layerevent.fL2FNumStrip.push_back(chindex);
           layerevent.fL2FEMeV.push_back(fSlopel2f[ssdindex*NUM_STRIP+chindex]*echl2f[chindex]+fInterceptl2f[ssdindex*NUM_STRIP+chindex]);
+          layerevent.fL2FTime.push_back(timel2f[chindex]);
         }
       }
       if (ssdindex==3) {
@@ -97,9 +99,10 @@ void CSHINEBuildEvent::LayerEvent(CSHINELayerEvent& layerevent, Int_t ssdindex,
           layerevent.fL2FSSDNum.push_back(ssdindex);
           layerevent.fL2FNumStrip.push_back(chindex);
           layerevent.fL2FEMeV.push_back(fSlopel2f[ssdindex*NUM_STRIP+chindex]*echl2f[chindex]+fInterceptl2f[ssdindex*NUM_STRIP+chindex]);
-        }
+          layerevent.fL2FTime.push_back(timel2f[chindex]);
         }
       }
+    }
 
     // for L2B
     if (echl2b[chindex]>fSiEChcutl2b[ssdindex*NUM_STRIP+chindex]) {
@@ -126,10 +129,10 @@ void CSHINEBuildEvent::LayerEvent(CSHINELayerEvent& layerevent, Int_t ssdindex,
 
 //______________________________________________________________________________
 void CSHINEBuildEvent::BuildLayerEvent(CSHINELayerEvent& layerevent,
-    Int_t* ssd1echl1s, Int_t* ssd1echl2f, Int_t* ssd1echl2b, Int_t* ssd1echcsi,
-    Int_t* ssd2echl1s, Int_t* ssd2echl2f, Int_t* ssd2echl2b, Int_t* ssd2echcsi,
-    Int_t* ssd3echl1s, Int_t* ssd3echl2f, Int_t* ssd3echl2b, Int_t* ssd3echcsi,
-    Int_t* ssd4echl1s, Int_t* ssd4echl2f, Int_t* ssd4echl2b, Int_t* ssd4echcsi)
+    Int_t* ssd1echl1s, Int_t* ssd1echl2f, Int_t* ssd1echl2b, Int_t* ssd1echcsi, Int_t* ssd1timel2f,
+    Int_t* ssd2echl1s, Int_t* ssd2echl2f, Int_t* ssd2echl2b, Int_t* ssd2echcsi, Int_t* ssd2timel2f,
+    Int_t* ssd3echl1s, Int_t* ssd3echl2f, Int_t* ssd3echl2b, Int_t* ssd3echcsi, Int_t* ssd3timel2f,
+    Int_t* ssd4echl1s, Int_t* ssd4echl2f, Int_t* ssd4echl2b, Int_t* ssd4echcsi, Int_t* ssd4timel2f)
 {
   //_________________________________________________
   // 1.获取 multipicity, 并将点火的 channel index 存进 vector
@@ -138,10 +141,10 @@ void CSHINEBuildEvent::BuildLayerEvent(CSHINELayerEvent& layerevent,
   layerevent.fL2BMulti  = 0;
   layerevent.fCsIMulti  = 0;
 
-  LayerEvent(layerevent, 0, ssd1echl1s, ssd1echl2f, ssd1echl2b, ssd1echcsi);
-  LayerEvent(layerevent, 1, ssd2echl1s, ssd2echl2f, ssd2echl2b, ssd2echcsi);
-  LayerEvent(layerevent, 2, ssd3echl1s, ssd3echl2f, ssd3echl2b, ssd3echcsi);
-  LayerEvent(layerevent, 3, ssd4echl1s, ssd4echl2f, ssd4echl2b, ssd4echcsi);
+  LayerEvent(layerevent, 0, ssd1echl1s, ssd1echl2f, ssd1echl2b, ssd1echcsi, ssd1timel2f);
+  LayerEvent(layerevent, 1, ssd2echl1s, ssd2echl2f, ssd2echl2b, ssd2echcsi, ssd2timel2f);
+  LayerEvent(layerevent, 2, ssd3echl1s, ssd3echl2f, ssd3echl2b, ssd3echcsi, ssd3timel2f);
+  LayerEvent(layerevent, 3, ssd4echl1s, ssd4echl2f, ssd4echl2b, ssd4echcsi, ssd4timel2f);
   for (Int_t i=0; i<NUM_SSD; i++) {
     layerevent.fL1SMulti += layerevent.fSSDL1SMulti[i];
     layerevent.fL2FMulti += layerevent.fSSDL2FMulti[i];
@@ -160,14 +163,16 @@ void CSHINEBuildEvent::BuildLayerEventTree(Int_t firstrun, Int_t lastrun)
   TimeAndPercentage time;
   time.GetBeginTime();
 
-  std::string L1STag("L1S");
-  std::string L2FTag("L2F");
-  std::string L2BTag("L2B");
-  std::string L3ATag("L3A");
+  std::string L2FTime("L2F_T");
+  std::string L1STag("L1S_E");
+  std::string L2FTag("L2F_E");
+  std::string L2BTag("L2B_E");
+  std::string L3ATag("L3A_E");
 
   std::string pathRootInputFolder(Form("%sMapRoot/", PATHROOTFILESFOLDER));
   std::string pathEventTreeOutput(Form("%sCSHINEEvent/", PATHROOTFILESFOLDER));
 
+  Int_t SSD_L2F_T[NUM_SSD][NUM_STRIP];
   Int_t SSD_L1S_E[NUM_SSD][NUM_STRIP];
   Int_t SSD_L2F_E[NUM_SSD][NUM_STRIP];
   Int_t SSD_L2B_E[NUM_SSD][NUM_STRIP];
@@ -193,6 +198,7 @@ void CSHINEBuildEvent::BuildLayerEventTree(Int_t firstrun, Int_t lastrun)
   ReadFileModule readfile;
   for (Int_t i=0; i<NUM_SSD; i++)
   {
+    readfile.AddChain(mychain,L2FTime.c_str(),SSD_L2F_T[i],NUM_STRIP,i);
     readfile.AddChain(mychain,L1STag.c_str(),SSD_L1S_E[i],NUM_STRIP,i);
     readfile.AddChain(mychain,L2FTag.c_str(),SSD_L2F_E[i],NUM_STRIP,i);
     readfile.AddChain(mychain,L2BTag.c_str(),SSD_L2B_E[i],NUM_STRIP,i);
@@ -208,10 +214,10 @@ void CSHINEBuildEvent::BuildLayerEventTree(Int_t firstrun, Int_t lastrun)
     time.PrintPercentageAndRemainingTime(jentry, nentries);
 
     buildevent.BuildLayerEvent(layerevent,
-                 SSD_L1S_E[0],SSD_L2F_E[0],SSD_L2B_E[0],SSD_L3A_E[0],
-                 SSD_L1S_E[1],SSD_L2F_E[1],SSD_L2B_E[1],SSD_L3A_E[1],
-                 SSD_L1S_E[2],SSD_L2F_E[2],SSD_L2B_E[2],SSD_L3A_E[2],
-                 SSD_L1S_E[3],SSD_L2F_E[3],SSD_L2B_E[3],SSD_L3A_E[3]);
+                 SSD_L1S_E[0],SSD_L2F_E[0],SSD_L2B_E[0],SSD_L3A_E[0], SSD_L2F_T[0],
+                 SSD_L1S_E[1],SSD_L2F_E[1],SSD_L2B_E[1],SSD_L3A_E[1], SSD_L2F_T[1],
+                 SSD_L1S_E[2],SSD_L2F_E[2],SSD_L2B_E[2],SSD_L3A_E[2], SSD_L2F_T[2],
+                 SSD_L1S_E[3],SSD_L2F_E[3],SSD_L2B_E[3],SSD_L3A_E[3], SSD_L2F_T[3]);
     mytree->Fill();
     layerevent.Swap();
   }

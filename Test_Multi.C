@@ -1007,6 +1007,7 @@ Double_t CalcRatio(Double_t e1, Double_t e2)
 void Test_Multi::CalcClusterSize_Equal2_ERatio()
 {
   Int_t strip[2];
+  Double_t efound[2];
   Int_t ClusterSize_L2F = -99;
 
   Double_t ERatio_L1S = -99.;
@@ -1019,23 +1020,31 @@ void Test_Multi::CalcClusterSize_Equal2_ERatio()
   std::vector<Double_t> EMeV_L2F;
   std::vector<Double_t> EMeV_L2B;
 
-  std::string HistNameStripDist_L2F[NUM_SSD];
-  std::string HistName_L1S[NUM_SSD];
-  std::string HistName_L2F[NUM_SSD];
-  std::string HistName_L2B[NUM_SSD];
-  TH1D* hist_StripDist_L2F[NUM_SSD];
+  std::string L1S_ERatio[NUM_SSD];
+  std::string L2F_ERatio[NUM_SSD];
+  std::string L2B_ERatio[NUM_SSD];
+  std::string L1S_ECorr[NUM_SSD];
+  std::string L2F_ECorr[NUM_SSD];
+  std::string L2B_ECorr[NUM_SSD];
+
   TH1D* hist_ERatio_L1S[NUM_SSD];
   TH1D* hist_ERatio_L2F[NUM_SSD];
   TH1D* hist_ERatio_L2B[NUM_SSD];
+  TH2D* hist_ECorr_L1S[NUM_SSD];
+  TH2D* hist_ECorr_L2F[NUM_SSD];
+  TH2D* hist_ECorr_L2B[NUM_SSD];
   for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
-    HistNameStripDist_L2F[ssdindex] = Form("SSD%d_L2F_StripDist", ssdindex+1);
-    HistName_L1S[ssdindex] = Form("SSD%d_L1S_ERatio",ssdindex+1);
-    HistName_L2F[ssdindex] = Form("SSD%d_L2F_ERatio",ssdindex+1);
-    HistName_L2B[ssdindex] = Form("SSD%d_L2B_ERatio",ssdindex+1);
-    hist_StripDist_L2F[ssdindex] = new TH1D(HistNameStripDist_L2F[ssdindex].c_str(), HistNameStripDist_L2F[ssdindex].c_str(), 17, -0.5, 16.5);
-    hist_ERatio_L1S[ssdindex] = new TH1D(HistName_L1S[ssdindex].c_str(), HistName_L1S[ssdindex].c_str(), 100, 0, 1);
-    hist_ERatio_L2F[ssdindex] = new TH1D(HistName_L2F[ssdindex].c_str(), HistName_L2F[ssdindex].c_str(), 100, 0, 1);
-    hist_ERatio_L2B[ssdindex] = new TH1D(HistName_L2B[ssdindex].c_str(), HistName_L2B[ssdindex].c_str(), 100, 0, 1);
+    L1S_ERatio[ssdindex] = Form("SSD%d_L1S_ERatio",ssdindex+1);
+    L2F_ERatio[ssdindex] = Form("SSD%d_L2F_ERatio",ssdindex+1);
+    L2B_ERatio[ssdindex] = Form("SSD%d_L2B_ERatio",ssdindex+1);
+    L1S_ECorr [ssdindex] = Form("SSD%d_L1S_ECorr",ssdindex+1);
+    L2F_ECorr [ssdindex] = Form("SSD%d_L2F_ECorr",ssdindex+1);
+    L2B_ECorr [ssdindex] = Form("SSD%d_L2B_ECorr",ssdindex+1);
+
+    hist_ERatio_L1S[ssdindex] = new TH1D(L1S_ERatio[ssdindex].c_str(), L1S_ERatio[ssdindex].c_str(), 100, 0, 1);
+    hist_ERatio_L2F[ssdindex] = new TH1D(L2F_ERatio[ssdindex].c_str(), L2F_ERatio[ssdindex].c_str(), 100, 0, 1);
+    hist_ERatio_L2B[ssdindex] = new TH1D(L2B_ERatio[ssdindex].c_str(), L2B_ERatio[ssdindex].c_str(), 100, 0, 1);
+    hist_ECorr_L1S [ssdindex] = new TH2D(L1S_ECorr[ssdindex].c_str(), L1S_ECorr[ssdindex].c_str(),3000,0,300,3000,0,300);
   }
 
   Long64_t nentries = fChain->GetEntriesFast();
@@ -1045,7 +1054,7 @@ void Test_Multi::CalcClusterSize_Equal2_ERatio()
     fChain->GetEntry(ientry);
     timeper.PrintPercentageAndRemainingTime(ientry, nentries);
 
-    for (Int_t ssdindex=0; ssdindex<NUM_STRIP; ssdindex++) {
+    for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
 
       // for L1S
       if (LayerEvent_fSSDL1SMulti[ssdindex]>=2 && LayerEvent_fSSDL1SMulti[ssdindex]<=MULTICUT_L1S) {
@@ -1055,8 +1064,9 @@ void Test_Multi::CalcClusterSize_Equal2_ERatio()
             EMeV_L1S.push_back(LayerEvent_fL1SEMeV[l1smulti]);
           }
         }
-        ClusterSize_Equal2_SiLayer(LayerEvent_fSSDL1SMulti[ssdindex], NumStrip_L1S, EMeV_L1S, ERatio_L1S, strip);
+        ClusterSize_Equal2_SiLayer(LayerEvent_fSSDL1SMulti[ssdindex], NumStrip_L1S, EMeV_L1S, strip, efound, ERatio_L1S);
         hist_ERatio_L1S[ssdindex]->Fill(ERatio_L1S);
+        hist_ECorr_L1S [ssdindex]->Fill(efound[0], efound[1]);
       }
       // for L2F
       if (LayerEvent_fSSDL2FMulti[ssdindex]>=2 && LayerEvent_fSSDL2FMulti[ssdindex]<=MULTICUT_L2F) {
@@ -1064,7 +1074,7 @@ void Test_Multi::CalcClusterSize_Equal2_ERatio()
           NumStrip_L2F.push_back(LayerEvent_fL2FNumStrip[l2fmulti]);
           EMeV_L2F.push_back(LayerEvent_fL2FEMeV[l2fmulti]);
         }
-        ClusterSize_Equal2_SiLayer(LayerEvent_fSSDL2FMulti[ssdindex], NumStrip_L2F, EMeV_L2F, ERatio_L2F, strip);
+        ClusterSize_Equal2_SiLayer(LayerEvent_fSSDL2FMulti[ssdindex], NumStrip_L2F, EMeV_L2F, strip, efound, ERatio_L2F);
         hist_ERatio_L2F[ssdindex]->Fill(ERatio_L2F);
       }
       // for L2B
@@ -1075,7 +1085,7 @@ void Test_Multi::CalcClusterSize_Equal2_ERatio()
             EMeV_L2B.push_back(LayerEvent_fL2BEMeV[l2bmulti]);
           }
         }
-        ClusterSize_Equal2_SiLayer(LayerEvent_fSSDL2BMulti[ssdindex], NumStrip_L2B, EMeV_L2B, ERatio_L2B, strip);
+        ClusterSize_Equal2_SiLayer(LayerEvent_fSSDL2BMulti[ssdindex], NumStrip_L2B, EMeV_L2B, strip, efound, ERatio_L2B);
         hist_ERatio_L2B[ssdindex]->Fill(ERatio_L2B);
       }
       NumStrip_L1S.clear();
@@ -1087,14 +1097,14 @@ void Test_Multi::CalcClusterSize_Equal2_ERatio()
     }
   }
 
-  TCanvas* cans_L2F_StripDist = new TCanvas("cans_L2F_StripDist", "cans_L2F_StripDist", 1000, 1000);
   TCanvas* cans_L1S = new TCanvas("cans_L1S", "cans_L1S", 1000, 1000);
   TCanvas* cans_L2F = new TCanvas("cans_L2F", "cans_L2F", 1000, 1000);
   TCanvas* cans_L2B = new TCanvas("cans_L2B", "cans_L2B", 1000, 1000);
-  cans_L2F_StripDist->Divide(2,2);
+  TCanvas* cans_L1S_ECorr = new TCanvas("cans_L1S_ECorr", "cans_L1S_ECorr", 1000, 1000);
   cans_L1S->Divide(2,2);
   cans_L2F->Divide(2,2);
   cans_L2B->Divide(2,2);
+  cans_L1S_ECorr->Divide(2,2);
   for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
     cans_L1S->cd(ssdindex+1);
     hist_ERatio_L1S[ssdindex]->Draw();
@@ -1105,8 +1115,8 @@ void Test_Multi::CalcClusterSize_Equal2_ERatio()
     cans_L2B->cd(ssdindex+1);
     hist_ERatio_L2B[ssdindex]->Draw();
 
-    cans_L2F_StripDist->cd(ssdindex+1);
-    hist_StripDist_L2F[ssdindex]->Draw();
+    cans_L1S_ECorr->cd(ssdindex+1);
+    hist_ECorr_L1S[ssdindex]->Draw("COLZ");
   }
 }
 
@@ -1114,21 +1124,24 @@ void Test_Multi::CalcClusterSize_Equal2_ERatio()
 //______________________________
 // 计算 clustersize = 2 时两个能量的比值
 void Test_Multi::ClusterSize_Equal2_SiLayer(Int_t layermulti, vector<Int_t> numstrip,
-  vector<Double_t> ene, Double_t& eratio, Int_t* strip)
+  vector<Double_t> ene, Int_t* strip, Double_t* efound, Double_t& eratio)
 {
   if (layermulti==2 && (numstrip[0]-numstrip[1] == -1)) {
     eratio = CalcRatio(ene[0], ene[1]); //---**------
     strip[0] = numstrip[0]; strip[1] = numstrip[1];
+    efound[0] = ene[0]; efound[1] = ene[1];
   }
   // multi = 3
   if (layermulti==3) {
     if ((numstrip[0]-numstrip[2]!=-2)&&(numstrip[0]-numstrip[1]==-1)) {
       eratio = CalcRatio(ene[0], ene[1]); //--**---*-----
       strip[0] = numstrip[0]; strip[1] = numstrip[1];
+      efound[0] = ene[0]; efound[1] = ene[1];
     }
     if ((numstrip[0]-numstrip[2]!=-2)&&(numstrip[1]-numstrip[2]==-1)) {
       eratio = CalcRatio(ene[1], ene[2]);  //--*---**-----
       strip[0] = numstrip[1]; strip[1] = numstrip[2];
+      efound[0] = ene[1]; efound[1] = ene[2];
     }
   }
   // multi = 4
@@ -1136,14 +1149,17 @@ void Test_Multi::ClusterSize_Equal2_SiLayer(Int_t layermulti, vector<Int_t> nums
     if ((numstrip[0]-numstrip[1]==-1)&&(numstrip[1]-numstrip[2]!=-1)&&(numstrip[2]-numstrip[3]!=-1)) {
       eratio = CalcRatio(ene[0], ene[1]); //---**--*--*--
       strip[0] = numstrip[0]; strip[1] = numstrip[1];
+      efound[0] = ene[0]; efound[1] = ene[1];
     }
     if ((numstrip[0]-numstrip[1]!=-1)&&(numstrip[1]-numstrip[2]==-1)&&(numstrip[2]-numstrip[3]!=-1)) {
       eratio = CalcRatio(ene[1], ene[2]); //---*--**---*--
       strip[0] = numstrip[1]; strip[1] = numstrip[2];
+      efound[0] = ene[1]; efound[1] = ene[2];
     }
     if ((numstrip[0]-numstrip[1]!=-1)&&(numstrip[1]-numstrip[2]!=-1)&&(numstrip[2]-numstrip[3]==-1)) {
       eratio = CalcRatio(ene[2], ene[3]); //---*--*--**---
       strip[0] = numstrip[2]; strip[1] = numstrip[3];
+      efound[0] = ene[2]; efound[1] = ene[3];
     }
   }
   // multi = 5
@@ -1151,18 +1167,22 @@ void Test_Multi::ClusterSize_Equal2_SiLayer(Int_t layermulti, vector<Int_t> nums
     if ((numstrip[0]-numstrip[1]==-1)&&(numstrip[1]-numstrip[2]!=-1)&&(numstrip[2]-numstrip[3]!=-1)&&(numstrip[3]-numstrip[4]!=-1)) {
       eratio = CalcRatio(ene[0], ene[1]); //---**--*--*--*--
       strip[0] = numstrip[0]; strip[1] = numstrip[1];
+      efound[0] = ene[0]; efound[1] = ene[1];
     }
     if ((numstrip[0]-numstrip[1]!=-1)&&(numstrip[1]-numstrip[2]==-1)&&(numstrip[2]-numstrip[3]!=-1)&&(numstrip[3]-numstrip[4]!=-1)) {
       eratio = CalcRatio(ene[1], ene[2]); //--*--**--*--*--
       strip[0] = numstrip[1]; strip[1] = numstrip[2];
+      efound[0] = ene[1]; efound[1] = ene[2];
     }
     if ((numstrip[0]-numstrip[1]!=-1)&&(numstrip[1]-numstrip[2]!=-1)&&(numstrip[2]-numstrip[3]==-1)&&(numstrip[3]-numstrip[4]!=-1)) {
       eratio = CalcRatio(ene[2], ene[3]); //--*--*--**--*--
       strip[0] = numstrip[2]; strip[1] = numstrip[3];
+      efound[0] = ene[2]; efound[1] = ene[3];
     }
     if ((numstrip[0]-numstrip[1]!=-1)&&(numstrip[1]-numstrip[2]!=-1)&&(numstrip[2]-numstrip[3]!=-1)&&(numstrip[3]-numstrip[4]==-1)) {
       eratio = CalcRatio(ene[3], ene[4]); //--*--*--*--**--
       strip[0] = numstrip[3]; strip[1] = numstrip[4];
+      efound[0] = ene[3]; efound[1] = ene[4];
     }
   }
   // mulit = 6
@@ -1171,29 +1191,307 @@ void Test_Multi::ClusterSize_Equal2_SiLayer(Int_t layermulti, vector<Int_t> nums
         (numstrip[3]-numstrip[4]!=-1)&&(numstrip[4]-numstrip[5]!=-1)) {
       eratio = CalcRatio(ene[0], ene[1]); //--**--*--*--*--*--
       strip[0] = numstrip[0]; strip[1] = numstrip[1];
+      efound[0] = ene[0]; efound[1] = ene[1];
     }
     if ((numstrip[0]-numstrip[1]!=-1)&&(numstrip[1]-numstrip[2]==-1)&&(numstrip[2]-numstrip[3]!=-1)&&
         (numstrip[3]-numstrip[4]!=-1)&&(numstrip[4]-numstrip[5]!=-1)) {
       eratio = CalcRatio(ene[1], ene[2]); //--*--**--*--*--*--
       strip[0] = numstrip[1]; strip[1] = numstrip[2];
+      efound[0] = ene[1]; efound[1] = ene[2];
     }
     if ((numstrip[0]-numstrip[1]!=-1)&&(numstrip[1]-numstrip[2]!=-1)&&(numstrip[2]-numstrip[3]==-1)&&
         (numstrip[3]-numstrip[4]!=-1)&&(numstrip[4]-numstrip[5]!=-1)) {
       eratio = CalcRatio(ene[2], ene[3]); //--*--*--**--*--*--
       strip[0] = numstrip[2]; strip[1] = numstrip[3];
+      efound[0] = ene[2]; efound[1] = ene[3];
     }
     if ((numstrip[0]-numstrip[1]!=-1)&&(numstrip[1]-numstrip[2]!=-1)&&(numstrip[2]-numstrip[3]!=-1)&&
         (numstrip[3]-numstrip[4]==-1)&&(numstrip[4]-numstrip[5]!=-1)) {
       eratio = CalcRatio(ene[3], ene[4]); //--*--*--*--**--*--
       strip[0] = numstrip[3]; strip[1] = numstrip[4];
+      efound[0] = ene[3]; efound[1] = ene[4];
     }
     if ((numstrip[0]-numstrip[1]!=-1)&&(numstrip[1]-numstrip[2]!=-1)&&(numstrip[2]-numstrip[3]!=-1)&&
         (numstrip[3]-numstrip[4]!=-1)&&(numstrip[4]-numstrip[5]==-1)) {
       eratio = CalcRatio(ene[4], ene[5]); //--*--*--*--*--**--
       strip[0] = numstrip[4]; strip[1] = numstrip[5];
+      efound[0] = ene[4]; efound[1] = ene[5];
     }
   }
 }
+
+
+//_________________________________________
+void Test_Multi::ClusterSize_Equal2_CsI()
+{
+  std::vector<Int_t> csinum;
+  std::vector<Double_t>  csiech;
+
+  Int_t count_eff[4] = {0};
+  Int_t size_2[4]    = {0};
+  Int_t size_1213[4] = {0};
+  Int_t size_1223[4] = {0};
+  Int_t size_1323[4] = {0};
+  Int_t size_12[4]   = {0};
+  Int_t size_13[4]   = {0};
+  Int_t size_23[4]   = {0};
+
+  Double_t ration_sum[4] = {0.};
+  Double_t r_size_2[4]   = {0.};
+  Double_t r_size_1213[4] = {0.};
+  Double_t r_size_1223[4] = {0.};
+  Double_t r_size_1323[4] = {0.};
+  Double_t r_size_12[4]   = {0.};
+  Double_t r_size_13[4]   = {0.};
+  Double_t r_size_23[4]   = {0.};
+
+  TH2D* hist_CsI_ECorr[NUM_SSD];
+  TH2D* hist_CsI_Array[NUM_SSD][NUM_CSI];
+  for (Int_t i=0; i<NUM_SSD; i++) {
+    hist_CsI_ECorr[i] = new TH2D(Form("SSD%d_CsIECorr",i+1), Form("SSD%d_CsIECorr",i+1), 4000,0,4000,4000,0,4000);
+
+    for (Int_t j=0; j<NUM_CSI; j++) {
+      hist_CsI_Array[i][j] = new TH2D(Form("SSD%d_CsI%d", i+1, j), Form("SSD%d_CsI%d", i+1, j), 4000,0,4000,4000,0,4000);
+    }
+  }
+
+  Long64_t nentries = fChain->GetEntriesFast();
+  cout<<"nentries = "<<nentries<<endl;
+  for (Long64_t ientry=0; ientry<nentries;ientry++) {
+
+    fChain->GetEntry(ientry);
+    timeper.PrintPercentageAndRemainingTime(ientry, nentries);
+
+    for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+
+      if (LayerEvent_fSSDCsIMulti[ssdindex] >= 1) count_eff[ssdindex]++;
+
+      // for multi = 2
+      if (LayerEvent_fSSDCsIMulti[ssdindex] == 2) {
+        for (Int_t csimulti=0; csimulti<LayerEvent_fCsIMulti; csimulti++) {
+          if (LayerEvent_fCsISSDNum[csimulti] == ssdindex) {
+            csinum.push_back(LayerEvent_fCsINum[csimulti]);
+            csiech.push_back(LayerEvent_fCsIECh[csimulti]);
+          }
+        }
+        if (IsAdj_CsI(csinum[0],csinum[1])) {
+          size_2[ssdindex]++;
+          hist_CsI_ECorr[ssdindex]->Fill(csiech[0], csiech[1]);
+          hist_CsI_Array[ssdindex][csinum[0]]->Fill(csiech[0], csiech[1]);
+          // cout<<size_2[ssdindex]<<setw(20)<<csinum[0]<<setw(20)<<csinum[1]<<endl;
+        }
+      }
+      // for multi = 3
+      if (LayerEvent_fSSDCsIMulti[ssdindex] == 3) {
+        for (Int_t csimulti=0; csimulti<LayerEvent_fCsIMulti; csimulti++) {
+          if (LayerEvent_fCsISSDNum[csimulti] == ssdindex) {
+            csinum.push_back(LayerEvent_fCsINum[csimulti]);
+          }
+        }
+        if (IsAdj_CsI(csinum[0],csinum[1]) && IsAdj_CsI(csinum[0],csinum[2])) size_1213[ssdindex]++;
+        if (IsAdj_CsI(csinum[0],csinum[1]) && IsAdj_CsI(csinum[1],csinum[2])) size_1223[ssdindex]++;
+        if (IsAdj_CsI(csinum[0],csinum[2]) && IsAdj_CsI(csinum[1],csinum[2])) size_1323[ssdindex]++;
+        if (IsAdj_CsI(csinum[0],csinum[1])  && !IsAdj_CsI(csinum[0],csinum[2]) && !IsAdj_CsI(csinum[1],csinum[2])) size_12[ssdindex]++;
+        if (!IsAdj_CsI(csinum[0],csinum[1]) &&  IsAdj_CsI(csinum[0],csinum[2]) && !IsAdj_CsI(csinum[1],csinum[2])) size_13[ssdindex]++;
+        if (!IsAdj_CsI(csinum[0],csinum[1]) && !IsAdj_CsI(csinum[0],csinum[2]) &&  IsAdj_CsI(csinum[1],csinum[2])) size_23[ssdindex]++;
+      }
+      csinum.clear();
+      csiech.clear();
+    }
+  }
+
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    r_size_2[ssdindex]    = (Double_t) size_2[ssdindex]/count_eff[ssdindex];
+    r_size_1213[ssdindex] = (Double_t) size_1213[ssdindex]/count_eff[ssdindex];
+    r_size_1223[ssdindex] = (Double_t) size_1223[ssdindex]/count_eff[ssdindex];
+    r_size_1323[ssdindex] = (Double_t) size_1323[ssdindex]/count_eff[ssdindex];
+    r_size_12[ssdindex]   = (Double_t) size_12[ssdindex]/count_eff[ssdindex];
+    r_size_13[ssdindex]   = (Double_t) size_13[ssdindex]/count_eff[ssdindex];
+    r_size_23[ssdindex]   = (Double_t) size_23[ssdindex]/count_eff[ssdindex];
+
+    ration_sum[ssdindex] = r_size_2[ssdindex]+r_size_1213[ssdindex]+r_size_1223[ssdindex]+
+                           r_size_1323[ssdindex]+r_size_12[ssdindex]+r_size_13[ssdindex]+r_size_23[ssdindex];
+  }
+
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    printf("SSD%d_CsI\n", ssdindex+1);
+    cout<<"count_eff = "<<count_eff[ssdindex]<<endl;
+    cout<<setprecision(4);
+    cout<<setw(10)<<"size_2    = "<<size_2[ssdindex]<<setw(15)<<r_size_2[ssdindex]<<endl;
+    cout<<setw(10)<<"size_1213 = "<<size_1213[ssdindex]<<setw(15)<<r_size_1213[ssdindex]<<endl;
+    cout<<setw(10)<<"size_1223 = "<<size_1223[ssdindex]<<setw(15)<<r_size_1223[ssdindex]<<endl;
+    cout<<setw(10)<<"size_1323 = "<<size_1323[ssdindex]<<setw(15)<<r_size_1323[ssdindex]<<endl;
+    cout<<setw(10)<<"size_12   = "<<size_12[ssdindex]<<setw(15)<<r_size_12[ssdindex]<<endl;
+    cout<<setw(10)<<"size_13   = "<<size_13[ssdindex]<<setw(15)<<r_size_13[ssdindex]<<endl;
+    cout<<setw(10)<<"size_23   = "<<size_23[ssdindex]<<setw(15)<<r_size_23[ssdindex]<<endl;
+    cout<<setw(10)<<"sum       = "<<ration_sum[ssdindex]<<endl;
+    cout<<endl;
+  }
+
+  TCanvas* cans_CsI_ECorr = new TCanvas("cans_CsI_ECorr", "cans_CsI_ECorr", 1000, 1000);
+  cans_CsI_ECorr->Divide(2,2);
+  TCanvas* cans_CsI_Array[NUM_SSD];
+
+  for (Int_t i=0; i<NUM_SSD; i++) {
+    cans_CsI_ECorr->cd(i+1);
+    hist_CsI_ECorr[i]->Draw("COLZ");
+
+    cans_CsI_Array[i] = new TCanvas(Form("cans_SSD%d", i+1), Form("cans_SSD%d", i+1), 1200, 1200);
+    cans_CsI_Array[i]->Divide(3,3);
+    for (Int_t j=0; j<NUM_CSI; j++) {
+      cans_CsI_Array[i]->cd(j+1);
+      hist_CsI_Array[i][j]->Draw("COLZ");
+    }
+  }
+}
+
+
+//_________________________________________
+//        检查 CsI 之间的串扰
+// 选取 L2F, L2B 都只有一个粒子的事件, 然后对 CsI 中的情况进行分类:
+// 如果点火的 CsI 数目大于1, 且至少有那块 CsI 相邻，则认为该事件
+// “可能”存在串扰. 以此通过实验数据给出串扰的概率上限
+//
+void Test_Multi::CheckCrossTalk_CsI()
+{
+  gStyle->SetPalette(1);
+//  gStyle->SetOptStat(0);
+
+  TimeAndPercentage time;
+
+  Int_t firstrun  = 120;
+  Int_t lastrun   = 200;
+
+  Double_t eneratio = 0.15;
+  Int_t csiech_cut = 60;
+
+  Int_t count_csimulti_ge1[4] = {0};
+  Int_t count_csimulti_ge2[4] = {0};
+  Int_t count_multi2_crosstalk[4] = {0};
+  Int_t count_multi3_crosstalk[4] = {0};
+
+  std::vector<Int_t> csinum;
+  std::vector<Int_t> csiene;
+
+  std::string pathFolder("/home/sea/Fission2019_Data/CSHINEEvent/");
+  std::string pathROOT(Form("%sEventTree_Run%04d-Run%04d.root", pathFolder.c_str(),firstrun,lastrun));
+  std::string pathPNGout[4];
+
+  TH1D* hist_CsI[4];
+  TH2D* h2_crosstalk[4];
+  for (Int_t i=0; i<4; i++) {
+    pathPNGout[i] = Form("figures/figure_TrackReconstruction/SSD%d_CsI_CrossTalk.png", i+1);
+    hist_CsI[i] = new TH1D(Form("SSD%d_CsIMulti",i+1),Form("SSD%d_CsIMulti",i+1),10,0,10);
+    h2_crosstalk[i] = new TH2D(Form("SSD%d_crosstalk",i+1),Form("SSD%d_crosstalk",i+1),4000,0,4000,4000,0,4000);
+  }
+
+  Long64_t nentries = fChain->GetEntries();
+  cout<<"Found "<<nentries<<" entries."<<endl;
+
+  Int_t ientry = 0;
+  for (Long64_t ientry=0; ientry<nentries; ientry++)
+  {
+    fChain->GetEntry(ientry);
+    time.PrintPercentageAndRemainingTime(ientry, nentries);
+
+    for (Int_t ssdindex=0; ssdindex<4; ssdindex++) {
+      //_______________________
+      // for L2L3
+      if (LayerEvent_fSSDL1SMulti[ssdindex]>0 && LayerEvent_fSSDL2BMulti[ssdindex]==1 &&
+          LayerEvent_fSSDL2FMulti[ssdindex]==1 && LayerEvent_fSSDCsIMulti[ssdindex]>0)
+      {
+        hist_CsI[ssdindex]->Fill(LayerEvent_fSSDCsIMulti[ssdindex]);
+
+        if (LayerEvent_fSSDCsIMulti[ssdindex]>=1) count_csimulti_ge1[ssdindex]++;
+        if (LayerEvent_fSSDCsIMulti[ssdindex]>=2) count_csimulti_ge2[ssdindex]++;
+
+        // for multi = 2
+        if (LayerEvent_fSSDCsIMulti[ssdindex] == 2) {
+          for (Int_t csimulti=0; csimulti<LayerEvent_fCsIMulti; csimulti++) {
+            if (LayerEvent_fCsISSDNum[csimulti] == ssdindex) {
+              csinum.push_back(LayerEvent_fCsINum[csimulti]);
+              csiene.push_back(LayerEvent_fCsIECh[csimulti]);
+            }
+          }
+          if (csinum.size()>0) {
+            if (IsAdj_CsI(csinum[0],csinum[1])) {
+              if (csiene[0]>csiech_cut && csiene[1]>csiech_cut) {
+                count_multi2_crosstalk[ssdindex]++;
+
+                // SSD4_CsI[4] 与 CsI[5] 信号异常, 需要扔掉
+                if (ssdindex==3 && ((csinum[0]==4 || csinum[0]==5) || (csinum[1]==4 || csinum[1]==5))) continue;
+                h2_crosstalk[ssdindex]->Fill(csiene[0], csiene[1]);
+                //  cout<<"csi no. = "<<csinum[0]<<setw(15)<<"csi no. = "<<csinum[1]<<setw(15)
+                //      <<"csi ene = "<<csiene[0]<<setw(15)<<"csi ene = "<<csiene[1]<<endl;
+              }
+            }
+          }
+        }
+
+        // for multi = 3
+        if (LayerEvent_fSSDCsIMulti[ssdindex] == 3) {
+          for (Int_t csimulti=0; csimulti<LayerEvent_fCsIMulti; csimulti++) {
+            if (LayerEvent_fCsISSDNum[csimulti] == ssdindex) {
+              csinum.push_back(LayerEvent_fCsINum[csimulti]);
+            }
+          }
+          if ( (IsAdj_CsI(csinum[0],csinum[1]) && IsAdj_CsI(csinum[0],csinum[2])) ||
+               (IsAdj_CsI(csinum[0],csinum[1]) && IsAdj_CsI(csinum[1],csinum[2])) ||
+               (IsAdj_CsI(csinum[0],csinum[2]) && IsAdj_CsI(csinum[1],csinum[2])) ||
+               (IsAdj_CsI(csinum[0],csinum[1]) && IsAdj_CsI(csinum[0],csinum[2]) && IsAdj_CsI(csinum[1],csinum[2])) ||
+               (IsAdj_CsI(csinum[0],csinum[1]) && IsAdj_CsI(csinum[0],csinum[2]) && IsAdj_CsI(csinum[1],csinum[2])) ||
+               (IsAdj_CsI(csinum[0],csinum[1] )&& IsAdj_CsI(csinum[0],csinum[2]) && IsAdj_CsI(csinum[1],csinum[2])) )
+          {
+            count_multi3_crosstalk[ssdindex]++;
+          }
+        }
+        csinum.clear();
+        csiene.clear();
+      }
+    }
+  }
+  for (Int_t i=0; i<4; i++) {
+    cout<<endl;
+    cout<<"for SSD"<<i<<endl;
+    cout<<"count_csimulti_ge1 = "<<count_csimulti_ge1[i]<<endl;
+    cout<<"count_csimulti_ge2 = "<<count_csimulti_ge2[i]<<endl;
+    cout<<"count_multi2_crosstalk = "<<count_multi2_crosstalk[i]<<endl;
+    cout<<"count_multi3_crosstalk = "<<count_multi3_crosstalk[i]<<endl;
+
+    Double_t ratio = (Double_t) count_csimulti_ge2[i]/count_csimulti_ge1[i];
+    Double_t ratio_crosstalk = (Double_t) (count_multi2_crosstalk[i]+count_multi3_crosstalk[i])/count_csimulti_ge1[i];
+    cout<<setprecision(6)<<"multi>=2 / multi>=1 = "<<ratio<<endl;
+    cout<<setprecision(6)<<"ratio_crosstalk = "<<ratio_crosstalk<<endl;
+  }
+
+
+  TCanvas* cans[4];
+  for (Int_t i=0; i<4; i++) {
+    cans[i] = new TCanvas(Form("c_SSD%d",i+1), Form("c_SSD%d",i+1), 1200, 500);
+    cans[i]->Divide(2,1);
+    cans[i]->cd(1);
+    hist_CsI[i]->Draw();
+    cans[i]->cd(2);
+    h2_crosstalk[i]->Draw("COL");
+    cans[i]->Print(pathPNGout[i].c_str());
+  }
+}
+
+
+
+// 判断两块 CsI 晶体是否相邻. 以下是 Fission2019 实验中 CsI 阵列的排布:
+//  -----------
+//   2   5   8
+//   1   4   7
+//   0   3   6
+//  -----------
+Bool_t Test_Multi::IsAdj_CsI(Int_t n1, Int_t n2)
+{
+  //（ 列相邻 || 行相邻 ）
+  return (((n1/3 == n2/3)&&(n1-n2 == -1)) || ((n1%3 == n2%3)&&(n1-n2 == -3)));
+}
+
+
 
 
 //______________________________________________________________________________

@@ -58,15 +58,27 @@ void CSHINEDEEFITPID::Init(TTree* tree)
 
 //______________________________________________________________________________
 // 产生 DEEFIT 数据前, 先检查 L2L3 的能量关联是否正常
+// 根据检查结果, 决定采用 EL2F-ECsI 的方式
 void CSHINEDEEFITPID::CheckL2L3EnergyCorrelation()
 {
-	Double_t ECh_CsI, EMeV_L2F;
-	Int_t Num_CsI, Num_L2B, Num_L2F;
+  Double_t EL2_Range[4] = {250.,250.,140.,70.};
+	Int_t EL2_NBins[4] = {2500,2500,1400,700};
+
+	std::vector<Double_t> L2L3_EL2F;
+  std::vector<Double_t> L2L3_EL2B;
+  std::vector<Double_t> L2L3_ECSI;
+  std::vector<Int_t>    L2L3_StripL2F;
+  std::vector<Int_t>    L2L3_StripL2B;
+  std::vector<Int_t>    L2L3_NumCsI;
+
+	std::string pathPDFOut("figures/figure_PID/L2FL3_DEE.pdf");
+	std::string pathPDFOutBegin("figures/figure_PID/L2FL3_DEE.pdf[");
+	std::string pathPDFOutEnd("figures/figure_PID/L2FL3_DEE.pdf]");
 
 	TH2D* hist_L2L3[NUM_SSD][NUM_CSI];
 	for (Int_t i=0; i<NUM_SSD; i++) {
 		for (Int_t j=0; j<NUM_CSI; j++) {
-		  hist_L2L3[i][j] = new TH2D(Form("SSD%d_CsI%d", i+1, j), Form("SSD%d_CsI%d", i+1, j), 4000, 0, 4000, 4000, 0, 400);
+		  hist_L2L3[i][j] = new TH2D(Form("SSD%d_CsI%d", i+1, j),Form("SSD%d_CsI%d", i+1, j),4000,0,4000,EL2_NBins[i],0,EL2_Range[i]);
 		}
 	}
 
@@ -77,37 +89,255 @@ void CSHINEDEEFITPID::CheckL2L3EnergyCorrelation()
     fChain->GetEntry(ientry);
     timeper.PrintPercentageAndRemainingTime(ientry, nentries);
 
-		for(Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
-			if (LayerEvent_fSSDCsIMulti[ssdindex]==1 && LayerEvent_fSSDL2FMulti[ssdindex]==1) {
-        for (Int_t csimulti=0; csimulti<LayerEvent_fCsIMulti; csimulti++) {
-					for (Int_t l2bmulti=0; l2bmulti<LayerEvent_fL2BMulti; l2bmulti++) {
-				  	for (Int_t l2fmulti=0; l2fmulti<LayerEvent_fL2FMulti; l2fmulti++) {
-							if (LayerEvent_fCsISSDNum[csimulti]==ssdindex && LayerEvent_fL2BSSDNum[l2bmulti]==ssdindex
-								&& LayerEvent_fL2FSSDNum[l2fmulti]==ssdindex)
-							{
-								Num_CsI = LayerEvent_fCsINum[csimulti];
-								Num_L2B = LayerEvent_fL2BNumStrip[l2bmulti];
-								Num_L2F = LayerEvent_fL2FNumStrip[l2fmulti];
-
-
-								if (Condition.IsGeoConstraint_L3A_L2F() && Condition.IsGeoConstraint_L3A_L2B() &&
-							      Condition.IsEneConstraint_L2B_L2F(ssdindex, ))
-								hist_L2L3[ssdindex][]->Fill(LayerEvent_fCsIECh[csimulti], LayerEvent_fL2FEMeV[l2fmulti]);
-							}
-						}
-					}
-				}
-			}
+    for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+			if (LayerEvent_fSSDCsIMulti[ssdindex]==1 && LayerEvent_fSSDL2BMulti[ssdindex]==1 &&
+	        LayerEvent_fSSDL2FMulti[ssdindex]==1)
+	    {
+	      // 提取 CsI 的数据
+	      for (Int_t csimulti=0; csimulti<LayerEvent_fCsIMulti; csimulti++) {
+	        if (LayerEvent_fCsISSDNum[csimulti] == ssdindex) {
+	          L2L3_NumCsI.push_back(LayerEvent_fCsINum[csimulti]);
+	          L2L3_ECSI.push_back(LayerEvent_fCsIECh[csimulti]);
+	        }
+	      }
+	      // 提取 L2B 的数据
+	      for (Int_t l2bmulti=0; l2bmulti<LayerEvent_fL2BMulti; l2bmulti++) {
+	        if (LayerEvent_fL2BSSDNum[l2bmulti] == ssdindex) {
+	         L2L3_StripL2B.push_back(LayerEvent_fL2BNumStrip[l2bmulti]);
+	         L2L3_EL2B.push_back(LayerEvent_fL2BEMeV[l2bmulti]);
+	        }
+	      }
+	      // 提取 L2F 的数据
+	      for (Int_t l2fmulti=0; l2fmulti<LayerEvent_fL2FMulti; l2fmulti++) {
+	        if (LayerEvent_fL2FSSDNum[l2fmulti] == ssdindex) {
+	          L2L3_StripL2F.push_back(LayerEvent_fL2FNumStrip[l2fmulti]);
+	          L2L3_EL2F.push_back(LayerEvent_fL2FEMeV[l2fmulti]);
+	        }
+	      }
+	      // 填充 hist_L2B_L3
+	      if (fPattern.IsGeoConstraint_L3A_L2B(L2L3_NumCsI[0], L2L3_StripL2B[0]) &&
+	          fPattern.IsGeoConstraint_L3A_L2F(L2L3_NumCsI[0], L2L3_StripL2F[0]) &&
+	          fPattern.IsEneConstraint_L2B_L2F(ssdindex, L2L3_EL2B[0], L2L3_EL2F[0]))
+	      {
+	        hist_L2L3[ssdindex][L2L3_NumCsI[0]]->Fill(L2L3_ECSI[0], L2L3_EL2F[0]);
+	      }
+	      L2L3_EL2F.clear();
+	      L2L3_EL2B.clear();
+	      L2L3_ECSI.clear();
+	      L2L3_StripL2F.clear();
+	      L2L3_StripL2B.clear();
+	      L2L3_NumCsI.clear();
+	    }
 		}
 	}
-	TCanvas* cans[NUM_SSD][NUM_CSI];
+
+  TCanvas* cans_begin = new TCanvas("cans_begin", "cans_begin", 800, 600);
+	TCanvas* cans_end   = new TCanvas("cans_end", "cans_end", 800, 600);
+	cans_begin->Close();
+	cans_end->Close();
+	TCanvas* cans_L2FL3 = new TCanvas("cans_L2FL3", "cans_L2FL3", 800, 600);
+
+  cans_begin->Print(pathPDFOutBegin.c_str());
 	for (Int_t i=0; i<NUM_SSD; i++) {
 		for (Int_t j=0; j<NUM_CSI; j++) {
-			cans[i][j] = new TCanvas(Form("SSD%d_CsI%d", i+1, j), Form("SSD%d_CsI%d", i+1, j), 800, 600);
+			cans_L2FL3->cd();
 			hist_L2L3[i][j]->Draw("COLZ");
+			cans_L2FL3->Print(pathPDFOut.c_str());
+			gPad->Modified();
+			gPad->Update();
 		}
 	}
+	cans_end->Print(pathPDFOutEnd.c_str());
 }
+
+
+//______________________________________________________________________________
+// 产生 DEEFIT 数据前, 先检查 L1L2 的能量关联是否正常
+void CSHINEDEEFITPID::CheckL1L2EnergyCorrelation()
+{
+	Double_t EL1_Range[4] = {150.,150.,100.,70.};
+	Double_t EL2_Range[4] = {250.,250.,140.,70.};
+	Int_t EL1_NBins[4] = {1500,1500,1000,700};
+	Int_t EL2_NBins[4] = {2500,2500,1400,700};
+
+	std::vector<Double_t> L1L2_EL1S;
+  std::vector<Double_t> L1L2_EL2F;
+  std::vector<Double_t> L1L2_EL2B;
+	std::vector<Int_t>    L1L2_StripL1S;
+  std::vector<Int_t>    L1L2_StripL2F;
+  std::vector<Int_t>    L1L2_StripL2B;
+
+	std::string pathPDFOut("figures/figure_PID/L1L2F_DEE.pdf");
+	std::string pathPDFOutBegin("figures/figure_PID/L1L2F_DEE.pdf[");
+	std::string pathPDFOutEnd("figures/figure_PID/L1L2F_DEE.pdf]");
+
+  TH2D* hist_L1L2_Merged[NUM_SSD];
+	TH2D* hist_L1L2[NUM_SSD][NUM_STRIP];
+	for (Int_t i=0; i<NUM_SSD; i++) {
+		hist_L1L2_Merged[i] = new TH2D(Form("SSD%d_Merged", i+1),Form("SSD%d_Merged",i+1),EL2_NBins[i],0,EL2_Range[i],EL1_NBins[i],0,EL1_Range[i]);
+
+		for (Int_t j=0; j<NUM_STRIP; j++) {
+			hist_L1L2[i][j] = new TH2D(Form("SSD%d_Strip%d", i+1, j+1),Form("SSD%d_Strip%d", i+1, j+1),
+			                        EL2_NBins[i],0,EL2_Range[i],EL1_NBins[i],0,EL1_Range[i]);
+		}
+	}
+
+	Long64_t nentries = fChain->GetEntriesFast();
+  cout<<"nentries = "<<nentries<<endl;
+
+  for (Long64_t ientry=0; ientry<nentries; ientry++) {
+    fChain->GetEntry(ientry);
+    timeper.PrintPercentageAndRemainingTime(ientry, nentries);
+
+    for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+			if (LayerEvent_fSSDCsIMulti[ssdindex]==0 && LayerEvent_fSSDL2BMulti[ssdindex]==1 &&
+	        LayerEvent_fSSDL2FMulti[ssdindex]==1 && LayerEvent_fSSDL1SMulti[ssdindex]==1)
+	    {
+	      // 提取 L2B 的数据
+	      for (Int_t l2bmulti=0; l2bmulti<LayerEvent_fL2BMulti; l2bmulti++) {
+	        if (LayerEvent_fL2BSSDNum[l2bmulti] == ssdindex) {
+	         L1L2_StripL2B.push_back(LayerEvent_fL2BNumStrip[l2bmulti]);
+	         L1L2_EL2B.push_back(LayerEvent_fL2BEMeV[l2bmulti]);
+	        }
+	      }
+	      // 提取 L2F 的数据
+	      for (Int_t l2fmulti=0; l2fmulti<LayerEvent_fL2FMulti; l2fmulti++) {
+	        if (LayerEvent_fL2FSSDNum[l2fmulti] == ssdindex) {
+	          L1L2_StripL2F.push_back(LayerEvent_fL2FNumStrip[l2fmulti]);
+	          L1L2_EL2F.push_back(LayerEvent_fL2FEMeV[l2fmulti]);
+	        }
+	      }
+				// 提取 L1S 的数据
+	      for (Int_t l1smulti=0; l1smulti<LayerEvent_fL1SMulti; l1smulti++) {
+	        if (LayerEvent_fL1SSSDNum[l1smulti] == ssdindex) {
+	          L1L2_StripL1S.push_back(LayerEvent_fL1SNumStrip[l1smulti]);
+	          L1L2_EL1S.push_back(LayerEvent_fL1SEMeV[l1smulti]);
+	        }
+	      }
+	      // 填充 hist_L1_L2F
+	      if ( //fPattern.IsGeoConstraint_L2B_L1S(L1L2_StripL2B[0], L1L2_StripL1S[0]) &&
+				     L1L2_StripL2B[0] == L1L2_StripL1S[0] &&
+	           fPattern.IsEneConstraint_L2B_L2F(ssdindex, L1L2_EL2B[0], L1L2_EL2F[0]))
+	      {
+					hist_L1L2_Merged[ssdindex]->Fill(L1L2_EL2F[0], L1L2_EL1S[0]);
+	       // hist_L1L2[ssdindex][L1L2_StripL2F[0]]->Fill(L1L2_EL2F[0], L1L2_EL1S[0]);
+	      }
+				L1L2_EL1S.clear();
+	      L1L2_EL2F.clear();
+	      L1L2_EL2B.clear();
+				L1L2_StripL1S.clear();
+	      L1L2_StripL2F.clear();
+	      L1L2_StripL2B.clear();
+	    }
+		}
+	}
+/*
+  TCanvas* c_begin = new TCanvas("c_begin","c_begin",800,600);
+	TCanvas* c_end   = new TCanvas("c_end","c_end",800,600);
+	c_begin->Close();
+	c_end->Close();
+	TCanvas* cans_L1L2[NUM_SSD][NUM_STRIP];
+	for (Int_t i=0; i<NUM_SSD; i++) {
+		for (Int_t j=0; j<NUM_STRIP; j++) {
+			cans_L1L2[i][j] = new TCanvas(Form("cans_SSD%d_Strip%d",i+1,j+1),Form("cans_SSD%d_Strip%d",i+1,j+1), 800, 600);
+		}
+	}
+
+	c_begin->Print(pathPDFOutBegin.c_str());
+	for (Int_t i=0; i<NUM_SSD; i++) {
+		for (Int_t j=0; j<NUM_STRIP; j++) {
+			cans_L1L2[i][j]->cd();
+			hist_L1L2[i][j]->Draw("COLZ");
+			cans_L1L2[i][j]->Print(pathPDFOut.c_str());
+		}
+	}
+	c_end->Print(pathPDFOutEnd.c_str());
+*/
+
+	TCanvas* c_merged = new TCanvas("c_merged","c_merged",1000,1000);
+	c_merged->Divide(2,2);
+
+	for (Int_t i=0; i<NUM_SSD; i++) {
+		c_merged->cd(i+1);
+		hist_L1L2_Merged[i]->Draw("COL");
+	}
+}
+
+/*
+//______________________________________________________________________________
+// SSD3, SSD4 前两层硅的 DEE 分辨很差
+// 使用未进行能量刻度的数据检查 L1L2 的能量关联是否正常
+void CSHINEDEEFITPID::CheckL1L2EnergyCorrelation()
+{
+	Double_t EL1_Range[4] = {150.,150.,100.,70.};
+	Double_t EL2_Range[4] = {250.,250.,140.,70.};
+	Int_t EL1_NBins[4] = {1500,1500,1000,700};
+	Int_t EL2_NBins[4] = {2500,2500,1400,700};
+
+	std::vector<Int_t>    L1L2_StripL1S;
+  std::vector<Int_t>    L1L2_StripL2F;
+  std::vector<Int_t>    L1L2_StripL2B;
+
+  TH2D* hist_L1L2_Merged[NUM_SSD];
+	TH2D* hist_L1L2[NUM_SSD][NUM_STRIP];
+	for (Int_t i=0; i<NUM_SSD; i++) {
+		hist_L1L2_Merged[i] = new TH2D(Form("SSD%d_Merged", i+1),Form("SSD%d_Merged",i+1),EL2_NBins[i],0,EL2_Range[i],EL1_NBins[i],0,EL1_Range[i]);
+
+		for (Int_t j=0; j<NUM_STRIP; j++) {
+			hist_L1L2[i][j] = new TH2D(Form("SSD%d_Strip%d", i+1, j+1),Form("SSD%d_Strip%d", i+1, j+1),
+			                        EL2_NBins[i],0,EL2_Range[i],EL1_NBins[i],0,EL1_Range[i]);
+		}
+	}
+
+	Long64_t nentries = fChain->GetEntriesFast();
+  cout<<"nentries = "<<nentries<<endl;
+
+  for (Long64_t ientry=0; ientry<nentries; ientry++) {
+    fChain->GetEntry(ientry);
+    timeper.PrintPercentageAndRemainingTime(ientry, nentries);
+
+    for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+			if (LayerEvent_fSSDCsIMulti[ssdindex]==0 && LayerEvent_fSSDL2BMulti[ssdindex]==1 &&
+	        LayerEvent_fSSDL2FMulti[ssdindex]==1 && LayerEvent_fSSDL1SMulti[ssdindex]==1)
+	    {
+	      // 提取 L2B 的数据
+	      for (Int_t l2bmulti=0; l2bmulti<LayerEvent_fL2BMulti; l2bmulti++) {
+	        if (LayerEvent_fL2BSSDNum[l2bmulti] == ssdindex) {
+	         L1L2_StripL2B.push_back(LayerEvent_fL2BNumStrip[l2bmulti]);
+	        }
+	      }
+	      // 提取 L2F 的数据
+	      for (Int_t l2fmulti=0; l2fmulti<LayerEvent_fL2FMulti; l2fmulti++) {
+	        if (LayerEvent_fL2FSSDNum[l2fmulti] == ssdindex) {
+	          L1L2_StripL2F.push_back(LayerEvent_fL2FNumStrip[l2fmulti]);
+	        }
+	      }
+				// 提取 L1S 的数据
+	      for (Int_t l1smulti=0; l1smulti<LayerEvent_fL1SMulti; l1smulti++) {
+	        if (LayerEvent_fL1SSSDNum[l1smulti] == ssdindex) {
+	          L1L2_StripL1S.push_back(LayerEvent_fL1SNumStrip[l1smulti]);
+	        }
+	      }
+	      // 填充 hist_L1_L2F
+	      if ( fPattern.IsGeoConstraint_L2B_L1S(L1L2_StripL2B[0], L1L2_StripL1S[0]) &&
+	           fPattern.IsEneConstraint_L2B_L2F(ssdindex, L1L2_EL2B[0], L1L2_EL2F[0]))
+	      {
+					hist_L1L2_Merged[ssdindex]->Fill(L1L2_EL2B[0], L1L2_EL1S[0]);
+	       // hist_L1L2[ssdindex][L1L2_StripL2F[0]]->Fill(L1L2_EL2F[0], L1L2_EL1S[0]);
+	      }
+				L1L2_StripL1S.clear();
+	      L1L2_StripL2F.clear();
+	      L1L2_StripL2B.clear();
+	    }
+		}
+	}
+
+	for (Int_t i=0; i<NUM_SSD; i++) {
+		c_merged->cd(i+1);
+		hist_L1L2_Merged[i]->Draw("COL");
+	}
+}
+*/
 
 
 //______________________________________________________________________________

@@ -10,11 +10,11 @@ void test()
   //_______________________________________
   // step1: build layerevent
   CSHINEBuildEvent build;
-  build.BuildLayerEventTree(120, 200);
+//  build.BuildLayerEventTree(150, 250);
 
   //_______________________________________________
   // step2: 径迹重建前的一些测试与检查
-//  Test_Multi test(120, 130);
+//  Test_Multi test(120, 200);
 
 //  test.CheckL2BL2FEnergyCorrelation(0);
 //  test.CheckL2BL2FEnergyCorrelation(1);
@@ -35,10 +35,20 @@ void test()
 //  test.CheckGlobalMultiRatio();
 
 //    test.CheckClusterSize_Si();
-//   test.CalcClusterSize_Equal2_ERatio();
+//    test.CalcClusterSize_Equal2_ERatio();
+//    test.ClusterSize_Equal2_CsI();
+//    test.CheckCrossTalk_CsI();
 
-// 粒子鉴别
-//   CSHINEDEEFITPID deefit(120, 130);
-//   deefit.CheckL2L3EnergyCorrelation();
 
+//__________________________________________________
+//  检查 DEE plot
+   CSHINECheckDEEPlot deefitcheck(150, 160);
+//   deefitcheck.CheckL2L3EnergyCorrelation();
+//   deefitcheck.CheckL1L2EnergyCorrelation();
+   deefitcheck.CheckL1L2EnergyCorrelation_Uncalibrated();
+
+//__________________________________________________
+//  使用 DEEFIT 方法进行粒子鉴别
+//   deefit.DEEFITGenerateData();
+//   deefit.DEEFITRunCode();
 }

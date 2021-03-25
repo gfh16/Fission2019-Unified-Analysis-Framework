@@ -35,7 +35,7 @@ private:
   DEEFITTreeData             *fdeefitdata;
   const Int_t                 fMAXFP = 14;  // Func14 包含 14 个参数
   TimeAndPercentage           timeper;
-  CSHINETrackReconstruction   Condition;
+  CSHINETrackReconstruction   fPattern;
 
 public:
   CSHINEDEEFITPID(Int_t firstrun, Int_t lastrun);
@@ -46,11 +46,8 @@ public:
   Int_t      fCurrent; //!current Tree number in a TChain
   void       Init(TTree *tree);
 
-  // 功能实现前的一些检查
-  void       CheckL2L3EnergyCorrelation();
-
   // 功能实现
-  void       DEEFITGenerateData(Int_t firstrun, Int_t lastrun); // 借助DEEFIT 工具进行CsI能量刻度, 需要先将实验数据存成DEEFIT格式
+  void       DEEFITGenerateData(); // 借助DEEFIT 工具进行CsI能量刻度, 需要先将实验数据存成DEEFIT格式
   void       DEEFITRunCode();  // 运行 DEEFIT 程序，手动选点，对 dE(ECsI,Z,A) 进行拟合
 
   // 需要用到的函数
@@ -72,6 +69,7 @@ public:
   std::vector<Int_t>          LayerEvent_fL2FSSDNum;    //[LayerEvent_fL2FMulti]
   std::vector<Int_t>          LayerEvent_fL2FNumStrip;  //[LayerEvent_fL2FMulti]
   std::vector<Double_t>       LayerEvent_fL2FEMeV;      //[LayerEvent_fL2FMulti]
+  std::vector<Int_t>          LayerEvent_fL2FTime;      //[LayerEvent_fL2FMulti]
   // for L2B
   Int_t                       LayerEvent_fL2BMulti;
   std::vector<Int_t>          LayerEvent_fL2BSSDNum;    //[LayerEvent_fL2BMulti]
@@ -107,5 +105,26 @@ public:
 
 };
 
+
+//******************************************************************************
+// 在进行粒子鉴别之前, 对 DEE plot 进行必要的检查,
+// 以确定如何得到较好的 DEE plot
+class CSHINECheckDEEPlot
+{
+private:
+  Int_t                      fFirstRun;
+  Int_t                      fLastRun;
+  TimeAndPercentage          timeper;
+  CSHINETrackReconstruction  fPattern;
+  CSHINEDEEFITPID           *fDeefit;
+
+public:
+  CSHINECheckDEEPlot(Int_t fFirstRun, Int_t fLastRun);
+  ~CSHINECheckDEEPlot();
+
+  void    CheckL2L3EnergyCorrelation();
+  void    CheckL1L2EnergyCorrelation();
+  void    CheckL1L2EnergyCorrelation_Uncalibrated();
+};
 
 #endif

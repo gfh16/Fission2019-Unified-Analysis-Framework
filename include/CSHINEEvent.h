@@ -32,6 +32,7 @@ public:
   std::vector<Int_t>     fL2FSSDNum;      //[fL2FMulti]
   std::vector<Int_t>     fL2FNumStrip;    //[fL2FMulti]
   std::vector<Double_t>  fL2FEMeV;        //[fL2FMulti]
+  std::vector<Int_t>     fL2FTime;        //[fL2FMulti]
   // for L2B
   Int_t                  fL2BMulti;
   std::vector<Int_t>     fL2BSSDNum;     //[fL2BMulti]
@@ -60,6 +61,7 @@ public:
     std::vector<Int_t>().swap(fL2FSSDNum);
     std::vector<Int_t>().swap(fL2FNumStrip);
     std::vector<Double_t>().swap(fL2FEMeV);
+    std::vector<Int_t>().swap(fL2FTime);
     std::vector<Int_t>().swap(fL2BSSDNum);
     std::vector<Int_t>().swap(fL2BNumStrip);
     std::vector<Double_t>().swap(fL2BEMeV);
@@ -181,14 +183,14 @@ public:
   CSHINEBuildEvent();
   ~CSHINEBuildEvent();
 
-  // 参数说明: CSHINESSDEvent class, ssdindex, ech_L1S[16], ech_L2F[16], ech_L2B[16], ech_L3A[9]
-  void LayerEvent (CSHINELayerEvent&,  Int_t,  Int_t*, Int_t*, Int_t*, Int_t*);
+  // 参数说明: CSHINESSDEvent class, ssdindex, ech_L1S[16], ech_L2F[16], ech_L2B[16], ech_L3A[9], time_L2F[16]
+  void LayerEvent (CSHINELayerEvent&,  Int_t,  Int_t*, Int_t*, Int_t*, Int_t*, Int_t*);
 
   void BuildLayerEvent(CSHINELayerEvent& layerevent,
-      Int_t* ssd1echl1s, Int_t* ssd1echl2f, Int_t* ssd1echl2b, Int_t* ssd1echcsi,
-      Int_t* ssd2echl1s, Int_t* ssd2echl2f, Int_t* ssd2echl2b, Int_t* ssd2echcsi,
-      Int_t* ssd3echl1s, Int_t* ssd3echl2f, Int_t* ssd3echl2b, Int_t* ssd3echcsi,
-      Int_t* ssd4echl1s, Int_t* ssd4echl2f, Int_t* ssd4echl2b, Int_t* ssd4echcsi);
+      Int_t* ssd1echl1s, Int_t* ssd1echl2f, Int_t* ssd1echl2b, Int_t* ssd1echcsi, Int_t* ssd1timel2f,
+      Int_t* ssd2echl1s, Int_t* ssd2echl2f, Int_t* ssd2echl2b, Int_t* ssd2echcsi, Int_t* ssd2timel2f,
+      Int_t* ssd3echl1s, Int_t* ssd3echl2f, Int_t* ssd3echl2b, Int_t* ssd3echcsi, Int_t* ssd3timel2f,
+      Int_t* ssd4echl1s, Int_t* ssd4echl2f, Int_t* ssd4echl2b, Int_t* ssd4echcsi, Int_t* ssd4timel2f);
 
   void BuildGlobalEvent(CSHINEGlobalEvent&, Int_t*, Int_t*, Int_t*, Int_t*);
 
