@@ -251,7 +251,7 @@ Double_t** CSHINEDEEFITPID::DEEFITLoadPars(const char* pathParsFile)
 
 
 //______________________________________________________________________________
-Int_t CSHINEDEEFITPID::DEEFITGetCharge(Double_t* par, Double_t de, Double_t fast, Double_t* zeta)
+Int_t CSHINEDEEFITPID::DEEFITGetCharge(Double_t* par, Double_t de, Double_t fast, Double_t& zeta)
 {
 	const Int_t maxiter = 500;
 	const Int_t zlim = 6; // 设定 Z 的寻找范围,可根据实验数据实际情况进行修改
@@ -263,7 +263,7 @@ Int_t CSHINEDEEFITPID::DEEFITGetCharge(Double_t* par, Double_t de, Double_t fast
 
   // 二分法迭代求解电荷数 Z
   Int_t iter = 0;
-  *zeta = 0.0;
+  zeta = 0.0;
   while(iter < maxiter) {
     iter++;
     ztest = (zmin + zmax)/2.0;  // 二分法查找最接近的电荷数 Z
@@ -300,7 +300,7 @@ Int_t CSHINEDEEFITPID::DEEFITGetCharge(Double_t* par, Double_t de, Double_t fast
   cres = (Int_t)(zmin + 0.5);
   izeta = cres;
   if(cres > zlim) {
-    *zeta = izeta;
+    zeta = izeta;
     return cres; // 如果找到的 (Int_t)(zmin + 0.5) 超出预定范围 zlim, 则返回当前计算值
   }              // 否则,将进行下一步判断
 
@@ -318,32 +318,34 @@ Int_t CSHINEDEEFITPID::DEEFITGetCharge(Double_t* par, Double_t de, Double_t fast
   if(dist >= 0.0) {
 	  p.Z = izeta + 1;
 	  p.A = amassp;  //zeta+1
-	  *zeta = (Double_t) izeta + dist/(DEEFITFunc14(p, par) - yy); // 计算 izeta 对 Z 的偏离
+	  zeta = (Double_t) izeta + dist/(DEEFITFunc14(p, par) - yy); // 计算 izeta 对 Z 的偏离
   }
   else {
 	  p.Z = izeta - 1;
 	  p.A = amassm;  //zeta-1
-	  *zeta = (Double_t) izeta + dist/(yy- (izeta>1 ? DEEFITFunc14(p, par) : 0.));
+	  zeta = (Double_t) izeta + dist/(yy- (izeta>1 ? DEEFITFunc14(p, par) : 0.));
   }
-  if(*zeta>0 && *zeta<0.5) *zeta = 0.51; // 对于无意义的情况,初始化 *zeta = 0.51
+  if(zeta>0 && zeta<0.5) zeta = 0.51; // 对于无意义的情况,初始化 *zeta = 0.51
 
   return cres;
 }
 
 
 //______________________________________________________________________________
-Double_t CSHINEDEEFITPID::DEEFITGetMass(Double_t* par, Int_t charge, Double_t de, Double_t fast, Int_t* imass)
+Double_t CSHINEDEEFITPID::DEEFITGetMass(Double_t* par, Int_t charge, Double_t de, Double_t fast, Int_t& imass)
 {
 	const Int_t maxiter = 1000;
   Bool_t   found = kFALSE;
   Double_t amin, amax;
-  Double_t Amin[] = {0, 2,  4,  6,  7,  9,  11, 13, 14, 17, 19, 21, 22, 23};
-  Double_t Amax[] = {6, 10, 11, 12, 13, 15, 18, 26, 29, 32, 35, 36, 38, 41};
+//  Double_t Amin[] = {0, 2,  4,  6,  7,  9,  11, 13, 14, 17, 19, 21, 22, 23};
+//  Double_t Amax[] = {6, 10, 11, 12, 13, 15, 18, 26, 29, 32, 35, 36, 38, 41};
+	Double_t Amin[] = {0.5, 2.5, 5.5, 6.5,  7.5,  11.5, 11, 13, 14, 17, 19, 21, 22, 23};
+  Double_t Amax[] = {3.5, 6.5, 9.5, 10.5, 13.5, 14.5, 18, 26, 29, 32, 35, 36, 38, 41};
   Double_t mass = 0.0, fmass, yy, atest, dist;
-	Double_t dmin = 0.10; // 设定 dE 能量误差范围
+	Double_t dmin = 0.01; // 设定 dE 能量误差范围
   DEEFITParticle p;
 
-	*imass = 0;
+	imass = 0;
 
   Int_t iter = 0;
   amin = Amin[charge-1];
@@ -383,8 +385,8 @@ Double_t CSHINEDEEFITPID::DEEFITGetMass(Double_t* par, Int_t charge, Double_t de
       }
     }
   }
-  *imass = (Int_t)(atest + 0.5);
-  mass = *imass;
+  imass = (Int_t)(atest + 0.5);
+  mass = imass;
 
   p.A = mass;
   yy = DEEFITFunc14(p, par);
@@ -823,6 +825,55 @@ void CSHINECheckDEEPlot::CheckL1L2EnergyCorrelation()
 // SSD3, SSD4 前两层硅的 DEE 分辨很差, 现在使用刻度前的数据
 void CSHINECheckDEEPlot::CheckL1L2EnergyCorrelation_Uncalibrated()
 {
+	Double_t EL1_Range[4] = {4000.,4000.,4000.,4000.};
+	Double_t EL2_Range[4] = {4000.,4000.,4000.,4000.};
+	Int_t EL1_NBins[4] = {4000,4000,4000,4000};
+	Int_t EL2_NBins[4] = {4000,4000,4000,4000};
+
+	Int_t TimeCut_Low[4][16] = { {2100,2100,2100,2100,2140,2100,2050,2140,2100,2140,2100,2100,2100,2050,2140,2050},
+	                             {2050,2050,2050,2140,2050,2150,2100,2140,2100,2150,2100,2100,2100,2140,2050,2050},
+															 {2150,2150,2150,2150,2150,2150,2220,2140,2150,2140,2150,2100,2140,2140,2140,2100},
+															 {2120,2100,2100,2160,2140,2140,2180,2180,2140,2140,2140,2140,2100,2100,2100,2180}
+                             };
+
+
+	Int_t TimeCut_Up[4][16]  = { {2200,2200,2150,2200,2220,2200,2150,2200,2200,2200,2200,2200,2150,2100,2200,2100},
+	                             {2150,2150,2150,2200,2150,2250,2150,2200,2150,2200,2200,2150,2200,2200,2150,2150},
+															 {2250,2250,2250,2200,2250,2250,2260,2200,2250,2200,2200,2150,2200,2200,2200,2160},
+															 {2160,2200,2200,2230,2240,2180,2230,2220,2200,2200,2190,2190,2150,2150,2150,2230}
+                             };
+
+	std::vector<Double_t> L1L2_EL1S;
+  std::vector<Double_t> L1L2_EL2F;
+  std::vector<Double_t> L1L2_EL2B;
+	std::vector<Int_t>    L1L2_StripL1S;
+  std::vector<Int_t>    L1L2_StripL2F;
+  std::vector<Int_t>    L1L2_StripL2B;
+	std::vector<Int_t>    L2FTime;
+
+  Int_t SSD_L1S_E[NUM_SSD][NUM_STRIP];
+	Int_t SSD_L2F_E[NUM_SSD][NUM_STRIP];
+	Int_t SSD_L2B_E[NUM_SSD][NUM_STRIP];
+
+	std::string L1S_E("L1S_E");
+	std::string L2F_E("L2F_E");
+	std::string L2B_E("L2B_E");
+
+	std::string pathPDFOut("figures/figure_PID/L1L2F_DEE_Uncalibrated.pdf");
+	std::string pathPDFOutBegin("figures/figure_PID/L1L2F_DEE_Uncalibrated.pdf[");
+	std::string pathPDFOutEnd("figures/figure_PID/L1L2F_DEE_Uncalibrated.pdf]");
+
+  TH2D* hist_L1L2_Merged[NUM_SSD];
+	TH2D* hist_L1L2[NUM_SSD][NUM_STRIP];
+	for (Int_t i=0; i<NUM_SSD; i++) {
+		hist_L1L2_Merged[i] = new TH2D(Form("SSD%d_Merged", i+1),Form("SSD%d_Merged",i+1),EL2_NBins[i],0,EL2_Range[i],EL1_NBins[i],0,EL1_Range[i]);
+
+		for (Int_t j=0; j<NUM_STRIP; j++) {
+			hist_L1L2[i][j] = new TH2D(Form("SSD%d_Strip%d", i+1, j+1),Form("SSD%d_Strip%d", i+1, j+1),
+			                        EL2_NBins[i],0,EL2_Range[i],EL1_NBins[i],0,EL1_Range[i]);
+		}
+	}
+
 	TChain* mychain = new TChain("KrPb");
 	for (Int_t ifile=fFirstRun; ifile<(fLastRun+1); ifile++) {
 		mychain->Add(Form("%sMapRoot/MapFission2019_Kr_Pb%04d.root",PATHROOTFILESFOLDER,ifile));
@@ -833,7 +884,468 @@ void CSHINECheckDEEPlot::CheckL1L2EnergyCorrelation_Uncalibrated()
   (fDeefit->fChain)->AddFriend(mychain);
 
 	// 读取 Tree
-	
+	mychain->SetBranchStatus("*", 0);
+	for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    readfile.AddChain(mychain, L1S_E.c_str(), SSD_L1S_E[ssdindex], NUM_STRIP, ssdindex);
+		readfile.AddChain(mychain, L2F_E.c_str(), SSD_L2F_E[ssdindex], NUM_STRIP, ssdindex);
+		readfile.AddChain(mychain, L2B_E.c_str(), SSD_L2B_E[ssdindex], NUM_STRIP, ssdindex);
+	}
+
+	for (Long64_t ientry=0; ientry<nentries; ientry++) {
+    (fDeefit->fChain)->GetEntry(ientry);
+		mychain->GetEntry(ientry);
+    timeper.PrintPercentageAndRemainingTime(ientry, nentries);
+
+    for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+			if (fDeefit->LayerEvent_fSSDCsIMulti[ssdindex]==0 && fDeefit->LayerEvent_fSSDL2BMulti[ssdindex]==1 &&
+	        fDeefit->LayerEvent_fSSDL2FMulti[ssdindex]==1 && fDeefit->LayerEvent_fSSDL1SMulti[ssdindex]==1)
+	    {
+	      // 提取 L2B 的数据
+	      for (Int_t l2bmulti=0; l2bmulti<fDeefit->LayerEvent_fL2BMulti; l2bmulti++) {
+	        if (fDeefit->LayerEvent_fL2BSSDNum[l2bmulti] == ssdindex) {
+	         L1L2_StripL2B.push_back(fDeefit->LayerEvent_fL2BNumStrip[l2bmulti]);
+	         L1L2_EL2B.push_back(fDeefit->LayerEvent_fL2BEMeV[l2bmulti]);
+	        }
+	      }
+	      // 提取 L2F 的数据
+	      for (Int_t l2fmulti=0; l2fmulti<fDeefit->LayerEvent_fL2FMulti; l2fmulti++) {
+	        if (fDeefit->LayerEvent_fL2FSSDNum[l2fmulti] == ssdindex) {
+	          L1L2_StripL2F.push_back(fDeefit->LayerEvent_fL2FNumStrip[l2fmulti]);
+	          L1L2_EL2F.push_back(fDeefit->LayerEvent_fL2FEMeV[l2fmulti]);
+						L2FTime.push_back(fDeefit->LayerEvent_fL2FTime[l2fmulti]);
+	        }
+	      }
+				// 提取 L1S 的数据
+	      for (Int_t l1smulti=0; l1smulti<fDeefit->LayerEvent_fL1SMulti; l1smulti++) {
+	        if (fDeefit->LayerEvent_fL1SSSDNum[l1smulti] == ssdindex) {
+	          L1L2_StripL1S.push_back(fDeefit->LayerEvent_fL1SNumStrip[l1smulti]);
+	          L1L2_EL1S.push_back(fDeefit->LayerEvent_fL1SEMeV[l1smulti]);
+	        }
+	      }
+	      // 填充 hist_L1_L2F
+	      if (fPattern.IsEneConstraint_L2B_L2F(ssdindex, L1L2_EL2B[0], L1L2_EL2F[0])) {
+					for (Int_t l1smulti=0; l1smulti<fDeefit->LayerEvent_fSSDL1SMulti[ssdindex]; l1smulti++) {
+						if (abs(L1L2_StripL1S[l1smulti]-L1L2_StripL2B[0])<=1) {
+							if (L2FTime[0]>TimeCut_Low[ssdindex][L1L2_StripL2F[0]] && L2FTime[0]<TimeCut_Up[ssdindex][L1L2_StripL2F[0]]) {
+								//hist_L1L2_Merged[ssdindex]->Fill(SSD_L2F_E[ssdindex][L1L2_StripL2F[0]], SSD_L1S_E[ssdindex][L1L2_StripL1S[l1smulti]]);
+				        //hist_L1L2[ssdindex][L1L2_StripL2F[0]]->Fill(SSD_L2F_E[ssdindex][L1L2_StripL2F[0]], SSD_L1S_E[ssdindex][L1L2_StripL1S[l1smulti]]);
+							}
+						}
+					}
+	      }
+				hist_L1L2_Merged[ssdindex]->Fill(SSD_L2F_E[ssdindex][L1L2_StripL2F[0]], SSD_L1S_E[ssdindex][L1L2_StripL1S[0]]);
+				L1L2_EL1S.clear();
+	      L1L2_EL2F.clear();
+	      L1L2_EL2B.clear();
+				L1L2_StripL1S.clear();
+	      L1L2_StripL2F.clear();
+	      L1L2_StripL2B.clear();
+				L2FTime.clear();
+	    }
+		}
+	}
+/*
+  TCanvas* c_begin = new TCanvas("c_begin","c_begin",800,600);
+	TCanvas* c_end   = new TCanvas("c_end","c_end",800,600);
+	c_begin->Close();
+	c_end->Close();
+	TCanvas* cans_L1L2[NUM_SSD][NUM_STRIP];
+	for (Int_t i=0; i<NUM_SSD; i++) {
+		for (Int_t j=0; j<NUM_STRIP; j++) {
+			cans_L1L2[i][j] = new TCanvas(Form("cans_SSD%d_Strip%d",i+1,j+1),Form("cans_SSD%d_Strip%d",i+1,j+1), 800, 600);
+		}
+	}
+
+	c_begin->Print(pathPDFOutBegin.c_str());
+	for (Int_t i=0; i<NUM_SSD; i++) {
+		for (Int_t j=0; j<NUM_STRIP; j++) {
+			cans_L1L2[i][j]->cd();
+			hist_L1L2[i][j]->Draw("COLZ");
+			cans_L1L2[i][j]->Print(pathPDFOut.c_str());
+		}
+	}
+	c_end->Print(pathPDFOutEnd.c_str());
+*/
+	TCanvas* c_merged = new TCanvas("c_merged","c_merged",1000,1000);
+	c_merged->Divide(2,2);
+
+	for (Int_t i=0; i<NUM_SSD; i++) {
+		c_merged->cd(i+1);
+		hist_L1L2_Merged[i]->Draw("COL");
+	}
+	c_merged->Print("L1L2F_DEE_Merged.pdf");
+}
 
 
+//______________________________________________________________________________
+// 检查 L2L3 的 PID 结果
+void CSHINECheckDEEPlot::CheckL2L3PIDResults()
+{
+	gStyle->SetPalette(1);
+
+	Double_t EL2_Range[4] = {250.,250.,140.,70.};
+	Int_t EL2_NBins[4] = {2500,2500,1400,700};
+
+  Double_t mass_cut = 0.4;
+	Int_t  charge  = -99;  // 电荷数理论值
+	Double_t mass  = -99.; // 质量数计算值
+
+	Double_t zeta; // 电荷数计算值
+	Int_t   imass; // 质量数理论值
+
+	Double_t sigma_sum = 0.;
+
+  std::string pathDEEFITData(Form("%sDEEFITData/DEEFITData_Run%04d-%04d.root",PATHROOTFILESFOLDER,fFirstRun,fLastRun));
+	std::string pathDEEFITPars(Form("%sDEEFITData/Fitparam_table.out",PATHROOTFILESFOLDER));
+	std::string pathPIDResults(Form("%sfigure_PID/PIDResluts_Run%04d-%04d.pdf",PATHFIGURESFOLDER,fFirstRun,fLastRun));
+	std::string pathPIDResultsBegin(Form("%sfigure_PID/PIDResluts_Run%04d-%04d.pdf[",PATHFIGURESFOLDER,fFirstRun,fLastRun));
+	std::string pathPIDResultsEnd(Form("%sfigure_PID/PIDResluts_Run%04d-%04d.pdf]",PATHFIGURESFOLDER,fFirstRun,fLastRun));
+	std::string pathPIDAlphaMassResolution(Form("%sdata_PID/PID_Alpha_MassResolution.dat",PATHDATAFOLDER));
+
+	ofstream FileOut(pathPIDAlphaMassResolution.c_str());
+	FileOut<<"* Mass resoltion of alpha particles in the experiment"<<endl;
+	FileOut<<"* ssdnum"<<setw(15)<<"csinum"<<setw(15)<<"sigma"<<endl;
+
+	TH1D* h_PID[NUM_SSD*NUM_CSI];
+	TH1D* h_PID_alpha[NUM_SSD*NUM_CSI];
+	TH2D* h_DEE[NUM_SSD*NUM_CSI];
+	TH2D* h_DEE_PIDCut[NUM_SSD*NUM_CSI];
+	for (Int_t numtel=0; numtel<NUM_SSD*NUM_CSI; numtel++) {
+		Int_t ssdnum = numtel/NUM_CSI;
+		Int_t csinum = numtel%NUM_CSI;
+		h_PID[numtel]       = new TH1D(Form("PID_SSD%d_CsI%d",ssdnum+1,csinum),Form("PID_SSD%d_CsI%d",ssdnum+1,csinum),5000,0,50);
+		h_PID_alpha[numtel] = new TH1D(Form("#{PID_{#alpha}}_SSD%d_CsI%d",ssdnum+1,csinum),Form("#{PID_{#alpha}}_SSD%d_CsI%d",ssdnum+1,csinum), 1000, 10, 20);
+		h_DEE[numtel]       = new TH2D(Form("DEE_SSD%d_CsI%d",ssdnum+1,csinum),Form("DEE_SSD%d_CsI%d",ssdnum+1,csinum), 4000,0,4000,EL2_NBins[ssdnum],0,EL2_Range[ssdnum]);
+		h_DEE_PIDCut[numtel]   = new TH2D(Form("PIDDEE_SSD%d_CsI%d",ssdnum+1,csinum),Form("PIDDEE_SSD%d_CsI%d",ssdnum+1,csinum), 4000,0,4000,EL2_NBins[ssdnum],0,EL2_Range[ssdnum]);
+	}
+
+  // 读取 DEEFIT 拟合的 14 参数
+	Double_t** DEEFITPars = fDeefit->DEEFITLoadPars(pathDEEFITPars.c_str());
+
+	Short_t numtel;  // number of csi crystals
+  Float_t  desipgf; // dE (MeV)
+  Short_t fastpg;  // ECsI (ADC Chs)
+
+  TFile* myfile = TFile::Open(pathDEEFITData.c_str());
+  TTree* mytree = (TTree*) myfile->Get("h1");
+	mytree->SetBranchAddress("numtel", &numtel);   // number of CsI
+	mytree->SetBranchAddress("desipgf",&desipgf);  // dESi
+	mytree->SetBranchAddress("fastpg", &fastpg);   // ECsI
+
+	Long64_t nentries = mytree->GetEntries();
+	cout<<"nentries = "<<nentries<<endl;
+
+	for (Long64_t jentry=0; jentry<nentries; jentry++) {
+		//if (jentry>10000) continue;
+		mytree->GetEntry(jentry);
+		timeper.PrintPercentageAndRemainingTime(jentry, nentries);
+
+		charge = fDeefit->DEEFITGetCharge(DEEFITPars[numtel], desipgf, fastpg, zeta); // Int_t charge
+    mass   = fDeefit->DEEFITGetMass(DEEFITPars[numtel], charge, desipgf, fastpg, imass); // Double_t mass
+
+		h_DEE[numtel]->Fill(fastpg, desipgf);
+
+		if (mass != 0.0 && abs(mass-imass)<mass_cut) { // PID
+			if ((charge==2 && imass==5) || (charge==4 && imass==8)) continue;
+			h_DEE_PIDCut[numtel]->Fill(fastpg, desipgf);
+			h_PID[numtel]->Fill(5*charge+mass);
+			if (charge==2 && imass==4) h_PID_alpha[numtel]->Fill(5*charge+mass);
+		}
+	}
+
+  //_________________________________________________
+	TCanvas* c_begin = new TCanvas("c_begin","c_begin", 600, 600);
+	TCanvas* c_end = new TCanvas("c_end","c_end", 600, 600);
+	c_begin->Close();
+	c_end->Close();
+  TCanvas* cans[NUM_SSD*NUM_CSI];
+	for (Int_t numtel=0; numtel<NUM_SSD*NUM_CSI; numtel++) {
+		Int_t ssdnum = numtel/NUM_CSI;
+		Int_t csinum = numtel%NUM_CSI;
+		cans[numtel] = new TCanvas(Form("c_SSD%d_CsI%d",ssdnum+1,csinum),Form("c_SSD%d_CsI%d",ssdnum+1,csinum),1000,1000);
+	}
+
+  c_begin->Print(pathPIDResultsBegin.c_str());
+	for (Int_t numtel=0; numtel<NUM_SSD*NUM_CSI; numtel++) {
+		Int_t ssdnum = numtel/NUM_CSI;
+		Int_t csinum = numtel%NUM_CSI;
+
+		cans[numtel]->Divide(1,2);
+		// draw PID  plot
+		cans[numtel]->cd(1);
+		h_PID[numtel]->SetStats(0);
+		h_PID[numtel]->Draw();
+		// fit alpha to get mass resolution
+		TF1* fit = new TF1("fit", "gaus", 13.5, 14.5);
+		h_PID_alpha[numtel]->Fit("fit", "Q0");
+		fit->Draw("SAME");
+		Double_t sigma_mass = fit->GetParameter(2);
+		sigma_sum += sigma_mass;
+		TLatex* latex = new TLatex(10.,0.9*(h_PID[numtel]->GetMaximum()), Form("#sigma_{A(#alpha)}=%.3f",sigma_mass));
+		latex->SetTextColor(kRed);
+		latex->Draw("SAME");
+		// sub-pad
+		TPad* subpad = new TPad("subpad", "", 0.36, 0.15, 0.95, 0.95);
+	  subpad->Draw();
+	  subpad->cd();
+	  gPad->SetFillStyle(0);
+		TH1D* h_PID_Clone = (TH1D*) h_PID[numtel]->Clone();
+		h_PID_Clone->SetTitle("");
+		h_PID_Clone->GetXaxis()->SetRangeUser(18, 50);
+		h_PID_Clone->Draw();
+
+	  // draw DEE plots
+		cans[numtel]->cd(2);
+		gPad->Divide(2,1);
+		gPad->cd(1);
+		h_DEE[numtel]->Draw("COL");
+		cans[numtel]->cd(2);
+		gPad->cd(2);
+		h_DEE_PIDCut[numtel]->Draw("COL");
+		TLatex* l_masscut = new TLatex(1300, 0.92*EL2_Range[ssdnum], Form("|mass-imass|<%.1f",mass_cut));
+		l_masscut->SetTextColor(kRed);
+		l_masscut->Draw("SAME");
+
+    FileOut<<ssdnum<<setw(20)<<csinum<<setw(20)<<sigma_mass<<endl;
+
+		cans[numtel]->Print(pathPIDResults.c_str());
+	}
+	c_end->Print(pathPIDResultsEnd.c_str());
+
+  FileOut<<endl;
+  FileOut<<"* average mass resolution : "<<sigma_sum/34<<endl;
+	FileOut.close();
+}
+
+
+//______________________________________________________________________________
+// 检查实验中 CsI 对 alpha 粒子的能量分辨率
+void CSHINECheckDEEPlot::CheckCsIAlphaEnergyResolution()
+{
+	srand((unsigned)time(NULL)); // 随机数种子采用系统时钟
+
+	gStyle->SetPalette(1);
+
+	Double_t EL2_Range[4] = {250.,250.,140.,70.};
+	Int_t EL2_NBins[4] = {2500,2500,1400,700};
+
+	Int_t ECh1 = 300;
+	Int_t ECh2 = 1100;
+	Int_t ECh3 = 1900;
+	Int_t ECh4 = 2700;
+
+	Int_t  charge  = -99;  // 电荷数理论值
+	Double_t mass  = -99.; // 质量数计算值
+
+	Double_t zeta; // 电荷数计算值
+	Int_t   imass; // 质量数理论值
+
+	Short_t EX_gaus;
+	Float_t EY_gaus;
+
+  Int_t NPoints = 100; // 每个 X 点产生高斯弥散的数目
+	Double_t sigmaELow = 0.01, sigmaEUp = 0.04, sigmaEStep = 0.003;
+	Double_t sigmadELow = 0.006, sigmadEUp = 0.016, sigmadEStep = 0.001;
+	Int_t Nbin_sigmaE  = Int_t ((sigmaEUp-sigmaELow)/sigmaEStep);
+	Int_t Nbin_sigmadE = Int_t ((sigmadEUp-sigmadELow)/sigmadEStep);
+
+	Double_t sigma_mass[NUM_SSD*NUM_CSI][3];
+	Double_t sigma_mass_MC[NUM_SSD*NUM_CSI][Nbin_sigmaE*Nbin_sigmadE][3];
+
+	Color_t contour_color[3] = {kRed-4, kAzure-3, kSpring-1};
+
+  std::string pathDEEFITPars(Form("%sDEEFITData/Fitparam_table.out",PATHROOTFILESFOLDER));
+	std::string pathDEEFITData(Form("%sDEEFITData/DEEFITData_Run%04d-%04d.root",PATHROOTFILESFOLDER,fFirstRun,fLastRun));
+	std::string pathPDFMassDistr(Form("%sfigure_PID/AlphaMassDistr%04d-%04d.pdf",PATHFIGURESFOLDER,fFirstRun,fLastRun));
+	std::string pathPDFMassDistrBegin(Form("%sfigure_PID/AlphaMassDistr%04d-%04d.pdf[",PATHFIGURESFOLDER,fFirstRun,fLastRun));
+	std::string pathPDFMassDistrEnd(Form("%sfigure_PID/AlphaMassDistr%04d-%04d.pdf]",PATHFIGURESFOLDER,fFirstRun,fLastRun));
+  std::string pathPDFCont(Form("%sfigure_PID/AlphaEnergyResolutionCont%04d-%04d.pdf",PATHFIGURESFOLDER,fFirstRun,fLastRun));
+	std::string pathPDFContBegin(Form("%sfigure_PID/AlphaEnergyResolutionCont%04d-%04d.pdf[",PATHFIGURESFOLDER,fFirstRun,fLastRun));
+	std::string pathPDFContEnd(Form("%sfigure_PID/AlphaEnergyResolutionCont%04d-%04d.pdf]",PATHFIGURESFOLDER,fFirstRun,fLastRun));
+	std::string pathPIDAlphaMassResolution(Form("%sdata_PID/PID_Alpha_MassResolution_Range.dat",PATHDATAFOLDER));
+  std::string pathROOTOutput("/home/sea/Fission2019_Data/CsIAlphaMassResolution.root");
+
+  TFile* rootfile = new TFile(pathROOTOutput.c_str(),"RECREATE");
+
+	ofstream FileOut(pathPIDAlphaMassResolution.c_str());
+	FileOut<<"* Mass resoltion of alpha particles in the experiment"<<endl;
+	FileOut<<"* ssdnum"<<setw(15)<<"csinum"<<setw(20)<<"sigma_R1"<<setw(20)<<"sigma_R2"<<setw(20)<<"sigma_R3"<<endl;
+
+	TH1D* h_PID_alpha[NUM_SSD*NUM_CSI][3];
+	TH1D* h_PID_MC[NUM_SSD*NUM_CSI][3][Nbin_sigmaE*Nbin_sigmadE];
+	TH2D* h_MC_sigma[NUM_SSD*NUM_CSI][3];
+	for (Int_t numtel=0; numtel<NUM_SSD*NUM_CSI; numtel++) {
+		Int_t ssdnum = numtel/NUM_CSI;
+		Int_t csinum = numtel%NUM_CSI;
+		h_PID_alpha[numtel][0] = new TH1D(Form("ExpSSD%d_CsI%d_Range1",ssdnum+1,csinum),Form("EXpSSD%d_CsI%d_Range1",ssdnum+1,csinum), 1000, 0, 10);
+		h_PID_alpha[numtel][1] = new TH1D(Form("EXpSSD%d_CsI%d_Range2",ssdnum+1,csinum),Form("ExpSSD%d_CsI%d_Range2",ssdnum+1,csinum), 1000, 0, 10);
+		h_PID_alpha[numtel][2] = new TH1D(Form("EXpSSD%d_CsI%d_Range3",ssdnum+1,csinum),Form("ExpSSD%d_CsI%d_Range3",ssdnum+1,csinum), 1000, 0, 10);
+
+    for (Int_t irange=0; irange<3; irange++) {
+			for (Int_t isigma=0; isigma<Nbin_sigmaE*Nbin_sigmadE; isigma++) {
+				h_PID_MC[numtel][irange][isigma] = new TH1D(Form("MCSSD%d_CsI%d_sigma%d_Range%d",ssdnum+1,csinum,isigma,irange+1),Form("MCSSD%d_CsI%d_sigma%d_Range%d",ssdnum+1,csinum,isigma,irange+1), 1000, 0, 10);
+			}
+			h_MC_sigma[numtel][irange] = new TH2D(Form("h2_MCSSD%d_CsI%d_Range%d",ssdnum+1,csinum,irange+1),Form("h2_MCSSD%d_CsI%d_Range%d",ssdnum+1,csinum,irange+1),Nbin_sigmaE,sigmaELow,sigmaEUp,Nbin_sigmadE,sigmadELow,sigmadEUp);
+		}
+	}
+
+  // 读取 DEEFIT 拟合的 14 参数
+	Double_t** DEEFITPars = fDeefit->DEEFITLoadPars(pathDEEFITPars.c_str());
+
+	fDeefitPartile.Z = 2;
+	fDeefitPartile.A = 4;
+
+  //__________________________________________________________
+	//                    提取实验数据中 alpha 的能量分辨
+	//                 ----------------------------------
+	//
+	Short_t numtel;  // number of csi crystals
+  Float_t  desipgf; // dE (MeV)
+  Short_t fastpg;  // ECsI (ADC Chs)
+  TFile* myfile = TFile::Open(pathDEEFITData.c_str());
+  TTree* mytree = (TTree*) myfile->Get("h1");
+	mytree->SetBranchAddress("numtel", &numtel);   // number of CsI
+	mytree->SetBranchAddress("desipgf",&desipgf);  // dESi
+	mytree->SetBranchAddress("fastpg", &fastpg);   // ECsI
+
+	Long64_t nentries = mytree->GetEntries();
+	cout<<"nentries = "<<nentries<<endl;
+
+	for (Long64_t jentry=0; jentry<nentries; jentry++) {
+		//if (jentry>10000) continue;
+		mytree->GetEntry(jentry);
+		timeper.PrintPercentageAndRemainingTime(jentry, nentries);
+
+		charge = fDeefit->DEEFITGetCharge(DEEFITPars[numtel], desipgf, fastpg, zeta); // Int_t charge
+    mass   = fDeefit->DEEFITGetMass(DEEFITPars[numtel], charge, desipgf, fastpg, imass); // Double_t mass
+
+		if (charge==2 && imass==4) {
+			if (fastpg>ECh1 && fastpg<ECh2) h_PID_alpha[numtel][0]->Fill(mass);
+			if (fastpg>ECh2 && fastpg<ECh3) h_PID_alpha[numtel][1]->Fill(mass);
+			if (fastpg>ECh3 && fastpg<ECh4) h_PID_alpha[numtel][2]->Fill(mass);
+		}
+	}
+	// 画出每块晶体的 alpha 质量分布情况
+	TCanvas* c_dist_begin = new TCanvas("c_dist_begin","c_dist_begin",800,600);
+	TCanvas* c_dist_end = new TCanvas("c_dist_end","c_dist_end",800,600);
+	c_dist_begin->Close();
+	c_dist_end->Close();
+	TCanvas* c_massdistr[NUM_SSD*NUM_CSI];
+	for (Int_t i=0; i<NUM_SSD*NUM_CSI; i++) {
+		Int_t numtel = i/NUM_CSI;
+		Int_t numcsi = i%NUM_CSI;
+		c_massdistr[i] = new TCanvas(Form("SSD%d_CsI%d",numtel+1,numcsi),Form("SSD%d_CsI%d",numtel+1,numcsi),1200,600);
+	}
+
+  c_dist_begin->Print(pathPDFMassDistrBegin.c_str());
+  // 拟合实验数据中的 alpha 质量数分布, 得到质量数分布宽度
+	for (Int_t numtel=0; numtel<NUM_SSD*NUM_CSI; numtel++) {
+		Int_t ssdnum = numtel/NUM_CSI;
+		Int_t csinum = numtel%NUM_CSI;
+
+	  TF1* fit_range1 = new TF1("fit_range1", "gaus", 3., 5.);
+		TF1* fit_range2 = new TF1("fit_range2", "gaus", 3., 5.);
+		TF1* fit_range3 = new TF1("fit_range3", "gaus", 3., 5.);
+    h_PID_alpha[numtel][0]->Fit("fit_range1", "Q0");
+    h_PID_alpha[numtel][1]->Fit("fit_range2", "Q0");
+		h_PID_alpha[numtel][2]->Fit("fit_range3", "Q0");
+		sigma_mass[numtel][0] = fit_range1->GetParameter(2);
+		sigma_mass[numtel][1] = fit_range2->GetParameter(2);
+		sigma_mass[numtel][2] = fit_range3->GetParameter(2);
+
+		TString str1 = ((TString) h_PID_alpha[numtel][0]->GetTitle()).Append(Form("_%04d-%04d",ECh1,ECh2));
+		TString str2 = ((TString) h_PID_alpha[numtel][1]->GetTitle()).Append(Form("_%04d-%04d",ECh2,ECh3));
+		TString str3 = ((TString) h_PID_alpha[numtel][2]->GetTitle()).Append(Form("_%04d-%04d",ECh3,ECh4));
+		h_PID_alpha[numtel][0]->SetTitle(str1.Data());
+		h_PID_alpha[numtel][1]->SetTitle(str2.Data());
+		h_PID_alpha[numtel][2]->SetTitle(str3.Data());
+
+		c_massdistr[numtel]->Divide(3,1);
+		c_massdistr[numtel]->cd(1);
+		h_PID_alpha[numtel][0]->Draw();
+		c_massdistr[numtel]->cd(2);
+		h_PID_alpha[numtel][1]->Draw();
+		c_massdistr[numtel]->cd(3);
+		h_PID_alpha[numtel][2]->Draw();
+		c_massdistr[numtel]->Print(pathPDFMassDistr.c_str());
+
+		FileOut<<ssdnum<<setw(20)<<csinum<<setw(20)<<sigma_mass[numtel][0]<<setw(20)
+		       <<sigma_mass[numtel][1]<<setw(20)<<sigma_mass[numtel][2]<<endl;
+	}
+	c_dist_end->Print(pathPDFMassDistrEnd.c_str());
+
+
+  //------------------------------------------------------------------
+	//                      Monte Carlo 模拟
+	//                   ---------------------
+	// 模拟 alpha 同位素带的宽度
+	for (Int_t numtel=0; numtel<NUM_SSD*NUM_CSI; numtel++) {
+		for (Int_t iBinE=0; iBinE<Nbin_sigmaE; iBinE++) {
+			for (Int_t iBindE=0; iBindE<Nbin_sigmadE; iBindE++) {
+				Double_t sigmaE  = sigmaELow  + iBinE *sigmaEStep;
+				Double_t sigmadE = sigmadELow + iBindE*sigmadEStep;
+
+				for (Int_t Ebin=ECh1; Ebin<ECh4; Ebin++) {
+					fDeefitPartile.E = Ebin;  // 给定 ECh_CsI
+					Double_t dE = fDeefit->DEEFITFunc14(fDeefitPartile, DEEFITPars[numtel]); // 使用 DEEFIT 拟合结果计算 dE
+					for (Int_t rbin=0; rbin<NPoints; rbin++) {    // 对于 ECh_CsI 的每个bin, 产生 100 个随机数
+            EX_gaus = gRandom->Gaus(Ebin, Ebin*sigmaE); // 对 ECh 加入 gaus 弥散
+						EY_gaus = gRandom->Gaus(dE, dE*sigmadE);    // 对 dE 加入 gaus 弥散
+						charge = fDeefit->DEEFITGetCharge(DEEFITPars[numtel], EY_gaus, EX_gaus, zeta); // Int_t charge
+				    mass   = fDeefit->DEEFITGetMass(DEEFITPars[numtel], charge, EY_gaus, EX_gaus, imass); // Double_t mass
+						if (Ebin>ECh1 && Ebin<ECh2) h_PID_MC[numtel][0][iBinE*Nbin_sigmadE+iBindE]->Fill(mass);
+						if (Ebin>ECh2 && Ebin<ECh3) h_PID_MC[numtel][1][iBinE*Nbin_sigmadE+iBindE]->Fill(mass);
+						if (Ebin>ECh3 && Ebin<ECh4) h_PID_MC[numtel][2][iBinE*Nbin_sigmadE+iBindE]->Fill(mass);
+					}
+				}
+			}
+		}
+	}
+
+	// 计算模拟 alpha 质量数分布中的 sigma
+	for (Int_t numtel=0; numtel<NUM_SSD*NUM_CSI; numtel++) {
+		for (Int_t irange=0; irange<3; irange++) {
+			for (Int_t iBinE=0; iBinE<Nbin_sigmaE; iBinE++) {
+				for (Int_t iBindE=0; iBindE<Nbin_sigmadE; iBindE++) {
+					TF1* fit = new TF1("fit", "gaus", 0., 10.);
+					 h_PID_MC[numtel][irange][iBinE*Nbin_sigmadE+iBindE]->Fit("fit", "Q0");
+					 sigma_mass_MC[numtel][irange][iBinE*Nbin_sigmadE+iBindE] = fit->GetParameter(2);
+					 h_MC_sigma[numtel][irange]->SetBinContent(iBinE+1,iBindE+1,sigma_mass_MC[numtel][irange][iBinE*Nbin_sigmadE+iBindE]);
+				}
+			}
+			h_MC_sigma[numtel][irange]->GetXaxis()->SetNdivisions(505);
+			h_MC_sigma[numtel][irange]->GetYaxis()->SetNdivisions(505);
+			rootfile->WriteTObject(h_MC_sigma[numtel][irange],h_MC_sigma[numtel][irange]->GetName());
+		}
+	}
+
+	// 模拟得到的二维质量数宽度分布的等高线
+	TCanvas* c_cont_begin = new TCanvas("c_cont_begin","c_cont_begin",800,600);
+	TCanvas* c_cont_end = new TCanvas("c_cont_end","c_cont_end",800,600);
+	c_cont_begin->Close();
+	c_cont_end->Close();
+	TCanvas* c_cont[NUM_SSD*NUM_CSI];
+	for (Int_t numtel=0; numtel<NUM_SSD*NUM_CSI; numtel++) {
+		for (Int_t irange=0; irange<3; irange++) {
+			Double_t sigma_cont[1] = {sigma_mass[numtel][irange]};
+			h_MC_sigma[numtel][irange]->SetContour(1, sigma_cont);
+			h_MC_sigma[numtel][irange]->SetLineColor(contour_color[irange]);
+		  h_MC_sigma[numtel][irange]->SetLineWidth(4);
+			h_MC_sigma[numtel][irange]->SetLineStyle(1);
+		}
+		Int_t ssdnum = numtel/NUM_CSI;
+		Int_t csinum = numtel%NUM_CSI;
+		c_cont[numtel] = new TCanvas(Form("SSD%d_CsI%d",ssdnum+1,csinum),Form("SSD%d_CsI%d",ssdnum+1,csinum),800,600);
+	}
+
+	// 画图
+  c_cont_begin->Print(pathPDFContBegin.c_str());
+	for (Int_t numtel=0; numtel<NUM_SSD*NUM_CSI; numtel++) {
+		c_cont[numtel+1]->cd();
+    h_MC_sigma[numtel][0]->Draw("CONT3");
+		h_MC_sigma[numtel][1]->Draw("CONT3 SAME");
+		h_MC_sigma[numtel][2]->Draw("CONT3 SAME");
+		c_cont[numtel+1]->Print(pathPDFCont.c_str());
+	}
+	c_cont_end->Print(pathPDFContEnd.c_str());
 }
