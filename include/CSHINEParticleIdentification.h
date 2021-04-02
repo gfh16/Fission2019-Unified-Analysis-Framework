@@ -128,9 +128,9 @@ public:
   CSHINECheckDEEPlot(Int_t fFirstRun, Int_t fLastRun);
   ~CSHINECheckDEEPlot();
 
-  void    CheckL2L3EnergyCorrelation();
-  void    CheckL1L2EnergyCorrelation();
-  void    CheckL1L2EnergyCorrelation_Uncalibrated();
+  void    CheckL2L3DEE();
+  void    CheckL1L2DEE();
+  void    CheckL1L2DEE_Uncalibrated();
 
   void    CheckL2L3PIDResults();
   void    CheckCsIAlphaEnergyResolution();

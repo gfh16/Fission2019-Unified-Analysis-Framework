@@ -597,7 +597,7 @@ CSHINECheckDEEPlot::~CSHINECheckDEEPlot()
 //_________________________________________________
 // 产生 DEEFIT 数据前, 先检查 L2L3 的能量关联是否正常
 // 根据检查结果, 决定采用 EL2F-ECsI 的方式
-void CSHINECheckDEEPlot::CheckL2L3EnergyCorrelation()
+void CSHINECheckDEEPlot::CheckL2L3DEE()
 {
   Double_t EL2_Range[4] = {250.,250.,140.,70.};
 	Int_t EL2_NBins[4] = {2500,2500,1400,700};
@@ -612,11 +612,13 @@ void CSHINECheckDEEPlot::CheckL2L3EnergyCorrelation()
 	std::string pathPDFOut("figures/figure_PID/L2FL3_DEE.pdf");
 	std::string pathPDFOutBegin("figures/figure_PID/L2FL3_DEE.pdf[");
 	std::string pathPDFOutEnd("figures/figure_PID/L2FL3_DEE.pdf]");
+	std::string pathROOTOut(Form("%sL2L3DEE.root", PATHROOTFILESFOLDER));
+	TFile* rootfile = new TFile(pathROOTOut.c_str(),"RECREATE");
 
 	TH2D* hist_L2L3[NUM_SSD][NUM_CSI];
 	for (Int_t i=0; i<NUM_SSD; i++) {
 		for (Int_t j=0; j<NUM_CSI; j++) {
-		  hist_L2L3[i][j] = new TH2D(Form("SSD%d_CsI%d", i+1, j),Form("SSD%d_CsI%d", i+1, j),4000,0,4000,EL2_NBins[i],0,EL2_Range[i]);
+		  hist_L2L3[i][j] = new TH2D(Form("DEEL2L3_SSD%d_CsI%d", i+1, j),Form("DEEL2L3_SSD%d_CsI%d", i+1, j),4000,0,4000,EL2_NBins[i],0,EL2_Range[i]);
 		}
 	}
 
@@ -683,15 +685,19 @@ void CSHINECheckDEEPlot::CheckL2L3EnergyCorrelation()
 			cans_L2FL3->Print(pathPDFOut.c_str());
 			gPad->Modified();
 			gPad->Update();
+
+			// 写进 root file
+			rootfile->WriteTObject(hist_L2L3[i][j], hist_L2L3[i][j]->GetName());
 		}
 	}
 	cans_end->Print(pathPDFOutEnd.c_str());
+	rootfile->Close();
 }
 
 
 //______________________________________________________________________________
 // 产生 DEEFIT 数据前, 先检查 L1L2 的能量关联是否正常
-void CSHINECheckDEEPlot::CheckL1L2EnergyCorrelation()
+void CSHINECheckDEEPlot::CheckL1L2DEE()
 {
 	Double_t EL1_Range[4] = {200.,200.,100.,70.};
 	Double_t EL2_Range[4] = {250.,200.,140.,70.};
@@ -823,7 +829,7 @@ void CSHINECheckDEEPlot::CheckL1L2EnergyCorrelation()
 
 //______________________________________________________________________________
 // SSD3, SSD4 前两层硅的 DEE 分辨很差, 现在使用刻度前的数据
-void CSHINECheckDEEPlot::CheckL1L2EnergyCorrelation_Uncalibrated()
+void CSHINECheckDEEPlot::CheckL1L2DEE_Uncalibrated()
 {
 	Double_t EL1_Range[4] = {4000.,4000.,4000.,4000.};
 	Double_t EL2_Range[4] = {4000.,4000.,4000.,4000.};
@@ -1144,8 +1150,8 @@ void CSHINECheckDEEPlot::CheckCsIAlphaEnergyResolution()
 	Float_t EY_gaus;
 
   Int_t NPoints = 100; // 每个 X 点产生高斯弥散的数目
-	Double_t sigmaELow = 0.01, sigmaEUp = 0.04, sigmaEStep = 0.003;
-	Double_t sigmadELow = 0.006, sigmadEUp = 0.016, sigmadEStep = 0.001;
+	Double_t sigmaELow = 0.01, sigmaEUp = 0.06, sigmaEStep = 0.002;
+	Double_t sigmadELow = 0.005, sigmadEUp = 0.025, sigmadEStep = 0.002;
 	Int_t Nbin_sigmaE  = Int_t ((sigmaEUp-sigmaELow)/sigmaEStep);
 	Int_t Nbin_sigmadE = Int_t ((sigmadEUp-sigmadELow)/sigmadEStep);
 
@@ -1306,7 +1312,7 @@ void CSHINECheckDEEPlot::CheckCsIAlphaEnergyResolution()
 	for (Int_t numtel=0; numtel<NUM_SSD*NUM_CSI; numtel++) {
 		for (Int_t irange=0; irange<3; irange++) {
 			for (Int_t iBinE=0; iBinE<Nbin_sigmaE; iBinE++) {
-				for (Int_t iBindE=0; iBindE<Nbin_sigmadE; iBindE++) {
+				for (Int_t iBindE=0; iBindE<Nbin_sigmadE; iBindE+=100) {
 					TF1* fit = new TF1("fit", "gaus", 0., 10.);
 					 h_PID_MC[numtel][irange][iBinE*Nbin_sigmadE+iBindE]->Fit("fit", "Q0");
 					 sigma_mass_MC[numtel][irange][iBinE*Nbin_sigmadE+iBindE] = fit->GetParameter(2);

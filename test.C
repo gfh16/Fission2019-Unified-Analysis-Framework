@@ -2,6 +2,7 @@
 #include "include/CSHINEEvent.h"
 #include "include/CSHINEParticleIdentification.h"
 #include "include/TimeAndPercentage.h"
+#include "include/CSHINECsIEnergyCali.h"
 
 using namespace std;
 
@@ -42,17 +43,24 @@ void test()
 
 //__________________________________________________
 //  检查 DEE plot
-   CSHINECheckDEEPlot deefitcheck(150, 400);
-//   deefitcheck.CheckL2L3EnergyCorrelation();
-//   deefitcheck.CheckL1L2EnergyCorrelation();
-//   deefitcheck.CheckL1L2EnergyCorrelation_Uncalibrated();
-//     deefitcheck.CheckL2L3PIDResults();
-     deefitcheck.CheckCsIAlphaEnergyResolution();
+   CSHINECheckDEEPlot deefitcheck(150, 160);
+//   deefitcheck.CheckL2L3DEE();
+//   deefitcheck.CheckL1L2DEE();
+//   deefitcheck.CheckL1L2DEE_Uncalibrate();
+//   deefitcheck.CheckL2L3PIDResults();
+   deefitcheck.CheckCsIAlphaEnergyResolution();
 
 //__________________________________________________
 //  使用 DEEFIT 方法进行粒子鉴别
-    CSHINEDEEFITPID deefit(150, 160);
+//    CSHINEDEEFITPID deefit(150, 160);
 //   deefit.DEEFITGenerateData();
 //   deefit.DEEFITRunCode();
+
+
+//__________________________________________________________________
+// CsI 刻度
+//  CSHINECsIEnergyCali csicali(150,400);
+//  csicali.DoGraphicalCut();
+//  csicali.GetProjectionCsIEnergPoints();
 
 }
