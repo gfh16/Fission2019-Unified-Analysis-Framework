@@ -1144,8 +1144,8 @@ void CSHINECheckDEEPlot::CheckCsIAlphaEnergyResolution()
 	Float_t EY_gaus;
 
   Int_t NPoints = 100; // 每个 X 点产生高斯弥散的数目
-	Double_t sigmaELow = 0.01, sigmaEUp = 0.04, sigmaEStep = 0.003;
-	Double_t sigmadELow = 0.006, sigmadEUp = 0.016, sigmadEStep = 0.001;
+	Double_t sigmaELow = 0.01, sigmaEUp = 0.06, sigmaEStep = 0.002;
+	Double_t sigmadELow = 0.006, sigmadEUp = 0.026, sigmadEStep = 0.001;
 	Int_t Nbin_sigmaE  = Int_t ((sigmaEUp-sigmaELow)/sigmaEStep);
 	Int_t Nbin_sigmadE = Int_t ((sigmadEUp-sigmadELow)/sigmadEStep);
 
@@ -1163,7 +1163,7 @@ void CSHINECheckDEEPlot::CheckCsIAlphaEnergyResolution()
 	std::string pathPDFContBegin(Form("%sfigure_PID/AlphaEnergyResolutionCont%04d-%04d.pdf[",PATHFIGURESFOLDER,fFirstRun,fLastRun));
 	std::string pathPDFContEnd(Form("%sfigure_PID/AlphaEnergyResolutionCont%04d-%04d.pdf]",PATHFIGURESFOLDER,fFirstRun,fLastRun));
 	std::string pathPIDAlphaMassResolution(Form("%sdata_PID/PID_Alpha_MassResolution_Range.dat",PATHDATAFOLDER));
-  std::string pathROOTOutput("/home/sea/Fission2019_Data/CsIAlphaMassResolution.root");
+  std::string pathROOTOutput("CsIAlphaMassResolution.root");
 
   TFile* rootfile = new TFile(pathROOTOutput.c_str(),"RECREATE");
 
@@ -1285,7 +1285,7 @@ void CSHINECheckDEEPlot::CheckCsIAlphaEnergyResolution()
 				Double_t sigmaE  = sigmaELow  + iBinE *sigmaEStep;
 				Double_t sigmadE = sigmadELow + iBindE*sigmadEStep;
 
-				for (Int_t Ebin=ECh1; Ebin<ECh4; Ebin++) {
+				for (Int_t Ebin=ECh1; Ebin<ECh4; Ebin+=10) {
 					fDeefitPartile.E = Ebin;  // 给定 ECh_CsI
 					Double_t dE = fDeefit->DEEFITFunc14(fDeefitPartile, DEEFITPars[numtel]); // 使用 DEEFIT 拟合结果计算 dE
 					for (Int_t rbin=0; rbin<NPoints; rbin++) {    // 对于 ECh_CsI 的每个bin, 产生 100 个随机数
