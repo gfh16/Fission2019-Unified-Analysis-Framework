@@ -1022,11 +1022,11 @@ void CSHINECheckDEEPlot::CheckL2L3PIDResults()
 		h_PID[numtel]       = new TH1D(Form("PID_SSD%d_CsI%d",ssdnum+1,csinum),Form("PID_SSD%d_CsI%d",ssdnum+1,csinum),5000,0,50);
 		h_PID_alpha[numtel] = new TH1D(Form("#{PID_{#alpha}}_SSD%d_CsI%d",ssdnum+1,csinum),Form("#{PID_{#alpha}}_SSD%d_CsI%d",ssdnum+1,csinum), 1000, 10, 20);
 		h_DEE[numtel]       = new TH2D(Form("DEE_SSD%d_CsI%d",ssdnum+1,csinum),Form("DEE_SSD%d_CsI%d",ssdnum+1,csinum), 4000,0,4000,EL2_NBins[ssdnum],0,EL2_Range[ssdnum]);
-		h_DEE_PIDCut[numtel]   = new TH2D(Form("PIDDEE_SSD%d_CsI%d",ssdnum+1,csinum),Form("PIDDEE_SSD%d_CsI%d",ssdnum+1,csinum), 4000,0,4000,EL2_NBins[ssdnum],0,EL2_Range[ssdnum]);
+		h_DEE_PIDCut[numtel]= new TH2D(Form("PIDDEE_SSD%d_CsI%d",ssdnum+1,csinum),Form("PIDDEE_SSD%d_CsI%d",ssdnum+1,csinum), 4000,0,4000,EL2_NBins[ssdnum],0,EL2_Range[ssdnum]);
 	}
 
   // 读取 DEEFIT 拟合的 14 参数
-	Double_t** DEEFITPars = fDeefit->DEEFITLoadPars(pathDEEFITPars.c_str());
+  Double_t** DEEFITPars = fDeefit->DEEFITLoadPars(pathDEEFITPars.c_str());
 
 	Short_t numtel;  // number of csi crystals
   Float_t  desipgf; // dE (MeV)
@@ -1136,9 +1136,9 @@ void CSHINECheckDEEPlot::CheckCsIAlphaEnergyResolution()
 	Int_t EL2_NBins[4] = {2500,2500,1400,700};
 
 	Int_t ECh1 = 300;
-	Int_t ECh2 = 1100;
-	Int_t ECh3 = 1900;
-	Int_t ECh4 = 2700;
+	Int_t ECh2 = 1000;
+	Int_t ECh3 = 1700;
+	Int_t ECh4 = 2400;
 
 	Int_t  charge  = -99;  // 电荷数理论值
 	Double_t mass  = -99.; // 质量数计算值
@@ -1151,11 +1151,7 @@ void CSHINECheckDEEPlot::CheckCsIAlphaEnergyResolution()
 
   Int_t NPoints = 100; // 每个 X 点产生高斯弥散的数目
 	Double_t sigmaELow = 0.01, sigmaEUp = 0.06, sigmaEStep = 0.002;
-<<<<<<< HEAD
-	Double_t sigmadELow = 0.005, sigmadEUp = 0.025, sigmadEStep = 0.002;
-=======
-	Double_t sigmadELow = 0.006, sigmadEUp = 0.026, sigmadEStep = 0.001;
->>>>>>> d594ab3de3ea89f55984a20c076937bf2daa8f4a
+	Double_t sigmadELow = 0.005, sigmadEUp = 0.025, sigmadEStep = 0.001;
 	Int_t Nbin_sigmaE  = Int_t ((sigmaEUp-sigmaELow)/sigmaEStep);
 	Int_t Nbin_sigmadE = Int_t ((sigmadEUp-sigmadELow)/sigmadEStep);
 
@@ -1316,7 +1312,7 @@ void CSHINECheckDEEPlot::CheckCsIAlphaEnergyResolution()
 	for (Int_t numtel=0; numtel<NUM_SSD*NUM_CSI; numtel++) {
 		for (Int_t irange=0; irange<3; irange++) {
 			for (Int_t iBinE=0; iBinE<Nbin_sigmaE; iBinE++) {
-				for (Int_t iBindE=0; iBindE<Nbin_sigmadE; iBindE+=100) {
+				for (Int_t iBindE=0; iBindE<Nbin_sigmadE; iBindE++) {
 					TF1* fit = new TF1("fit", "gaus", 0., 10.);
 					 h_PID_MC[numtel][irange][iBinE*Nbin_sigmadE+iBindE]->Fit("fit", "Q0");
 					 sigma_mass_MC[numtel][irange][iBinE*Nbin_sigmadE+iBindE] = fit->GetParameter(2);

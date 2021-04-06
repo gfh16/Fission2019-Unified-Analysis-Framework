@@ -43,24 +43,25 @@ void test()
 
 //__________________________________________________
 //  检查 DEE plot
-   CSHINECheckDEEPlot deefitcheck(150, 160);
+   CSHINECheckDEEPlot deefitcheck(150, 400);
 //   deefitcheck.CheckL2L3DEE();
 //   deefitcheck.CheckL1L2DEE();
 //   deefitcheck.CheckL1L2DEE_Uncalibrate();
 //   deefitcheck.CheckL2L3PIDResults();
-   deefitcheck.CheckCsIAlphaEnergyResolution();
+//   deefitcheck.CheckCsIAlphaEnergyResolution();
 
 //__________________________________________________
 //  使用 DEEFIT 方法进行粒子鉴别
-//    CSHINEDEEFITPID deefit(150, 160);
+    CSHINEDEEFITPID deefit(150, 160);
 //   deefit.DEEFITGenerateData();
 //   deefit.DEEFITRunCode();
 
 
 //__________________________________________________________________
 // CsI 刻度
-//  CSHINECsIEnergyCali csicali(150,400);
+  CSHINECsIEnergyCali csicali(150,400);
 //  csicali.DoGraphicalCut();
 //  csicali.GetProjectionCsIEnergPoints();
+  csicali.GetDEEFITCsIEnergyPoints();
 
 }

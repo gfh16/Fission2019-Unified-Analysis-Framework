@@ -125,7 +125,7 @@ private:
   DEEFITParticle             fDeefitPartile;
 
 public:
-  CSHINECheckDEEPlot(Int_t fFirstRun, Int_t fLastRun);
+  CSHINECheckDEEPlot(Int_t firstrun, Int_t lastrun);
   ~CSHINECheckDEEPlot();
 
   void    CheckL2L3DEE();

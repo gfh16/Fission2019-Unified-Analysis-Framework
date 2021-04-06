@@ -1,4 +1,6 @@
 {
+  gSystem->Exec("date");
+
   gROOT->ProcessLine(".L src/Nuclear_masses.C");
   gROOT->ProcessLine(".L src/EnergyLossModule.C");
 
@@ -15,7 +17,6 @@
   gROOT->ProcessLine(".L src/CSHINESiEnergyCali.C");
   gROOT->ProcessLine(".L src/CSHINEAlphaCali.C");
   gROOT->ProcessLine(".L src/CSHINEPulserCali.C");
-  gROOT->ProcessLine(".L src/CSHINECsIEnergyCali.C");
   gROOT->ProcessLine(".L src/CSHINEParticleIdentification.C");
   gROOT->ProcessLine(".L src/CSHINECsIEnergyCali.C");
   gROOT->ProcessLine(".L src/CSHINEDataAnalysisFramework.C");

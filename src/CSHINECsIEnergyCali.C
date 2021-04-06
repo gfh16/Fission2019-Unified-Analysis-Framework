@@ -3,7 +3,11 @@ using namespace std;
 
 //______________________________________________________________________________
 CSHINECsIEnergyCali::CSHINECsIEnergyCali(Int_t firstrun, Int_t lastrun)
-{}
+{
+	fFirstRun = firstrun;
+  fLastRun  = lastrun;
+	fDeefit   = new CSHINEDEEFITPID(fFirstRun, fLastRun);
+}
 
 //_________________________________________
 CSHINECsIEnergyCali::~CSHINECsIEnergyCali()
@@ -29,10 +33,85 @@ CSHINECsIEnergyCali::~CSHINECsIEnergyCali()
 //
 void CSHINECsIEnergyCali::GetDEEFITCsIEnergyPoints()
 {
-	
+	Int_t NPoints = 30; // 每种粒子提取 NPoints 个点
+	Double_t ELoss = -999.;
+	Double_t ECsI_Calc;
+
+	std::string pathDEEFITPars(Form("%sDEEFITData/Fitparam_table.out",PATHROOTFILESFOLDER));
+	std::string pathECsIRange(Form("%sdata_CsIEnergyCali/ECsIRange.dat",PATHDATAFOLDER));
+
+	ifstream FileIn(pathECsIRange.c_str());
+
+	// 读取 DEEFIT 拟合的 14 参数
+ 	Double_t** DEEFITPars = fDeefit->DEEFITLoadPars(pathDEEFITPars.c_str());
+
+	// 定义变量存储 ECsI_Ch, ECsI_MeV
+	std::vector<Double_t> ECsI_Ch[NUM_SSD*NUM_CSI][10][20]; //[numtel][Z][A]
+	std::vector<Double_t> ECsI_MeV[NUM_SSD*NUM_CSI][10][20]; //[numtel][Z][A]
+
+	// 读取ECsIRange.dat 文件
+	std::vector<Int_t> Charge[NUM_SSD*NUM_CSI];
+	std::vector<Int_t> Mass[NUM_SSD*NUM_CSI];
+	std::vector<Double_t> RangeMin[NUM_SSD*NUM_CSI];
+	std::vector<Double_t> RangeMax[NUM_SSD*NUM_CSI];
+	if (!FileIn.is_open()) {
+		printf("Error: file %s not found\n",pathECsIRange.c_str());
+    return NULL;
+	}
+	while (FileIn.good()) {
+		// 按行读取数据
+    std::string LineRead;
+    std::getline(FileIn, LineRead);
+    LineRead.assign(LineRead.substr(0, LineRead.find('*')));
+    if(LineRead.empty()) continue;
+    if(LineRead.find_first_not_of(' ')==std::string::npos) continue;
+    std::istringstream LineStream(LineRead);
+
+		Int_t numtel;
+		Int_t charge, mass;
+		Double_t rangemin, rangemax;
+		LineStream>>numtel>>charge>>mass>>rangemin>>rangemax;
+
+	  Charge[numtel].push_back(charge);
+		Mass[numtel].push_back(mass);
+		RangeMin[numtel].push_back(rangemin);
+		RangeMax[numtel].push_back(rangemax);
+	}
+
+
+  // 对每一块 CsI、每一种粒子, 计算能量点 (ECsI, EMeV)
+	for (Int_t numtel=0; numtel<NUM_SSD*NUM_CSI; numtel++) {
+		for (Int_t ip=0; ip<Charge[numtel].size(); ip++) {
+			if (Charge[numtel][ip]!=1 || Mass[numtel][ip]!=1) continue;
+			Int_t ssdindex = numtel/NUM_CSI;
+			Int_t csiindex = numtel%NUM_CSI;
+			if (ssdindex==3 && (csiindex==4 || csiindex==5)) continue; // SSD4_CsI[4],CsI[5] 不能用
+			Int_t ChStep = (Int_t) (RangeMax[numtel][ip]-RangeMin[numtel][ip])/NPoints;
+      fDEEFITParticle.Z = Charge[numtel][ip];
+			fDEEFITParticle.A = Mass[numtel][ip];
+
+      for (Double_t ech=RangeMin[numtel][ip]; ech<RangeMax[numtel][ip]; ech+=ChStep) {
+				fDEEFITParticle.E = ech;
+        ELoss = fDeefit->DEEFITFunc14(fDEEFITParticle, DEEFITPars[numtel]);
+        ECsI_Calc = EnergyDepositedInCsI(Charge[numtel][ip],Mass[numtel][ip],ELoss,SiThickness[ssdindex],CsIMylarThickness);
+
+		    ECsI_Ch[numtel][Charge[numtel][ip]][Mass[numtel][ip]].push_back(ech);
+				ECsI_MeV[numtel][Charge[numtel][ip]][Mass[numtel][ip]].push_back(ECsI_Calc);
+
+				cout<<numtel<<setw(15)<<Charge[numtel][ip]<<setw(15)<<Mass[numtel][ip]<<setw(15)<<ELoss<<setw(20)<<ECsI_Calc<<endl;
+			}
+		}
+	}
+
 }
-
-
+//___________________________________________________________
+Double_t CSHINECsIEnergyCali::EnergyDepositedInCsI(Int_t Z, Int_t A, Double_t ELoss,
+	Double_t SiThickness, Double_t CsIMylarThickness)
+{
+	Double_t EResidual = fLISEModule.GetResidualEnergy(Z,A,ELoss,"Si",SiThickness,1/*LiseModel*/);
+	Double_t EResidualInCsI = EResidual - fLISEModule.GetEnergyLoss(Z,A,EResidual,"Mylar",CsIMylarThickness,1);
+  return EResidualInCsI;
+}
 
 //______________________________________________________________________________
 //                          2. 投影取点
@@ -189,16 +268,9 @@ void CSHINECsIEnergyCali::GetProjectionCsIEnergPoints()
 
   Int_t BinStep = 5;
 	Int_t ProjBinWidth = 2;
-	Int_t NParticles = 15;
-	Int_t particle[15][2] = { {1,1},{1,2},{1,3},{2,3},{2,4},{2,6},{3,6},{3,7},
-	                          {3,8},{3,9},{4,7},{4,9},{4,10},{5,10},{5,11}
-												  };
 
   Double_t EMeVErrorCut = 1.;
 	Double_t CsICh_Err = 0.5; // 手动给 CsICh 添加 0.5 道的误差
-
-	Double_t SiThickness[4] = {1010, 1008, 526, 306}; // 单位: 微米
-	Double_t CsIMylarThickness = 2.0;  // 单位: 微米
 
 	std::vector<Double_t> CsICh;
 	std::vector<Double_t> ESi_MeV;
@@ -206,10 +278,10 @@ void CSHINECsIEnergyCali::GetProjectionCsIEnergPoints()
   TCanvas* cans = new TCanvas("cans","cans",800,600);
 	for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
 		for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
-			for (Int_t np=0; np<NParticles; np++) {
+			for (Int_t np=0; np<fNParticles; np++) {
 				TH2D* DEEL2L3Hist = (TH2D*) FileInRoot->Get(Form("DEEL2L3_SSD%d_CsI%d",ssdindex+1,csiindex));
 				if (DEEL2L3Hist == 0) continue;
-				const char* CutName = Form("DEEL2L3_SSD%d_CsI%d_Z%02d_A%02d",ssdindex+1,csiindex,particle[np][0],particle[np][1]);
+				const char* CutName = Form("DEEL2L3_SSD%d_CsI%d_Z%02d_A%02d",ssdindex+1,csiindex,fParticle[np][0],fParticle[np][1]);
 				TCutG* ParticleCut=(TCutG*)FileInCuts->Get(CutName);
 	      if(ParticleCut==0) continue;
 
@@ -219,7 +291,7 @@ void CSHINECsIEnergyCali::GetProjectionCsIEnergPoints()
 				// 对 DEE plot 向 y 轴作投影
 				for (Int_t ibin=MinBin; ibin<MaxBin; ibin+=BinStep) {
           TH1D* ProjectionHist = new TH1D(Form("ProjectionHist%d",ibin), "", 1000,0,100);
-					const char* ProjectionCut = Form("[DEEL2L3_SSD%d_CsI%d_Z%02d_A%02d]",ssdindex+1,csiindex,particle[np][0],particle[np][1]);
+					const char* ProjectionCut = Form("[DEEL2L3_SSD%d_CsI%d_Z%02d_A%02d]",ssdindex+1,csiindex,fParticle[np][0],fParticle[np][1]);
 					// !!! 重点 !!!
 					DEEL2L3Hist->ProjectionY(Form("ProjectionHist%d",ibin),ibin,ibin+ProjBinWidth,ProjectionCut);
 					// 跳过统计较低的 bin
@@ -238,16 +310,16 @@ void CSHINECsIEnergyCali::GetProjectionCsIEnergPoints()
 					CsICh.push_back(csi_ech);
 					ESi_MeV.push_back(Ey);
 
-          Double_t EResidual = fLISEModule.GetResidualEnergy(particle[np][0],particle[np][1],ESi,"Si",SiThickness[ssdindex],1/*LiseModel*/);
-          Double_t EResidualOnCsI = EResidual - fLISEModule.GetEnergyLoss(particle[np][0],particle[np][1],EResidual,"Mylar",CsIMylarThickness,1);
-					Double_t CsIE = EResidualOnCsI;
-          Double_t EResidualMax = fLISEModule.GetResidualEnergy(particle[np][0],particle[np][1],ESi+ESi_RMS,"Si",SiThickness[ssdindex],1);
-          Double_t EResidualOnCsIMax = EResidualMax - fLISEModule.GetEnergyLoss(particle[np][0],particle[np][1],EResidualMax,"Mylar",CsIMylarThickness,1);
-          Double_t CsIE_Err = TMath::Abs(EResidualOnCsIMax - EResidualOnCsI);
+          Double_t EResidual = fLISEModule.GetResidualEnergy(fParticle[np][0],fParticle[np][1],ESi,"Si",SiThickness[ssdindex],1/*LiseModel*/);
+          Double_t EResidualInCsI = EResidual - fLISEModule.GetEnergyLoss(fParticle[np][0],fParticle[np][1],EResidual,"Mylar",CsIMylarThickness,1);
+					Double_t CsIE = EResidualInCsI;
+          Double_t EResidualMax = fLISEModule.GetResidualEnergy(fParticle[np][0],fParticle[np][1],ESi+ESi_RMS,"Si",SiThickness[ssdindex],1);
+          Double_t EResidualInCsIMax = EResidualMax - fLISEModule.GetEnergyLoss(fParticle[np][0],fParticle[np][1],EResidualMax,"Mylar",CsIMylarThickness,1);
+          Double_t CsIE_Err = TMath::Abs(EResidualInCsIMax - EResidualInCsI);
 
 					printf("Tel %02d CsI %02d: ESi=%.3f -> ECsI=%.3f\n", ssdindex+1, csiindex, ESi, CsIE);
 
-					FileOut<<ssdindex<<setw(15)<<csiindex<<setw(15)<<particle[np][0]<<setw(15)<<particle[np][1]<<setw(15)
+					FileOut<<ssdindex<<setw(15)<<csiindex<<setw(15)<<fParticle[np][0]<<setw(15)<<fParticle[np][1]<<setw(15)
 								 <<csi_ech<<setw(15)<<CsICh_Err<<setw(15)<<ESi<<setw(15)<<ESi_RMS<<endl;
 				}
 
