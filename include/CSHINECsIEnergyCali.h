@@ -5,6 +5,10 @@
 #include "../include/EnergyLossModule.h"
 #include "../include/shared.h"
 
+#include "TSpline.h"
+#include "TCutG.h"
+#include "TGraph2D.h"
+#include "TF2.h"
 
 //******************************************************************************
 class CSHINECsIEnergyCali
@@ -25,7 +29,23 @@ public:
 
  //_______________________________________
  // 对提取的数据点进行拟合
+  void       DrawAndFit_Z1();
+  void       DrawAndFit_ZOver2();
 
+ //____________________________________
+ // functios for fitting and drawing
+ // fit Z=1
+  Double_t   FitFunc_Hydrogen(Double_t* x, Double_t* par); // 自定义函数，NIMA 929,162(2019)
+  Double_t   DrawFunc_Hydrogen(Double_t* x, Double_t* par);
+  Double_t   Func4_Hydrogen(DEEFITParticle& p, Double_t* par);
+
+ // fit Z>=2
+  Double_t   FitFunc_HeavyIon(Double_t* x, Double_t* par);
+  Double_t   DrawFunc_HeavyIon(Double_t* x, Double_t* par);
+  Double_t   Func3_HeavyIon(DEEFITParticle& p, Double_t* par);
+
+ // check fit results
+  void       CheckCsIEnergyCaliResults();
 
 private:
   Int_t              fFirstRun;
@@ -33,6 +53,7 @@ private:
   EnergyLossModule   fLISEModule;
   CSHINEDEEFITPID   *fDeefit;
   DEEFITParticle     fDEEFITParticle;
+  TimeAndPercentage  timeper;
 
   Double_t           SiThickness[4]    = {1010, 1008, 526, 306}; // 单位: 微米
   Double_t           CsIMylarThickness = 2.0;  // 单位: 微米

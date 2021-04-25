@@ -18,8 +18,8 @@ ROOTLIBS   += -lMathMore
 # exec_QualityCheck.C
 # exec_SSDDataAnlysis.C
 
-TARGET     := exec_CsIAlphaMassReso
-PATHSRCS   := exec/exec_CsIAlphaMassReso.C
+TARGET     := CsIEnergyCali
+PATHSRCS   := CsIEnergyCali.C
 
 SOURCES    := $(shell find $(DIR_SRC) -name "*.C") $(PATHSRCS)
 INCLUDES   := $(shell find $(DIR_INC) -name "*.h")

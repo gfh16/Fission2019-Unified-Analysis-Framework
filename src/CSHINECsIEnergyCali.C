@@ -37,17 +37,20 @@ void CSHINECsIEnergyCali::GetDEEFITCsIEnergyPoints()
 	Double_t ELoss = -999.;
 	Double_t ECsI_Calc;
 
-	std::string pathDEEFITPars(Form("%sDEEFITData/Fitparam_table.out",PATHROOTFILESFOLDER));
+	std::string pathDEEFITPars_All(Form("%sDEEFITData/Fitparam_table_All.out",PATHROOTFILESFOLDER)); // 所有同位素拟合结果
+	std::string pathDEEFITPars_ZOver2(Form("%sDEEFITData/Fitparam_table_ZOver2.out",PATHROOTFILESFOLDER)); // Z>1 同位素拟合结果
 	std::string pathECsIRange(Form("%sdata_CsIEnergyCali/ECsIRange.dat",PATHDATAFOLDER));
+	std::string pathDataOutput(Form("%sdata_CsIEnergyCali/CsIEnergyPoints.dat",PATHDATAFOLDER));
+
+	ofstream FileOut(pathDataOutput.c_str());
+	FileOut<<"* numtel = ssdindex * 9 + csiindex"<<endl;
+	FileOut<<"* numtel"<<setw(7)<<"Z"<<setw(10)<<"A"<<setw(17)<<"ECsI_MeV"<<setw(15)<<"ECsI_Ch"<<endl;
 
 	ifstream FileIn(pathECsIRange.c_str());
 
 	// 读取 DEEFIT 拟合的 14 参数
- 	Double_t** DEEFITPars = fDeefit->DEEFITLoadPars(pathDEEFITPars.c_str());
-
-	// 定义变量存储 ECsI_Ch, ECsI_MeV
-	std::vector<Double_t> ECsI_Ch[NUM_SSD*NUM_CSI][10][20]; //[numtel][Z][A]
-	std::vector<Double_t> ECsI_MeV[NUM_SSD*NUM_CSI][10][20]; //[numtel][Z][A]
+ 	Double_t** DEEFITPars_All = fDeefit->DEEFITLoadPars(pathDEEFITPars_All.c_str());
+	Double_t** DEEFITPars_ZOver2 = fDeefit->DEEFITLoadPars(pathDEEFITPars_ZOver2.c_str());
 
 	// 读取ECsIRange.dat 文件
 	std::vector<Int_t> Charge[NUM_SSD*NUM_CSI];
@@ -56,7 +59,7 @@ void CSHINECsIEnergyCali::GetDEEFITCsIEnergyPoints()
 	std::vector<Double_t> RangeMax[NUM_SSD*NUM_CSI];
 	if (!FileIn.is_open()) {
 		printf("Error: file %s not found\n",pathECsIRange.c_str());
-    return NULL;
+    return;
 	}
 	while (FileIn.good()) {
 		// 按行读取数据
@@ -77,12 +80,12 @@ void CSHINECsIEnergyCali::GetDEEFITCsIEnergyPoints()
 		RangeMin[numtel].push_back(rangemin);
 		RangeMax[numtel].push_back(rangemax);
 	}
-
+	FileIn.close();
 
   // 对每一块 CsI、每一种粒子, 计算能量点 (ECsI, EMeV)
 	for (Int_t numtel=0; numtel<NUM_SSD*NUM_CSI; numtel++) {
 		for (Int_t ip=0; ip<Charge[numtel].size(); ip++) {
-			if (Charge[numtel][ip]!=1 || Mass[numtel][ip]!=1) continue;
+			//if (Charge[numtel][ip]!=1) continue;
 			Int_t ssdindex = numtel/NUM_CSI;
 			Int_t csiindex = numtel%NUM_CSI;
 			if (ssdindex==3 && (csiindex==4 || csiindex==5)) continue; // SSD4_CsI[4],CsI[5] 不能用
@@ -92,17 +95,17 @@ void CSHINECsIEnergyCali::GetDEEFITCsIEnergyPoints()
 
       for (Double_t ech=RangeMin[numtel][ip]; ech<RangeMax[numtel][ip]; ech+=ChStep) {
 				fDEEFITParticle.E = ech;
-        ELoss = fDeefit->DEEFITFunc14(fDEEFITParticle, DEEFITPars[numtel]);
+				if (ssdindex<3 && Charge[numtel][ip]>1) ELoss = fDeefit->DEEFITFunc14(fDEEFITParticle, DEEFITPars_ZOver2[numtel]);
+        else ELoss = fDeefit->DEEFITFunc14(fDEEFITParticle, DEEFITPars_All[numtel]);
+
         ECsI_Calc = EnergyDepositedInCsI(Charge[numtel][ip],Mass[numtel][ip],ELoss,SiThickness[ssdindex],CsIMylarThickness);
 
-		    ECsI_Ch[numtel][Charge[numtel][ip]][Mass[numtel][ip]].push_back(ech);
-				ECsI_MeV[numtel][Charge[numtel][ip]][Mass[numtel][ip]].push_back(ECsI_Calc);
-
-				cout<<numtel<<setw(15)<<Charge[numtel][ip]<<setw(15)<<Mass[numtel][ip]<<setw(15)<<ELoss<<setw(20)<<ECsI_Calc<<endl;
+        FileOut<<setw(5)<<numtel<<setw(10)<<Charge[numtel][ip]<<setw(10)<<Mass[numtel][ip]<<setw(15)<<ECsI_Calc<<setw(15)<<ech<<endl;
+				cout<<numtel<<setw(15)<<Charge[numtel][ip]<<setw(15)<<Mass[numtel][ip]<<setw(15)<<ELoss<<setw(15)<<ech<<setw(15)<<ECsI_Calc<<endl;
 			}
 		}
 	}
-
+	FileOut.close();
 }
 //___________________________________________________________
 Double_t CSHINECsIEnergyCali::EnergyDepositedInCsI(Int_t Z, Int_t A, Double_t ELoss,
@@ -112,6 +115,7 @@ Double_t CSHINECsIEnergyCali::EnergyDepositedInCsI(Int_t Z, Int_t A, Double_t EL
 	Double_t EResidualInCsI = EResidual - fLISEModule.GetEnergyLoss(Z,A,EResidual,"Mylar",CsIMylarThickness,1);
   return EResidualInCsI;
 }
+
 
 //______________________________________________________________________________
 //                          2. 投影取点
@@ -341,4 +345,688 @@ void CSHINECsIEnergyCali::GetProjectionCsIEnergPoints()
 			}
 		}
 	}
+}
+
+
+//______________________________________________________________________________
+// 对 Z=1 的同位素进行拟合
+// 对提取的数据点进行拟合
+void CSHINECsIEnergyCali::DrawAndFit_Z1()
+{
+	gStyle->SetPalette(1);
+
+  std::string pathECsIRange(Form("%sdata_CsIEnergyCali/ECsIRange.dat",PATHDATAFOLDER));
+	std::string pathDataInput(Form("%sdata_CsIEnergyCali/CsIEnergyPoints.dat",PATHDATAFOLDER));
+
+	std::string pathDataOut(Form("%sdata_CsIEnergyCali/CsIEnergyFit_Z1.data", PATHDATAFOLDER));
+	std::string pathPDFOut(Form("%sfigure_CsIEnergyCali/CsIEnergyPointsAndFit_Z1.pdf",PATHFIGURESFOLDER));
+	std::string pathPDFOutBegin(Form("%sfigure_CsIEnergyCali/CsIEnergyPointsAndFit_Z1.pdf[",PATHFIGURESFOLDER));
+	std::string pathPDFOutEnd(Form("%sfigure_CsIEnergyCali/CsIEnergyPointsAndFit_Z1.pdf]",PATHFIGURESFOLDER));
+
+	ofstream FileOut(pathDataOut.c_str());
+	FileOut<<"* fit parameters for Z=1 isotopes"<<endl;
+	FileOut<<"* fit_func = par[0]+par[1]*E^{(par[2]+A)/(par[3]+A)}"<<endl;
+	FileOut<<"* numtel"<<setw(15)<<"ssdnum"<<setw(15)<<"csinum"<<setw(15)
+	       <<"par[0]"<<setw(15)<<"par[1]"<<setw(15)<<"par[2]"<<setw(15)<<"par[3]"<<endl;
+
+  ifstream FileInRange(pathECsIRange.c_str());
+	ifstream FileInEnergyPoints(pathDataInput.c_str());
+
+	Color_t colors [6] = {kRed-4, kMagenta-4, kViolet+6, kAzure+6, kSpring-5, kOrange-4};
+	Int_t   markers[19] = {24,25,26,24,25,26,24,25,26,27,24,25,26,24,25,26,24,25,26};
+
+	// 定义变量存储 ECsI_Ch, ECsI_MeV, ParticleID
+	std::vector<Int_t> Charge[NUM_SSD*NUM_CSI];
+	std::vector<Int_t> Mass[NUM_SSD*NUM_CSI];
+	std::vector<Double_t> ECsI_Ch[NUM_SSD*NUM_CSI][10][20];   //[numtel][Z][A]
+	std::vector<Double_t> ECsI_MeV[NUM_SSD*NUM_CSI][10][20];  //[numtel][Z][A]
+	std::vector<Double_t> ParticleID[NUM_SSD*NUM_CSI][10][20];//[numtel][Z][A], ID=100*Z+A
+	std::vector<Double_t> ECsI_Ch_Z1[NUM_SSD*NUM_CSI];
+	std::vector<Double_t> ECsI_MeV_Z1[NUM_SSD*NUM_CSI];
+	std::vector<Double_t> ParticleID_Z1[NUM_SSD*NUM_CSI];
+
+	//__________________________
+	// 提取电荷数 Z 与质量数 A
+	if (!FileInRange.is_open()) {
+		printf("Error: file %s not found\n",pathECsIRange.c_str());
+    return;
+	}
+	while (FileInRange.good()) {
+		// 按行读取数据
+    std::string LineRead;
+    std::getline(FileInRange, LineRead);
+    LineRead.assign(LineRead.substr(0, LineRead.find('*')));
+    if(LineRead.empty()) continue;
+    if(LineRead.find_first_not_of(' ')==std::string::npos) continue;
+    std::istringstream LineStream(LineRead);
+
+		Int_t numtel;
+		Int_t charge, mass;
+		LineStream>>numtel>>charge>>mass;
+
+	  Charge[numtel].push_back(charge);
+		Mass[numtel].push_back(mass);
+
+	}
+	FileInRange.close();
+  //____________________
+	// 提取数据点
+	if (!FileInEnergyPoints.is_open()) {
+		printf("Error: file %s not found\n",pathDataInput.c_str());
+    return;
+	}
+	while (FileInEnergyPoints.good()) {
+		// 按行读取数据
+    std::string LineRead;
+    std::getline(FileInEnergyPoints, LineRead);
+    LineRead.assign(LineRead.substr(0, LineRead.find('*')));
+    if(LineRead.empty()) continue;
+    if(LineRead.find_first_not_of(' ')==std::string::npos) continue;
+    std::istringstream LineStream(LineRead);
+
+		Int_t numtel;
+		Int_t charge, mass;
+		Double_t ecsi_mev, ecsi_ch;
+		LineStream>>numtel>>charge>>mass>>ecsi_mev>>ecsi_ch;
+
+    Double_t particleID = (Double_t) 100*charge+mass;
+
+		ECsI_Ch[numtel][charge][mass].push_back(ecsi_ch);
+		ECsI_MeV[numtel][charge][mass].push_back(ecsi_mev);
+
+    if (charge==1) {
+			ECsI_MeV_Z1[numtel].push_back(ecsi_mev);
+			ECsI_Ch_Z1[numtel].push_back(ecsi_ch);
+			ParticleID_Z1[numtel].push_back(particleID);
+		}
+	}
+	FileInEnergyPoints.close();
+
+	// 定义 TMultiGraph && TGraph
+	TMultiGraph* multi_graph_Z1[NUM_SSD*NUM_CSI];
+	TGraph* graph[NUM_SSD*NUM_CSI][10][20];
+	for (Int_t numtel=0; numtel<NUM_SSD*NUM_CSI; numtel++) {
+		if (Charge[numtel].size()==0) continue;
+		multi_graph_Z1[numtel] = new TMultiGraph();
+		for (Int_t ip=0; ip<Charge[numtel].size(); ip++) {
+			if (Charge[numtel][ip]==1) {
+				graph[numtel][Charge[numtel][ip]][Mass[numtel][ip]] = new TGraph(ECsI_MeV[numtel][Charge[numtel][ip]][Mass[numtel][ip]].size(),
+				ECsI_MeV[numtel][Charge[numtel][ip]][Mass[numtel][ip]].data(),ECsI_Ch[numtel][Charge[numtel][ip]][Mass[numtel][ip]].data());
+        multi_graph_Z1[numtel]->Add(graph[numtel][Charge[numtel][ip]][Mass[numtel][ip]]);
+				graph[numtel][Charge[numtel][ip]][Mass[numtel][ip]]->SetMarkerStyle(markers[ip]);
+				graph[numtel][Charge[numtel][ip]][Mass[numtel][ip]]->SetMarkerColor(colors[Charge[numtel][ip]-1]);
+				graph[numtel][Charge[numtel][ip]][Mass[numtel][ip]]->SetMarkerSize(1);
+				graph[numtel][Charge[numtel][ip]][Mass[numtel][ip]]->SetLineColor(colors[Charge[numtel][ip]-1]);
+			}
+		}
+	}
+
+	// 定义 Canvas 与 graph 格式
+	TCanvas* c_begin = new TCanvas("c_begin","c_begin",800,600);
+	TCanvas* c_end = new TCanvas("c_end","c_end",800,600);
+	c_begin->Close();
+	c_end->Close();
+	TCanvas* cans[NUM_SSD*NUM_CSI];
+	for (Int_t numtel=0; numtel<NUM_SSD*NUM_CSI; numtel++) {
+		Int_t ssdindex = numtel/NUM_CSI;
+		Int_t csiindex = numtel%NUM_CSI;
+		cans[numtel] = new TCanvas(Form("c_SSD%d_CsI%d",ssdindex+1,csiindex),Form("c_SSD%d_CsI%d",ssdindex+1,csiindex),1000,800);
+	}
+	c_begin->Print(pathPDFOutBegin.c_str());
+
+	// 定义 TGraph2D, 用于拟合
+	TGraph2D* gr2D_Z1[NUM_SSD*NUM_CSI];
+	for (Int_t numtel=0; numtel<NUM_SSD*NUM_CSI; numtel++) {
+
+		if (numtel==31 || numtel==32) continue; // SSD4_CsI[4] and SSD4_CsI[5]不能用
+		Int_t ssdindex = numtel/NUM_CSI;
+		Int_t csiindex = numtel%NUM_CSI;
+
+    // for Z=1
+		cans[numtel]->cd();
+		gPad->SetLeftMargin(0.17);
+		multi_graph_Z1[numtel]->Draw("AP");
+		multi_graph_Z1[numtel]->SetTitle(Form("SSD%d_CsI%d_Z=1",ssdindex+1,csiindex));
+		multi_graph_Z1[numtel]->GetXaxis()->SetTitle("EMeV");
+		multi_graph_Z1[numtel]->GetXaxis()->CenterTitle(1);
+		multi_graph_Z1[numtel]->GetXaxis()->SetTitleSize(0.05);
+		multi_graph_Z1[numtel]->GetXaxis()->SetLabelSize(0.05);
+		multi_graph_Z1[numtel]->GetXaxis()->SetRangeUser(0,150);
+		multi_graph_Z1[numtel]->GetXaxis()->SetNdivisions(510);
+		multi_graph_Z1[numtel]->GetYaxis()->SetTitle("ECh");
+		multi_graph_Z1[numtel]->GetYaxis()->CenterTitle(1);
+		multi_graph_Z1[numtel]->GetYaxis()->SetTitleSize(0.05);
+		multi_graph_Z1[numtel]->GetYaxis()->SetLabelSize(0.05);
+		multi_graph_Z1[numtel]->GetYaxis()->SetRangeUser(0,3000);
+		multi_graph_Z1[numtel]->GetYaxis()->SetNdivisions(510);
+		gPad->Modified();
+		gPad->Update();
+
+		gr2D_Z1[numtel] = new TGraph2D(ECsI_Ch_Z1[numtel].size(),ECsI_MeV_Z1[numtel].data(),ParticleID_Z1[numtel].data(),ECsI_Ch_Z1[numtel].data());
+		TF2* fFitHydrogen = new TF2("fFitHydrogen",this,&CSHINECsIEnergyCali::FitFunc_Hydrogen,0,500,100,700,4);
+		fFitHydrogen->SetParameters(1.,1.,1.,1.);
+		gr2D_Z1[numtel]->Fit("fFitHydrogen");
+
+		FileOut<<setw(5)<<numtel<<setw(15)<<ssdindex<<setw(15)<<csiindex<<setw(20)
+		       <<fFitHydrogen->GetParameter(0)<<setw(15)<<fFitHydrogen->GetParameter(1)<<setw(15)
+					 <<fFitHydrogen->GetParameter(2)<<setw(15)<<fFitHydrogen->GetParameter(3)<<endl;
+
+		for (Int_t ip=0; ip<Charge[numtel].size(); ip++) {
+			if (Charge[numtel][ip]==1) { // for Z==1
+         TF1* fDrawHydrogen = new TF1("fDrawHydrogen",this,&CSHINECsIEnergyCali::DrawFunc_Hydrogen,0,500,6);
+				 fDrawHydrogen->SetParameters(fFitHydrogen->GetParameters());
+				 fDrawHydrogen->SetParameter(4,(Double_t)Charge[numtel][ip]);
+				 fDrawHydrogen->SetParameter(5,(Double_t)Mass[numtel][ip]);
+				 fDrawHydrogen->SetLineColor(colors[Charge[numtel][ip]-1]);
+				 fDrawHydrogen->Draw("SAME");
+			}
+		}
+    cans[numtel]->Print(pathPDFOut.c_str());
+	}
+  c_end->Print(pathPDFOutEnd.c_str());
+}
+
+
+//______________________________________________________________________________
+//  对 Z=2 的同位素进行拟合
+//  对提取的数据点进行拟合
+void CSHINECsIEnergyCali::DrawAndFit_ZOver2()
+{
+	gStyle->SetPalette(1);
+
+  std::string pathECsIRange(Form("%sdata_CsIEnergyCali/ECsIRange.dat",PATHDATAFOLDER));
+	std::string pathDataInput(Form("%sdata_CsIEnergyCali/CsIEnergyPoints.dat",PATHDATAFOLDER));
+
+	std::string pathDataOut(Form("%sdata_CsIEnergyCali/CsIEnergyFit_ZOver2.data", PATHDATAFOLDER));
+	std::string pathPDFOut(Form("%sfigure_CsIEnergyCali/CsIEnergyPointsAndFit_ZOver2.pdf",PATHFIGURESFOLDER));
+	std::string pathPDFOutBegin(Form("%sfigure_CsIEnergyCali/CsIEnergyPointsAndFit_ZOver2.pdf[",PATHFIGURESFOLDER));
+	std::string pathPDFOutEnd(Form("%sfigure_CsIEnergyCali/CsIEnergyPointsAndFit_ZOver2.pdf]",PATHFIGURESFOLDER));
+
+	ofstream FileOut(pathDataOut.c_str());
+	FileOut<<"* fit parameters for Z=2 isotopes"<<endl;
+	FileOut<<"* fit_func = DEEFIT_Func14"<<endl;
+	FileOut<<"* numtel"<<setw(15)<<"ssdnum"<<setw(15)<<"csinum"<<setw(15)
+	       <<"par[0]"<<setw(15)<<"par[1]"<<setw(15)<<"par[2]"<<endl;
+
+  ifstream FileInRange(pathECsIRange.c_str());
+	ifstream FileInEnergyPoints(pathDataInput.c_str());
+
+	Color_t colors [6] = {kRed-4, kMagenta-4, kViolet+6, kAzure+6, kSpring-5, kOrange-4};
+	Int_t   markers[19] = {24,25,26,24,25,26,24,25,26,27,24,25,26,24,25,26,24,25,26};
+
+	// 定义变量存储 ECsI_Ch, ECsI_MeV, ParticleID
+	std::vector<Int_t> Charge[NUM_SSD*NUM_CSI];
+	std::vector<Int_t> Mass[NUM_SSD*NUM_CSI];
+	std::vector<Double_t> ECsI_Ch[NUM_SSD*NUM_CSI][10][20];   //[numtel][Z][A]
+	std::vector<Double_t> ECsI_MeV[NUM_SSD*NUM_CSI][10][20];  //[numtel][Z][A]
+	std::vector<Double_t> ParticleID[NUM_SSD*NUM_CSI][10][20];//[numtel][Z][A], ID=100*Z+A
+	std::vector<Double_t> ECsI_Ch_ZOver2[NUM_SSD*NUM_CSI];
+	std::vector<Double_t> ECsI_MeV_ZOver2[NUM_SSD*NUM_CSI];
+	std::vector<Double_t> ParticleID_ZOver2[NUM_SSD*NUM_CSI];
+
+	//__________________________
+	// 提取电荷数 Z 与质量数 A
+	if (!FileInRange.is_open()) {
+		printf("Error: file %s not found\n",pathECsIRange.c_str());
+    return;
+	}
+	while (FileInRange.good()) {
+		// 按行读取数据
+    std::string LineRead;
+    std::getline(FileInRange, LineRead);
+    LineRead.assign(LineRead.substr(0, LineRead.find('*')));
+    if(LineRead.empty()) continue;
+    if(LineRead.find_first_not_of(' ')==std::string::npos) continue;
+    std::istringstream LineStream(LineRead);
+
+		Int_t numtel;
+		Int_t charge, mass;
+		LineStream>>numtel>>charge>>mass;
+
+	  Charge[numtel].push_back(charge);
+		Mass[numtel].push_back(mass);
+
+	}
+	FileInRange.close();
+  //____________________
+	// 提取数据点
+	if (!FileInEnergyPoints.is_open()) {
+		printf("Error: file %s not found\n",pathDataInput.c_str());
+    return;
+	}
+	while (FileInEnergyPoints.good()) {
+		// 按行读取数据
+    std::string LineRead;
+    std::getline(FileInEnergyPoints, LineRead);
+    LineRead.assign(LineRead.substr(0, LineRead.find('*')));
+    if(LineRead.empty()) continue;
+    if(LineRead.find_first_not_of(' ')==std::string::npos) continue;
+    std::istringstream LineStream(LineRead);
+
+		Int_t numtel;
+		Int_t charge, mass;
+		Double_t ecsi_mev, ecsi_ch;
+		LineStream>>numtel>>charge>>mass>>ecsi_mev>>ecsi_ch;
+
+	  if (ecsi_mev==0) continue;
+
+    Double_t particleID = (Double_t) 100*charge+mass;
+
+		ECsI_Ch[numtel][charge][mass].push_back(ecsi_ch);
+		ECsI_MeV[numtel][charge][mass].push_back(ecsi_mev);
+
+		if (charge>=2) {
+			ECsI_MeV_ZOver2[numtel].push_back(ecsi_mev);
+			ECsI_Ch_ZOver2[numtel].push_back(ecsi_ch);
+			ParticleID_ZOver2[numtel].push_back(particleID);
+		}
+
+	}
+	FileInEnergyPoints.close();
+
+	// 定义 TMultiGraph && TGraph
+	TMultiGraph* multi_graph_ZOver2[NUM_SSD*NUM_CSI];
+	TGraph* graph[NUM_SSD*NUM_CSI][10][20];
+	for (Int_t numtel=0; numtel<NUM_SSD*NUM_CSI; numtel++) {
+		if (Charge[numtel].size()==0) continue;
+		multi_graph_ZOver2[numtel] = new TMultiGraph();
+		for (Int_t ip=0; ip<Charge[numtel].size(); ip++) {
+			if (Charge[numtel][ip]>1) {
+				graph[numtel][Charge[numtel][ip]][Mass[numtel][ip]] = new TGraph(ECsI_MeV[numtel][Charge[numtel][ip]][Mass[numtel][ip]].size(),
+				ECsI_MeV[numtel][Charge[numtel][ip]][Mass[numtel][ip]].data(),ECsI_Ch[numtel][Charge[numtel][ip]][Mass[numtel][ip]].data());
+        multi_graph_ZOver2[numtel]->Add(graph[numtel][Charge[numtel][ip]][Mass[numtel][ip]]);
+				graph[numtel][Charge[numtel][ip]][Mass[numtel][ip]]->SetMarkerStyle(markers[ip]);
+				graph[numtel][Charge[numtel][ip]][Mass[numtel][ip]]->SetMarkerColor(colors[Charge[numtel][ip]-1]);
+				graph[numtel][Charge[numtel][ip]][Mass[numtel][ip]]->SetMarkerSize(1);
+				graph[numtel][Charge[numtel][ip]][Mass[numtel][ip]]->SetLineColor(colors[Charge[numtel][ip]-1]);
+			}
+		}
+	}
+
+	// 定义 Canvas 与 graph 格式
+	TCanvas* c_begin = new TCanvas("c_begin","c_begin",800,600);
+	TCanvas* c_end = new TCanvas("c_end","c_end",800,600);
+	c_begin->Close();
+	c_end->Close();
+	TCanvas* cans[NUM_SSD*NUM_CSI];
+	for (Int_t numtel=0; numtel<NUM_SSD*NUM_CSI; numtel++) {
+		Int_t ssdindex = numtel/NUM_CSI;
+		Int_t csiindex = numtel%NUM_CSI;
+		cans[numtel] = new TCanvas(Form("c_SSD%d_CsI%d",ssdindex+1,csiindex),Form("c_SSD%d_CsI%d",ssdindex+1,csiindex),1000,800);
+	}
+	c_begin->Print(pathPDFOutBegin.c_str());
+
+	// 定义 TGraph2D, 用于拟合
+	TGraph2D* gr2D_ZOver2[NUM_SSD*NUM_CSI];
+	for (Int_t numtel=0; numtel<NUM_SSD*NUM_CSI; numtel++) {
+
+		if (numtel==31 || numtel==32) continue; // SSD4_CsI[4] and SSD4_CsI[5]不能用
+		Int_t ssdindex = numtel/NUM_CSI;
+		Int_t csiindex = numtel%NUM_CSI;
+
+		// for Z>1
+		cans[numtel]->cd();
+		gPad->SetLeftMargin(0.17);
+		multi_graph_ZOver2[numtel]->Draw("AP");
+		multi_graph_ZOver2[numtel]->SetTitle(Form("SSD%d_CsI%d_Z#geq2",ssdindex+1,csiindex));
+		multi_graph_ZOver2[numtel]->GetXaxis()->SetTitle("EMeV");
+		multi_graph_ZOver2[numtel]->GetXaxis()->CenterTitle(1);
+		multi_graph_ZOver2[numtel]->GetXaxis()->SetTitleSize(0.05);
+		multi_graph_ZOver2[numtel]->GetXaxis()->SetLabelSize(0.05);
+		multi_graph_ZOver2[numtel]->GetXaxis()->SetRangeUser(0,300);
+		multi_graph_ZOver2[numtel]->GetXaxis()->SetNdivisions(510);
+		multi_graph_ZOver2[numtel]->GetYaxis()->SetTitle("ECh");
+		multi_graph_ZOver2[numtel]->GetYaxis()->CenterTitle(1);
+		multi_graph_ZOver2[numtel]->GetYaxis()->SetTitleSize(0.05);
+		multi_graph_ZOver2[numtel]->GetYaxis()->SetLabelSize(0.05);
+		multi_graph_ZOver2[numtel]->GetYaxis()->SetRangeUser(0,4100);
+		multi_graph_ZOver2[numtel]->GetYaxis()->SetNdivisions(510);
+		gPad->Modified();
+		gPad->Update();
+
+    gr2D_ZOver2[numtel] = new TGraph2D(ECsI_MeV_ZOver2[numtel].size(),ECsI_MeV_ZOver2[numtel].data(),ParticleID_ZOver2[numtel].data(),ECsI_Ch_ZOver2[numtel].data());
+		TF2* fFitHeavyIOn = new TF2("fFitHeavyIOn",this,&CSHINECsIEnergyCali::FitFunc_HeavyIon,0,500,100,700,3);
+		fFitHeavyIOn->SetParameters(1.,100,1.);
+		gr2D_ZOver2[numtel]->Fit("fFitHeavyIOn");
+
+		FileOut<<setw(5)<<numtel<<setw(15)<<ssdindex<<setw(15)<<csiindex<<setw(20)
+		       <<fFitHeavyIOn->GetParameter(0)<<setw(15)<<fFitHeavyIOn->GetParameter(1)<<setw(15)
+					 <<fFitHeavyIOn->GetParameter(2)<<setw(15)<<endl;
+
+		for (Int_t ip=0; ip<Charge[numtel].size(); ip++) {
+			if (Charge[numtel][ip]>=2) { // for Z>=2
+         TF1* fDrawHeavyIon = new TF1("fDrawHeavyIon",this,&CSHINECsIEnergyCali::DrawFunc_HeavyIon,0,500,5);
+				 fDrawHeavyIon->SetParameters(fFitHeavyIOn->GetParameters());
+				 fDrawHeavyIon->SetParameter(3,(Double_t)Charge[numtel][ip]);
+				 fDrawHeavyIon->SetParameter(4,(Double_t)Mass[numtel][ip]);
+				 fDrawHeavyIon->SetLineColor(colors[Charge[numtel][ip]-1]);
+				 fDrawHeavyIon->Draw("SAME");
+			}
+		}
+    cans[numtel]->Print(pathPDFOut.c_str());
+	}
+  c_end->Print(pathPDFOutEnd.c_str());
+}
+
+//______________________________________________________________________________
+// 自定义函数, 用于拟合 p,d,t
+// NIMA 929,162(2019), 使用公式如下：
+//  Ch = par[0]+par[1]*E^{(par[2]+A)/(par[3]+A)}
+Double_t CSHINECsIEnergyCali::FitFunc_Hydrogen(Double_t* x, Double_t* par)
+{
+	// if (par[2]>=par[3]) return -1;
+	// x[0]=E,x[1]=100*Z+A
+	if (x[1]>100) {
+		Int_t Z = (Int_t) x[1]/100;
+		Int_t A = (Int_t) x[1]%100;
+    Double_t exponent = (A+par[2])/(A+par[3]);
+    Double_t light = par[0]+par[1]*pow(x[0],exponent);
+    return light;
+	}
+	return -99.;
+}
+
+Double_t CSHINECsIEnergyCali::DrawFunc_Hydrogen(Double_t* x, Double_t* par)
+{
+	// x[0]=E,x[1]=100*Z+A
+	Int_t Z = (Int_t) par[4];
+	Int_t A = (Int_t) par[5];
+  Double_t exponent = (A+par[2])/(A+par[3]);
+  Double_t light = par[0]+par[1]*pow(x[0],exponent);
+  return light;
+}
+
+Double_t CSHINECsIEnergyCali::Func4_Hydrogen(DEEFITParticle& p, Double_t* par)
+{
+	Int_t Z = (Int_t) p.Z;
+	Int_t A = (Int_t) p.A;
+	Double_t EMeV = p.E;
+	Double_t exponent = (A+par[2])/(A+par[3]);
+  Double_t light = par[0]+par[1]*pow(EMeV,exponent);
+  return light;
+}
+
+//______________________________________________________________________________
+// 对重离子(Z>=2), 采用 Horn-fit
+// D.Horn et al, NIM A320(1992) 273-276
+Double_t CSHINECsIEnergyCali::FitFunc_HeavyIon(Double_t* x, Double_t* par)
+{
+	// x[0]=E, x[1]=10*Z+A
+	if(x[1]>200) {
+	  Int_t Z = (Int_t) x[1]/100;
+    Int_t A = (Int_t) x[1]%100;
+    Double_t consterm = par[2]*A*pow(Z,2);
+    Double_t lineterm = x[0]+consterm;
+    Double_t logterm = consterm*log(abs(lineterm/consterm));
+    Double_t light = par[0]+par[1]*(x[0]-logterm);
+    return light;
+	}
+	else { return -99.; }
+}
+
+Double_t CSHINECsIEnergyCali::DrawFunc_HeavyIon(Double_t* x, Double_t* par)
+{
+	// x[0]=E, x[1]=10*Z+A
+	Int_t Z = (Int_t) par[3];
+  Int_t A = (Int_t) par[4];
+  Double_t consterm = par[2]*A*pow(Z,2);
+  Double_t lineterm = x[0]+consterm;
+  Double_t logterm = consterm*log(abs(lineterm/consterm));
+  Double_t light = par[0]+par[1]*(x[0]-logterm);
+  return light;
+}
+
+Double_t CSHINECsIEnergyCali::Func3_HeavyIon(DEEFITParticle& p, Double_t* par)
+{
+	// x[0]=E, x[1]=10*Z+A
+	Int_t Z = (Int_t) p.Z;
+  Int_t A = (Int_t) p.A;
+	Double_t EMeV = p.E;
+  Double_t consterm = par[2]*A*pow(Z,2);
+  Double_t lineterm = EMeV+consterm;
+  Double_t logterm = consterm*log(abs(lineterm/consterm));
+  Double_t light = par[0]+par[1]*(EMeV-logterm);
+  return light;
+}
+
+
+
+//______________________________________________________________________________
+Bool_t IsInsideArray(Int_t charge, Int_t mass, vector<Int_t> arr_charge, vector<Int_t> arr_mass)
+{
+	Bool_t isinside = kFALSE;
+	for (Int_t ip=0; ip<arr_charge.size(); ip++) {
+		if ((charge==arr_charge[ip]) && (mass==arr_mass[ip])) {
+			isinside = kTRUE;
+			return isinside;
+		}
+	}
+	return isinside;
+}
+
+void CSHINECsIEnergyCali::CheckCsIEnergyCaliResults()
+{
+	Int_t NPars_Z1 = 4;
+	Int_t NPars_ZOver2 = 3;
+
+	Int_t NPoints = 100;
+	Double_t xmin = 0.;
+	Double_t xmax = 500.;
+
+  Double_t ECh_Cut = 150.;
+	Double_t ECsI_MeV;
+	Double_t ECsI_MeV_1;
+	Double_t ECsI_Ch;
+
+	Double_t epsilon = 1.E-10;
+
+	Double_t EL3_Range[4] = {300.,250.,250.,250.};
+	Int_t EL3_NBins   [4] = {3000,2500,2500,2500};
+	Double_t EL2_Range[4] = {250.,250.,140.,70.};
+	Int_t EL2_NBins   [4] = {2500,2500,1400,700};
+
+	std::vector<Int_t> Charge[NUM_SSD*NUM_CSI];
+	std::vector<Int_t> Mass[NUM_SSD*NUM_CSI];
+
+	Double_t mass_cut = 0.4;
+	Int_t  iCharge  = -99;  // 电荷数理论值
+	Double_t dMass  = -99.; // 质量数计算值
+
+	Double_t dCharge; // 电荷数计算值
+	Int_t    iMass; // 质量数理论值
+
+	Double_t CsIEnergyCaliPars_Z1[NUM_SSD*NUM_CSI][NPars_Z1];
+	Double_t CsIEnergyCaliPars_ZOver2[NUM_SSD*NUM_CSI][NPars_ZOver2];
+
+  std::string pathECsIRange(Form("%sdata_CsIEnergyCali/ECsIRange.dat",PATHDATAFOLDER));
+  std::string pathDEEFITPars(Form("%sDEEFITData/Fitparam_table_All.out",PATHROOTFILESFOLDER));
+  std::string pathDEEFITData(Form("%sDEEFITData/DEEFITData_Run%04d-%04d.root",PATHROOTFILESFOLDER,fFirstRun,fLastRun));
+	std::string pathCsIFitPars_Z1(Form("%sdata_CsIEnergyCali/CsIEnergyFit_Z1.data",PATHDATAFOLDER));
+	std::string pathCsIFitPars_ZOver2(Form("%sdata_CsIEnergyCali/CsIEnergyFit_ZOver2.data",PATHDATAFOLDER));
+	std::string pathDEECali(Form("%sfigure_CsIEnergyCali/DEECali_Run%04d-%04d.pdf",PATHFIGURESFOLDER,fFirstRun,fLastRun));
+	std::string pathDEECaliBegin(Form("%sfigure_CsIEnergyCali/DEECali_Run%04d-%04d.pdf[",PATHFIGURESFOLDER,fFirstRun,fLastRun));
+	std::string pathDEECaliEnd(Form("%sfigure_CsIEnergyCali/DEECali_Run%04d-%04d.pdf]",PATHFIGURESFOLDER,fFirstRun,fLastRun));
+
+	TH2D* h_DEE[NUM_SSD*NUM_CSI];
+	TH2D* h_DEE_Cali[NUM_SSD*NUM_CSI];
+	for (Int_t numtel=0; numtel<NUM_SSD*NUM_CSI; numtel++) {
+		Int_t ssdnum = numtel/NUM_CSI;
+		Int_t csinum = numtel%NUM_CSI;
+		h_DEE[numtel]      = new TH2D(Form("DEE_SSD%d_CsI%d",ssdnum+1,csinum),Form("DEE_SSD%d_CsI%d",ssdnum+1,csinum), 4000,0,4000,EL2_NBins[ssdnum],0,EL2_Range[ssdnum]);
+		h_DEE_Cali[numtel] = new TH2D(Form("CaliDEE_SSD%d_CsI%d",ssdnum+1,csinum),Form("CaliDEE_SSD%d_CsI%d",ssdnum+1,csinum), EL3_NBins[ssdnum],0,EL3_Range[ssdnum],EL2_NBins[ssdnum],0,EL2_Range[ssdnum]);
+	}
+
+  // 按行读取 CsI 能量拟合参数
+	ifstream FileInRange(pathECsIRange.c_str());
+	ifstream FileInPars_Z1(pathCsIFitPars_Z1.c_str());
+  ifstream FileInPars_ZOver2(pathCsIFitPars_ZOver2.c_str());
+
+	//___________________________________________________________
+	// 提取电荷数 Z 与质量数 A
+	if (!FileInRange.is_open()) {
+		printf("Error: file %s not found\n",pathECsIRange.c_str());
+    return;
+	}
+	while (FileInRange.good()) {
+		// 按行读取数据
+    std::string LineRead;
+    std::getline(FileInRange, LineRead);
+    LineRead.assign(LineRead.substr(0, LineRead.find('*')));
+    if(LineRead.empty()) continue;
+    if(LineRead.find_first_not_of(' ')==std::string::npos) continue;
+    std::istringstream LineStream(LineRead);
+
+		Int_t numtel;
+		Int_t charge, mass;
+		LineStream>>numtel>>charge>>mass;
+
+	  Charge[numtel].push_back(charge);
+		Mass[numtel].push_back(mass);
+
+	}
+	FileInRange.close();
+
+	// 读取拟合参数: for Z = 1
+	if (!FileInPars_Z1.is_open()) {
+		printf("Error: file %s not found\n",pathCsIFitPars_Z1.c_str());
+    return;
+	}
+	while (FileInPars_Z1.good()) {
+		// 按行读取数据
+    std::string LineRead;
+    std::getline(FileInPars_Z1, LineRead);
+    LineRead.assign(LineRead.substr(0, LineRead.find('*')));
+    if(LineRead.empty()) continue;
+    if(LineRead.find_first_not_of(' ')==std::string::npos) continue;
+    std::istringstream LineStream(LineRead);
+
+		Int_t numtel;
+		Int_t ssdnum, csinum;
+		LineStream>>numtel>>ssdnum>>csinum;
+		for (Int_t i=0; i<NPars_Z1; i++)  { LineStream>>CsIEnergyCaliPars_Z1[numtel][i]; }
+	}
+	FileInPars_Z1.close();
+
+	// 读取拟合参数: for Z >= 2
+	if (!FileInPars_ZOver2.is_open()) {
+		printf("Error: file %s not found\n",pathCsIFitPars_ZOver2.c_str());
+    return;
+	}
+	while (FileInPars_ZOver2.good()) {
+		// 按行读取数据
+    std::string LineRead;
+    std::getline(FileInPars_ZOver2, LineRead);
+    LineRead.assign(LineRead.substr(0, LineRead.find('*')));
+    if(LineRead.empty()) continue;
+    if(LineRead.find_first_not_of(' ')==std::string::npos) continue;
+    std::istringstream LineStream(LineRead);
+
+		Int_t numtel;
+		Int_t ssdnum, csinum;
+		LineStream>>numtel>>ssdnum>>csinum;
+		for (Int_t i=0; i<NPars_ZOver2; i++) { LineStream>>CsIEnergyCaliPars_ZOver2[numtel][i]; }
+	}
+	FileInPars_ZOver2.close();
+	//_______________________________________________________
+
+  //__________________________________________________________
+	// 定义拟合函数
+	TSpline3* spline[NUM_SSD*NUM_CSI][6][15];
+  TF1* func[NUM_SSD*NUM_CSI][6][15];
+	for (Int_t numtel=0; numtel<NUM_SSD*NUM_CSI; numtel++) {
+		for (Int_t ip=0; ip<Charge[numtel].size(); ip++) {
+			Int_t icharge = Charge[numtel][ip];
+			Int_t imass   = Mass[numtel][ip];
+			fDEEFITParticle.Z = (Double_t) Charge[numtel][ip];
+			fDEEFITParticle.A = (Double_t) Mass[numtel][ip];
+      // TSpline(TF1* f1) 差值计算
+			if (icharge == 1) {
+				func[numtel][icharge][imass] = new TF1(Form("func_%d_%d_%d",numtel,icharge,imass),this,&CSHINECsIEnergyCali::DrawFunc_Hydrogen,0,500,6);
+        func[numtel][icharge][imass]->SetParameters(CsIEnergyCaliPars_Z1[numtel]);
+				func[numtel][icharge][imass]->SetParameter(4,fDEEFITParticle.Z);
+				func[numtel][icharge][imass]->SetParameter(5,fDEEFITParticle.A);
+			}
+			if (icharge > 1) {
+				func[numtel][icharge][imass] = new TF1(Form("func_%d_%d_%d",numtel,icharge,imass),this,&CSHINECsIEnergyCali::DrawFunc_HeavyIon,0,500,5);
+        func[numtel][icharge][imass]->SetParameters(CsIEnergyCaliPars_ZOver2[numtel]);
+				func[numtel][icharge][imass]->SetParameter(3,fDEEFITParticle.Z);
+				func[numtel][icharge][imass]->SetParameter(4,fDEEFITParticle.A);
+			}
+      // 构造 TSpline3
+			Double_t ech;
+			Double_t emev;
+			Double_t ECh[NPoints];
+			Double_t EMeV[NPoints];
+			for (Int_t i=0; i<NPoints; i++) {
+		    emev = xmin + i*(xmax-xmin)/NPoints;
+				ech  = func[numtel][icharge][imass]->Eval(emev);
+				ECh[i]  = ech;
+				EMeV[i] = emev;
+			}
+			TGraph* gr = new TGraph(NPoints, ECh, EMeV);
+			spline[numtel][icharge][imass] = new TSpline3(Form("spline_%d_%d_%d",numtel,icharge,imass), gr);
+		}
+	}
+	//______________________________________________________________
+
+	// 读取 DEEFIT 拟合的 14 参数
+  Double_t** DEEFITPars = fDeefit->DEEFITLoadPars(pathDEEFITPars.c_str());
+
+	Short_t  numtel;  // number of csi crystals
+  Float_t  desipgf; // dE (MeV)
+  Short_t  fastpg;  // ECsI (ADC Chs)
+
+  TFile* myfile = TFile::Open(pathDEEFITData.c_str());
+  TTree* mytree = (TTree*) myfile->Get("h1");
+	mytree->SetBranchAddress("numtel", &numtel);   // number of CsI
+	mytree->SetBranchAddress("desipgf",&desipgf);  // dESi
+	mytree->SetBranchAddress("fastpg", &fastpg);   // ECsI
+
+	Long64_t nentries = mytree->GetEntries();
+	cout<<"nentries = "<<nentries<<endl;
+
+	for (Long64_t jentry=0; jentry<nentries; jentry++) {
+		//if (jentry>10000) continue;
+		mytree->GetEntry(jentry);
+		timeper.PrintPercentageAndRemainingTime(jentry, nentries);
+
+		iCharge = fDeefit->DEEFITGetCharge(DEEFITPars[numtel], desipgf, fastpg, dCharge); // Int_t charge
+	  dMass   = fDeefit->DEEFITGetMass(DEEFITPars[numtel], iCharge, desipgf, fastpg, iMass); // Double_t mass
+
+		ECsI_Ch = (Double_t) fastpg;
+		if (ECsI_Ch > ECh_Cut) {
+			if (IsInsideArray(iCharge,iMass,Charge[numtel],Mass[numtel])) {
+				// ECsI_MeV = func[numtel][iCharge][iMass]->GetX(ECsI_Ch,0,500.,epsilon); // 这种方法简单,但是输出有 bug, 虽然对最后的结果没有影响！
+				ECsI_MeV = spline[numtel][iCharge][iMass]->Eval(ECsI_Ch);
+				if (ECsI_MeV < 0) continue;
+				h_DEE[numtel]->Fill(fastpg, desipgf);
+				h_DEE_Cali[numtel]->Fill(ECsI_MeV, desipgf);
+			}
+		}
+	}
+  //__________________________________________________
+
+  // 画图
+	TCanvas* c_begin = new TCanvas("c_begin","c_begin", 600, 600);
+	TCanvas* c_end = new TCanvas("c_end","c_end", 600, 600);
+	c_begin->Close();
+	c_end->Close();
+  TCanvas* cans[NUM_SSD*NUM_CSI];
+	for (Int_t numtel=0; numtel<NUM_SSD*NUM_CSI; numtel++) {
+		Int_t ssdnum = numtel/NUM_CSI;
+		Int_t csinum = numtel%NUM_CSI;
+		cans[numtel] = new TCanvas(Form("c_SSD%d_CsI%d",ssdnum+1,csinum),Form("c_SSD%d_CsI%d",ssdnum+1,csinum),1200,600);
+	}
+
+	c_begin->Print(pathDEECaliBegin.c_str());
+	for (Int_t numtel=0; numtel<NUM_SSD*NUM_CSI; numtel++) {
+	  cans[numtel]->Divide(2,1);
+		cans[numtel]->cd(1);
+		h_DEE[numtel]->Draw("COLZ");
+		cans[numtel]->cd(2);
+		h_DEE_Cali[numtel]->Draw("COLZ");
+
+		cans[numtel]->Print(pathDEECali.c_str());
+	}
+  c_end->Print(pathDEECaliEnd.c_str());
 }

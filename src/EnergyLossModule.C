@@ -183,7 +183,7 @@ Double_t EnergyLossModule::GetIncidentEnergy(Int_t Z, Int_t A, Double_t Eloss,
 {
   Double_t  EincStep = Eloss;
   Double_t  ElossStep;
-  Double_t  dE = 30.;
+  Double_t  dE = 10.;
 
   ElossStep = GetEnergyLoss(Z,A,EincStep,material,thickness_um, model);
 

@@ -776,7 +776,7 @@ void CSHINECheckDEEPlot::CheckL1L2DEE()
 	      // 填充 hist_L1_L2F
 	      if (fPattern.IsEneConstraint_L2B_L2F(ssdindex, L1L2_EL2B[0], L1L2_EL2F[0])) {
 					for (Int_t l1smulti=0; l1smulti<fDeefit->LayerEvent_fSSDL1SMulti[ssdindex]; l1smulti++) {
-						if (abs(L1L2_StripL1S[l1smulti]-L1L2_StripL2B[0])<=1) {
+						if (abs(L1L2_StripL1S[l1smulti]-L1L2_StripL2B[0])==0) {
 							if (L2FTime[0]>TimeCut_Low[ssdindex][L1L2_StripL2F[0]] && L2FTime[0]<TimeCut_Up[ssdindex][L1L2_StripL2F[0]]) {
 								hist_L1L2_Merged[ssdindex]->Fill(L1L2_EL2B[0], L1L2_EL1S[l1smulti]);
 				        hist_L1L2[ssdindex][L1L2_StripL2F[0]]->Fill(L1L2_EL2B[0], L1L2_EL1S[l1smulti]);
@@ -823,7 +823,7 @@ void CSHINECheckDEEPlot::CheckL1L2DEE()
 		c_merged->cd(i+1);
 		hist_L1L2_Merged[i]->Draw("COL");
 	}
-	c_merged->Print("L1L2F_DEE_Merged.pdf");
+	c_merged->Print("figures/figure_PID/L1L2F_DEE_Merged.pdf");
 }
 
 
