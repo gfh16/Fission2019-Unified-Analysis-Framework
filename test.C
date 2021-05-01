@@ -43,19 +43,26 @@ void test()
 
 //__________________________________________________
 //  检查 DEE plot
-   CSHINECheckDEEPlot deefitcheck(150, 250);
+   CSHINECheckDEEPlot deefitcheck(150, 400);
 //   deefitcheck.CheckL2L3DEE();
-   deefitcheck.CheckL1L2DEE();
-//   deefitcheck.CheckL1L2DEE_Uncalibrate();
 //   deefitcheck.CheckL2L3PIDResults();
+
+//   deefitcheck.CheckL1L2DEE();
+//   deefitcheck.CheckL1L2DEE_Uncalibrate();
+//     deefitcheck.CheckDEEL1L2_SiResolution();
+
 //   deefitcheck.CheckCsIAlphaEnergyResolution();
+//     deefitcheck.CheckL1L2StraighteningPIDResults();
 
 //__________________________________________________
 //  使用 DEEFIT 方法进行粒子鉴别
     CSHINEDEEFITPID deefit(150, 160);
-//   deefit.DEEFITGenerateData();
+   deefit.DEEFITGenerateData_L2L3();
+//  deefit.DEEFITGenerateData_L1L2();
 //   deefit.DEEFITRunCode();
 
+//    CSHINEStraighteningPID straightdee;
+//    straightdee.DoBananaCut();
 
 //__________________________________________________________________
 // CsI 刻度

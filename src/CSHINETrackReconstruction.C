@@ -402,7 +402,7 @@ Double_t EventRatio(Int_t ssdindex, const char* layertag, Int_t entries_large, I
 ////////////////////////////////////////////////////////////////////////////////
 void CSHINETrackReconstruction::EstimateLayerMulti(Int_t firstrun, Int_t lastrun)
 {
-  /*
+
   gStyle->SetPalette(1);
 
   TimeAndPercentage time;
@@ -1039,7 +1039,6 @@ void CSHINETrackReconstruction::EstimateLayerMulti(Int_t firstrun, Int_t lastrun
   }
   time.GetEndTime();
   time.GetRunTime();
-  */
 }
 //******************************************************************************
 

@@ -52,6 +52,11 @@ extern const double L1L2_ENERGYLOWCUT [4];
 extern const double L1L2_ENERGYHIGHCUT[4];
 
 //______________________________________________________________________________
+// SSD4 硅条探测器有部分噪声, 对时间信号作 Cut, 可以消除
+extern const Int_t SiTimeCut_Low[4][16];
+extern const Int_t SiTimeCut_Up[4][16];
+
+//______________________________________________________________________________
 extern const char* PATHDATAFOLDER;        // data 数据文件夹绝对路径
 extern const char* PATHFIGURESFOLDER;     // figures 输出文件夹绝对路径
 extern const char* PATHROOTFILESFOLDER;   // root 文件所在文件夹绝对路径

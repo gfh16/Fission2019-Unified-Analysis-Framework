@@ -91,6 +91,7 @@ private:
   TextMargin            *Tele_Entry;
   TextMargin            *Charge_Entry;
   TextMargin            *Mass_Entry;
+  TextMargin            *Cut_TCutG;
 
   TGButtonGroup         *WorkMode_bg;
   TGRadioButton         *WorkMode_bg_button[2];

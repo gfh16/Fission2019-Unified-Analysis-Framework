@@ -136,7 +136,7 @@ void ExtractDEEPointsGUI::Set_CutFile_Name(string FileName_tem, string HistTile_
   HistTile = HistTile_tem;
 
   MarkersFileOut = ofstream(CutFile_Name.c_str(), ios::app);
-  MarkersFileOut<<"#"<<"TeleNo"<<setw(15)<<"ParticleNo"<<setw(15)<<"Z"<<setw(15)<<"A"<<setw(15)
+  MarkersFileOut<<"*"<<"TeleNo"<<setw(15)<<"ParticleNo"<<setw(15)<<"Z"<<setw(15)<<"A"<<setw(15)
                 <<"X(i),Y(i)"<<setw(10)<<"***"<<setw(20)<<Form("X(%d),Y(%d)",NUM_POINTS,NUM_POINTS)<<endl;
 
 }
@@ -201,7 +201,7 @@ void ExtractDEEPointsGUI::DoDraw_ch()
   gPad->SetLeftMargin(0.16);
   //**************************************
   //  manage the histogram canvas here !!
-  h2_DEEPlot = (TH2D*)f1_histo->Get(Form("%s%02d", HistTile.c_str(), TeleNo+1));
+  h2_DEEPlot = (TH2D*)f1_histo->Get(Form("%s%02d", HistTile.c_str(), TeleNo));
   h2_DEEPlot->GetXaxis()->SetNdivisions(1005);
   h2_DEEPlot->GetXaxis()->CenterTitle(1);
   h2_DEEPlot->GetYaxis()->CenterTitle(1);
@@ -366,8 +366,8 @@ void ExtractDEEPointsGUI::Set_FitParsFile_Name(string pathFitParsOut_tem)
   pathFitParsOut = pathFitParsOut_tem;
 
   FitParsFileOut = ofstream(pathFitParsOut.c_str(), ios::app);
-  FitParsFileOut<<"# Fitting the markers with func = [0]/x + pol6"<<endl;
-  FitParsFileOut<<"#"<<"TeleNo"<<setw(15)<<"ParticleNo"<<setw(8)<<"Z"<<setw(10)<<"A"<<setw(12)
+  FitParsFileOut<<"* Fitting the markers with func = [0]/x + pol6"<<endl;
+  FitParsFileOut<<"*"<<"TeleNo"<<setw(15)<<"ParticleNo"<<setw(8)<<"Z"<<setw(10)<<"A"<<setw(12)
                 <<"a0"<<setw(15)<<"a1"<<setw(15)<<"a2"<<setw(13)<<"a3"<<setw(15)
                 <<"a4"<<setw(15)<<"a5"<<setw(15)<<"a6"<<setw(15)<<"a7"<<endl;
 }

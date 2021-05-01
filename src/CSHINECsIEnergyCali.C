@@ -123,9 +123,14 @@ Double_t CSHINECsIEnergyCali::EnergyDepositedInCsI(Int_t Z, Int_t A, Double_t EL
 // 投影取点, 包括两步: 1.对所有的同位素带作 cut
 void CSHINECsIEnergyCali::DoGraphicalCut()
 {
+	Int_t MAXPOINTS = 50;
+	Int_t charge, mass;
+
 	std::string pathROOTInput(Form("%sDEEPlot/L2L3DEE.root",PATHROOTFILESFOLDER));
 	std::string pathROOTCutOut(Form("%sDEEPlot/L2L3DEECuts.root",PATHROOTFILESFOLDER));
 	std::string DEEHistName("DEEL2L3");
+
+	TCanvas* cans = new TCanvas("cans","cans",800,600);
 
 	TFile* FileIn  = new TFile(pathROOTInput.c_str(), "READONLY");
 	TFile* FileOut = new TFile(pathROOTCutOut.c_str(), "RECREATE");
@@ -137,121 +142,61 @@ void CSHINECsIEnergyCali::DoGraphicalCut()
 	{
 		TClass* cl = gROOT->GetClass(key->GetClassName());
 		if (!cl->InheritsFrom("TH2D")) continue;
+		cans->cd();
 		TH2D *hist = (TH2D*)key->ReadObj();
-
+		hist->Draw("colz");
+		gPad->SetLogz(kTRUE);
+		gPad->Modified();
+		gPad->Update();
 		std::string HistName(hist->GetName());
 		if(HistName.find(DEEHistName.c_str())==std::string::npos) continue;
 
-		for(int i=0; i<13; i++) {
-		  std::string CutName;
-		  // 手动添加或删减粒子种类
-		  if(i==0 && FileOut->Get(Form("%s_Z%02d_A%02d",HistName.c_str(),1,1))==0) {
-			  printf("Please Draw cut on protons\n");
-			  CutName.assign(HistName+Form("_Z%02d_A%02d",1,1));
-		  }
-		  if(i==1 && FileOut->Get(Form("%s_Z%02d_A%02d",HistName.c_str(),1,2))==0) {
-			  printf("Please Draw cut on deuterons\n");
-			  CutName.assign(HistName+Form("_Z%02d_A%02d",1,2));
-		  }
-		  if(i==2 && FileOut->Get(Form("%s_Z%02d_A%02d",HistName.c_str(),1,3))==0) {
-			  printf("Please Draw cut on tritons\n");
-			  CutName.assign(HistName+Form("_Z%02d_A%02d",1,3));
-		  }
-		  if(i==3 && FileOut->Get(Form("%s_Z%02d_A%02d",HistName.c_str(),2,3))==0) {
-			  printf("Please Draw cut on 3He\n");
-			  CutName.assign(HistName+Form("_Z%02d_A%02d",2,3));
-		  }
-	  	if(i==4 && FileOut->Get(Form("%s_Z%02d_A%02d",HistName.c_str(),2,4))==0) {
-			  printf("Please Draw cut on 4He\n");
-			  CutName.assign(HistName+Form("_Z%02d_A%02d",2,4));
-		  }
-			if(i==5 && FileOut->Get(Form("%s_Z%02d_A%02d",HistName.c_str(),2,6))==0) {
-			  printf("Please Draw cut on 6He\n");
-			  CutName.assign(HistName+Form("_Z%02d_A%02d",2,6));
-		  }
-		  if(i==6 && FileOut->Get(Form("%s_Z%02d_A%02d",HistName.c_str(),3,6))==0) {
-			  continue;
-			  printf("Please Draw cut on 6Li\n");
-			  CutName.assign(HistName+Form("_Z%02d_A%02d",3,6));
-		  }
-		  if(i==7 && FileOut->Get(Form("%s_Z%02d_A%02d",HistName.c_str(),3,7))==0) {
-			  continue;
-			  printf("Please Draw cut on 7Li\n");
-			  CutName.assign(HistName+Form("_Z%02d_A%02d",3,7));
-		  }
-			if(i==8 && FileOut->Get(Form("%s_Z%02d_A%02d",HistName.c_str(),3,8))==0) {
-			  continue;
-			  printf("Please Draw cut on 8Li\n");
-			  CutName.assign(HistName+Form("_Z%02d_A%02d",3,8));
-		  }
-			if(i==9 && FileOut->Get(Form("%s_Z%02d_A%02d",HistName.c_str(),3,9))==0) {
-			  continue;
-			  printf("Please Draw cut on 9Li\n");
-			  CutName.assign(HistName+Form("_Z%02d_A%02d",3,9));
-		  }
-		  if(i==10 && FileOut->Get(Form("%s_Z%02d_A%02d",HistName.c_str(),4,7))==0) {
-			  continue;
-			  printf("Please Draw cut on 7Be\n");
-			  CutName.assign(HistName+Form("_Z%02d_A%02d",4,7));
-		  }
-			if(i==11 && FileOut->Get(Form("%s_Z%02d_A%02d",HistName.c_str(),4,9))==0) {
-			  continue;
-			  printf("Please Draw cut on 9Be\n");
-			  CutName.assign(HistName+Form("_Z%02d_A%02d",4,9));
-		  }
-			if(i==12 && FileOut->Get(Form("%s_Z%02d_A%02d",HistName.c_str(),4,10))==0) {
-			  continue;
-			  printf("Please Draw cut on 10Be\n");
-			  CutName.assign(HistName+Form("_Z%02d_A%02d",4,10));
-		  }
-			if(i==13 && FileOut->Get(Form("%s_Z%02d_A%02d",HistName.c_str(),5,10))==0) {
-			  continue;
-			  printf("Please Draw cut on 10B\n");
-			  CutName.assign(HistName+Form("_Z%02d_A%02d",5,10));
-		  }
-			if(i==14 && FileOut->Get(Form("%s_Z%02d_A%02d",HistName.c_str(),5,11))==0) {
-			  continue;
-			  printf("Please Draw cut on 11B\n");
-			  CutName.assign(HistName+Form("_Z%02d_A%02d",5,11));
-		  }
+		for(int i=0; i<MAXPOINTS; i++) {
+			std::string CutName;
+			// 手动添加或删减粒子种类
+			cout<<endl;
+			cout<<"Please draw the isotope cut you want to do: "<<endl;
+			cout<<"Z = "; cin>>charge;
+			cout<<"A = "; cin>>mass;
 
-		  if(FileOut->Get(CutName.c_str()) || CutName.empty()) continue; //cut already existing
-		  hist->Draw("colz");
-		  gPad->SetLogz(kTRUE);
+			CutName.assign(HistName+Form("_Z%02d_A%02d",charge,mass));
+			if(FileOut->Get(CutName.c_str()) || CutName.empty()) continue; //cut already existing
 
-      // 这一行命令用于调用 “剪刀手” z作 cut
-		  TCutG* mycut = (TCutG*)gPad->WaitPrimitive("CUTG");
-		  mycut->SetName(CutName.c_str());
+			// 这一行命令用于调用 “剪刀手” z作 cut
+			TCutG* mycut = (TCutG*)gPad->WaitPrimitive("CUTG");
+			mycut->SetName(CutName.c_str());
 
-		  printf("%s cut created\n", CutName.c_str());
-		  printf("S - save the cut\nR - retry\nF - skip this cut\nD - delete a cut\nE - exit\n");
-		  char input;
-		  input=getchar();
-		  getchar();
-		  printf("you typed %c\n", input);
-		  if (input=='S' || input=='s') {
-			  FileOut->WriteTObject(mycut, mycut->GetName()); // 保存 cut
-		  	//FileOut->WriteTObject(hist, hist->GetName());
-			  printf ("%s cut saved to file\n", CutName.c_str());
-		  }
-		  else if (input == 'R' || input =='r') { i--; }
-		  else if (input == 'F' || input == 'f') {}
-		  else if (input == 'D' || input == 'd') {
-			  printf("Please type the cut to delete: \n");
-			  std::string CutToDelete;
-			  std::cin>>CutToDelete;
-			  CutToDelete.append(";*");
-		  	FileOut->Delete(CutToDelete.c_str());
-			  printf("deleted %s cut\n", CutToDelete.c_str());
-		  	i--;
-			  std::cin.get();
-		  }
-		  else if (input == 'E' || input == 'e'){
-			  printf("Goodbye\n");
-			  FileOut->Close();
-			  return;
-		  }
-		  else i--;
+			printf("%s cut created\n", CutName.c_str());
+			printf("S - save the cut\nR - retry\nF - skip this cut\nD - delete a cu\nN - next Tel\nE - exit\n");
+			char input;
+			cin>>input;
+			printf("you typed %c\n", input);
+
+			if (input=='S' || input=='s') {
+				FileOut->WriteTObject(mycut, mycut->GetName()); // 保存 cut
+				//FileOut->WriteTObject(hist, hist->GetName());
+				printf ("%s cut saved to file\n", CutName.c_str());
+			}
+			else if (input == 'R' || input =='r') { i--; }
+			else if (input == 'F' || input == 'f') {}
+			else if (input == 'D' || input == 'd') {
+				printf("Please type the cut to delete: \n");
+				std::string CutToDelete;
+				std::cin>>CutToDelete;
+				CutToDelete.append(";*");
+				FileOut->Delete(CutToDelete.c_str());
+				printf("deleted %s cut\n", CutToDelete.c_str());
+				i--;
+				std::cin.get();
+			}
+			else if (input == 'N' || input == 'n') { break; }// jump to next telescope}
+			else if (input == 'E' || input == 'e'){
+				printf("Goodbye\n");
+				FileIn->Close();
+				FileOut->Close();
+				return;
+			}
+			else i--;
 		}
 	}
 	FileOut->Close();

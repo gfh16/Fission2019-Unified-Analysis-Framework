@@ -17,7 +17,7 @@ struct DEEFITTreeData
 // DEEFIT 原始数据格式
   UShort_t numtel;  // number of csi crystals
   Float_t  desipgf; // dE (MeV)
-  UShort_t fastpg;  // ECsI (ADC Chs)
+  UShort_t  fastpg;  // ECsI (ADC Chs)
 };
 
 // 定义粒子属性的数据结构
@@ -51,8 +51,9 @@ public:
   void       Init(TTree *tree);
 
   // 功能实现
-  void       DEEFITGenerateData(); // 借助DEEFIT 工具进行CsI能量刻度, 需要先将实验数据存成DEEFIT格式
-  void       DEEFITRunCode();  // 运行 DEEFIT 程序，手动选点，对 dE(ECsI,Z,A) 进行拟合
+  void       DEEFITGenerateData_L2L3(); // 借助DEEFIT 工具进行CsI能量刻度, 需要先将实验数据存成DEEFIT格式
+  void       DEEFITGenerateData_L1L2();
+  void       DEEFITRunCode();           // 运行 DEEFIT 程序，手动选点，对 dE(ECsI,Z,A) 进行拟合
 
   // 需要用到的函数
   Double_t   DEEFITFunc14(DEEFITParticle& p, Double_t* par); // 定义 Func14 函数
@@ -101,11 +102,15 @@ public:
   ~CSHINEStraighteningPID();
   // 功能实现
   void          StraighteningBuildDEEPlot();
+  void          DoBananaCut();
   void          StraighteningExtractPointsAndFit();
   void          StraighteningGetExpPIDNumber(const char* pathRootFile);
-  // 需要用到的函数
+
+  Double_t      StraighteningGetMass(Double_t e2, Double_t de1, TCutG* cut[50],vector< vector<Double_t> > pars, vector<Int_t> icharge, vector<Int_t> imass, Int_t& geticharge, Int_t& getimass, Double_t& pidnum);
   Double_t      DoCalcdEMeV(Double_t Ex, Double_t* par, Int_t ParsNum);
   Double_t      StdPIDNumber(Int_t Z_charge, Int_t A_mass);
+  Double_t      StdPIDNumberToMass(Double_t pidnumber, Int_t charge);
+  void          ReadDataFile(const char* pathfile, vector< vector<Int_t> >& icharge, vector< vector<Int_t> >& imass, vector< vector< vector<Double_t> > >& pars);
 
 };
 
@@ -123,17 +128,20 @@ private:
   CSHINEDEEFITPID           *fDeefit;
   ReadFileModule             readfile;
   DEEFITParticle             fDeefitPartile;
+  CSHINEStraighteningPID     fStraightening;
 
 public:
   CSHINECheckDEEPlot(Int_t firstrun, Int_t lastrun);
   ~CSHINECheckDEEPlot();
 
   void    CheckL2L3DEE();
-  void    CheckL1L2DEE();
-  void    CheckL1L2DEE_Uncalibrated();
-
   void    CheckL2L3PIDResults();
   void    CheckCsIAlphaEnergyResolution();
+
+  void    CheckL1L2DEE();
+  void    CheckL1L2DEE_Uncalibrated();
+  void    CheckDEEL1L2_SiResolution();
+  void    CheckL1L2StraighteningPIDResults();
 };
 
 #endif
