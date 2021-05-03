@@ -35,12 +35,17 @@
 #include "TMarker.h"
 #include "TH2I.h"
 #include "TGraph.h"
-#include "TCutG.h"
-#include "TCut.h"
 
 using namespace std;
 
+#define NUM_POINTS       20   // extract 20 points for DE-E plot of each isotope
 #define NUM_FITPARS      8
+
+#define MAX_TELENO       50 // max tele number (the index of DE-E plot)
+#define MAX_PARTICLENO   50  // max channel number
+#define MAX_CHARGENO     20   // max charge number
+#define MAX_MASSNO       50   // max mass number
+
 
 
 //******************************************************************************
@@ -70,78 +75,83 @@ public:
 //______________________________________________________________________________
 //                   GUI constructon
 //                -----------------------
-//
-//  如何在 GUI 里面添加新的功能？
-//    1. 先声明 TGTextButton 或 TGGroupFrame 或 TextMargin
-//    2. 在初始化中, 定义上述声明
-//    3. 再定义相关实现函数
-//
 class ExtractDEEPointsGUI : public TGMainFrame
 {
-// 在此添加 GUI “窗口”
+//the widgets for GUI
 private:
-  TRootEmbeddedCanvas   *fEcanvas;
-  TGTextButton          *drawhist, *exit;
-  TGTextButton          *drawmarkers,*deletemakers,*writefile;
-  TGTextButton          *fitmarkers,*savepars;
-  TGTextButton          *drawbananacut, *deletebananacut, *savebananacut;
+  TRootEmbeddedCanvas   *fEcanvas, *ftext;
+  TGTextButton          *record, *clear, *exit, *draw,  *Write_File, *refresh, *Fit_Markers, *Save_Pars, *draw_markers;
+  TGLabel               *xx[NUM_POINTS], *yy[NUM_POINTS];
+  TGNumberEntryField    *addx[NUM_POINTS], *addy[NUM_POINTS];
+  TGSimpleTable         *PointTable;
   TGGroupFrame          *margins_draw;
   TGGroupFrame          *margins_id;
   TextMargin            *Particle_Entry;
   TextMargin            *Tele_Entry;
   TextMargin            *Charge_Entry;
   TextMargin            *Mass_Entry;
+  TextMargin            *Cut_TCutG;
+
+  TGButtonGroup         *WorkMode_bg;
+  TGRadioButton         *WorkMode_bg_button[2];
 
 public:
   ExtractDEEPointsGUI(const TGWindow *p, UInt_t w, UInt_t h);
   ~ExtractDEEPointsGUI();
 
+
 public:
   Int_t        TeleNo, TeleNo_Max;
   Int_t        ParticleNo, ParticleNo_Max;
   Int_t        ChargeNo, MassNo;
-  string       HistTile, CutFile_Name, BananaCut_FileName;
-  string       pathFitParsOut, histo_FilePath, pathBananaCut;
-  TFile       *MarkersFileOut, *BananaCutFileOut;
+  Double_t     CutData[MAX_TELENO][MAX_PARTICLENO][NUM_POINTS][2];  // [lower,upper][x,y]
+  Double_t     Current_Cut[NUM_POINTS][NUM_POINTS]; // [x,y][lower,upper]
+  Int_t        ParticleZA[MAX_TELENO][MAX_PARTICLENO][NUM_POINTS][2]; // chargrno, massno
+  string       histo_FilePath;
+  string       CutFile_Name;
+  string       HistTile;
+  string       pathFitParsOut;
+  TFile       *MarkersFileOut;
   ofstream     FitParsFileOut;
+  Bool_t       IsMarking;           // =1, Marking; =0 silence
   TFile       *f1_histo;
   TH2D        *h2_DEEPlot;
   TGraph      *fgraph;
   Int_t        fNMarkers;
   Double_t     fMarkerX;
   Double_t     fMarkerY;
-  TF1         *ffitfunc;
-  Double_t    *MarkerFitPars;
-  TCutG       *fcutg;
-
-// 初始化
+// for the general member
   void         Initial_RootFile(string histo_FilePath_tem);
   void         Initial_GUI(int xPixel,int yPixel);
   void         Initial_Slot();
-
-// 画直方图
-  void         Draw_Hist();
-
-// 拟合点的操作: draw_graph, detele, write
-  void         Set_MarkersFileName(string FileName_tem, string HistTile_tem);
+  void         DrawHist();
+// the data for Drawing the histogram
+  void         SetTeleNo_Max(Int_t tem) { TeleNo_Max = tem; }
+  void         SetParticleNo_Max(Int_t tem)  { ParticleNo_Max = tem; }
+// for recording the cut value
+  Double_t   **DisplayDataXY;
+  void         Set_CutFile_Name(string FileName_tem, string HistTile_tem);
+  void         Write_CutFile();
+// deal with markers
+  void         Delete_Marker();
   void         Draw_Markers();
-  void         Delete_Markers();
-  void         Write_MarkersCut();
+// for Exit operation
+  void         Is_Exit();
+// for chosing the working mode
+  void         Silence_Mode(){ IsMarking = 0; cout<<" The Canvas is locked! "<<endl; }
+  void         Marking_Mode(){ IsMarking = 1; cout<<" The Canvas can be Marked! "<<endl; }
+// for drawing something
+  void         DrawMarker(Int_t RunNo_tem, Int_t ChNo_tem, Int_t Edge_tem, Double_t x_tem, Double_t y_tem);
+  TMarker     *Marker_Cut[MAX_TELENO][MAX_PARTICLENO][NUM_POINTS];
+  TMarker     *Cur_Marker_Cut[NUM_POINTS];
+  TF1         *ffitfunc;
 
+// fit the markers for each isotope
 // added by gfh, Jan 2021
-// 拟合, 保存拟合参数
-  void         Set_FitParsFileName(string pathFitParsOut_tem);
-  void         Fit_Markers();
-  void         Save_FitPars();
-
-// added by gfh, May 2021
-  void         Set_BananaCutFileName(string pathBananaCutName_tem);
-  void         Draw_BananaCut();
-  void         Delete_BananaCut();
-  void         Save_BananaCut();
-
-// 退出 GUI
-  void         Exit_GUI();
+  Double_t    *MarkerFitPars;
+  void         DoMarkersFit();
+  void         Set_FitParsFile_Name(string pathFitParsOut_tem);
+  void         SaveFitPars();
 
   ClassDef(ExtractDEEPointsGUI,0)
 };

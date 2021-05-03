@@ -136,7 +136,5 @@
 ./ExtractDEEPointsGUI_C.so: /home/sea/Packages/root6.18/root_install/include/TMatrixFBasefwd.h
 ./ExtractDEEPointsGUI_C.so: /home/sea/Packages/root6.18/root_install/include/TMatrixDBasefwd.h
 ./ExtractDEEPointsGUI_C.so: /home/sea/Packages/root6.18/root_install/include/TGraph.h
-./ExtractDEEPointsGUI_C.so: /home/sea/Packages/root6.18/root_install/include/TCutG.h
-./ExtractDEEPointsGUI_C.so: /home/sea/Packages/root6.18/root_install/include/TCut.h
 ./ExtractDEEPointsGUI_C.so: /home/sea/Packages/root6.18/root_install/include/RVersion.h /home/sea/Packages/root6.18/root_install/include/RConfig.h /home/sea/Packages/root6.18/root_install/include/TClass.h /home/sea/Packages/root6.18/root_install/include/TDictAttributeMap.h /home/sea/Packages/root6.18/root_install/include/TInterpreter.h /home/sea/Packages/root6.18/root_install/include/TROOT.h /home/sea/Packages/root6.18/root_install/include/TBuffer.h /home/sea/Packages/root6.18/root_install/include/TMemberInspector.h /home/sea/Packages/root6.18/root_install/include/TError.h /home/sea/Packages/root6.18/root_install/include/RtypesImp.h /home/sea/Packages/root6.18/root_install/include/TIsAProxy.h /home/sea/Packages/root6.18/root_install/include/TFileMergeInfo.h /home/sea/Packages/root6.18/root_install/include/TCollectionProxyInfo.h /home/sea/Packages/root6.18/root_install/bin/rootcling
 ExtractDEEPointsGUI_C__ROOTBUILDVERSION= 6.18/00

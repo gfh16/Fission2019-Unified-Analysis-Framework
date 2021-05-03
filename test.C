@@ -56,7 +56,7 @@ void test()
 
 //__________________________________________________
 //  使用 DEEFIT 方法进行粒子鉴别
-    CSHINEDEEFITPID deefit(150, 160);
+    CSHINEDEEFITPID deefit(150, 400);
    deefit.DEEFITGenerateData_L2L3();
 //  deefit.DEEFITGenerateData_L1L2();
 //   deefit.DEEFITRunCode();
