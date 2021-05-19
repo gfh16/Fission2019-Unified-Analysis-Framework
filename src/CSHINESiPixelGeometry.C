@@ -660,3 +660,19 @@ void CSHINESiPixelGeometry::CheckSiPixellation()
   cout<<"************************************"<<endl;
 }
 //******************************************************************************
+
+
+//______________________________________________________________________________
+// 判断给定一个 pixel (stripf, stripb) 是否落在相邻的 CsI 缝隙中
+Bool_t CSHINESiPixelGeometry::IsPixelOnCsIGap(Int_t stripf, Int_t stripb)
+{
+	Bool_t index = kFALSE;
+
+	std::vector<Int_t> StripsOnCsIGap{0,4,5,10,11,15}; // 判断给定的条是否包含在一个数组内
+	if ((std::find(StripsOnCsIGap.begin(),StripsOnCsIGap.end(),stripf) != StripsOnCsIGap.end()) ||
+      (std::find(StripsOnCsIGap.begin(),StripsOnCsIGap.end(),stripb) != StripsOnCsIGap.end()))
+	{
+		index = kTRUE;
+	}
+	return index;
+}

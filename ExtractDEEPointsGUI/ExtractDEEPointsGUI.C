@@ -142,11 +142,7 @@ void ExtractDEEPointsGUI::Draw_Hist()
   ChargeNo   = Charge_Entry->GetNumber();
   MassNo     = Mass_Entry->GetNumber();
   cout<<"--> TeleNo: "<<TeleNo<<" , ParticleNo: "<<ParticleNo<<endl;
-  if((TeleNo > TeleNo_Max) || (ParticleNo > ParticleNo_Max)) {
-    cout<<"The Maximum for (TeleNo,ParticleNo) is: ("<<TeleNo_Max<<","<<ParticleNo_Max<<")"<<endl;
-    cout<<"Please Press Enter key, then Re-Input"<<endl; getchar();
-    return;
-  }
+
   f1_histo->cd();
 
   TCanvas* c1_tem = fEcanvas->GetCanvas();
@@ -174,7 +170,7 @@ void ExtractDEEPointsGUI::Set_MarkersFileName(string FileName_tem, string HistTi
   CutFile_Name = FileName_tem;
   HistTile = HistTile_tem;
 
-  MarkersFileOut = new TFile(CutFile_Name.c_str(),"RECREATE");
+  MarkersFileOut = new TFile(CutFile_Name.c_str(),"UPDATE");
 }
 
 
@@ -219,8 +215,9 @@ void ExtractDEEPointsGUI::Draw_Markers()
 // delete markers
 void ExtractDEEPointsGUI::Delete_Markers()
 {
+  cout<<"delete markers: "<<fgraph->GetName()<<endl;
   fgraph->Delete();
-  ffitfunc->Delete();
+//  ffitfunc->Delete();
 
   TCanvas* c1_tem = fEcanvas->GetCanvas();
   c1_tem->Modified();
@@ -234,6 +231,7 @@ void ExtractDEEPointsGUI::Delete_Markers()
 void ExtractDEEPointsGUI::Write_MarkersCut()
 {
   MarkersFileOut->WriteTObject(fgraph, fgraph->GetName());
+  cout<<"write markers: "<<fgraph->GetName()<<endl;
 }
 
 
@@ -281,6 +279,7 @@ void ExtractDEEPointsGUI::Fit_Markers()
 //______________________________________________________________________________
 void ExtractDEEPointsGUI::Save_FitPars()
 {
+  cout<<"save fit parameters."<<endl;
   FitParsFileOut<<setw(5)<<Tele_Entry->GetNumber()<<setw(15)<<Particle_Entry->GetNumber()<<setw(10)
          <<Charge_Entry->GetNumber()<<setw(10)<<Mass_Entry->GetNumber()<<setw(10);
 
@@ -295,7 +294,7 @@ void ExtractDEEPointsGUI::Save_FitPars()
 void ExtractDEEPointsGUI::Set_BananaCutFileName(string BananaCutName_tem)
 {
   BananaCut_FileName = BananaCutName_tem;
-  BananaCutFileOut = new TFile(BananaCut_FileName.c_str(),"RECREATE");
+  BananaCutFileOut = new TFile(BananaCut_FileName.c_str(),"UPDATE");
 }
 
 
@@ -307,7 +306,7 @@ void ExtractDEEPointsGUI::Draw_BananaCut()
 
   std::string HistoName = h2_DEEPlot->GetName();
   std::string CutGName;
-  CutGName.assign("cut_"+HistoName+Form("_Z%02d_A%02d",ChargeNo,MassNo));
+  CutGName.assign(HistoName+Form("_Z%02d_A%02d",ChargeNo,MassNo));
 
   TCanvas* c1_tem = fEcanvas->GetCanvas();
   gPad->SetLeftMargin(0.16);
@@ -317,10 +316,10 @@ void ExtractDEEPointsGUI::Draw_BananaCut()
 
   fcutg->SetName(CutGName.c_str());
   fcutg->Draw("*L");
-  fcutg->SetLineColor(kRed);
+  fcutg->SetLineColor(kRed-7);
   fcutg->SetLineWidth(2);
   fcutg->SetMarkerStyle(3);
-  fcutg->SetMarkerColor(kRed);
+  fcutg->SetMarkerColor(kRed-7);
   fcutg->SetMarkerSize(2);
 
   c1_tem->Modified();

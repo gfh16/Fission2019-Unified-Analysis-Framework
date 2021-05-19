@@ -55,37 +55,43 @@ void CSHINEAlphaCali::CalculateAlphaEnergy()
   Double_t E3 = Eaverage(Energy3, Ratio3, 2);
   Double_t Ealpha[3] = {E1, E2, E3};  // MeV
   Double_t MylarThickness = 2.0;      // um
-  Double_t AlThickness    = 0.06;      // um
+  Double_t AlThickness    = 0.06;     // um
+  Double_t SiDeadLayer    = 0.8;     // um 根据工厂给出的数据
 
   std::string pathCalculationResultsOut(Form("%sdata_AlphaCali/SSD_AlphaEnergies.dat",PATHDATAFOLDER));
 
   ofstream FileOut(pathCalculationResultsOut.c_str());
-  FileOut<<setw(5)<<"* MylarThickness = 2.0um, AlThickness = 0.06um \n";
+  FileOut<<setw(5)<<"* MylarThickness = 2.0um, AlThickness = 0.06um, SiDeadLayer =  0.8um\n";
   FileOut<<setw(5)<<"* SSDNum"<<setw(7)<<"CHNum"<<setw(15)<<"E1_Residual"<<setw(12)<<"E2_Residual"
          <<setw(15)<<"E3_Residual"<<setw(7)<<"E1"<<setw(12)<<"E2"<<setw(15)<<"E3"
          <<setw(15)<<"E1_Loss"<<setw(12)<<"E2_Loss"<<setw(12)<<"E3_Loss"<<setw(5)<<"(MeV)\n";
   //____________________________________________________________________________
   EnergyLossModule LISEModule;
-  Double_t Eloss1[3];
-  Double_t Eloss2[3];
-  Double_t Eresidual1[3];
-  Double_t Eresidual2[3];
+  Double_t ELossMylar[3];
+  Double_t ELossAl[3];
+  Double_t ELossSiDeadLayer[3];
+  Double_t EResMylar[3];
+  Double_t EResAl[3];
+  Double_t EResSiDeadLayer[3];
   for(Int_t i=0; i<3; i++) {
-    Eloss1[i]     = LISEModule.GetEnergyLoss(2,4,Ealpha[i],"Mylar",MylarThickness);
-    Eresidual1[i] = Ealpha[i] - Eloss1[i];
-    Eloss2[i]     = LISEModule.GetEnergyLoss(2,4,Eresidual1[i],"Al",AlThickness);
-    Eresidual2[i] = Eresidual1[i] - Eloss2[i];  //alpha粒子穿过Mylar膜之后的能量
-    cout<<"E_Incident = "<< Ealpha[i] <<"  "<<"E_residual = "<< Eresidual2[i]<<"  "
-        <<"ELoss_Total = "<<Ealpha[i]-Eresidual2[i]<<endl;
+    ELossMylar[i] = LISEModule.GetEnergyLoss(2,4,Ealpha[i],"Mylar",MylarThickness);
+    EResMylar[i]  = Ealpha[i] - ELossMylar[i];
+    ELossAl[i]    = LISEModule.GetEnergyLoss(2,4,EResMylar[i],"Al",AlThickness);
+    EResAl[i]     = EResMylar[i] - ELossAl[i];  //alpha粒子穿过Mylar膜之后的能量
+    ELossSiDeadLayer[i] = LISEModule.GetEnergyLoss(2,4,EResAl[i],"Si",SiDeadLayer);
+    EResSiDeadLayer[i]  = EResAl[i] - ELossSiDeadLayer[i];
+
+    cout<<"E_Incident = "<< Ealpha[i] <<"  "<<"E_residual = "<< EResSiDeadLayer[i]<<"  "
+        <<"ELoss_Total = "<<Ealpha[i]-EResSiDeadLayer[i]<<endl;
   }
   for(Int_t SSDNum=0; SSDNum<NUM_SSD; SSDNum++) {
     for(Int_t CHNum=0; CHNum<NUM_STRIP; CHNum++) {
       FileOut<<setw(5)<<SSDNum <<setw(7)<<CHNum
-             <<setw(15)<<Eresidual2[0]<<setw(13)<<Eresidual2[1]<<setw(13)<<Eresidual2[2]
+             <<setw(15)<<EResSiDeadLayer[0]<<setw(13)<<EResSiDeadLayer[1]<<setw(13)<<EResSiDeadLayer[2]
              <<setw(13)<<E1<<setw(13)<<E2<<setw(13)<<E3
-             <<setw(13)<<Ealpha[0]-Eresidual2[0]
-             <<setw(13)<<Ealpha[1]-Eresidual2[1]
-             <<setw(13)<<Ealpha[2]-Eresidual2[2]<<endl;
+             <<setw(13)<<Ealpha[0]-EResSiDeadLayer[0]
+             <<setw(13)<<Ealpha[1]-EResSiDeadLayer[1]
+             <<setw(13)<<Ealpha[2]-EResSiDeadLayer[2]<<endl;
     }
   }
   printf("A new file %s has been closed.\n", pathCalculationResultsOut.c_str());

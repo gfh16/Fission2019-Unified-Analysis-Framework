@@ -3,11 +3,14 @@
 #include "include/CSHINEParticleIdentification.h"
 #include "include/TimeAndPercentage.h"
 #include "include/CSHINECsIEnergyCali.h"
+#include "include/CSHINEAlphaCali.h"
 
 using namespace std;
 
 void test()
 {
+//  CSHINEAlphaCali alphacali;
+//  alphacali.CalculateAlphaEnergy();
   //_______________________________________
   // step1: build layerevent
   CSHINEBuildEvent build;
@@ -43,21 +46,25 @@ void test()
 
 //__________________________________________________
 //  检查 DEE plot
-   CSHINECheckDEEPlot deefitcheck(150, 400);
+   CSHINECheckDEEPlot deefitcheck(150, 160);
 //   deefitcheck.CheckL2L3DEE();
 //   deefitcheck.CheckL2L3PIDResults();
 
 //   deefitcheck.CheckL1L2DEE();
 //   deefitcheck.CheckL1L2DEE_Uncalibrate();
-//     deefitcheck.CheckDEEL1L2_SiResolution();
+//   deefitcheck.CheckDEEL1L2_SiResolution();
+     deefitcheck.CheckGoodPIDOfSSD3AndSSD4();
+//     deefitcheck.CheckL1L2DEEPunchThrough();
 
 //   deefitcheck.CheckCsIAlphaEnergyResolution();
-//     deefitcheck.CheckL1L2StraighteningPIDResults();
+//   deefitcheck.CheckL1L2StraighteningPIDResults();
+//   deefitcheck.CheckL2L3StraighteningPIDResults();
+//   deefitcheck.CheckPolyFitResults();
 
 //__________________________________________________
 //  使用 DEEFIT 方法进行粒子鉴别
-    CSHINEDEEFITPID deefit(150, 400);
-   deefit.DEEFITGenerateData_L2L3();
+    CSHINEDEEFITPID deefit(150, 160);
+//   deefit.DEEFITGenerateData_L2L3();
 //  deefit.DEEFITGenerateData_L1L2();
 //   deefit.DEEFITRunCode();
 
@@ -70,7 +77,10 @@ void test()
 //  csicali.DoGraphicalCut();
 //  csicali.GetProjectionCsIEnergPoints();
 //  csicali.GetDEEFITCsIEnergyPoints();
-//  csicali.DrawAndFit_Z1();
-//  csicali.DrawAndFit_ZOver2();
+//  csicali.DEEFITDrawAndFit_Z1();
+//  csicali.DEEFITDrawAndFit_ZOver2();
 //   csicali.CheckCsIEnergyCaliResults();
+//    csicali.GetStraighteningCsIEnergyPoints();
+//    csicali.StraighteningDrawAndFit_Z1();
+//   csicali.StraighteningDrawAndFit_ZOver2();
 }

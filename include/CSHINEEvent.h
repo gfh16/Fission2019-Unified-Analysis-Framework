@@ -220,4 +220,14 @@ private:
 };
 //______________________________________________________________________________
 
+
+//______________________________________________________________________________
+class CSHINESSDTelDataCaliSteps
+{
+  CSHINESSDTelDataCaliSteps();
+  ~CSHINESSDTelDataCaliSteps();
+
+
+};
+
 #endif

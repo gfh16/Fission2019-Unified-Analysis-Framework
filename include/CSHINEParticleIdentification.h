@@ -15,8 +15,8 @@
 struct DEEFITTreeData
 {
 // DEEFIT 原始数据格式
-  UShort_t numtel;  // number of csi crystals
-  Float_t  desipgf; // dE (MeV)
+  UShort_t  numtel;  // number of csi crystals
+  Float_t   desipgf; // dE (MeV)
   UShort_t  fastpg;  // ECsI (ADC Chs)
 };
 
@@ -47,7 +47,6 @@ public:
 
   // 初始化
   TTree     *fChain;   //!pointer to the analyzed TTree or TChain
-  Int_t      fCurrent; //!current Tree number in a TChain
   void       Init(TTree *tree);
 
   // 功能实现
@@ -110,7 +109,7 @@ public:
   Double_t      DoCalcdEMeV(Double_t Ex, Double_t* par, Int_t ParsNum);
   Double_t      StdPIDNumber(Int_t Z_charge, Int_t A_mass);
   Double_t      StdPIDNumberToMass(Double_t pidnumber, Int_t charge);
-  void          ReadDataFile(const char* pathfile, vector< vector<Int_t> >& icharge, vector< vector<Int_t> >& imass, vector< vector< vector<Double_t> > >& pars);
+  void          ReadStraighteningFitPars(Int_t TelNum, const char* pathfile, vector< vector<Int_t> >& icharge, vector< vector<Int_t> >& imass, vector< vector< vector<Double_t> > >& pars);
 
 };
 
@@ -135,13 +134,37 @@ public:
   ~CSHINECheckDEEPlot();
 
   void    CheckL2L3DEE();
+  // deefit results
   void    CheckL2L3PIDResults();
   void    CheckCsIAlphaEnergyResolution();
+  // straigtening results
+  void    CheckPolyFitResults();
+  void    CheckL2L3StraighteningPIDResults();
 
   void    CheckL1L2DEE();
   void    CheckL1L2DEE_Uncalibrated();
   void    CheckDEEL1L2_SiResolution();
   void    CheckL1L2StraighteningPIDResults();
+
+  void    CheckGoodPIDOfSSD3AndSSD4();
+  void    CheckL1L2DEEPunchThrough();
+  void    CheckL2L3DEECsIGapEffect();
+
+public:
+  std::vector<Double_t> L1L2_EL1S;
+  std::vector<Double_t> L1L2_EL2F;
+	std::vector<Double_t> L1L2_EL2B;
+  std::vector<Int_t>    L1L2_StripL1S;
+  std::vector<Int_t>    L1L2_StripL2F;
+	std::vector<Int_t>    L1L2_StripL2B;
+	std::vector<Int_t>    L2FTime;
+
+  std::vector<Double_t> L2L3_EL2F;
+  std::vector<Double_t> L2L3_EL2B;
+  std::vector<Double_t> L2L3_ECSI;
+  std::vector<Int_t>    L2L3_StripL2F;
+  std::vector<Int_t>    L2L3_StripL2B;
+  std::vector<Int_t>    L2L3_NumCsI;
 };
 
 #endif

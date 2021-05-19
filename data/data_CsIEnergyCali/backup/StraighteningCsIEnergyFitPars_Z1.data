@@ -1,0 +1,3 @@
+* fit parameters for Z=1 isotopes
+* fit_func = par[0]+par[1]*E^{(par[2]+A)/(par[3]+A)}
+* numtel         ssdnum         csinum         par[0]         par[1]         par[2]         par[3]

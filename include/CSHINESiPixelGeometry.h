@@ -42,6 +42,8 @@ public:
   void        SiPixellation();
   void        CheckSiPixellation();
 
+  Bool_t      IsPixelOnCsIGap(Int_t stripf, Int_t stripb);
+
 
 private:
   Double_t     fWidthPerStrip;         // 条宽, mm

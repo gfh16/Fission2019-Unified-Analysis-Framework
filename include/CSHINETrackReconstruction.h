@@ -58,6 +58,9 @@ public:
   Bool_t   IsEneConstraint_L1S_L2F(Int_t ssdindex, Double_t El1, Double_t El2);
   Bool_t   IsEneConstraint_L1S_L2F(Int_t ssdindex, Int_t l1smulti, Double_t* El1s, Int_t* l1sssdnum, Int_t l2fmulti, Double_t* El2f, Int_t* l2fssdnum);
 
+  // 根据 L2F, L2B 的位置, 确定对应的 CsI 位置
+  Int_t   GetCsINumFromPixel(Int_t stripl2f, Int_t stripl2b); 
+
   void     EstimateLayerMulti(Int_t firstrun, Int_t lastrun);
   void     GetPunchThroughEnergiesOfLCPs();
 

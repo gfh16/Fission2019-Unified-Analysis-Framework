@@ -361,6 +361,29 @@ Bool_t CSHINETrackReconstruction::IsEneConstraint_L1S_L2F(Int_t ssdindex, Int_t 
   return (index != 0) ? true : false;
 }
 
+//______________________________________________________________________________
+// 根据 L2F, L2B 的位置, 确定对应的 CsI 位置
+Int_t CSHINETrackReconstruction::GetCsINumFromPixel(Int_t stripl2f, Int_t stripl2b)
+{
+  Int_t csinum = -99;
+
+  if (0<=stripl2f && stripl2f<5) { // CsI 2,5,8
+    if (0<=stripl2b && stripl2b<5)        csinum = 8;
+    else if (5<=stripl2b && stripl2b<=10) csinum = 5;
+    else                                  csinum = 2;
+  }
+  else if (5<=stripl2f && stripl2f<=10) { // CsI 1,4,7
+    if (0<=stripl2b && stripl2b<5)        csinum = 7;
+    else if (5<=stripl2b && stripl2b<=10) csinum = 4;
+    else                                  csinum = 1;
+  }
+  else { // CsI 0,3,6
+    if (0<=stripl2b && stripl2b<5)        csinum = 6;
+    else if (5<=stripl2b && stripl2b<=10) csinum = 3;
+    else                                  csinum = 0;
+  }
+  return csinum;
+}
 //******************************************************************************
 
 
