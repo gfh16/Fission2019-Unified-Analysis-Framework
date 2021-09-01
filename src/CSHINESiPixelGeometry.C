@@ -4,6 +4,7 @@ using namespace std;
 
 ////////////////////////////////////////////////////////////////////////////////
 //    SSD1 && SSD4 硅条本体坐标系定义:         SSD2 && SSD3 硅条本体坐标系定义:
+
 //  EF=0 +-------------------+           EF=15 +-------------------+
 //       |        Y'         |                 |        Y'         |
 //       |        /|\        |                 |        /|\        |
@@ -27,7 +28,7 @@ using namespace std;
 ////////////////////////////////////////////////////////////////////////////////
 
 
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 CSHINESiPixelGeometry::CSHINESiPixelGeometry()
 {
   fWidthPerStrip        = 1.95;  // 条宽, mm
@@ -73,47 +74,47 @@ CSHINESiPixelGeometry::~CSHINESiPixelGeometry()
 
   //cout<< "Exit Class CSHINESiPixelGeometry, Bye!"<< endl;
 }
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
 
-//******************************************************************************
-Double_t CSHINESiPixelGeometry::GetWidthPerStrip()
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
+Double_t CSHINESiPixelGeometry::GetWidthPerStrip() const
 {
   return fWidthPerStrip;
 }
 
 //______________________________________________________________________________
-Double_t CSHINESiPixelGeometry::Getd1(Int_t ssdnum)
+Double_t CSHINESiPixelGeometry::Getd1(Int_t ssdnum) const
 {
   return SIL1THICKNESS[ssdnum];
 }
 
 //______________________________________________________________________________
-Double_t CSHINESiPixelGeometry::Getd2(Int_t ssdnum)
+Double_t CSHINESiPixelGeometry::Getd2(Int_t ssdnum) const
 {
   return SIL2THICKNESS[ssdnum];
 }
 
 //______________________________________________________________________________
-Double_t CSHINESiPixelGeometry::GetDistOfL2FToTarget(Int_t ssdnum)
+Double_t CSHINESiPixelGeometry::GetDistOfL2FToTarget(Int_t ssdnum) const
 {
   return fDistOfL2FToTarget[ssdnum];
 }
 
 //______________________________________________________________________________
-Double_t CSHINESiPixelGeometry::GetPhiOfSSDFixedPosition(Int_t ssdnum)
+Double_t CSHINESiPixelGeometry::GetPhiOfSSDFixedPosition(Int_t ssdnum) const
 {
   return fPhiOfSSDFixedPosition[ssdnum];
 }
 
 //______________________________________________________________________________
-Double_t CSHINESiPixelGeometry::GetThetaOfSSDFixedPosition(Int_t ssdnum)
+Double_t CSHINESiPixelGeometry::GetThetaOfSSDFixedPosition(Int_t ssdnum) const
 {
   return fThetaOfSSDFixedPosition[ssdnum];
 }
 
 //______________________________________________________________________________
-Double_t CSHINESiPixelGeometry::GetEffThicknessOfPixel(Int_t ssdnum, Int_t stripb, Int_t stripf)
+Double_t CSHINESiPixelGeometry::GetEffThicknessOfPixel(Int_t ssdnum, Double_t stripb, Double_t stripf) const
 {
   Double_t d2     = Getd2(ssdnum);
   Double_t dist   = GetDistOfL2FToTarget(ssdnum);
@@ -123,14 +124,14 @@ Double_t CSHINESiPixelGeometry::GetEffThicknessOfPixel(Int_t ssdnum, Int_t strip
 }
 
 //______________________________________________________________________________
-Double_t CSHINESiPixelGeometry::GetThetaDegOfPixel(Int_t ssdnum, Int_t stripb, Int_t stripf)
+Double_t CSHINESiPixelGeometry::GetThetaDegOfPixel(Int_t ssdnum, Double_t stripb, Double_t stripf) const
 {
   Vector3 vec3 = StripNumToPosInLabFrame(ssdnum, stripb, stripf);
   return vec3.ThetaDeg();
 }
 
 //______________________________________________________________________________
-Double_t CSHINESiPixelGeometry::GetPhiDegOfPixel(Int_t ssdnum, Int_t stripb, Int_t stripf)
+Double_t CSHINESiPixelGeometry::GetPhiDegOfPixel(Int_t ssdnum, Double_t stripb, Double_t stripf) const
 {
   Vector3 vec3 = StripNumToPosInLabFrame(ssdnum, stripb, stripf);
   return vec3.PhiDeg();
@@ -138,7 +139,7 @@ Double_t CSHINESiPixelGeometry::GetPhiDegOfPixel(Int_t ssdnum, Int_t stripb, Int
 
 
 //___________________________________________________________________________________________
-Vector3 CSHINESiPixelGeometry::StripNumToPosInSSDFrame(Int_t ssdnum, Int_t stripb, Int_t stripf)
+Vector3 CSHINESiPixelGeometry::StripNumToPosInSSDFrame(Int_t ssdnum, Double_t stripb, Double_t stripf) const
 {
   Double_t pixelX, pixelY, pixelZ;
   switch (ssdnum)
@@ -171,7 +172,7 @@ Vector3 CSHINESiPixelGeometry::StripNumToPosInSSDFrame(Int_t ssdnum, Int_t strip
 }
 
 //______________________________________________________________________________
-Vector3 CSHINESiPixelGeometry::StripNumToPosInLabFrame(Int_t ssdnum, Int_t stripb, Int_t stripf)
+Vector3 CSHINESiPixelGeometry::StripNumToPosInLabFrame(Int_t ssdnum, Double_t stripb, Double_t stripf) const
 {
   Double_t pixelX = StripNumToPosInSSDFrame(ssdnum, stripb, stripf).X();
   Double_t pixelY = StripNumToPosInSSDFrame(ssdnum, stripb, stripf).Y();
@@ -202,7 +203,7 @@ Vector3 CSHINESiPixelGeometry::StripNumToPosInLabFrame(Int_t ssdnum, Int_t strip
 
 //______________________________________________________________________________
 Vector3 CSHINESiPixelGeometry::PosInSSDFrameToLabFrame(Int_t ssdnum, Double_t pixelX,
-   Double_t pixelY, Double_t pixelZ)
+   Double_t pixelY, Double_t pixelZ) const
 {
   Double_t phi    = fPhiOfSSDFixedPosition[ssdnum];
   Double_t theta  = fThetaOfSSDFixedPosition[ssdnum];
@@ -230,7 +231,7 @@ Vector3 CSHINESiPixelGeometry::PosInSSDFrameToLabFrame(Int_t ssdnum, Double_t pi
 
 //______________________________________________________________________________
 Vector3 CSHINESiPixelGeometry::PosInSSDFrameToLabFrame(Double_t pixelX, Double_t pixelY, Double_t pixelZ,
-  Double_t dist, Double_t theta, Double_t phi)
+  Double_t dist, Double_t theta, Double_t phi) const
 {
   Double_t labX, labY, labZ;
   labX = pixelX * TMath::Cos(phi*DegToRad) +
@@ -254,7 +255,7 @@ Vector3 CSHINESiPixelGeometry::PosInSSDFrameToLabFrame(Double_t pixelX, Double_t
 
 //______________________________________________________________________________
 Vector3 CSHINESiPixelGeometry::PosInLabFrameToSSDFrame(Double_t labX, Double_t labY, Double_t labZ,
-  Double_t dist, Double_t theta, Double_t phi)
+  Double_t dist, Double_t theta, Double_t phi) const
 {
   Double_t pixelX, pixelY, pixelZ;
   pixelX = (labX - dist*TMath::Cos(theta*DegToRad) *TMath::Sin(phi*DegToRad)) * TMath::Cos(phi*DegToRad) -
@@ -270,10 +271,10 @@ Vector3 CSHINESiPixelGeometry::PosInLabFrameToSSDFrame(Double_t labX, Double_t l
 
   return Vector3(pixelX, pixelY, pixelZ);
 }
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
 
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 ////////////////////////////////////////////////////////////////////////////////
 //
 //   粒子以某个角度入射到双面硅中时, 粒子实际穿过硅的厚度比硅的标准厚度略大,
@@ -311,7 +312,7 @@ void CSHINESiPixelGeometry::CalculateEffectiveThickness()
   cout<<"**   CalculateEffectiveThickness done!   **"<<endl;
   cout<<"*******************************************"<<endl;
 }
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -533,10 +534,10 @@ void CSHINESiPixelGeometry::SiPixellation()
   cout<<"**    SiPixellation done!    **"<<endl;
   cout<<"*******************************"<<endl;
 }
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
 
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 ////////////////////////////////////////////////////////////////////////////////
 //   计算硅条每个 pixel 中心点在实验室系下的 （R, Theta, Phi）
 //   同时，计算每个 pixel 四个角落的 (R, Theta, Phi)
@@ -659,7 +660,7 @@ void CSHINESiPixelGeometry::CheckSiPixellation()
   cout<<"**    CheckSiPixellation done!    **"<<endl;
   cout<<"************************************"<<endl;
 }
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
 
 //______________________________________________________________________________

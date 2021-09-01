@@ -33,6 +33,12 @@ public:
   Double_t GetResidualEnergy (Int_t Z, Int_t A, Double_t Eloss, const char* material, Double_t thickness_um, Int_t model=1);
   Double_t GetIncidentEnergy (Int_t Z, Int_t A, Double_t Eloss, const char* material, Double_t thickness_um, Int_t model=1);
 
+  // add by gfh, July,2021
+  Double_t GetEnergyLoss     (Int_t Z, Int_t A, Double_t Einc,  const char* material, Double_t thickness_um, Double_t precision_MeV, Int_t model=1);
+  Double_t GetResidualEnergy (Int_t Z, Int_t A, Double_t Eloss, const char* material, Double_t thickness_um, Double_t precision_MeV, Int_t model=1);
+  Double_t GetIncidentEnergy (Int_t Z, Int_t A, Double_t Eloss, const char* material, Double_t thickness_um, Double_t precision_MeV, Int_t model=1);
+  Double_t GetEnergyLossFromResidualEnergy(Int_t Z, Int_t A, Double_t Eres, const char* material, Double_t thickness_um, Double_t precision_MeV, Int_t model=1);
+
   Double_t GetRangeFromEnergy(Int_t Z, Int_t A, Double_t Einc,  const char* material, Int_t model=1);
   Double_t GetEnergyFromRange(Int_t Z, Int_t A, Double_t range, const char* material, Int_t model=1);
 

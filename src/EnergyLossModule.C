@@ -1,7 +1,7 @@
 #include "../include/EnergyLossModule.h"
 
 
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 EnergyLossModule::EnergyLossModule()
 {
   NucData = new Nuclear_masses();
@@ -12,10 +12,10 @@ EnergyLossModule::~EnergyLossModule()
 {
   delete NucData;
 }
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
 
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 // 析构函数, delete 掉已定义的 vector
 void EnergyLossModule::Clear()
 {
@@ -31,10 +31,10 @@ void EnergyLossModule::Clear()
     }
   }
 }
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
 
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 Int_t EnergyLossModule::LoadEnergyLossFile(const char* file_name)
 {
   std::ifstream FileIn(file_name);
@@ -78,10 +78,10 @@ Int_t EnergyLossModule::LoadEnergyLossFile(const char* file_name)
 
   return NRead;
 }
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
 
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 Int_t EnergyLossModule::LoadRangeFile(const char* file_name)
 {
   std::ifstream FileIn(file_name);
@@ -128,10 +128,10 @@ Int_t EnergyLossModule::LoadRangeFile(const char* file_name)
 
   return NRead;
 }
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
 
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 Double_t EnergyLossModule::GetEnergyLoss(Int_t Z, Int_t A, Double_t Einc,
   const char* material, Double_t thickness_um, Int_t model)
 {
@@ -141,7 +141,7 @@ Double_t EnergyLossModule::GetEnergyLoss(Int_t Z, Int_t A, Double_t Einc,
   Double_t dThickness         =  dThicknessMin;
   Double_t Eresidual          =  Einc;
   Double_t ELoss              =  0;
-  Double_t mass_uma           =  NucData->GetMass_Z_A_uma(Z,A);
+  Double_t mass_uma           =  NucData->GetMass_Z_A_UMA(Z,A);
 
   if(LoadEnergyLossFile(Form("%sLISE_ELoss_Z%02d_A%02d_%s.dat", pathLISEInput.c_str(), Z, A, material))<=0) {
     printf("Error: information not present for Z=%d A=%d material=%s\n", Z, A, material);
@@ -163,10 +163,43 @@ Double_t EnergyLossModule::GetEnergyLoss(Int_t Z, Int_t A, Double_t Einc,
   }
   return ELoss;
 }
-//******************************************************************************
+
+//______________________________________________________________________________
+// 重载函数: F.H.Guan, July, 2021
+Double_t EnergyLossModule::GetEnergyLoss(Int_t Z, Int_t A, Double_t Einc,
+  const char* material, Double_t thickness_um, Double_t precision_MeV, Int_t model)
+{
+  Double_t dThicknessMin      =  thickness_um*1E-4;
+  Double_t IntegrateThickness =  0;
+  Double_t dThickness         =  dThicknessMin;
+  Double_t Eresidual          =  Einc;
+  Double_t ELoss              =  0;
+  Double_t mass_uma           =  NucData->GetMass_Z_A_UMA(Z,A);
+
+  if(LoadEnergyLossFile(Form("%sLISE_ELoss_Z%02d_A%02d_%s.dat", pathLISEInput.c_str(), Z, A, material))<=0) {
+    printf("Error: information not present for Z=%d A=%d material=%s\n", Z, A, material);
+    return -100;
+  }
+
+  for(;IntegrateThickness<thickness_um; IntegrateThickness+=dThickness) {
+    if(Eresidual <= Emin*mass_uma) {  //the particle stopped in the material
+      ELoss = Einc;
+      return ELoss;
+    }
+    if(SplineInterpolator[model].Deriv(Eresidual/mass_uma)!=0) {
+      dThickness = fmin(dThicknessMin,std::abs(precision_MeV/(SplineInterpolator[model].Eval(Eresidual/mass_uma)*SplineInterpolator[model].Deriv(Eresidual/mass_uma)))); //variable integration step with fixed precision
+    }
+    Double_t ELossStep = dThickness*SplineInterpolator[model].Eval(Eresidual/mass_uma);
+
+    ELoss     +=  ELossStep;
+    Eresidual -=  ELossStep;
+  }
+  return ELoss;
+}
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
 
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 Double_t EnergyLossModule::GetResidualEnergy(Int_t Z, Int_t A, Double_t Eloss,
   const char* material, Double_t thickness_um, Int_t model)
 {
@@ -174,16 +207,27 @@ Double_t EnergyLossModule::GetResidualEnergy(Int_t Z, Int_t A, Double_t Eloss,
   if(Einc < 0) return -1;  //the particle cannot lose this energy (energy greater than punch through energy)
   return Einc-Eloss;
 }
-//******************************************************************************
+
+//______________________________________________________________________________
+// 重载函数: F.H.Guan, July, 2021
+Double_t EnergyLossModule::GetResidualEnergy(Int_t Z, Int_t A, Double_t Eloss,
+  const char* material, Double_t thickness_um, Double_t precision_MeV, Int_t model)
+{
+  Double_t Einc = GetIncidentEnergy(Z,A,Eloss,material,thickness_um, precision_MeV, model);
+  if(Einc < 0) return -1;  //the particle cannot lose this energy (energy greater than punch through energy)
+  return Einc-Eloss;
+}
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
 
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 Double_t EnergyLossModule::GetIncidentEnergy(Int_t Z, Int_t A, Double_t Eloss,
   const char* material, Double_t thickness_um, Int_t model)
 {
   Double_t  EincStep = Eloss;
   Double_t  ElossStep;
   Double_t  dE = 10.;
+  Double_t  precision = 1E-4;;
 
   ElossStep = GetEnergyLoss(Z,A,EincStep,material,thickness_um, model);
 
@@ -199,18 +243,75 @@ Double_t EnergyLossModule::GetIncidentEnergy(Int_t Z, Int_t A, Double_t Eloss,
     if(ElossStep>Eloss && dE<0) {
       dE = std::abs(dE);
     }
-    if(std::abs(dE)<0.00001) break;
+    if(std::abs(dE)<precision) break;
   }
   return EincStep;
 }
-//******************************************************************************
+
+//______________________________________________________________________________
+Double_t EnergyLossModule::GetIncidentEnergy(Int_t Z, Int_t A, Double_t Eloss,
+  const char* material, Double_t thickness_um, Double_t precision_MeV, Int_t model)
+{
+  Double_t  EincStep = Eloss;
+  Double_t  ElossStep;
+  Double_t  dE = 10.;
+
+  ElossStep = GetEnergyLoss(Z,A,EincStep,material,thickness_um,precision_MeV,model);
+
+  if(ElossStep < Eloss) return -1; //the particle cannot lose this energy (energy greater than punch through energy)
+
+  for(;;EincStep+=dE)
+  {
+    ElossStep = GetEnergyLoss(Z,A,EincStep,material,thickness_um,precision_MeV,model);
+
+    if(ElossStep<Eloss) {
+      dE = -std::abs(dE)/2;
+    }
+    if(ElossStep>Eloss && dE<0) {
+      dE = std::abs(dE);
+    }
+    if(std::abs(dE)<precision_MeV) break;
+  }
+  return EincStep;
+}
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
 
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
+Double_t EnergyLossModule::GetEnergyLossFromResidualEnergy(Int_t Z, Int_t A, Double_t Eres,
+  const char* material, Double_t thickness_um, Double_t precision_MeV, Int_t model)
+{
+  Double_t Eloss, Eres_calc;
+  Double_t Einc = 0.01;
+  Double_t EincStep = 10.;
+
+  for (;;Einc+=EincStep) {
+    Eloss = GetEnergyLoss(Z,A,Einc,material,thickness_um,precision_MeV,model);
+    Eres_calc = Einc - Eloss;
+
+    if (Eres_calc<Eres) {
+      EincStep = std::abs(EincStep);
+      Einc += EincStep;
+    }
+    if (Eres_calc>Eres) {
+      EincStep = -std::abs(EincStep)/2;
+      Einc += EincStep;
+    }
+
+    if (std::abs(Eres_calc-Eres)<precision_MeV) break;
+  }
+  return Eloss;
+}
+
+
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
+
+
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 Double_t EnergyLossModule::GetRangeFromEnergy(Int_t Z, Int_t A, Double_t Einc,
   const char* material, Int_t model)
 {
-  Double_t mass_uma = NucData->GetMass_Z_A_uma(Z,A);
+  Double_t mass_uma = NucData->GetMass_Z_A_UMA(Z,A);
 
   if(LoadRangeFile(Form("%sLISE_Range_Z%02d_A%02d_%s.dat", pathLISEInput.c_str(), Z, A, material))<=0) {
     printf("Error: information not present for Z=%d A=%d material=%s\n", Z, A, material);
@@ -221,14 +322,14 @@ Double_t EnergyLossModule::GetRangeFromEnergy(Int_t Z, Int_t A, Double_t Einc,
     return RangeSplineInterpolator[model].Eval(Einc/mass_uma);
   } else return -1;
 }
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
 
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 Double_t EnergyLossModule::GetEnergyFromRange(Int_t Z, Int_t A, Double_t range,
   const char* material, Int_t model)
 {
-  Double_t mass_uma = NucData->GetMass_Z_A_uma(Z,A);
+  Double_t mass_uma = NucData->GetMass_Z_A_UMA(Z,A);
 
   if(LoadEnergyLossFile(Form("%sLISE_Range_Z%02d_A%02d_%s.dat", pathLISEInput.c_str(), Z, A, material))<=0) {
     printf("Error: information not present for Z=%d A=%d material=%s\n", Z, A, material);
@@ -239,10 +340,10 @@ Double_t EnergyLossModule::GetEnergyFromRange(Int_t Z, Int_t A, Double_t range,
     return mass_uma*EnergyFromRangeSplineInterpolator[model].Eval(range);
   } else return -1;
 }
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
 
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 void EnergyLossModule::DrawdEdx(Int_t Z, Int_t A, const char* material, Int_t model)
 {
   if(LoadEnergyLossFile(Form("%sLISE_ELoss_Z%02d_A%02d_%s.dat",pathLISEInput.c_str(), Z, A, material))<=0) return;
@@ -274,4 +375,4 @@ void EnergyLossModule::DrawdEdx(Int_t Z, Int_t A, const char* material, Int_t mo
 
   return;
 }
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo

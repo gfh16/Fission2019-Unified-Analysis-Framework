@@ -3,17 +3,17 @@
 using namespace std;
 
 
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 CSHINESiEnergyCali::CSHINESiEnergyCali()
 {}
 
 //__________________________________________
 CSHINESiEnergyCali::~CSHINESiEnergyCali()
 {}
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
 
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 ////////////////////////////////////////////////////////////////////////////////
 // 根据 pulser 刻度 与 alpha 能量点, 可求得硅条的能量刻度曲线 !
 //   说明1: pulser 刻度同一使用 "Height" 刻度的结果, 因为点较多、且均匀分布
@@ -207,10 +207,10 @@ void CSHINESiEnergyCali::PulserAndAlphaCali(const char* layertag, const char* pu
   }
   cans_end->Print(pathPDFEnd.c_str());
 }
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
 
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 ////////////////////////////////////////////////////////////////////////////////
 //  考察能量刻度曲线的零点与 pedestal 之间的差异.
 //  主要是检验两者之间是否存才某种关系: 比如, 两者是否在一定程度上相等?
@@ -411,10 +411,10 @@ void CSHINESiEnergyCali::EstimatePedestals(const char* layertag, const char* pul
     cans[i]->Print(pathPNGOutput[i].c_str());
   }
 }
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
 
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 ////////////////////////////////////////////////////////////////////////////////
 //  1.前面已经通过 Pulser(Height) 与 alpha 能量点拟合得到能量刻度曲线，发现用 peak1 与
 //    peak2 两点刻度的结果吻合得比较好，peak3的结果稍微有点偏差. 需要对刻度曲线参数进行评估.
@@ -676,10 +676,10 @@ void CSHINESiEnergyCali::EstimateParameterDistributions(const char* layertag, co
   }
   cans->Print(pathPNGOutput.c_str());
 }
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
 
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 ////////////////////////////////////////////////////////////////////////////////
 //
 // 硅条的能量刻度已基本完成，现在需要对异常的 Channels 进行评估、寻找原因.
@@ -1444,10 +1444,10 @@ void CSHINESiEnergyCali::Check_SSD4_L1S_CH00_CH15_AlphaCali00_04()
 
   cans_SSD4->Print(pathPNGOutput.c_str());
 }
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
 
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 ////////////////////////////////////////////////////////////////////////////////
 //  1. 能量刻度的准确性主要由三大因素决定:
 //            (1) 脉冲刻度的线性 (2)alpha 能量的准确性 (3)alpha 拟合道址的准确性
@@ -1866,10 +1866,10 @@ void CSHINESiEnergyCali::GetSiEnergyCaliPars(const char* layertag,const char* pu
     h = c * b;
   }
 }
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
 
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 ////////////////////////////////////////////////////////////////////////////////
 //  1. 能量刻度的准确性主要由三大因素决定:
 //            (1) 脉冲刻度的线性 (2)alpha 能量的准确性 (3)alpha 拟合道址的准确性
@@ -2100,10 +2100,10 @@ void CSHINESiEnergyCali::EstimateAlphaChannelEffOnFitPars(const char* layertag, 
   }
   cans_end->Print(pathPDFEnd.c_str());
 }
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
 
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 ////////////////////////////////////////////////////////////////////////////////
 //   确定硅条能量刻度的参数! 暂定两套参数:
 //   刻度参数1. peak1 与 peak2 拟合参数的平均: peak1 与 peak2 的参数稍微有些差异,可能是
@@ -2359,4 +2359,4 @@ void CSHINESiEnergyCali::FinallyDeterminedFitPars(const char* layertag, const ch
   }
   cans_end->Print(pathPDFOutputEnd.c_str());
 }
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo

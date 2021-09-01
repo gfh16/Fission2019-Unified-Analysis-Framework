@@ -2,17 +2,17 @@
 using namespace std;
 
 
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 CSHINEQualityCheck::CSHINEQualityCheck()
 {}
 
 //______________________________________________________________________________
 CSHINEQualityCheck::~CSHINEQualityCheck()
 {}
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
 
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 void CSHINEQualityCheck::QC_TreeReader(const char* pathlistfiles)
 {
   std::vector<string>  filenamelist;
@@ -46,10 +46,10 @@ void CSHINEQualityCheck::QC_TreeReader(const char* pathlistfiles)
     TreeReaderMethod(myChain, pathrootout, pathpdfout);
   }
 }
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
 
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 void CSHINEQualityCheck::QC_BranchAdress(const char* pathlistfiles)
 {
   std::vector<string>  filenamelist;
@@ -83,10 +83,10 @@ void CSHINEQualityCheck::QC_BranchAdress(const char* pathlistfiles)
     ReadBranchMethod(myChain, pathrootout, pathpdfout);
   }
 }
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
 
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 void CSHINEQualityCheck::QC_ReadHistToDraw(Int_t runnumber, const char* layertag)
 {
   std::string pathfilein(Form("%sMapRoot/MapFission2019_Kr_Pb%04d.root",PATHROOTFILESFOLDER,runnumber));
@@ -111,10 +111,10 @@ void CSHINEQualityCheck::QC_ReadHistToDraw(Int_t runnumber, const char* layertag
     cans->Update();
   }
 }
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
 
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 void CSHINEQualityCheck::TreeReaderMethod(TChain* mychain, const char* pathrootout, const char* pathpdfout)
 {
   Int_t  BIN_NUM   =  4096;
@@ -526,10 +526,10 @@ void CSHINEQualityCheck::TreeReaderMethod(TChain* mychain, const char* pathrooto
     FileOut->Close();
     return;
 }
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
 
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 void CSHINEQualityCheck::ReadBranchMethod(TChain* fChain, const char* pathrootout, const char* pathpdfout)
 {
     Int_t   BIN_NUM  =  4096;
@@ -875,20 +875,20 @@ void CSHINEQualityCheck::ReadBranchMethod(TChain* fChain, const char* pathrootou
     pathpdfout_end        += "]";
     Canvas_end->Print(pathpdfout_end);
 }
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
 
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 void CSHINEQualityCheck::WriteHistforSSD(TFile* FileOut, TH1D* hist[],  const Int_t numtel)
 {
   for(Int_t i=0; i<numtel; i++){
     FileOut->WriteTObject(hist[i], hist[i]->GetName());
   }
 }
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
 
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 void CSHINEQualityCheck::DrawSSD(const Char_t* pdfpath, TCanvas* canvas[],
   TH1D* hist[], const Int_t numtel)
 {
@@ -896,10 +896,10 @@ void CSHINEQualityCheck::DrawSSD(const Char_t* pdfpath, TCanvas* canvas[],
     canvas[i]->cd(); hist[i] ->Draw(); canvas[i] ->Print(pdfpath);
   }
 }
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
 
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 void CSHINEQualityCheck::DrawSSDLogy(const Char_t* pdfpath, TCanvas* canvas[],
   TH1D* hist[], const Int_t numtel)
 {
@@ -907,4 +907,4 @@ void CSHINEQualityCheck::DrawSSDLogy(const Char_t* pdfpath, TCanvas* canvas[],
     canvas[i]->cd(); gPad->SetLogy(); hist[i] ->Draw(); canvas[i] ->Print(pdfpath);
   }
 }
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo

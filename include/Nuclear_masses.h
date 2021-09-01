@@ -17,8 +17,8 @@ public:
   Nuclear_masses();
   ~Nuclear_masses();
 
-  double       GetMass_Z_A    (int Z, int A) const;
-  double       GetMass_Z_A_uma(int Z, int A) const;
+  double       GetMass_Z_A_MeV(int Z, int A) const;
+  double       GetMass_Z_A_UMA(int Z, int A) const;
 
 private:
   double     **fAtomic_masses; // fAtomic_masses[Z][A]

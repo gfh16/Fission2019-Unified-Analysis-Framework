@@ -22,6 +22,12 @@
 class CSHINELayerEvent
 {
 public:
+  CSHINELayerEvent();
+  ~CSHINELayerEvent();
+//ClassDef(CSHINELayerEvent, 1);
+
+
+public:
   // for L1S
   Int_t                  fL1SMulti;
   std::vector<Int_t>     fL1SSSDNum;      //[fL1SMulti]
@@ -49,9 +55,6 @@ public:
   std::vector<Int_t>     fSSDL2BMulti;  //[NUM_SSD]
   std::vector<Int_t>     fSSDCsIMulti;  //[NUM_SSD]
 
-  CSHINELayerEvent();
-  ~CSHINELayerEvent();
-//ClassDef(CSHINELayerEvent, 1);
 
   void Swap()
   {
@@ -74,6 +77,55 @@ public:
     std::vector<Int_t>().swap(fSSDL2BMulti);
     std::vector<Int_t>().swap(fSSDCsIMulti);
   }
+
+  ClassDef(CSHINELayerEvent,1);
+};
+
+//_________________________________________________
+class CSHINELayerEvent2
+{
+public:
+  CSHINELayerEvent2();
+  ~CSHINELayerEvent2();
+//ClassDef(CSHINELayerEvent, 1);
+
+
+public:
+  // for L1S
+  Int_t                  fL1SMulti[NUM_SSD];
+  std::vector<Int_t>     fL1SNumStrip[NUM_SSD]; //[fL1SMulti[NUM_SSD]]
+  std::vector<Double_t>  fL1SEMeV[NUM_SSD];     //[fL1SMulti[NUM_SSD]]
+  // for L2F
+  Int_t                  fL2FMulti[NUM_SSD];
+  std::vector<Int_t>     fL2FNumStrip[NUM_SSD]; //[fL2FMulti[NUM_SSD]]
+  std::vector<Double_t>  fL2FEMeV[NUM_SSD];     //[fL2FMulti[NUM_SSD]]
+  std::vector<Int_t>     fL2FTime[NUM_SSD];     //[fL2FMulti[NUM_SSD]]
+  // for L2B
+  Int_t                  fL2BMulti[NUM_SSD];
+  std::vector<Int_t>     fL2BNumStrip[NUM_SSD]; //[fL2BMulti[NUM_SSD]]
+  std::vector<Double_t>  fL2BEMeV[NUM_SSD];     //[fL2BMulti[NUM_SSD]]
+  // for CsI
+  Int_t                  fCsIMulti[NUM_SSD];
+  std::vector<Int_t>     fCsINum[NUM_SSD];     //[fCsIMulti[NUM_SSD]]
+  std::vector<Int_t>     fCsIECh[NUM_SSD];     //[fCsIMulti[NUM_SSD]]
+
+
+  void Swap()
+  {
+    for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+      std::vector<Int_t>().swap(fL1SNumStrip[ssdindex]);
+      std::vector<Double_t>().swap(fL1SEMeV[ssdindex]);
+      std::vector<Int_t>().swap(fL2FNumStrip[ssdindex]);
+      std::vector<Double_t>().swap(fL2FEMeV[ssdindex]);
+      std::vector<Int_t>().swap(fL2FTime[ssdindex]);
+      std::vector<Int_t>().swap(fL2BNumStrip[ssdindex]);
+      std::vector<Double_t>().swap(fL2BEMeV[ssdindex]);
+      std::vector<Int_t>().swap(fCsINum[ssdindex]);
+      std::vector<Int_t>().swap(fCsIECh[ssdindex]);
+    }
+  }
+
+  ClassDef(CSHINELayerEvent2,1);
 };
 //______________________________________________________________________________
 
@@ -83,8 +135,16 @@ public:
 // 该文件格式中的 tree 结构还不是最终的数据格式, 只是为了方便进一步的数据分析
 // 为了与 CSHINELayerEvent 中的变量区分开, CSHINETrackEvent 的变量同意用 "fG" 开头
 // 表示与 fGlobalMulti 有关的变量
+//
+// P.S. TrackEvent 是指, 只使用几何约束得到的候选径迹事件
+//
 class CSHINETrackEvent
 {
+public:
+  CSHINETrackEvent();
+  ~CSHINETrackEvent();
+
+
 public:
   Int_t                  fGlobalMulti;
   std::vector<Int_t>     fSSDGlobalMulti;   //[NUM_SSD]
@@ -98,8 +158,7 @@ public:
   std::vector<Int_t>     fGCsINum;          //[fGlobalMulti]
   std::vector<Int_t>     fGCsIECh;          //[fGlobalMulti]
 
-  CSHINETrackEvent();
-  ~CSHINETrackEvent();
+  std::vector<Int_t>     fGL2FTime;         //[fGlobalMulti]
 
   void Swap()
   {
@@ -113,65 +172,227 @@ public:
     std::vector<Double_t>().swap(fGL2BEMeV);
     std::vector<Int_t>().swap(fGCsINum);
     std::vector<Int_t>().swap(fGCsIECh);
+    std::vector<Int_t>().swap(fGL2FTime);
   }
+
+  ClassDef(CSHINETrackEvent,1);
 };
+
+
+
+//______________________________________________________________________________
+// GeoTrackEvent 是将四套硅条望远镜数据分别存在长度为 4 的 vector 数组里面
+// 这样方便在作径迹重建时数据读取
+//
+// P.S. TrackEvent 是指, 只使用几何约束得到的候选径迹事件
+//
+class CSHINETrackEvent2
+{
+public:
+  CSHINETrackEvent2();
+  ~CSHINETrackEvent2();
+
+public:
+
+  std::vector<Double_t>  fL1SNumStrip[NUM_SSD];
+  std::vector<Double_t>  fL1SEMeV[NUM_SSD];
+  std::vector<Double_t>  fL2FNumStrip[NUM_SSD];
+  std::vector<Double_t>  fL2FEMeV[NUM_SSD];
+  std::vector<Double_t>  fL2BNumStrip[NUM_SSD];
+  std::vector<Double_t>  fL2BEMeV[NUM_SSD];
+  std::vector<Double_t>  fCsINum[NUM_SSD];
+  std::vector<Double_t>  fCsIECh[NUM_SSD];
+  std::vector<Double_t>  fL1SEMeV_Corrected[NUM_SSD]; // for L1L2 track resconstruction
+
+  std::vector<Int_t>     fL2FTime[NUM_SSD];
+
+  std::vector<Int_t>     fCutTelNum[NUM_SSD];        // for L2L3 track resconstruction
+
+  void Swap()
+  {
+    for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+
+      std::vector<Double_t>().swap(fL1SNumStrip[ssdindex]);
+      std::vector<Double_t>().swap(fL2FNumStrip[ssdindex]);
+      std::vector<Double_t>().swap(fL2BNumStrip[ssdindex]);
+      std::vector<Double_t>().swap(fCsINum[ssdindex]);
+
+      std::vector<Double_t>().swap(fL1SEMeV[ssdindex]);
+      std::vector<Double_t>().swap(fL2FEMeV[ssdindex]);
+      std::vector<Double_t>().swap(fL2BEMeV[ssdindex]);
+      std::vector<Double_t>().swap(fCsIECh[ssdindex]);
+      std::vector<Double_t>().swap(fL1SEMeV_Corrected[ssdindex]);
+
+      std::vector<Int_t>().swap(fL2FTime[ssdindex]);
+
+      std::vector<Int_t>().swap(fCutTelNum[ssdindex]);
+    }
+  }
+
+  ClassDef(CSHINETrackEvent2,1);
+};
+
 
 
 //______________________________________________________________________________
 // 将四套硅条探测器合并起来讨论. 以总的粒子多重性为自变量记录事件信息.
-class CSHINEGlobalEvent
+class CSHINESSDEvent
 {
 public:
-  Int_t                    fGlobalMulti;
+  CSHINESSDEvent();
+  ~CSHINESSDEvent();
+  //ClassDef(CSHINESSDEvent, 1);
 
-  std::vector<Int_t>       fGSSDNum;
-  std::vector<Int_t>       fGL1SNumStrip;
-  std::vector<Double_t>    fGL1SEMeV;
-  std::vector<Int_t>       fGL2FNumStrip;
-  std::vector<Double_t>    fGL2FEMeV;
-  std::vector<Int_t>       fGL2BNumStrip;
-  std::vector<Double_t>    fGL2BEMeV;
-  std::vector<Int_t>       fGCsINum;
-  std::vector<Double_t>    fGCsIEMeV;
+public:
+  Int_t                    fGlobalMulti;       // 四套SSD总事件数
 
-  std::vector<Int_t>       fGL2FTime;
+  std::vector<Int_t>       fSSDGlobalMulti;    //[NUM_SSD],      每套SSD的事件数
+  std::vector<Int_t>       fGSSDNum;           //[fGlobalMulti], 每个事件点火的SSD编号
+  std::vector<Double_t>    fGL1SNumStrip;      //[fGlobalMulti], L1S 点火条的编号
+  std::vector<Double_t>    fGL1SEMeV;          //[fGlobalMulti], L1S 能量
+  std::vector<Double_t>    fGL1SEMeVCorrected; //[fGlobalMulti], L1S 能量,考虑L1的厚度修正
+  std::vector<Double_t>    fGL2FNumStrip;      //[fGlobalMulti], L2F 点火条的编号
+  std::vector<Double_t>    fGL2FEMeV;          //[fGlobalMulti], L2F 能量
+  std::vector<Double_t>    fGL2BNumStrip;      //[fGlobalMulti], L2B 点火条的编号
+  std::vector<Double_t>    fGL2BEMeV;          //[fGlobalMulti], L2B 能量
+  std::vector<Double_t>    fGCsINum;           //[fGlobalMulti], CsI 点火编号
+  std::vector<Double_t>    fGCsIEMeV;          //[fGlobalMulti], CsI 能量
 
-  std::vector<Double_t>    fTheta;
-  std::vector<Double_t>    fPhi;
-  std::vector<Double_t>    fTotKinEnergy;
-  std::vector<Double_t>    fCalKinEnergy;
-  std::vector<Double_t>    fMomentum;
-  std::vector<Double_t>    fBeta;
-  std::vector<Int_t>       fZ;
-  std::vector<Int_t>       fA;
+  std::vector<Int_t>       fGL2FTime;          //[fGlobalMulti], L2F 时间信号
 
-  CSHINEGlobalEvent();
-  ~CSHINEGlobalEvent();
-  //ClassDef(CSHINEGlobalEvent, 1);
+  std::vector<Double_t>    fDist;              //[fGlobalMulti], 粒子击中位置到靶点的距离
+  std::vector<Double_t>    fTheta;             //[fGlobalMulti], 极角(实验室系)
+  std::vector<Double_t>    fPhi;               //[fGlobalMulti], 方位角(实验室系)
+  std::vector<Double_t>    fTotEkinc;          //[fGlobalMulti], 入射粒子总动能 (MeV)
+  std::vector<Double_t>    fP;                 //[fGlobalMulti], 粒子动量大小 (MeV/c)
+  std::vector<Double_t>    fBeta;              //[fGlobalMulti], 粒子速度大小 (v/c)
+  std::vector<Int_t>       fZ;                 //[fGlobalMulti], 电荷数
+  std::vector<Int_t>       fA;                 //[fGlobalMulti], 质量数 (Int_t)
+  std::vector<Double_t>    fAd;                //[fGlobalMulti], 质量数 (Double_t)
+  std::vector<Double_t>    fPIDNum;            //[fGlobalMulti], PID 数
+
+  std::vector<Int_t>       fTrackModeID;     //[fGlobalMulti], 径迹模式 ID
+
 
   void Swap()
   {
+    std::vector<Int_t>().swap(fSSDGlobalMulti);
     std::vector<Int_t>().swap(fGSSDNum);
-    std::vector<Int_t>().swap(fGL1SNumStrip);
+    std::vector<Double_t>().swap(fGL1SNumStrip);
     std::vector<Double_t>().swap(fGL1SEMeV);
-    std::vector<Int_t>().swap(fGL2FNumStrip);
+    std::vector<Double_t>().swap(fGL1SEMeVCorrected);
+    std::vector<Double_t>().swap(fGL2FNumStrip);
     std::vector<Double_t>().swap(fGL2FEMeV);
-    std::vector<Int_t>().swap(fGL2BNumStrip);
+    std::vector<Double_t>().swap(fGL2BNumStrip);
     std::vector<Double_t>().swap(fGL2BEMeV);
-    std::vector<Int_t>().swap(fGCsINum);
+    std::vector<Double_t>().swap(fGCsINum);
     std::vector<Double_t>().swap(fGCsIEMeV);
 
     std::vector<Int_t>().swap(fGL2FTime);
 
+    std::vector<Double_t>().swap(fDist);
     std::vector<Double_t>().swap(fTheta);
     std::vector<Double_t>().swap(fPhi);
-    std::vector<Double_t>().swap(fTotKinEnergy);
-    std::vector<Double_t>().swap(fCalKinEnergy);
-    std::vector<Double_t>().swap(fMomentum);
+    std::vector<Double_t>().swap(fTotEkinc);
+    std::vector<Double_t>().swap(fP);
     std::vector<Double_t>().swap(fBeta);
     std::vector<Int_t>().swap(fZ);
     std::vector<Int_t>().swap(fA);
+    std::vector<Double_t>().swap(fAd);
+    std::vector<Double_t>().swap(fPIDNum);
+
+    std::vector<Int_t>().swap(fTrackModeID);
   }
+
+  ClassDef(CSHINESSDEvent,1);
+};
+//______________________________________________________________________________
+
+
+//______________________________________________________________________________
+class CSHINEPPACEvent
+{
+public:
+  CSHINEPPACEvent();
+  ~CSHINEPPACEvent();
+
+public:
+  Int_t                    fFFMulti;        // PPAC阵列中探测到的碎片总数
+  std::vector<Int_t>       fPPACFiredNum;   // [fFFMulti], 点火的PPAC编号
+  std::vector<Int_t>       fT;              // [fFFMulti], PPAC原始T信号
+  std::vector<Int_t>       fX1;             // [fFFMulti], PPAC原始X1信号
+  std::vector<Int_t>       fX2;             // [fFFMulti], PPAC原始X2信号
+  std::vector<Int_t>       fY1;             // [fFFMulti], PPAC原始Y1信号
+  std::vector<Int_t>       fY2;             // [fFFMulti], PPAC原始Y2信号
+  std::vector<Int_t>       fTE;             // [fFFMulti], PPAC阴极膜的能量信号
+
+  std::vector<Double_t>    fToF;            // [fFFMulti], 碎片的飞行时间(根据高频RF计算)
+
+  std::vector<Double_t>    fDist;           // [fFFMulti], 击中点到靶点的距离 [实验室系]
+  std::vector<Double_t>    fTheta;          // [fFFMulti], 击中点的 theta 角 [实验室系]
+  std::vector<Double_t>    fPhi;            // [fFFMulti], 击中点的 phi 角   [实验室系]
+
+  std::vector<Int_t>       fModeID;         // [fFFMulti]
+
+  Double_t                 fFoldingAngle12; // FF1 与 FF2 的折叠角
+  Double_t                 fFoldingAngle13; // FF1 与 FF3 的折叠角
+
+  void Swap()
+  {
+    std::vector<Int_t>().swap(fPPACFiredNum);
+    std::vector<Int_t>().swap(fT);
+    std::vector<Int_t>().swap(fX1);
+    std::vector<Int_t>().swap(fX2);
+    std::vector<Int_t>().swap(fY1);
+    std::vector<Int_t>().swap(fY2);
+    std::vector<Int_t>().swap(fTE);
+    std::vector<Double_t>().swap(fToF);
+    std::vector<Double_t>().swap(fDist);
+    std::vector<Double_t>().swap(fTheta);
+    std::vector<Double_t>().swap(fPhi);
+    std::vector<Int_t>().swap(fModeID);
+  }
+};
+//______________________________________________________________________________
+
+
+//______________________________________________________________________________
+// Fission2019实验中, Au-Si面垒望远镜用来测量弹性散射 (监测束流)
+// 只使用两叠层: Si + CsI
+class CSHINEAuSiTelEvent
+{
+public:
+  CSHINEAuSiTelEvent();
+  ~CSHINEAuSiTelEvent();
+
+public:
+  Int_t                  fGlobalMulti; // 总粒子多重性
+  std::vector<Int_t>     fTelNum;      // [fGlobalMulti], 点火探测器编号
+  std::vector<Int_t>     fL1Time;      // [fGlobalMulti], L1 (Si) 的时间信号
+  std::vector<Int_t>     fL1ESi;       // [fGlobalMulti], L1 (Si) 的能量信号
+  std::vector<Int_t>     fL2ECsI;      // [fGlobalMulti], L2 (CsI) 的能量信号
+
+  void Swap()
+  {
+    std::vector<Int_t>().swap(fTelNum);
+    std::vector<Int_t>().swap(fL1Time);
+    std::vector<Int_t>().swap(fL1ESi);
+    std::vector<Int_t>().swap(fL2ECsI);
+  }
+};
+//______________________________________________________________________________
+
+
+//______________________________________________________________________________
+class CSHINERFSignal
+{
+public:
+  CSHINERFSignal();
+  ~CSHINERFSignal();
+
+public:
+  Int_t     fRF1;   // 第1路高频信号
+  Int_t     fRF2;   // 第2路高频信号
 };
 //______________________________________________________________________________
 
@@ -192,11 +413,8 @@ public:
       Int_t* ssd3echl1s, Int_t* ssd3echl2f, Int_t* ssd3echl2b, Int_t* ssd3echcsi, Int_t* ssd3timel2f,
       Int_t* ssd4echl1s, Int_t* ssd4echl2f, Int_t* ssd4echl2b, Int_t* ssd4echcsi, Int_t* ssd4timel2f);
 
-  void BuildGlobalEvent(CSHINEGlobalEvent&, Int_t*, Int_t*, Int_t*, Int_t*);
 
-  void BuildSSDEventTree(Int_t fisrtrun, Int_t lastlun);
   void BuildLayerEventTree (Int_t fisrtrun, Int_t lastlun);
-  void BuildGlobalEventTree(Int_t fisrtrun, Int_t lastlun);
 
 private:
   Double_t     *fSiEChcutl1s;   // [NUM_SSD*NUM_STRIP]
@@ -219,15 +437,5 @@ private:
   CSHINESSDCalibratedData fCSHINESSDCalibratedData;
 };
 //______________________________________________________________________________
-
-
-//______________________________________________________________________________
-class CSHINESSDTelDataCaliSteps
-{
-  CSHINESSDTelDataCaliSteps();
-  ~CSHINESSDTelDataCaliSteps();
-
-
-};
 
 #endif

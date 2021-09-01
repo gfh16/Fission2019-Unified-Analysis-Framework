@@ -1,7 +1,7 @@
 #include "../include/CSHINEEvent.h"
 using namespace std;
 
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 // 定义 CSHINELayerEvent
 CSHINELayerEvent::CSHINELayerEvent() :
 fL1SMulti(0),
@@ -12,29 +12,73 @@ fCsIMulti(0)
 
 CSHINELayerEvent::~CSHINELayerEvent()
 {}
-//******************************************************************************
+
+//______________________________________________________________________________
+CSHINELayerEvent2::CSHINELayerEvent2()
+{}
+
+CSHINELayerEvent2::~CSHINELayerEvent2()
+{}
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
 
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 CSHINETrackEvent::CSHINETrackEvent()
 {}
 
 CSHINETrackEvent::~CSHINETrackEvent()
 {}
-//******************************************************************************
 
-
-//******************************************************************************
-// 定义 CSHINEGlobalEvent
-CSHINEGlobalEvent::CSHINEGlobalEvent() : fGlobalMulti(0)
+//______________________________________________________________________________
+CSHINETrackEvent2::CSHINETrackEvent2()
 {}
 
-CSHINEGlobalEvent::~CSHINEGlobalEvent()
+CSHINETrackEvent2::~CSHINETrackEvent2()
 {}
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
 
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
+// 定义 CSHINESSDEvent
+CSHINESSDEvent::CSHINESSDEvent() : fGlobalMulti(0)
+{}
+
+CSHINESSDEvent::~CSHINESSDEvent()
+{}
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
+
+
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
+// 定义 PPAC Event
+CSHINEPPACEvent::CSHINEPPACEvent() : fFFMulti(0)
+{}
+
+CSHINEPPACEvent::~CSHINEPPACEvent()
+{}
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
+
+
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
+// 定义 Au-Si 面垒望远镜事件
+CSHINEAuSiTelEvent::CSHINEAuSiTelEvent() : fGlobalMulti(0)
+{}
+
+CSHINEAuSiTelEvent::~CSHINEAuSiTelEvent()
+{}
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
+
+
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
+// 定义高频信号
+CSHINERFSignal::CSHINERFSignal()
+{}
+
+CSHINERFSignal::~CSHINERFSignal()
+{}
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
+
+
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 // 创建、填充 Event
 CSHINEBuildEvent::CSHINEBuildEvent()
 {
@@ -55,10 +99,10 @@ CSHINEBuildEvent::CSHINEBuildEvent()
 //______________________________________________________________________________
 CSHINEBuildEvent::~CSHINEBuildEvent()
 {}
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
 
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 // 刻度时发现, SSD2_L2F_CH[0] 与 SSD2_L2F_CH[1] 异常
 // 实验中发现, SSD4_L2F_CH[13] 与 SSD4_L2F_CH[14] 信号异常
 // 处理方法: 直接将以上 4 个 channel 扔掉
@@ -103,7 +147,6 @@ void CSHINEBuildEvent::LayerEvent(CSHINELayerEvent& layerevent, Int_t ssdindex,
         }
       }
     }
-
     // for L2B
     if (echl2b[chindex]>fSiEChcutl2b[ssdindex*NUM_STRIP+chindex]) {
       SSDL2BMulti++;
@@ -153,10 +196,10 @@ void CSHINEBuildEvent::BuildLayerEvent(CSHINELayerEvent& layerevent,
   }
 
 }
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
 
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 // 创建 LayerEvent 的树结构
 void CSHINEBuildEvent::BuildLayerEventTree(Int_t firstrun, Int_t lastrun)
 {
@@ -169,14 +212,14 @@ void CSHINEBuildEvent::BuildLayerEventTree(Int_t firstrun, Int_t lastrun)
   std::string L2BTag("L2B_E");
   std::string L3ATag("L3A_E");
 
-  std::string pathRootInputFolder(Form("%sMapRoot/", PATHROOTFILESFOLDER));
-  std::string pathEventTreeOutput(Form("%sCSHINEEvent/", PATHROOTFILESFOLDER));
-
   Int_t SSD_L2F_T[NUM_SSD][NUM_STRIP];
   Int_t SSD_L1S_E[NUM_SSD][NUM_STRIP];
   Int_t SSD_L2F_E[NUM_SSD][NUM_STRIP];
   Int_t SSD_L2B_E[NUM_SSD][NUM_STRIP];
   Int_t SSD_L3A_E[NUM_SSD][NUM_CSI];
+
+  std::string pathRootInputFolder(Form("%sMapRoot/", PATHROOTFILESFOLDER));
+  std::string pathEventTreeOutput(Form("%sCSHINEEvent/", PATHROOTFILESFOLDER));
 
   cout<<Form("Build Event for Run%04d-Run%04d", firstrun, lastrun)<<endl;
   TFile* file   = new TFile(Form("%sEventTree_Run%04d-Run%04d.root",pathEventTreeOutput.c_str(),
@@ -193,6 +236,7 @@ void CSHINEBuildEvent::BuildLayerEventTree(Int_t firstrun, Int_t lastrun)
     mychain->Add(Form("%sMapFission2019_Kr_Pb%04d.root",pathRootInputFolder.c_str(),i));
     //mychain->Add(Form("%sMapSSD_L2_AlphaCali%04d.root",pathRootInputFolder.c_str(),i));
   }
+
   mychain->SetBranchStatus("*",false);
 
   ReadFileModule readfile;
@@ -227,21 +271,4 @@ void CSHINEBuildEvent::BuildLayerEventTree(Int_t firstrun, Int_t lastrun)
   time.GetEndTime();
   time.GetRunTime();
 }
-//******************************************************************************
-
-
-//******************************************************************************
-void CSHINEBuildEvent::BuildSSDEventTree(Int_t fisrtrun, Int_t lastlun)
-{}
-
-//******************************************************************************
-
-
-//******************************************************************************
-void CSHINEBuildEvent::BuildGlobalEvent(CSHINEGlobalEvent&, Int_t*, Int_t*, Int_t*, Int_t*)
-{}
-
-
-//******************************************************************************
-void CSHINEBuildEvent::BuildGlobalEventTree(Int_t firstrun, Int_t lastrun)
-{}
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo

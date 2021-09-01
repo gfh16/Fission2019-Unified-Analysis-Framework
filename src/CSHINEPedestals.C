@@ -2,7 +2,7 @@
 using namespace std;
 
 
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 // 构造函数
 CSHINEPedestals::CSHINEPedestals()
 {}
@@ -10,10 +10,10 @@ CSHINEPedestals::CSHINEPedestals()
 //析构函数
 CSHINEPedestals::~CSHINEPedestals()
 {}
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
 
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 //                          -------------------------
 //                              自动提取 pedestals
 //                          ------------------------
@@ -129,10 +129,10 @@ void CSHINEPedestals::AutoFindPedestals(const char* layertag, const char* fileta
   fclose(FileOut);
   return;
 }
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
 
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 //    相比于自动寻峰, 手动拟合的主要优点是： 可以得到拟合的所有参数！
 //                          -----------------
 //                             自动寻峰步骤
@@ -295,10 +295,10 @@ void CSHINEPedestals::ClickToFindPedestals(const char* layertag, const char* fil
   delete c_end;
   return;
 }
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
 
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 //   考察不同的实验条件下，硅条的 Pedestals 的差异.
 //   考察的内容主要有:
 //    1. 考察两次 alpha 刻度的 pedestals 的差异
@@ -412,10 +412,10 @@ void CSHINEPedestals::EstimateErrorsOfPedestals(const char* layertag, const char
 
    cans->Print(pathPNGOut.c_str());
 }
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
 
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 //                        ------------------
 //                             手动选点
 //                        ------------------
@@ -464,4 +464,4 @@ void CSHINEPedestals::SetPoints(Int_t event, Int_t x, Int_t y, TObject* selected
   }
   return;
 }
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo

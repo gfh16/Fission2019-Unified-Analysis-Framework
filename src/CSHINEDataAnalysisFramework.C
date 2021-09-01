@@ -2,7 +2,7 @@
 using namespace std;
 
 
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 CSHINEDataAnalysisFramework::CSHINEDataAnalysisFramework()
 {
   cout<<"Enetr class CSHINEDataAnalysisFramework !"<<endl;
@@ -12,10 +12,10 @@ CSHINEDataAnalysisFramework::~CSHINEDataAnalysisFramework()
 {
   cout<<"Exit class CSHINEDataAnalysisFramework !"<<endl;
 }
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
 
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 void CSHINEDataAnalysisFramework::CSHINEDataAnalysis()
 {
   Int_t option      = 1;
@@ -148,11 +148,11 @@ void CSHINEDataAnalysisFramework::Step4_SSDAnalysisFramework()
 {
   SSDDataAnalysis.Step4_SSDDataAnalysisFramework();
 }
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
 
 
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 //______________________________________________________________________________
 void CSHINEDataAnalysisFramework::Step11_GenerateFileLists()
 {
@@ -289,4 +289,4 @@ void CSHINEDataAnalysisFramework::InputFileName(Int_t opt_filename, std::string&
   if (opt_filename == 1) { pathfolder = pathRawData;  pathfile = pathRawDataFilelist; }
   if (opt_filename == 2) { pathfolder = pathRootData; pathfile = pathRootDataFilelist; }
 }
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo

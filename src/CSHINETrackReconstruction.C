@@ -1,5 +1,12 @@
 #include "../include/CSHINETrackReconstruction.h"
-using namespace std;
+
+//__________________________________________________
+// 经过以上 CheckClusterSize_Si() 的分析, charge charing
+// 只需考虑 clustersize=2 的情况即可 ！
+Double_t CalcRatio(Double_t e1, Double_t e2)
+{
+  return (e1 > e2 ? e2/e1 : e1/e2);
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 //
@@ -17,22 +24,106 @@ using namespace std;
 ////////////////////////////////////////////////////////////////////////////////
 
 
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 CSHINETrackReconstruction::CSHINETrackReconstruction()
 {
-  //cout<<"Enter class CSHINETrackReconstruction!"<<endl;
+  fFirstRun = 150;
+  fLastRun  = 160;
+}
+
+CSHINETrackReconstruction::CSHINETrackReconstruction(Int_t firstrun, Int_t lastrun) : fChainLayerTree(0),fChainTrackTree(0)
+{
+  fFirstRun = firstrun;
+  fLastRun = lastrun;
+
+  std::string pathLayerRootFile(Form("%sCSHINEEvent/EventTree_Run%04d-Run%04d.root",PATHROOTFILESFOLDER,fFirstRun,fLastRun));
+  std::string pathTrackRootFile(Form("%sL1L2_TrackReconstructionEvent_Run%04d-Run%04d.root",PATHROOTFILESFOLDER,fFirstRun,fLastRun));
+
+  TTree* layertree = 0;
+  TTree* tracktree = 0;;
+  TFile* filelayertree = (TFile*) gROOT->GetListOfFiles()->FindObject(pathLayerRootFile.c_str());
+  TFile* filetracktree = (TFile*) gROOT->GetListOfFiles()->FindObject(pathTrackRootFile.c_str());
+
+  // for LayerEvent
+  if (!filelayertree || !filelayertree->IsOpen()) {
+    filelayertree = new TFile(pathLayerRootFile.c_str());
+  }
+  filelayertree->GetObject("LayerEvent",layertree);
+  InitLayerTree(layertree);
+
+  // for TrackEvent
+  if (!filetracktree || !filetracktree->IsOpen()) {
+    filetracktree = new TFile(pathTrackRootFile.c_str());
+  }
+  filetracktree->GetObject("TrackEvent",tracktree);
+  InitTrackTree(tracktree);
 }
 
 //______________________________________________________________________________
 CSHINETrackReconstruction::~CSHINETrackReconstruction()
 {
+  if (!fChainLayerTree) return;
+  if (!fChainTrackTree) return;
   //cout<<"Exit class CSHINETrackReconstruction!"<<endl;
 }
-//******************************************************************************
+
+// init layer tree
+void CSHINETrackReconstruction::InitLayerTree(TTree* tree)
+{
+  // Set branch addresses and branch pointers
+  if (!tree) return;
+  fChainLayerTree = tree;
+  fChainLayerTree->SetMakeClass(1);
+
+  fChainLayerTree->SetBranchAddress("LayerEvent.fL1SMulti",    &fLayerEvent.fL1SMulti);
+  fChainLayerTree->SetBranchAddress("LayerEvent.fL1SSSDNum",   &fLayerEvent.fL1SSSDNum);
+  fChainLayerTree->SetBranchAddress("LayerEvent.fL1SNumStrip", &fLayerEvent.fL1SNumStrip);
+  fChainLayerTree->SetBranchAddress("LayerEvent.fL1SEMeV",     &fLayerEvent.fL1SEMeV);
+  fChainLayerTree->SetBranchAddress("LayerEvent.fL2FMulti",    &fLayerEvent.fL2FMulti);
+  fChainLayerTree->SetBranchAddress("LayerEvent.fL2FSSDNum",   &fLayerEvent.fL2FSSDNum);
+  fChainLayerTree->SetBranchAddress("LayerEvent.fL2FNumStrip", &fLayerEvent.fL2FNumStrip);
+  fChainLayerTree->SetBranchAddress("LayerEvent.fL2FEMeV",     &fLayerEvent.fL2FEMeV);
+  fChainLayerTree->SetBranchAddress("LayerEvent.fL2FTime",     &fLayerEvent.fL2FTime);
+  fChainLayerTree->SetBranchAddress("LayerEvent.fL2BMulti",    &fLayerEvent.fL2BMulti);
+  fChainLayerTree->SetBranchAddress("LayerEvent.fL2BSSDNum",   &fLayerEvent.fL2BSSDNum);
+  fChainLayerTree->SetBranchAddress("LayerEvent.fL2BNumStrip", &fLayerEvent.fL2BNumStrip);
+  fChainLayerTree->SetBranchAddress("LayerEvent.fL2BEMeV",     &fLayerEvent.fL2BEMeV);
+  fChainLayerTree->SetBranchAddress("LayerEvent.fCsIMulti",    &fLayerEvent.fCsIMulti);
+  fChainLayerTree->SetBranchAddress("LayerEvent.fCsISSDNum",   &fLayerEvent.fCsISSDNum);
+  fChainLayerTree->SetBranchAddress("LayerEvent.fCsINum",      &fLayerEvent.fCsINum);
+  fChainLayerTree->SetBranchAddress("LayerEvent.fCsIECh",      &fLayerEvent.fCsIECh);
+  fChainLayerTree->SetBranchAddress("LayerEvent.fSSDL1SMulti", &fLayerEvent.fSSDL1SMulti);
+  fChainLayerTree->SetBranchAddress("LayerEvent.fSSDL2FMulti", &fLayerEvent.fSSDL2FMulti);
+  fChainLayerTree->SetBranchAddress("LayerEvent.fSSDL2BMulti", &fLayerEvent.fSSDL2BMulti);
+  fChainLayerTree->SetBranchAddress("LayerEvent.fSSDCsIMulti", &fLayerEvent.fSSDCsIMulti);
+}
+
+// init track tree
+void CSHINETrackReconstruction::InitTrackTree(TTree* tree)
+{
+  // Set branch addresses and branch pointers
+  if (!tree) return;
+  fChainTrackTree = tree;
+  fChainTrackTree->SetMakeClass(1);
+
+  fChainTrackTree->SetBranchAddress("TrackEvent.fGlobalMulti",   &fTrackEvent.fGlobalMulti);
+  fChainTrackTree->SetBranchAddress("TrackEvent.fSSDGlobalMulti",&fTrackEvent.fSSDGlobalMulti);
+  fChainTrackTree->SetBranchAddress("TrackEvent.fGSSDNum",       &fTrackEvent.fGSSDNum);
+  fChainTrackTree->SetBranchAddress("TrackEvent.fGL1SNumStrip",  &fTrackEvent.fGL1SNumStrip);
+  fChainTrackTree->SetBranchAddress("TrackEvent.fGL1SEMeV",      &fTrackEvent.fGL1SEMeV);
+  fChainTrackTree->SetBranchAddress("TrackEvent.fGL2FNumStrip",  &fTrackEvent.fGL2FNumStrip);
+  fChainTrackTree->SetBranchAddress("TrackEvent.fGL2FEMeV",      &fTrackEvent.fGL2FEMeV);
+  fChainTrackTree->SetBranchAddress("TrackEvent.fGL2BNumStrip",  &fTrackEvent.fGL2BNumStrip);
+  fChainTrackTree->SetBranchAddress("TrackEvent.fGL2BEMeV",      &fTrackEvent.fGL2BEMeV);
+  fChainTrackTree->SetBranchAddress("TrackEvent.fGCsINum",       &fTrackEvent.fGCsINum);
+  fChainTrackTree->SetBranchAddress("TrackEvent.fGCsIECh",       &fTrackEvent.fGCsIECh);
+  fChainTrackTree->SetBranchAddress("TrackEvent.fGL2FTime",      &fTrackEvent.fGL2FTime);
+}
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
 
 
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 //                            1. SSD 各层的多重性
 //
 // 计算每一层的多重数
@@ -55,11 +146,11 @@ Int_t CSHINETrackReconstruction::LayerMultiplicity(Int_t ssdindex, const char* l
   }
   return multi;
 }
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
 
 
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 //                          2. 确定粒子入射位置的约束条件
 //                        -----------------------------
 // 几何判据一: GeoConstraint_L3A_L2B
@@ -342,6 +433,13 @@ Bool_t CSHINETrackReconstruction::IsEneConstraint_L1S_L2F(Int_t ssdindex, Double
   return ((El1s/El2f>L1L2_ENERGYLOWCUT[ssdindex]) && (El1s/El2f<L1L2_ENERGYHIGHCUT[ssdindex]));
 }
 
+//
+Bool_t CSHINETrackReconstruction::IsEneConstraint_L1S_L2F(Double_t El1s, Double_t El2f, Double_t eratio)
+{
+  Bool_t index = kFALSE;
+  if ((El1s/El2f>0) && (El1s/El2f<eratio)) index = kTRUE;
+  return index;
+}
 
 // L1S_Surface <---> L2F_Surface
 Bool_t CSHINETrackReconstruction::IsEneConstraint_L1S_L2F(Int_t ssdindex, Int_t l1smulti,
@@ -359,6 +457,80 @@ Bool_t CSHINETrackReconstruction::IsEneConstraint_L1S_L2F(Int_t ssdindex, Int_t 
     }
   }
   return (index != 0) ? true : false;
+}
+
+
+//______________________________________________________________________________
+// 判断 EL1S 与使用 LISE 反推的 EL1S_LISE是否小于给定的误差
+Bool_t CSHINETrackReconstruction::IsEneConstraint_EL1S_ELISECalc(Double_t el1s, Double_t eLISE, Double_t errratio)
+{
+  Bool_t index;
+  if (TMath::Abs(el1s-eLISE)/el1s < errratio) { index = kTRUE; }
+  else { index = kFALSE; }
+
+  return index;
+}
+
+
+//______________________________________________________________________________
+// 判断一个给定的能量点是否在某个 bannana cut 内
+Bool_t CSHINETrackReconstruction::IsInsideABananaCut(std::vector<TCutG*> cut, Double_t e2, Double_t de1)
+{
+  Bool_t index = kFALSE;
+  for (Int_t particle=0; particle<cut.size(); particle++) {
+    if (cut[particle]->IsInside(e2, de1)) {
+      index = kTRUE;
+      break;
+    }
+  }
+  return index;
+}
+
+Bool_t CSHINETrackReconstruction::IsInsideABananaCut(std::vector<TCutG*> cut, std::string& cutname, Double_t e2, Double_t de1)
+{
+  Bool_t index = kFALSE;
+  for (Int_t particle=0; particle<cut.size(); particle++) {
+    if (cut[particle]->IsInside(e2, de1)) {
+      index = kTRUE;
+      cutname = cut[particle]->GetName();
+      break;
+    }
+  }
+  return index;
+}
+
+Bool_t CSHINETrackReconstruction::IsInsideABananaCut(std::vector<TCutG*> cut, BananaCut& mcut, Double_t e2, Double_t de1)
+{
+  Bool_t index = kFALSE;
+  for (Int_t particle=0; particle<cut.size(); particle++) {
+    if (cut[particle]->IsInside(e2, de1)) {
+      index = kTRUE;
+      mcut.CutName = cut[particle]->GetName();
+      GetZAFromBananaCutName(mcut.CutName,mcut.Cut_Z,mcut.Cut_A);
+      break;
+    }
+  }
+  return index;
+}
+
+//_______________________________
+// 以下函数与 cut 的命名方式有关:
+// cutname:
+// L1L2: h2_dE1_dE2_Tel00_Z01_A01
+// L2L3: h2_dE2_ECsI_Tel00_Z01
+void CSHINETrackReconstruction::GetZAFromBananaCutName(std::string cutname, Int_t& Z, Int_t& A)
+{
+  Int_t Z1, Z2, A1, A2;
+  Int_t len = std::strlen(cutname.c_str());
+
+  A2 = cutname[len-1] - '0';
+  A1 = cutname[len-2] - '0';
+
+  Z2 = cutname[len-5] - '0';
+  Z1 = cutname[len-6] - '0';
+
+  Z = Z1*10 + Z2;
+  A = A1*10 + A2;
 }
 
 //______________________________________________________________________________
@@ -384,11 +556,11 @@ Int_t CSHINETrackReconstruction::GetCsINumFromPixel(Int_t stripl2f, Int_t stripl
   }
   return csinum;
 }
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
 
 
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 // 创建函数 EstimateLayerMulti(Int_t fisrtrun, Int_t lastrun)
 void AddNumOfCount(Int_t multi, Int_t multicut, Int_t& emptyentries, Int_t& effentries, Int_t& entrieswithmulticut)
 {
@@ -507,8 +679,7 @@ void CSHINETrackReconstruction::EstimateLayerMulti(Int_t firstrun, Int_t lastrun
   Double_t* L2BEChCut[NPoints];
   Double_t* L3AEChCut[NPoints];
 
-  CSHINESSDCalibratedData     calidata[NPoints];
-  CSHINETrackReconstruction hitpattern;
+  CSHINESSDCalibratedData   calidata[NPoints];
 
   // 计算每一层的 EChCut
   for (Int_t np=0; np<NPoints; np++) {
@@ -537,10 +708,10 @@ void CSHINETrackReconstruction::EstimateLayerMulti(Int_t firstrun, Int_t lastrun
 
    for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
      for (Int_t np=0; np<NPoints; np++) {
-       L1SMulti[ssdindex][np] = hitpattern.LayerMultiplicity(ssdindex, L1STag.c_str(), SSD_L1S_E[ssdindex], L1SEChCut[np]);
-       L2FMulti[ssdindex][np] = hitpattern.LayerMultiplicity(ssdindex, L2FTag.c_str(), SSD_L2F_E[ssdindex], L2FEChCut[np]);
-       L2BMulti[ssdindex][np] = hitpattern.LayerMultiplicity(ssdindex, L2BTag.c_str(), SSD_L2B_E[ssdindex], L2BEChCut[np]);
-       L3AMulti[ssdindex][np] = hitpattern.LayerMultiplicity(ssdindex, L3ATag.c_str(), SSD_L3A_E[ssdindex], L3AEChCut[np]);
+       L1SMulti[ssdindex][np] = LayerMultiplicity(ssdindex, L1STag.c_str(), SSD_L1S_E[ssdindex], L1SEChCut[np]);
+       L2FMulti[ssdindex][np] = LayerMultiplicity(ssdindex, L2FTag.c_str(), SSD_L2F_E[ssdindex], L2FEChCut[np]);
+       L2BMulti[ssdindex][np] = LayerMultiplicity(ssdindex, L2BTag.c_str(), SSD_L2B_E[ssdindex], L2BEChCut[np]);
+       L3AMulti[ssdindex][np] = LayerMultiplicity(ssdindex, L3ATag.c_str(), SSD_L3A_E[ssdindex], L3AEChCut[np]);
 
        AddNumOfCount(L1SMulti[ssdindex][np], MultiCut, L1SNumOfEmptyEntries[ssdindex][np], L1SNumOfEffEntries[ssdindex][np], L1SNumOfEntriesWithMultiCut[ssdindex][np]);
        AddNumOfCount(L2FMulti[ssdindex][np], MultiCut, L2FNumOfEmptyEntries[ssdindex][np], L2FNumOfEffEntries[ssdindex][np], L2FNumOfEntriesWithMultiCut[ssdindex][np]);
@@ -1063,10 +1234,10 @@ void CSHINETrackReconstruction::EstimateLayerMulti(Int_t firstrun, Int_t lastrun
   time.GetEndTime();
   time.GetRunTime();
 }
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
 
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 void CSHINETrackReconstruction::GetPunchThroughEnergiesOfLCPs()
 {
   Int_t NUM_LCPs = 16;
@@ -1104,4 +1275,2872 @@ void CSHINETrackReconstruction::GetPunchThroughEnergiesOfLCPs()
   FileOut.close();
 }
 
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
+
+
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
+//______________________________________________________________________________
+//               径迹重建前的一些测试与检查
+//             ---------------------------
+// L2F-L2B 能量关联
+//------------------
+void CSHINETrackReconstruction::CheckL2BL2FEnergyCorrelation(Int_t ssdindex)
+{
+  gStyle->SetOptStat(1);
+  gStyle->SetPalette(1);
+
+  std::string pathL2BL2FEneCorr_Cut(Form("%sfigure_TrackReconstruction/SSD%d_L2BL2F_EneCorrCut_Run%04d-Run%04d.png", PATHFIGURESFOLDER,ssdindex+1,fFirstRun,fLastRun));
+  std::string pathL2BL2FEneCorr_EnEratioMeV(Form("%sfigure_TrackReconstruction/SSD%d_L2BL2F_EneCorrEnEratioMeV_Run%04d-Run%04d.png", PATHFIGURESFOLDER,ssdindex+1,fFirstRun,fLastRun));
+  std::string pathL2BL2FEneCorr_EnEratioPer(Form("%sfigure_TrackReconstruction/SSD%d_L2BL2F_EneCorrEnEratioPer_Run%04d-Run%04d.png", PATHFIGURESFOLDER,ssdindex+1,fFirstRun,fLastRun));
+
+  Double_t L2FL2B_EnergyDiff_MeV;
+  Double_t L2FL2B_EnergyDiff_Per;
+
+  Double_t EnergyCut[4] = {0.05, 0.10, 0.15, 0.20};
+  TH2D* hist_L2B_L2F[4];
+  for (Int_t i=0; i<4; i++) {
+    hist_L2B_L2F[i] = new TH2D(Form("hist_L2B_L2F_Cut%.2lf",EnergyCut[i]),Form("hist_L2B_L2F_Cut%.2lf",EnergyCut[i]),3000,0.,300.,3000,0.,300.);
+  }
+
+  TH2D* hist2_EnergyDifference_MeV = new TH2D("hist2_L2FL2B_EnEratio_MeV","",3000,0.,300.,1000,-50.,50.);
+  TH2D* hist2_EnergyDifference_Per = new TH2D("hist2_L2FL2B_EnEratio_Per","",3000,0.,300.,600, -30., 30.);
+
+  Long64_t nentries = fChainLayerTree->GetEntriesFast();
+  cout<<"nentries = "<<nentries<<endl;
+
+  for (Long64_t ientry=0; ientry<nentries; ientry++) {
+
+    fChainLayerTree->GetEntry(ientry);
+    timeper.PrintPercentageAndRemainingTime(ientry, nentries);
+
+    if (fLayerEvent.fSSDCsIMulti[ssdindex]==0) continue;
+    if (fLayerEvent.fSSDL2BMulti[ssdindex]==0) continue;
+    if (fLayerEvent.fSSDL2FMulti[ssdindex]==0) continue;
+    if (fLayerEvent.fSSDL1SMulti[ssdindex]==0) continue;
+
+    for (Int_t i=0; i<4; i++) {
+      for (Int_t l2b=0; l2b<fLayerEvent.fL2BMulti; l2b++) {
+        for (Int_t l2f=0; l2f<fLayerEvent.fL2FMulti; l2f++) {
+          if (IsGeoConstraint_L3A_L2B(ssdindex, fLayerEvent.fCsIMulti, fLayerEvent.fCsINum.data(), fLayerEvent.fCsISSDNum.data(),fLayerEvent.fL2BNumStrip[l2b], fLayerEvent.fL2BSSDNum[l2b]) &&
+              IsGeoConstraint_L3A_L2F(ssdindex, fLayerEvent.fCsIMulti, fLayerEvent.fCsINum.data(), fLayerEvent.fCsISSDNum.data(),fLayerEvent.fL2FNumStrip[l2f], fLayerEvent.fL2FSSDNum[l2f]) &&
+              IsGeoConstraint_L2B_L1S(ssdindex, fLayerEvent.fL2BNumStrip[l2b], fLayerEvent.fL2BSSDNum[l2b],fLayerEvent.fL1SMulti, fLayerEvent.fL1SNumStrip.data(), fLayerEvent.fL1SSSDNum.data()) &&
+              IsEneConstraint_L2B_L2F(fLayerEvent.fL2BEMeV[l2b], fLayerEvent.fL2FEMeV[l2f], EnergyCut[i]))
+          {
+            hist_L2B_L2F[i]->Fill(fLayerEvent.fL2FEMeV[l2f], fLayerEvent.fL2BEMeV[l2b]);
+
+            L2FL2B_EnergyDiff_MeV = fLayerEvent.fL2BEMeV[l2b] - fLayerEvent.fL2FEMeV[l2f];
+            hist2_EnergyDifference_MeV->Fill(fLayerEvent.fL2FEMeV[l2f], L2FL2B_EnergyDiff_MeV);
+
+            L2FL2B_EnergyDiff_Per = L2FL2B_EnergyDiff_MeV/fLayerEvent.fL2FEMeV[l2f] * 100; // %
+            hist2_EnergyDifference_Per->Fill(fLayerEvent.fL2FEMeV[l2f], L2FL2B_EnergyDiff_Per);
+          }
+        }
+      }
+    }
+  }
+
+  TF1* func_L2B_eq_L2F = new TF1("func", "x", 0, 300);
+  func_L2B_eq_L2F->SetLineColor(kRed);
+  func_L2B_eq_L2F->SetLineStyle(7);
+  func_L2B_eq_L2F->SetLineWidth(4);
+
+  //________________________________________________________
+  // 画出不同 EnergyCut 下的 L2B_L2F 能量关联
+  TCanvas* cans = new TCanvas("cans", "cans", 1000, 1000);
+  cans->Divide(2,2);
+  for (Int_t i=0; i<4; i++) {
+    cans->cd(i+1);
+    gPad->SetLeftMargin(0.15);
+    gPad->SetBottomMargin(0.12);
+    gPad->SetTopMargin(0.12);
+    hist_L2B_L2F[i]->GetXaxis()->SetTitle(Form("SSD%d_EL2F (MeV)", ssdindex+1));
+    hist_L2B_L2F[i]->GetXaxis()->CenterTitle(1);
+    hist_L2B_L2F[i]->GetXaxis()->SetTitleSize(0.05);
+    hist_L2B_L2F[i]->GetXaxis()->SetLabelSize(0.05);
+
+    hist_L2B_L2F[i]->GetYaxis()->SetTitle(Form("SSD%d_EL2B (MeV)", ssdindex+1));
+    hist_L2B_L2F[i]->GetYaxis()->CenterTitle(1);
+    hist_L2B_L2F[i]->GetYaxis()->SetTitleSize(0.05);
+    hist_L2B_L2F[i]->GetYaxis()->SetLabelSize(0.05);
+
+    hist_L2B_L2F[i]->Draw("COL");
+    func_L2B_eq_L2F->Draw("SAME");
+    gPad->Update();
+    TPaveStats* st = (TPaveStats*)hist_L2B_L2F[i]->GetListOfFunctions()->FindObject("stats");
+    st->SetX1NDC(0.55);
+    st->SetX2NDC(0.85);
+    st->SetY1NDC(0.15);
+    st->SetY2NDC(0.45);
+    gPad->Modified();
+  }
+  cans->Print(pathL2BL2FEneCorr_Cut.c_str());
+
+  //_______________________________________________________________
+  // 画出实验数据中的 EL2B-EL2F(MeV)的分布
+  TCanvas* c_diff = new TCanvas("c_diff", "c_diff", 1200, 600);
+  c_diff->Divide(2,1);
+  c_diff->cd(1);
+  gPad->SetLogz();
+  gPad->SetLeftMargin(0.15);
+  gPad->SetBottomMargin(0.12);
+  gPad->SetRightMargin(0.15);
+  hist2_EnergyDifference_MeV->GetXaxis()->SetTitle(Form("SSD%d_EL2F (MeV)", ssdindex+1));
+  hist2_EnergyDifference_MeV->GetXaxis()->CenterTitle(1);
+  hist2_EnergyDifference_MeV->GetXaxis()->SetTitleSize(0.05);
+  hist2_EnergyDifference_MeV->GetXaxis()->SetLabelSize(0.05);
+
+  hist2_EnergyDifference_MeV->GetYaxis()->SetTitle("EL2B - EL2F (MeV)");
+  hist2_EnergyDifference_MeV->GetYaxis()->CenterTitle(1);
+  hist2_EnergyDifference_MeV->GetYaxis()->SetTitleSize(0.05);
+  hist2_EnergyDifference_MeV->GetYaxis()->SetLabelSize(0.05);
+
+  hist2_EnergyDifference_MeV->GetZaxis()->SetLabelSize(0.05);
+
+  hist2_EnergyDifference_MeV->Draw("COLZ");
+  gPad->Update();
+  TPaveStats* st = (TPaveStats*)hist2_EnergyDifference_MeV->GetListOfFunctions()->FindObject("stats");
+  st->SetX1NDC(0.16);
+  st->SetX2NDC(0.37);
+  st->SetY1NDC(0.65);
+  st->SetY2NDC(0.88);
+  st->Draw("SAME");
+  gPad->Modified();
+
+  TH2D* hist_clone = (TH2D*)hist2_EnergyDifference_MeV->Clone();
+  TPad* subpad = new TPad("subpad", "", 0.15, 0.125, 0.42, 0.33);
+  subpad->Draw();
+  subpad->cd();
+  gPad->SetFillStyle(0);
+  gPad->SetLogz();
+  gStyle->SetOptStat(0);
+  hist_clone->GetXaxis()->SetTitle("");
+  hist_clone->GetXaxis()->SetRangeUser(0., 50.);
+  hist_clone->GetXaxis()->SetNdivisions(0);
+  hist_clone->GetYaxis()->SetTitle("");
+  hist_clone->GetYaxis()->SetRangeUser(-10, 10.);
+  hist_clone->GetYaxis()->SetNdivisions(0);
+  hist_clone->Draw("COL");
+
+  // projectionY
+  c_diff->cd(2);
+  gPad->SetBottomMargin(0.12);
+  gPad->SetLeftMargin(0.15);
+  gPad->SetRightMargin(0.15);
+  TH1D* hist1_EnergyDifference_MeV = (TH1D*)hist2_EnergyDifference_MeV->ProjectionY();
+  hist1_EnergyDifference_MeV->GetXaxis()->SetRangeUser(-20.,10);
+  hist1_EnergyDifference_MeV->GetYaxis()->SetLabelSize(0.05);
+  hist1_EnergyDifference_MeV->Draw();
+
+  c_diff->Print(pathL2BL2FEneCorr_EnEratioMeV.c_str());
+
+
+  //_______________________________________________________________
+  // 画出实验数据中的 EL2B-EL2F(%)的分布
+  TCanvas* c_per = new TCanvas("c_per", "c_per", 1200, 600);
+  c_per->Divide(2,1);
+  c_per->cd(1);
+  gPad->SetLogz();
+  gPad->SetLeftMargin(0.15);
+  gPad->SetBottomMargin(0.12);
+  gPad->SetRightMargin(0.15);
+  hist2_EnergyDifference_Per->GetXaxis()->SetTitle(Form("SSD%d_EL2F (MeV)", ssdindex+1));
+  hist2_EnergyDifference_Per->GetXaxis()->CenterTitle(1);
+  hist2_EnergyDifference_Per->GetXaxis()->SetTitleSize(0.05);
+  hist2_EnergyDifference_Per->GetXaxis()->SetLabelSize(0.05);
+  hist2_EnergyDifference_Per->GetXaxis()->SetNdivisions(508);
+  hist2_EnergyDifference_Per->GetYaxis()->SetTitle("(EL2B - EL2F)/EL2F (%)");
+  hist2_EnergyDifference_Per->GetYaxis()->CenterTitle(1);
+  hist2_EnergyDifference_Per->GetYaxis()->SetTitleSize(0.05);
+  hist2_EnergyDifference_Per->GetYaxis()->SetLabelSize(0.05);
+  hist2_EnergyDifference_Per->GetZaxis()->SetLabelSize(0.05);
+  hist2_EnergyDifference_Per->Draw("COLZ");
+
+  TH2D* histper_clone = (TH2D*)hist2_EnergyDifference_Per->Clone();
+  TPad* subpad_per = new TPad("subpad_per", "", 0.45, 0.45, 0.88, 0.93);
+  subpad_per->Draw();
+  subpad_per->cd();
+  gPad->SetLogz();
+  gPad->SetFillStyle(0);
+  gStyle->SetOptStat(0);
+  histper_clone->GetXaxis()->SetTitle("");
+  histper_clone->GetXaxis()->SetRangeUser(0., 50.);
+  histper_clone->GetXaxis()->SetNdivisions(0);
+  histper_clone->GetYaxis()->SetTitle("");
+  histper_clone->GetYaxis()->SetRangeUser(-20, 20.);
+  histper_clone->GetYaxis()->SetNdivisions(0);
+  histper_clone->Draw("COL");
+
+  // projectionY
+  TH1D* hist1_EnergyDifference_Per = (TH1D*)hist2_EnergyDifference_Per->ProjectionY();
+  c_per->cd(2);
+  gPad->SetLeftMargin(0.15);
+  gPad->SetBottomMargin(0.12);
+  gPad->SetRightMargin(0.15);
+  hist1_EnergyDifference_Per->GetYaxis()->SetLabelSize(0.05);
+  hist1_EnergyDifference_Per->Draw();
+
+  c_per->Print(pathL2BL2FEneCorr_EnEratioPer.c_str());
+}
+
+//______________________________________________________________________________
+// 画出 L2B_L2F 能量关联的效果
+void CSHINETrackReconstruction::DetermineL2BL2FEnergyErrRatio()
+{
+  gStyle->SetOptStat(1);
+  gStyle->SetPalette(1);
+
+  std::string pathL2BL2FEnergyCut(Form("%sfigure_TrackReconstruction/SSD_L2BL2F_EnergyCut_Run%04d-Run%04d.png",PATHFIGURESFOLDER,fFirstRun,fLastRun));
+
+  TH2D* hist_L2B_L2F[4];
+  for (Int_t i=0; i<4; i++) {
+    hist_L2B_L2F[i] = new TH2D(Form("SSD%d_L2BL2F_EnergyCut",i+1),Form("SSD%d_L2BL2F_EnergyCut",i+1),3000,0.,300.,3000,0.,300.);
+  }
+
+  Long64_t nentries = fChainLayerTree->GetEntriesFast();
+  cout<<"nentries = "<<nentries<<endl;
+
+  for (Long64_t ientry=0; ientry<nentries;ientry++) {
+
+    fChainLayerTree->GetEntry(ientry);
+    timeper.PrintPercentageAndRemainingTime(ientry, nentries);
+
+    for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+      if (fLayerEvent.fSSDCsIMulti[ssdindex]==0) continue;
+      if (fLayerEvent.fSSDL2BMulti[ssdindex]==0) continue;
+      if (fLayerEvent.fSSDL2FMulti[ssdindex]==0) continue;
+      if (fLayerEvent.fSSDL1SMulti[ssdindex]==0) continue;
+
+      for (Int_t l2b=0; l2b<fLayerEvent.fL2BMulti; l2b++) {
+        for (Int_t l2f=0; l2f<fLayerEvent.fL2FMulti; l2f++) {
+          if (IsGeoConstraint_L3A_L2B(ssdindex, fLayerEvent.fCsIMulti, fLayerEvent.fCsINum.data(), fLayerEvent.fCsISSDNum.data(),
+                                      fLayerEvent.fL2BNumStrip[l2b], fLayerEvent.fL2BSSDNum[l2b]) &&
+              IsGeoConstraint_L3A_L2F(ssdindex, fLayerEvent.fCsIMulti, fLayerEvent.fCsINum.data(), fLayerEvent.fCsISSDNum.data(),
+                                      fLayerEvent.fL2FNumStrip[l2f], fLayerEvent.fL2FSSDNum[l2f]) &&
+              IsGeoConstraint_L2B_L1S(ssdindex, fLayerEvent.fL2BNumStrip[l2b], fLayerEvent.fL2BSSDNum[l2b],
+                                      fLayerEvent.fL1SMulti, fLayerEvent.fL1SNumStrip.data(), fLayerEvent.fL1SSSDNum.data()) &&
+              IsEneConstraint_L2B_L2F(ssdindex, fLayerEvent.fL2BEMeV[l2b], fLayerEvent.fL2FEMeV[l2f]))
+          {
+            hist_L2B_L2F[ssdindex]->Fill(fLayerEvent.fL2FEMeV[l2f], fLayerEvent.fL2BEMeV[l2b]);
+          }
+        }
+      }
+    }
+  }
+
+  TF1* func_L2B_eq_L2F = new TF1("func", "x", 0, 300);
+  func_L2B_eq_L2F->SetLineColor(kRed);
+  func_L2B_eq_L2F->SetLineStyle(7);
+  func_L2B_eq_L2F->SetLineWidth(4);
+
+  //________________________________________________________
+  // 画出不同 EnergyCut 下的 L2B_L2F 能量关联
+  TCanvas* cans = new TCanvas("cans", "cans", 1000, 1000);
+  cans->Divide(2,2);
+
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    cans->cd(ssdindex+1);
+    gPad->SetLeftMargin(0.15);
+    gPad->SetBottomMargin(0.12);
+    gPad->SetTopMargin(0.12);
+    hist_L2B_L2F[ssdindex]->GetXaxis()->SetTitle(Form("SSD%d_EL2F (MeV)", ssdindex+1));
+    hist_L2B_L2F[ssdindex]->GetXaxis()->CenterTitle(1);
+    hist_L2B_L2F[ssdindex]->GetXaxis()->SetTitleSize(0.05);
+    hist_L2B_L2F[ssdindex]->GetXaxis()->SetLabelSize(0.05);
+
+    hist_L2B_L2F[ssdindex]->GetYaxis()->SetTitle(Form("SSD%d_EL2B (MeV)", ssdindex+1));
+    hist_L2B_L2F[ssdindex]->GetYaxis()->CenterTitle(1);
+    hist_L2B_L2F[ssdindex]->GetYaxis()->SetTitleSize(0.05);
+    hist_L2B_L2F[ssdindex]->GetYaxis()->SetLabelSize(0.05);
+
+    hist_L2B_L2F[ssdindex]->Draw("COL");
+    func_L2B_eq_L2F->Draw("SAME");
+    gPad->Update();
+    TPaveStats* st1 = (TPaveStats*)hist_L2B_L2F[ssdindex]->GetListOfFunctions()->FindObject("stats");
+    st1->SetX1NDC(0.55);
+    st1->SetX2NDC(0.85);
+    st1->SetY1NDC(0.15);
+    st1->SetY2NDC(0.45);
+    gPad->Modified();
+  }
+  cans->Print(pathL2BL2FEnergyCut.c_str());
+}
+
+
+//______________________________________________________________________________
+// L1S-L2F 能量关联
+//------------------
+// LISE++ 计算不同粒子在每套硅望远镜两层硅中的能损
+void CSHINETrackReconstruction::CheckEnergyLossL1L2()
+{
+  Double_t Eloss_L1[16];
+  Double_t Eloss_L2[16];
+  Double_t Eres_L2 [16];
+
+  for (Int_t issd=0; issd<4; issd++) {
+    std::string pathDataOut(Form("%sdata_Test_Multi/SSD%d_L1L2ELossTest.dat", PATHDATAFOLDER,issd+1));
+    ofstream fileout(pathDataOut.c_str());
+    fileout<<setw(5)<<"Z"<<setw(5)<<"A"<<setw(10)<<"Einc(MeV)"<<setw(12)<<"ELossL1"
+           <<setw(12)<<"ELossL2"<<setw(12)<<"ERes"<<endl;
+
+    for (Int_t ip=0; ip<16; ip++) {
+      for (Double_t einc=0.; einc<400.; einc+=0.1) {
+        Eloss_L1[ip] = fLISEModule.GetEnergyLoss(Z_A_LCPs[ip][0], Z_A_LCPs[ip][1], einc, "Si", SIL1THICKNESS[issd]*1000, 1);
+        Eloss_L2[ip] = fLISEModule.GetEnergyLoss(Z_A_LCPs[ip][0], Z_A_LCPs[ip][1], einc-Eloss_L1[ip], "Si", SIL2THICKNESS[issd]*1000, 1);
+        Eres_L2 [ip] = einc - Eloss_L1[ip] - Eloss_L2[ip];
+        fileout<<setw(5)<<Z_A_LCPs[ip][0]<<setw(5)<<Z_A_LCPs[ip][1]<<setw(10)<<einc
+               <<setw(12)<<Eloss_L1[ip]<<setw(12)<<Eloss_L2[ip]<<setw(12)<<Eres_L2[ip]<<endl;
+
+        cout<<setw(5)<<Z_A_LCPs[ip][0]<<setw(5)<<Z_A_LCPs[ip][1]<<setw(10)<<einc
+            <<setw(12)<<Eloss_L1[ip]<<setw(12)<<Eloss_L2[ip]<<setw(12)<<Eres_L2[ip]<<endl;
+      }
+    }
+  }
+}
+
+
+//______________________________________________________________________________
+// 提取 LISE++ 计算的数据, 画出 DE-E Plot
+// 目的: 为了确定粒子穿透 L2 到达 L3 时, EL1 与 EL2 的比值
+void CSHINETrackReconstruction::CheckEnergyLossL1L2_Relationship(Bool_t punchthrough)
+{
+  gStyle->SetOptStat(0);
+
+  std::string pathE1E2Ratio = Form("%sfigure_TrackReconstruction/SSD_E1E2Ratio.png",PATHFIGURESFOLDER);
+  std::string pathE1E2Correlation;
+  if (punchthrough) pathE1E2Correlation = Form("%sfigure_TrackReconstruction/SSD_E1E2Correlation_punchthrough.png",PATHFIGURESFOLDER);
+  else pathE1E2Correlation = Form("%sfigure_TrackReconstruction/SSD_E1E2Correlation.png",PATHFIGURESFOLDER);
+
+  std::vector<Double_t> dE1_SSD1;
+  std::vector<Double_t> dE2_SSD1;
+  std::vector<Double_t> dE1_SSD2;
+  std::vector<Double_t> dE2_SSD2;
+  std::vector<Double_t> dE1_SSD3;
+  std::vector<Double_t> dE2_SSD3;
+  std::vector<Double_t> dE1_SSD4;
+  std::vector<Double_t> dE2_SSD4;
+
+  std::vector<Double_t> EL1EL2Ratio_SSD1;
+  std::vector<Double_t> EL1EL2Ratio_SSD2;
+  std::vector<Double_t> EL1EL2Ratio_SSD3;
+  std::vector<Double_t> EL1EL2Ratio_SSD4;
+
+  std::string pathSSDELossInput[4];
+  for (Int_t i=0; i<4; i++) {
+    pathSSDELossInput[i] = Form("%sdata_Test_Multi/SSD%d_L1L2ELossTest.dat", PATHDATAFOLDER,i+1);
+
+    ifstream in;
+    in.open(pathSSDELossInput[i].c_str());
+    if(!in.is_open()) {
+      printf("Error: file %s not found\n",pathSSDELossInput[i].c_str());
+      return NULL;
+    }
+    std::vector<Double_t> dE1;
+    std::vector<Double_t> dE2;
+    std::vector<Double_t> EL1EL2Ratio;
+    while(in.good()) {
+      // 按行读取数据
+      std::string LineRead;
+      std::getline(in, LineRead);
+      LineRead.assign(LineRead.substr(0, LineRead.find('*')));
+      if(LineRead.empty()) continue;
+      if(LineRead.find_first_not_of(' ')==std::string::npos) continue;
+      std::istringstream LineStream(LineRead);
+
+      Int_t Z;
+      Int_t A;
+      Double_t Einc;
+      Double_t dEL1;
+      Double_t dEL2;
+      Double_t Eres;
+      LineStream>>Z>>A>>Einc>>dEL1>>dEL2>>Eres;
+      if (punchthrough==kTRUE && Eres==0) continue;  // 只考虑能穿透第二层硅的情况
+      dE1.push_back(dEL1);
+      dE2.push_back(dEL2);
+      EL1EL2Ratio.push_back(dEL1/dEL2 * 100);
+    }
+    if (i==0) { dE1_SSD1=dE1;  dE2_SSD1=dE2; EL1EL2Ratio_SSD1=EL1EL2Ratio; };
+    if (i==1) { dE1_SSD2=dE1;  dE2_SSD2=dE2; EL1EL2Ratio_SSD2=EL1EL2Ratio; };
+    if (i==2) { dE1_SSD3=dE1;  dE2_SSD3=dE2; EL1EL2Ratio_SSD3=EL1EL2Ratio; };
+    if (i==3) { dE1_SSD4=dE1;  dE2_SSD4=dE2; EL1EL2Ratio_SSD4=EL1EL2Ratio; };
+  }
+
+  TH2D* hist2_SSD_dEE[NUM_SSD];
+  TH1D* hist1_SSD_Eratio[NUM_SSD];
+  for (Int_t ssd=0; ssd<NUM_SSD; ssd++) {
+    hist2_SSD_dEE[ssd] = new TH2D(Form("hist2_SSD%d_DEE_LISE++", ssd+1), Form("hist2_SSD%d_DEE_LISE++", ssd+1),3000,0.,300.,1500,0.,150.);
+    hist1_SSD_Eratio[ssd] = new TH1D(Form("hist1_SSD%d_Eratio_LISE++", ssd+1), Form("hist1_SSD%d_Eratio_LISE++", ssd+1), 500, 0., 50.);
+  }
+
+  for (Int_t i=0; i<dE1_SSD1.size(); i++) {
+    hist2_SSD_dEE[0]->Fill(dE2_SSD1[i], dE1_SSD1[i]);
+    hist2_SSD_dEE[1]->Fill(dE2_SSD2[i], dE1_SSD2[i]);
+    hist2_SSD_dEE[2]->Fill(dE2_SSD3[i], dE1_SSD3[i]);
+    hist2_SSD_dEE[3]->Fill(dE2_SSD4[i], dE1_SSD4[i]);
+    cout<<EL1EL2Ratio_SSD1[i]<<endl;
+    hist1_SSD_Eratio[0]->Fill(EL1EL2Ratio_SSD1[i]);
+    hist1_SSD_Eratio[1]->Fill(EL1EL2Ratio_SSD2[i]);
+    hist1_SSD_Eratio[2]->Fill(EL1EL2Ratio_SSD3[i]);
+    hist1_SSD_Eratio[3]->Fill(EL1EL2Ratio_SSD4[i]);
+  }
+
+  TF1* func_L2B_eq_L2F = new TF1("func", "x", 0, 300);
+  func_L2B_eq_L2F->SetLineColor(kRed);
+  func_L2B_eq_L2F->SetLineStyle(7);
+  func_L2B_eq_L2F->SetLineWidth(4);
+
+  //________________________
+  // 画出 DEE 曲线
+  TCanvas* cans = new TCanvas("cans","cans",1000,1000);
+  cans->Divide(2,2);
+  //________________________
+  // 画出 (EL2-EL1)/EL2 分布
+  TCanvas* c_Eratio = new TCanvas("c_Eratio","c_Eratio",1000,1000);
+  c_Eratio->Divide(2,2);
+
+  for (Int_t index=0; index<4; index++) {
+    cans->cd(index+1);
+    gPad->SetLeftMargin(0.15);
+    gPad->SetBottomMargin(0.12);
+    hist2_SSD_dEE[index]->Draw("COL");
+    hist2_SSD_dEE[index]->GetXaxis()->SetTitle("dE_{2} (MeV)");
+    hist2_SSD_dEE[index]->GetXaxis()->SetTitleSize(0.05);
+    hist2_SSD_dEE[index]->GetXaxis()->CenterTitle(1);
+    hist2_SSD_dEE[index]->GetXaxis()->SetLabelSize(0.05);
+    hist2_SSD_dEE[index]->GetXaxis()->SetNdivisions(508);
+    hist2_SSD_dEE[index]->GetYaxis()->SetTitle("dE_{1} (MeV)");
+    hist2_SSD_dEE[index]->GetYaxis()->SetTitleSize(0.05);
+    hist2_SSD_dEE[index]->GetYaxis()->CenterTitle(1);
+    hist2_SSD_dEE[index]->GetYaxis()->SetLabelSize(0.05);
+    hist2_SSD_dEE[index]->GetYaxis()->SetNdivisions(508);
+    func_L2B_eq_L2F->Draw("SAME");
+
+    c_Eratio->cd(index+1);
+    gPad->SetLeftMargin(0.17);
+    gPad->SetBottomMargin(0.14);
+    hist1_SSD_Eratio[index]->Draw();
+    hist1_SSD_Eratio[index]->GetXaxis()->SetTitle("dE1/dE2 (%)");
+    hist1_SSD_Eratio[index]->GetXaxis()->SetTitleSize(0.05);
+    hist1_SSD_Eratio[index]->GetXaxis()->CenterTitle(1);
+    hist1_SSD_Eratio[index]->GetXaxis()->SetLabelSize(0.05);
+    hist1_SSD_Eratio[index]->GetXaxis()->SetNdivisions(505);
+    hist1_SSD_Eratio[index]->GetYaxis()->SetTitle("Counts");
+    hist1_SSD_Eratio[index]->GetYaxis()->SetTitleSize(0.05);
+    hist1_SSD_Eratio[index]->GetYaxis()->CenterTitle(1);
+    hist1_SSD_Eratio[index]->GetYaxis()->SetLabelSize(0.05);
+    hist1_SSD_Eratio[index]->GetYaxis()->SetNdivisions(505);
+  }
+  c_Eratio->Print(pathE1E2Ratio.c_str());
+  cans->Print(pathE1E2Correlation.c_str());
+}
+
+
+//______________________________________________________________________________
+// 根据实验数据画出 L1-L2 的能量关联
+void CSHINETrackReconstruction::CheckEnergyLossL1L2_Expdata()
+{
+  Double_t EnergyCut = 0.20;
+  Double_t ratio_E1E2[4];
+
+  std::string pathPNGOut(Form("%sfigure_TrackReconstruction/SSD2_DEL1DEL2_Ratio_Expdata.png",PATHFIGURESFOLDER));
+
+  TH1D* hist[4];
+  for (Int_t i=0; i<4; i++) {
+    hist[i] = new TH1D(Form("hist_SSD%d",i+1),"",100,0.,100.);
+  }
+
+  Long64_t nentries = fChainLayerTree->GetEntriesFast();
+  cout<<"nentries = "<<nentries<<endl;
+  for (Long64_t ientry=0; ientry<nentries;ientry++) {
+
+    fChainLayerTree->GetEntry(ientry);
+    timeper.PrintPercentageAndRemainingTime(ientry, nentries);
+
+    for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+      if (fLayerEvent.fSSDCsIMulti[ssdindex]==0 || fLayerEvent.fSSDCsIMulti[ssdindex]>MULTICUT_L3A) continue;
+      if (fLayerEvent.fSSDL2BMulti[ssdindex]==0 || fLayerEvent.fSSDL2BMulti[ssdindex]>MULTICUT_L2B) continue;
+      if (fLayerEvent.fSSDL2FMulti[ssdindex]==0 || fLayerEvent.fSSDL2FMulti[ssdindex]>MULTICUT_L2F) continue;
+      if (fLayerEvent.fSSDL1SMulti[ssdindex]==0 || fLayerEvent.fSSDL1SMulti[ssdindex]>MULTICUT_L1S) continue;
+
+      for (Int_t l2f=0; l2f<fLayerEvent.fL2FMulti; l2f++) {
+        for (Int_t l1s=0; l1s<fLayerEvent.fL1SMulti; l1s++) {
+          if (IsGeoConstraint_L3A_L2B(ssdindex, fLayerEvent.fCsIMulti, fLayerEvent.fCsINum.data(), fLayerEvent.fCsISSDNum.data(),
+                                      fLayerEvent.fL2BMulti, fLayerEvent.fL2BNumStrip.data(), fLayerEvent.fL2BSSDNum.data()) &&
+              IsGeoConstraint_L3A_L2F(ssdindex, fLayerEvent.fCsIMulti, fLayerEvent.fCsINum.data(), fLayerEvent.fCsISSDNum.data(),
+                                      fLayerEvent.fL2FNumStrip[l2f], fLayerEvent.fL2FSSDNum[l2f]) &&
+              IsEneConstraint_L2B_L2F(ssdindex, fLayerEvent.fL2BMulti, fLayerEvent.fL2BEMeV.data(), fLayerEvent.fL2BSSDNum.data(),
+                                      fLayerEvent.fL2FNumStrip[l2f], fLayerEvent.fL2BSSDNum[l2f], EnergyCut) &&
+              IsGeoConstraint_L2B_L1S(ssdindex, fLayerEvent.fL2BMulti, fLayerEvent.fL2BNumStrip.data(), fLayerEvent.fL2BSSDNum.data(),
+                                      fLayerEvent.fL1SNumStrip[l1s], fLayerEvent.fL1SSSDNum[l1s]))
+          {
+            //if (ssdindex==3 && (fLayerEvent.fL2FNumStrip[l2f]==0 || fLayerEvent.fL2FNumStrip[l2f]==1)) continue;
+            ratio_E1E2[ssdindex] = fLayerEvent.fL1SEMeV[l1s]/fLayerEvent.fL2FEMeV[l2f]*100;  // 单位: %
+            hist[ssdindex]->Fill(ratio_E1E2[ssdindex]);
+          }
+        }
+      }
+    }
+  }
+
+  TCanvas* cans = new TCanvas("cans","cans",1200,1000);
+  cans->Divide(2,2);
+
+  for (Int_t index=0; index<4; index++) {
+    cans->cd(index+1);
+    gPad->SetLeftMargin(0.13);
+    gPad->SetBottomMargin(0.12);
+    hist[index]->Draw();
+    hist[index]->GetXaxis()->SetTitle("EL1S/EL2F (%)");
+    hist[index]->GetXaxis()->SetTitleSize(0.05);
+    hist[index]->GetXaxis()->CenterTitle(kTRUE);
+    hist[index]->GetXaxis()->SetLabelSize(0.05);
+    hist[index]->GetXaxis()->SetNdivisions(505);
+    hist[index]->GetYaxis()->SetTitle("Counts");
+    hist[index]->GetYaxis()->SetTitleSize(0.05);
+    hist[index]->GetYaxis()->CenterTitle(kTRUE);
+    hist[index]->GetYaxis()->SetTitleOffset(1.2);
+    hist[index]->GetYaxis()->SetLabelSize(0.05);
+    hist[index]->GetYaxis()->SetNdivisions(1005);
+  }
+  cans->Print(pathPNGOut.c_str());
+}
+
+
+//______________________________________________________________________________
+// 多重性测试
+void PrintMulti(Int_t ssdindex, Int_t num_multi, string layertag, std::ofstream& fileout,
+  Double_t* multiratio, Double_t sumratio)
+{
+  cout<<setw(5)<<Form("SSD%d_%s",ssdindex+1, layertag.c_str());
+  fileout<<setw(5)<<Form("SSD%d_%s",ssdindex+1, layertag.c_str());
+  for (Int_t multi=0; multi<num_multi; multi++) {
+    cout<<setw(15)<<multiratio[multi]<<setw(15);
+    fileout<<setw(15)<<multiratio[multi]<<setw(15);
+  }
+  cout<<sumratio<<endl;
+  fileout<<sumratio<<endl;
+}
+
+void CSHINETrackReconstruction::CheckLayerMultiPercentage()
+{
+  std::string L1STag("L1S");
+  std::string L2FTag("L2F");
+  std::string L2BTag("L2B");
+  std::string L3ATag("L3A");
+
+  Int_t Num_Multi = 7; // hit = 0, 1, 2, 3, 4, 5, 6
+
+  std::string pathDataOut(Form("%sdata_TrackReconstruction/SSD_CheckLayerMultiPercentage.dat",PATHDATAFOLDER));
+
+  ofstream fileout(pathDataOut.c_str());
+  fileout<<setw(5)<<"SSD_Layer"<<setw(14)<<"Multi=0"<<setw(14)<<"Multi=1"
+         <<setw(15)<<"Multi=2"<<setw(15)<<"Multi=3"<<setw(15)<<"Multi=4"
+         <<setw(15)<<"Multi=5"<<setw(15)<<"Multi=6"<<setw(12)<<"Sum"<<endl;
+  fileout<<""<<endl;
+
+  Int_t Entries_L1S[NUM_SSD][Num_Multi];
+  Int_t Entries_L2F[NUM_SSD][Num_Multi];
+  Int_t Entries_L2B[NUM_SSD][Num_Multi];
+  Int_t Entries_L3A[NUM_SSD][Num_Multi];
+  Double_t MultiRatio_L1S[NUM_SSD][Num_Multi];
+  Double_t MultiRatio_L2F[NUM_SSD][Num_Multi];
+  Double_t MultiRatio_L2B[NUM_SSD][Num_Multi];
+  Double_t MultiRatio_L3A[NUM_SSD][Num_Multi];
+  Double_t Sum_L1S[NUM_SSD];
+  Double_t Sum_L2F[NUM_SSD];
+  Double_t Sum_L2B[NUM_SSD];
+  Double_t Sum_L3A[NUM_SSD];
+
+  for (Int_t i=0; i<NUM_SSD; i++) {
+    for (Int_t j=0; j<Num_Multi; j++) {
+      Entries_L1S[i][j] = 0;  MultiRatio_L1S[i][j] = 0.;
+      Entries_L2F[i][j] = 0;  MultiRatio_L2F[i][j] = 0.;
+      Entries_L2B[i][j] = 0;  MultiRatio_L2B[i][j] = 0.;
+      Entries_L3A[i][j] = 0;  MultiRatio_L3A[i][j] = 0.;
+    }
+    Sum_L1S[i] = 0.;
+    Sum_L2F[i] = 0.;
+    Sum_L2B[i] = 0.;
+    Sum_L3A[i] = 0.;
+  }
+
+  Long64_t nentries = fChainLayerTree->GetEntriesFast();
+  cout<<"nentries = "<<nentries<<endl;
+  for (Long64_t ientry=0; ientry<nentries;ientry++) {
+
+    fChainLayerTree->GetEntry(ientry);
+
+    for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+      for (Int_t multi=0; multi<Num_Multi; multi++) {
+        if (fLayerEvent.fSSDL1SMulti[ssdindex]==multi)  Entries_L1S[ssdindex][multi]++;
+        if (fLayerEvent.fSSDL2FMulti[ssdindex]==multi)  Entries_L2F[ssdindex][multi]++;
+        if (fLayerEvent.fSSDL2BMulti[ssdindex]==multi)  Entries_L2B[ssdindex][multi]++;
+        if (fLayerEvent.fSSDCsIMulti[ssdindex]==multi)  Entries_L3A[ssdindex][multi]++;
+      }
+    }
+  }
+  // 计算各种情况的比例
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t multi=0; multi<Num_Multi; multi++) {
+      MultiRatio_L1S[ssdindex][multi] = (Double_t) Entries_L1S[ssdindex][multi]/nentries;
+      Sum_L1S[ssdindex] += MultiRatio_L1S[ssdindex][multi];
+
+      MultiRatio_L2F[ssdindex][multi] = (Double_t) Entries_L2F[ssdindex][multi]/nentries;
+      Sum_L2F[ssdindex] += MultiRatio_L2F[ssdindex][multi];
+
+      MultiRatio_L2B[ssdindex][multi] = (Double_t) Entries_L2B[ssdindex][multi]/nentries;
+      Sum_L2B[ssdindex] += MultiRatio_L2B[ssdindex][multi];
+
+      MultiRatio_L3A[ssdindex][multi] = (Double_t) Entries_L3A[ssdindex][multi]/nentries;
+      Sum_L3A[ssdindex] += MultiRatio_L3A[ssdindex][multi];
+    }
+  }
+  // 输入结果
+  cout<<setw(5)<<"SSD_Layer"<<setw(14)<<"Multi=0"<<setw(14)<<"Multi=1"
+      <<setw(15)<<"Multi=2"<<setw(15)<<"Multi=3"<<setw(15)<<"Multi=4"
+      <<setw(15)<<"Multi=5"<<setw(15)<<"Multi=6"<<setw(12)<<"Sum"<<endl;
+  cout<<endl;
+
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    PrintMulti(ssdindex, Num_Multi, L1STag.c_str(), fileout, MultiRatio_L1S[ssdindex], Sum_L1S[ssdindex]);
+    PrintMulti(ssdindex, Num_Multi, L2FTag.c_str(), fileout, MultiRatio_L2F[ssdindex], Sum_L2F[ssdindex]);
+    PrintMulti(ssdindex, Num_Multi, L2BTag.c_str(), fileout, MultiRatio_L2B[ssdindex], Sum_L2B[ssdindex]);
+    PrintMulti(ssdindex, Num_Multi, L3ATag.c_str(), fileout, MultiRatio_L3A[ssdindex], Sum_L3A[ssdindex]);
+    cout<<endl;
+    fileout<<endl;
+  }
+  fileout.close();
+}
+
+
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
+//                电荷分配效应
+//             -----------------
+// 检查 alpha 刻度数据中的 charge sharing
+void DrawChargeSharing(std::string pathpdf, TH2D* h2d[4][15], Double_t latxe_ratio[4][15])
+{
+  TCanvas* cans = new TCanvas("cans","cans",1500,900);
+  cans->Divide(5,3);
+
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t strip=0; strip<(NUM_STRIP-1); strip++) {
+      cans->cd(strip+1);
+      gPad->SetBottomMargin(0.12);
+      gPad->SetLeftMargin(0.12);
+      h2d[ssdindex][strip]->Draw("COL");
+      h2d[ssdindex][strip]->GetXaxis()->SetLabelSize(0.07);
+      h2d[ssdindex][strip]->GetXaxis()->SetNdivisions(505);
+      h2d[ssdindex][strip]->GetYaxis()->SetLabelSize(0.07);
+      h2d[ssdindex][strip]->GetYaxis()->SetNdivisions(505);
+
+      TLatex* latex = new TLatex(120.,400.,Form("R(Sharing)=%.03f (%%)",latxe_ratio[ssdindex][strip]));
+      latex->SetTextSize(0.06);
+      latex->SetTextColor(kMagenta);
+      latex->Draw();
+
+      gPad->Modified();
+      gPad->Update();
+    }
+    cans->Print(pathpdf.c_str());
+  }
+}
+
+void DrawChargeSharingERatio(std::string pathpdf, TH1D* h1[4][15])
+{
+  TCanvas* cans = new TCanvas("cans","cans",1500,900);
+  cans->Divide(5,3);
+
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t strip=0; strip<(NUM_STRIP-1); strip++) {
+      cans->cd(strip+1);
+      gPad->SetBottomMargin(0.12);
+      gPad->SetLeftMargin(0.12);
+      h1[ssdindex][strip]->Draw();
+      h1[ssdindex][strip]->GetXaxis()->SetLabelSize(0.07);
+      h1[ssdindex][strip]->GetXaxis()->SetNdivisions(505);
+      h1[ssdindex][strip]->GetYaxis()->SetLabelSize(0.07);
+      h1[ssdindex][strip]->GetYaxis()->SetNdivisions(505);
+
+      gPad->Modified();
+      gPad->Update();
+    }
+    cans->Print(pathpdf.c_str());
+  }
+}
+
+
+void CSHINETrackReconstruction::CheckAlphaCaliChargeSharing()
+{
+  gStyle->SetOptStat(kFALSE);
+
+  std::string pathAlphaCaliChargeSharing(Form("%sfigure_TrackReconstruction/AlphaCaliChargeSharing.pdf",PATHFIGURESFOLDER));
+  std::string pathAlphaCaliChargeSharingBegin(Form("%sfigure_TrackReconstruction/AlphaCaliChargeSharing.pdf[",PATHFIGURESFOLDER));
+  std::string pathAlphaCaliChargeSharingEnd(Form("%sfigure_TrackReconstruction/AlphaCaliChargeSharing.pdf]",PATHFIGURESFOLDER));
+
+  Double_t range = 500;
+  Int_t NBins = 500;
+
+  Int_t conut_hit_L1S[4][15] = {{0}};
+  Int_t conut_hit_L2F[4][15] = {{0}};
+  Int_t conut_hit_L2B[4][15] = {{0}};
+
+  Int_t conut_cs_L1S[4][15] = {{0}};
+  Int_t conut_cs_L2F[4][15] = {{0}};
+  Int_t conut_cs_L2B[4][15] = {{0}};
+
+  Double_t ene_cs_L1S[4][15] = {{0.}};
+  Double_t ene_cs_L2F[4][15] = {{0.}};
+  Double_t ene_cs_L2B[4][15] = {{0.}};
+
+  Double_t ratio_L1S[4][15] = {{0.}};
+  Double_t ratio_L2F[4][15] = {{0.}};
+  Double_t ratio_L2B[4][15] = {{0.}};
+
+  Double_t* L1S_SiEChCut = fCSHINESSDCalibratedData.GetSiEChCut ("L1S");
+  Double_t* L2F_SiEChCut = fCSHINESSDCalibratedData.GetSiEChCut ("L2F");
+  Double_t* L2B_SiEChCut = fCSHINESSDCalibratedData.GetSiEChCut ("L2B");
+
+  TH2D* h2_L1S_ChargeSharing[NUM_SSD][NUM_STRIP-1];
+  TH2D* h2_L2F_ChargeSharing[NUM_SSD][NUM_STRIP-1];
+  TH2D* h2_L2B_ChargeSharing[NUM_SSD][NUM_STRIP-1];
+  TH1D* h1_L1S_ERatio[NUM_SSD][NUM_STRIP-1];
+  TH1D* h1_L2F_ERatio[NUM_SSD][NUM_STRIP-1];
+  TH1D* h1_L2B_ERatio[NUM_SSD][NUM_STRIP-1];
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t strip=0; strip<(NUM_STRIP-1); strip++) {
+      h2_L1S_ChargeSharing[ssdindex][strip] = new TH2D(Form("SSD%d_L1S_Strip%02dvsStrip%02d",ssdindex+1,strip,strip+1),
+                                                       Form("SSD%d_L1S_Strip%02dvsStrip%02d",ssdindex+1,strip,strip+1),
+                                                       NBins,0,range,NBins,0,range);
+
+      h2_L2F_ChargeSharing[ssdindex][strip] = new TH2D(Form("SSD%d_L2F_Strip%02dvsStrip%02d",ssdindex+1,strip,strip+1),
+                                                       Form("SSD%d_L2F_Strip%02dvsStrip%02d",ssdindex+1,strip,strip+1),
+                                                       NBins,0,range,NBins,0,range);
+
+      h2_L2B_ChargeSharing[ssdindex][strip] = new TH2D(Form("SSD%d_L2B_Strip%02dvsStrip%02d",ssdindex+1,strip,strip+1),
+                                                       Form("SSD%d_L2B_Strip%02dvsStrip%02d",ssdindex+1,strip,strip+1),
+                                                       NBins,0,range,NBins,0,range);
+
+      h1_L1S_ERatio[ssdindex][strip] = new TH1D(Form("SSD%d_L1S_Strip%02dvsStrip%02d_ERatio",ssdindex+1,strip,strip+1),
+                                                Form("SSD%d_L1S_Strip%02dvsStrip%02d_ERatio",ssdindex+1,strip,strip+1),1000,0.,1.);
+
+      h1_L2F_ERatio[ssdindex][strip] = new TH1D(Form("SSD%d_L2F_Strip%02dvsStrip%02d_ERatio",ssdindex+1,strip,strip+1),
+                                                Form("SSD%d_L2F_Strip%02dvsStrip%02d_ERatio",ssdindex+1,strip,strip+1),1000,0.,1.);
+
+      h1_L2B_ERatio[ssdindex][strip] = new TH1D(Form("SSD%d_L2B_Strip%02dvsStrip%02d_ERatio",ssdindex+1,strip,strip+1),
+                                                Form("SSD%d_L2B_Strip%02dvsStrip%02d_ERatio",ssdindex+1,strip,strip+1),1000,0.,1.);
+    }
+  }
+
+  // reading tree data
+  Int_t SSD_L1S_E[NUM_SSD][NUM_STRIP];
+  Int_t SSD_L2F_E[NUM_SSD][NUM_STRIP];
+  Int_t SSD_L2B_E[NUM_SSD][NUM_STRIP];
+  // for L1
+  TChain* mychain_L1 = new TChain("KrPb");
+  for (Int_t i=1; i<9; i++) {
+    mychain_L1->Add(Form("%sMapRoot/MapSSD_L1_AlphaCali%04d.root",PATHROOTFILESFOLDER,i));
+  }
+  mychain_L1->SetBranchStatus("*",false);
+//  mychain_L1->SetEntries(500000);
+
+  // for L2
+  TChain* mychain_L2 = new TChain("KrPb");
+  for (Int_t i=0; i<49; i++) {
+    mychain_L2->Add(Form("%sMapRoot/MapSSD_L2_AlphaCali%04d.root",PATHROOTFILESFOLDER,i));
+  }
+  mychain_L2->SetBranchStatus("*",false);
+//  mychain_L2->SetEntries(500000);
+
+  //
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    mychain_L1->SetBranchStatus (Form("SSD%d_L1S_E",ssdindex+1),true);
+    mychain_L1->SetBranchAddress(Form("SSD%d_L1S_E",ssdindex+1),SSD_L1S_E[ssdindex]);
+
+    mychain_L2->SetBranchStatus (Form("SSD%d_L2F_E",ssdindex+1),true);
+    mychain_L2->SetBranchStatus (Form("SSD%d_L2B_E",ssdindex+1),true);
+    mychain_L2->SetBranchAddress(Form("SSD%d_L2F_E",ssdindex+1),SSD_L2F_E[ssdindex]);
+    mychain_L2->SetBranchAddress(Form("SSD%d_L2B_E",ssdindex+1),SSD_L2B_E[ssdindex]);
+  }
+
+  // for L1S:
+  cout<<"*** Processing L1S ........."<<endl;
+  Long64_t nentries1 = mychain_L1->GetEntries();
+  cout<<"nentries = "<<nentries1<<endl;
+  for (Long64_t ientry=0; ientry<nentries1; ientry++) {
+    mychain_L1->GetEntry(ientry);
+    timeper.PrintPercentageAndRemainingTime(ientry, nentries1);
+
+    for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+      for (Int_t strip=0; strip<(NUM_STRIP-1); strip++) {
+        if (SSD_L1S_E[ssdindex][strip]>L1S_SiEChCut[ssdindex*NUM_STRIP+strip] || SSD_L1S_E[ssdindex][strip+1]>L1S_SiEChCut[ssdindex*NUM_STRIP+strip+1]) {
+          h2_L1S_ChargeSharing[ssdindex][strip]->Fill(SSD_L1S_E[ssdindex][strip],SSD_L1S_E[ssdindex][strip+1]);
+          conut_hit_L1S[ssdindex][strip]++;
+        }
+        if (SSD_L1S_E[ssdindex][strip]>L1S_SiEChCut[ssdindex*NUM_STRIP+strip] && SSD_L1S_E[ssdindex][strip+1]>L1S_SiEChCut[ssdindex*NUM_STRIP+strip+1]) {
+          h1_L1S_ERatio[ssdindex][strip]->Fill(CalcRatio(SSD_L1S_E[ssdindex][strip],SSD_L1S_E[ssdindex][strip+1]));
+          conut_cs_L1S[ssdindex][strip]++;
+        }
+      }
+    }
+  }
+
+  // for L2:
+  cout<<"*** Processing L2 ........."<<endl;
+  Long64_t nentries2 = mychain_L2->GetEntries();
+  cout<<"nentries = "<<nentries2<<endl;
+  for (Long64_t ientry=0; ientry<nentries2; ientry++) {
+    mychain_L2->GetEntry(ientry);
+    timeper.PrintPercentageAndRemainingTime(ientry, nentries2);
+
+    for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+      for (Int_t strip=0; strip<(NUM_STRIP-1); strip++) {
+        // for L2F
+        if (SSD_L2F_E[ssdindex][strip]>L2F_SiEChCut[ssdindex*NUM_STRIP+strip] || SSD_L2F_E[ssdindex][strip+1]>L2F_SiEChCut[ssdindex*NUM_STRIP+strip+1]) {
+          h2_L2F_ChargeSharing[ssdindex][strip]->Fill(SSD_L2F_E[ssdindex][strip],SSD_L2F_E[ssdindex][strip+1]);
+          conut_hit_L2F[ssdindex][strip]++;
+        }
+        if (SSD_L2F_E[ssdindex][strip]>L2F_SiEChCut[ssdindex*NUM_STRIP+strip] && SSD_L2F_E[ssdindex][strip+1]>L2F_SiEChCut[ssdindex*NUM_STRIP+strip+1]) {
+          h1_L2F_ERatio[ssdindex][strip]->Fill(CalcRatio(SSD_L2F_E[ssdindex][strip],SSD_L2F_E[ssdindex][strip+1]));
+          conut_cs_L2F[ssdindex][strip]++;
+        }
+        // for L2B
+        if (SSD_L2B_E[ssdindex][strip]>L2B_SiEChCut[ssdindex*NUM_STRIP+strip] || SSD_L2B_E[ssdindex][strip+1]>L2B_SiEChCut[ssdindex*NUM_STRIP+strip+1]) {
+          h2_L2B_ChargeSharing[ssdindex][strip]->Fill(SSD_L2B_E[ssdindex][strip],SSD_L2B_E[ssdindex][strip+1]);
+          conut_hit_L2B[ssdindex][strip]++;
+        }
+        if (SSD_L2B_E[ssdindex][strip]>L2B_SiEChCut[ssdindex*NUM_STRIP+strip] && SSD_L2B_E[ssdindex][strip+1]>L2B_SiEChCut[ssdindex*NUM_STRIP+strip+1]) {
+          h1_L2B_ERatio[ssdindex][strip]->Fill(CalcRatio(SSD_L2B_E[ssdindex][strip],SSD_L2B_E[ssdindex][strip+1]));
+          conut_cs_L2B[ssdindex][strip]++;
+        }
+      }
+    }
+  }
+
+  // 计算电荷分配的占比
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t strip=0; strip<(NUM_STRIP-1); strip++) {
+      ratio_L1S[ssdindex][strip] = (Double_t) conut_cs_L1S[ssdindex][strip]/conut_hit_L1S[ssdindex][strip] * 100; // %
+      ratio_L2F[ssdindex][strip] = (Double_t) conut_cs_L2F[ssdindex][strip]/conut_hit_L2F[ssdindex][strip] * 100; // %
+      ratio_L2B[ssdindex][strip] = (Double_t) conut_cs_L2B[ssdindex][strip]/conut_hit_L2B[ssdindex][strip] * 100; // %
+    }
+  }
+
+  // 画图
+  TCanvas* c_begin = new TCanvas("c_begin","c_begin",600,600);
+  TCanvas* c_end = new TCanvas("c_end","c_end",600,600);
+
+  c_begin->Print(pathAlphaCaliChargeSharingBegin.c_str());
+  DrawChargeSharing(pathAlphaCaliChargeSharing, h2_L1S_ChargeSharing, ratio_L1S);
+  DrawChargeSharing(pathAlphaCaliChargeSharing, h2_L2F_ChargeSharing, ratio_L2F);
+  DrawChargeSharing(pathAlphaCaliChargeSharing, h2_L2B_ChargeSharing, ratio_L2B);
+  DrawChargeSharingERatio(pathAlphaCaliChargeSharing, h1_L1S_ERatio);
+  DrawChargeSharingERatio(pathAlphaCaliChargeSharing, h1_L2F_ERatio);
+  DrawChargeSharingERatio(pathAlphaCaliChargeSharing, h1_L2B_ERatio);
+  c_end->Print(pathAlphaCaliChargeSharingEnd.c_str());
+}
+
+
+//____________________________________
+// 检查实验数据中: 如果硅条中有相邻的条点火, 则定义这样相邻条的数目为 ClusterSize
+/* //这一段用于检查每种 clustersize 的情况
+if (ClusterSize_L2F==2) {
+  cout<<"SSD"<<ssdindex<<setw(10)<<fLayerEvent.fSSDL2FMulti[ssdindex]<<setw(10)<<ClusterSize_L2F<<setw(10);
+  for (Int_t i=0; i<fLayerEvent.fL2FMulti; i++) {
+    if (fLayerEvent.fL2FSSDNum[i]==ssdindex) {
+      cout<<setw(10)<<fLayerEvent.fL2FNumStrip[i];
+    }
+  }
+  cout<<endl;
+} */
+void CSHINETrackReconstruction::CheckClusterSize_Si()
+{
+  Int_t NBins = 2000;
+  Int_t Count_ClusterSize_L1S;
+  Int_t Count_ClusterSize_L2F;
+  Int_t Count_ClusterSize_L2B;
+  Int_t CountSum_ClusterSize_L1S;
+  Int_t CountSum_ClusterSize_L2F;
+  Int_t CountSum_ClusterSize_L2B;
+
+  Double_t Ratio_ClusterSize_L1S;
+  Double_t Ratio_ClusterSize_L2F;
+  Double_t Ratio_ClusterSize_L2B;
+  Double_t RatioSum_ClusterSize_L1S;
+  Double_t RatioSum_ClusterSize_L2F;
+  Double_t RatioSum_ClusterSize_L2B;
+
+  Int_t Count_L1SMulti_ge1[4] = {0};
+  Int_t Count_L2FMulti_ge1[4] = {0};
+  Int_t Count_L2BMulti_ge1[4] = {0};
+
+  Int_t ClusterSize_L1S = -99;
+  Int_t ClusterSize_L2F = -99;
+  Int_t ClusterSize_L2B = -99;
+
+  Int_t count_L1S[4] = {0};
+  Int_t count_L2F[4] = {0};
+  Int_t count_L2B[4] = {0};
+
+  std::vector<Int_t> NumStrip_L1S;
+  std::vector<Int_t> NumStrip_L2F;
+  std::vector<Int_t> NumStrip_L2B;
+
+  std::string HistName_L1S[NUM_SSD];
+  std::string HistName_L2F[NUM_SSD];
+  std::string HistName_L2B[NUM_SSD];
+  TH1I* hist_ClusterSize_L1S[NUM_SSD];
+  TH1I* hist_ClusterSize_L2F[NUM_SSD];
+  TH1I* hist_ClusterSize_L2B[NUM_SSD];
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    HistName_L1S[ssdindex] = Form("SSD%d_L1S_ClusterSize",ssdindex+1);
+    HistName_L2F[ssdindex] = Form("SSD%d_L2F_ClusterSize",ssdindex+1);
+    HistName_L2B[ssdindex] = Form("SSD%d_L2B_ClusterSize",ssdindex+1);
+    hist_ClusterSize_L1S[ssdindex] = new TH1I(HistName_L1S[ssdindex].c_str(), HistName_L1S[ssdindex].c_str(), NBins, 0, NBins);
+    hist_ClusterSize_L2F[ssdindex] = new TH1I(HistName_L2F[ssdindex].c_str(), HistName_L2F[ssdindex].c_str(), NBins, 0, NBins);
+    hist_ClusterSize_L2B[ssdindex] = new TH1I(HistName_L2B[ssdindex].c_str(), HistName_L2B[ssdindex].c_str(), NBins, 0, NBins);
+  }
+
+  Long64_t nentries = fChainLayerTree->GetEntriesFast();
+  cout<<"nentries = "<<nentries<<endl;
+  for (Long64_t ientry=0; ientry<nentries;ientry++) {
+
+    fChainLayerTree->GetEntry(ientry);
+    timeper.PrintPercentageAndRemainingTime(ientry, nentries);
+
+    for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+      if (fLayerEvent.fSSDL1SMulti[ssdindex]>=1) Count_L1SMulti_ge1[ssdindex]++;
+      if (fLayerEvent.fSSDL2FMulti[ssdindex]>=1) Count_L2FMulti_ge1[ssdindex]++;
+      if (fLayerEvent.fSSDL2BMulti[ssdindex]>=1) Count_L2BMulti_ge1[ssdindex]++;
+
+      // for L1S
+      if (fLayerEvent.fSSDL1SMulti[ssdindex]>=2 && fLayerEvent.fSSDL1SMulti[ssdindex]<=MULTICUT_L1S) {
+        for (Int_t l1smulti=0; l1smulti<fLayerEvent.fL1SMulti; l1smulti++) {
+          if (fLayerEvent.fL1SSSDNum[l1smulti]==ssdindex) {
+            NumStrip_L1S.push_back(fLayerEvent.fL1SNumStrip[l1smulti]);
+          }
+        }
+        CalcCluseterSize_SiLayer(fLayerEvent.fSSDL1SMulti[ssdindex], NumStrip_L1S, ClusterSize_L1S);
+        hist_ClusterSize_L1S[ssdindex]->Fill(ClusterSize_L1S);
+      }
+
+      // for L2F
+      if (fLayerEvent.fSSDL2FMulti[ssdindex]>=2 && fLayerEvent.fSSDL2FMulti[ssdindex]<=MULTICUT_L2F) {
+        for (Int_t l2fmulti=0; l2fmulti<fLayerEvent.fL2FMulti; l2fmulti++) {
+          if (fLayerEvent.fL2FSSDNum[l2fmulti]==ssdindex) {
+            NumStrip_L2F.push_back(fLayerEvent.fL2FNumStrip[l2fmulti]);
+          }
+        }
+        CalcCluseterSize_SiLayer(fLayerEvent.fSSDL2FMulti[ssdindex], NumStrip_L2F, ClusterSize_L2F);
+        hist_ClusterSize_L2F[ssdindex]->Fill(ClusterSize_L2F);
+      }
+      // for L2B
+      if (fLayerEvent.fSSDL2BMulti[ssdindex]>=2 && fLayerEvent.fSSDL2BMulti[ssdindex]<=MULTICUT_L2B) {
+        for (Int_t l2bmulti=0; l2bmulti<fLayerEvent.fL2BMulti; l2bmulti++) {
+          if (fLayerEvent.fL2BSSDNum[l2bmulti]==ssdindex) {
+            NumStrip_L2B.push_back(fLayerEvent.fL2BNumStrip[l2bmulti]);
+          }
+        }
+        CalcCluseterSize_SiLayer(fLayerEvent.fSSDL2BMulti[ssdindex], NumStrip_L2B, ClusterSize_L2B);
+        hist_ClusterSize_L2B[ssdindex]->Fill(ClusterSize_L2B);
+      }
+      NumStrip_L1S.clear();
+      NumStrip_L2F.clear();
+      NumStrip_L2B.clear();
+    }
+  }
+
+  // 统计 ClusterSize 的取值与比例
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    CountSum_ClusterSize_L1S = 0;
+    CountSum_ClusterSize_L2F = 0;
+    CountSum_ClusterSize_L2B = 0;
+    RatioSum_ClusterSize_L1S = 0.;
+    RatioSum_ClusterSize_L2F = 0.;
+    RatioSum_ClusterSize_L2B = 0.;
+    // L1S
+    cout<<endl;
+    cout<<Form("SSD%d_L1S\n", ssdindex+1);
+    for (Int_t nbin=1; nbin<NBins+1; nbin++) {
+      Count_ClusterSize_L1S = hist_ClusterSize_L1S[ssdindex]->GetBinContent(nbin);
+      if (Count_ClusterSize_L1S!=0) {
+        Ratio_ClusterSize_L1S = (Double_t) Count_ClusterSize_L1S/Count_L1SMulti_ge1[ssdindex];
+        cout<<left<<setw(30)<<Form("ClusterSize = %d", nbin-1)<<left<<setw(30)<<Form("count = %d",Count_ClusterSize_L1S);
+        cout<<setprecision(4)<<left<<setw(10)<<"Ratio = "<<Ratio_ClusterSize_L1S<<endl;
+        CountSum_ClusterSize_L1S += Count_ClusterSize_L1S;
+        RatioSum_ClusterSize_L1S += Ratio_ClusterSize_L1S;
+      }
+    }
+    cout<<"Count_L1SMulti_ge1 = "<<Count_L1SMulti_ge1[ssdindex]<<endl;
+    cout<<"CountSum_L1S = "<<CountSum_ClusterSize_L1S<<endl;
+    cout<<"RatioSum_L1S = "<<RatioSum_ClusterSize_L1S<<endl;
+
+    // L2F
+    cout<<endl;
+    cout<<Form("SSD%d_L2F\n", ssdindex+1);
+    for (Int_t nbin=1; nbin<NBins+1; nbin++) {
+      Count_ClusterSize_L2F = hist_ClusterSize_L2F[ssdindex]->GetBinContent(nbin);
+      if (Count_ClusterSize_L2F!=0) {
+        Ratio_ClusterSize_L2F = (Double_t) Count_ClusterSize_L2F/Count_L2FMulti_ge1[ssdindex];
+        cout<<left<<setw(30)<<Form("ClusterSize = %d", nbin-1)<<left<<setw(30)<<Form("count = %d",Count_ClusterSize_L2F);
+        cout<<setprecision(4)<<left<<setw(10)<<"Ratio = "<<Ratio_ClusterSize_L2F<<endl;
+        CountSum_ClusterSize_L2F += Count_ClusterSize_L2F;
+        RatioSum_ClusterSize_L2F += Ratio_ClusterSize_L2F;
+      }
+    }
+    cout<<"Count_L2FMulti_ge1 = "<<Count_L2FMulti_ge1[ssdindex]<<endl;
+    cout<<"CountSum_L2F = "<<CountSum_ClusterSize_L2F<<endl;
+    cout<<"RatioSum_L2F = "<<RatioSum_ClusterSize_L2F<<endl;
+    // L2B
+    cout<<endl;
+    cout<<Form("SSD%d_L2B\n", ssdindex+1);
+    for (Int_t nbin=1; nbin<NBins+1; nbin++) {
+      Count_ClusterSize_L2B = hist_ClusterSize_L2B[ssdindex]->GetBinContent(nbin);
+      if (Count_ClusterSize_L2B!=0) {
+        Ratio_ClusterSize_L2B = (Double_t) Count_ClusterSize_L2B/Count_L2BMulti_ge1[ssdindex];
+        cout<<left<<setw(30)<<Form("ClusterSize = %d", nbin-1)<<left<<setw(30)<<Form("count = %d",Count_ClusterSize_L2B);
+        cout<<setprecision(4)<<left<<setw(10)<<"Ratio = "<<Ratio_ClusterSize_L2B<<endl;
+        CountSum_ClusterSize_L2B += Count_ClusterSize_L2B;
+        RatioSum_ClusterSize_L2B += Ratio_ClusterSize_L2B;
+      }
+    }
+    cout<<"Count_L2BMulti_ge1 = "<<Count_L2BMulti_ge1[ssdindex]<<endl;
+    cout<<"CountSum_L2B = "<<CountSum_ClusterSize_L2B<<endl;
+    cout<<"RatioSum_L2B = "<<RatioSum_ClusterSize_L2B<<endl;
+  }
+
+  TCanvas* cans_L1S = new TCanvas("cans_L1S", "cans_L1S", 1000, 1000);
+  TCanvas* cans_L2F = new TCanvas("cans_L2F", "cans_L2F", 1000, 1000);
+  TCanvas* cans_L2B = new TCanvas("cans_L2B", "cans_L2B", 1000, 1000);
+  cans_L1S->Divide(2,2);
+  cans_L2F->Divide(2,2);
+  cans_L2B->Divide(2,2);
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    cans_L1S->cd(ssdindex+1);
+    gPad->SetLogy();
+    hist_ClusterSize_L1S[ssdindex]->Draw();
+
+    cans_L2F->cd(ssdindex+1);
+    gPad->SetLogy();
+    hist_ClusterSize_L2F[ssdindex]->Draw();
+
+    cans_L2B->cd(ssdindex+1);
+    gPad->SetLogy();
+    hist_ClusterSize_L2B[ssdindex]->Draw();
+  }
+}
+
+//_________________________
+// 对 cluster 进行分类
+void CSHINETrackReconstruction::CalcCluseterSize_SiLayer(Int_t layermulti, vector<Int_t> numstrip, Int_t& clustersize)
+{
+  // layermulti = 2 的情况
+  if (layermulti==2) {
+    if (numstrip[0]-numstrip[1] == -1)        clustersize = 2;  // ---**------
+    else                                      clustersize = 0;  // ---*--*----
+  }
+  // layermulti = 3 的情况:
+  if (layermulti==3) {
+    if (numstrip[0]-numstrip[2] == -2)        clustersize = 3; //----***------
+    else if (numstrip[0]-numstrip[1] == -1)   clustersize = 2; //--**---*-----
+    else if (numstrip[1]-numstrip[2] == -1)   clustersize = 2; //--*---**-----
+    else                                      clustersize = 0; //---*--*----*--
+  }
+  // layermulti = 4 的情况
+  if (layermulti==4) {
+    if (numstrip[0]-numstrip[3] == -3)        clustersize = 4; //----****------
+    else if (numstrip[0]-numstrip[2] == -2)   clustersize = 3; //---***--*-----
+    else if (numstrip[1]-numstrip[3] == -2)   clustersize = 3; //---*---***----
+    else if (numstrip[0]-numstrip[1] == -1) {
+      if (numstrip[2]-numstrip[3] == -1)      clustersize = 22;//---**---**---
+      else                                    clustersize = 2; //---**--*--*--
+    }
+    else if (numstrip[1]-numstrip[2] == -1)   clustersize = 2; //---*--**---*--
+    else if (numstrip[2]-numstrip[3] == -1)   clustersize = 2; //---*--*--**---
+    else                                      clustersize = 0; //--*--*--*--*--
+  }
+  // layermulti = 5 的情况
+  if (layermulti==5) {
+    if (numstrip[0]-numstrip[4] == -4)        clustersize = 5; //---*****-----
+    else if (numstrip[0]-numstrip[3] == -3)   clustersize = 4; //---****--*---
+    else if (numstrip[1]-numstrip[4] == -3)   clustersize = 4; //---*--****---
+    else if (numstrip[0]-numstrip[2] == -2) {
+      if (numstrip[3]-numstrip[4] == -1)      clustersize = 23;//---***--**---
+      else                                    clustersize = 3; //--***--*--*--
+    }
+    else if (numstrip[1]-numstrip[3] == -2)   clustersize = 3; //--*--***-*---
+    else if (numstrip[2]-numstrip[4] == -2) {
+      if (numstrip[0]-numstrip[1] == -1)      clustersize = 23;//--**--***----
+      else                                    clustersize = 3; //--*--*--***--
+    }
+    else if (numstrip[0]-numstrip[1] == -1) {
+      if ((numstrip[2]-numstrip[3] == -1) || (numstrip[3]-numstrip[4] == -1))  clustersize = 122; //---**--**--*-- or ---**--*--**---
+      else                                    clustersize = 2; //---**--*--*--*--
+    }
+    else if (numstrip[1]-numstrip[2] == -1) {
+      if (numstrip[3]-numstrip[4] == -1)      clustersize = 122;  //--*--**---**--
+      else                                    clustersize = 2; //--*--**--*--*--
+    }
+    else if (numstrip[2]-numstrip[3] == -1)   clustersize = 2; //--*--*--**--*--
+    else if (numstrip[3]-numstrip[4] == -1)   clustersize = 2; //--*--*--*--**--
+    else                                      clustersize = 0; //--*--*--*--*--*--
+  }
+  // layermulti = 6 的情况
+  if (layermulti==6) {
+    if (numstrip[0]-numstrip[5] == -5)        clustersize = 6; //---******----
+    else if (numstrip[0]-numstrip[4] == -4)   clustersize = 5; //---*****--*--
+    else if (numstrip[1]-numstrip[5] == -4)   clustersize = 5; //---*--*****--
+    else if (numstrip[0]-numstrip[3] == -3) {
+      if (numstrip[4]-numstrip[5] == -1)      clustersize = 24;//---****--**--
+      else                                    clustersize = 4; //---****--*--*--
+    }
+    else if (numstrip[1]-numstrip[4] == -3)   clustersize = 4; //---*--****--*--
+    else if (numstrip[2]-numstrip[5] == -3) {
+      if (numstrip[0]-numstrip[1] == -1)      clustersize = 24;//--**--****--
+      else                                    clustersize = 4; //--*--*--****--
+    }
+    else if (numstrip[0]-numstrip[2] == -2) {
+      if (numstrip[3]-numstrip[5] == -2)      clustersize = 33; //---***---***--
+      else if ((numstrip[3]-numstrip[4] == -1) || (numstrip[3]-numstrip[4] == -1)) clustersize = 123; //--***--**--*-- or --***--*--**--
+      else                                    clustersize = 3; //--***--*--*--*--
+    }
+    else if (numstrip[1]-numstrip[3] == -2) {
+      if (numstrip[4]-numstrip[5] == -1)      clustersize = 123; //--*--***--**--
+      else                                    clustersize = 3; //---*--***--*--*--
+    }
+    else if (numstrip[2]-numstrip[4] == -2) {
+      if (numstrip[0]-numstrip[1] == -1)      clustersize = 123; //--**---***--*--
+      else                                    clustersize = 3; //--*--*--***--*--
+    }
+    else if (numstrip[3]-numstrip[5] == -2) {
+      if ((numstrip[0]-numstrip[1] == -1) || (numstrip[1]-numstrip[2] == -1))  clustersize = 123; //--**--*--***-- or --*--**--***--
+      else                                    clustersize = 3; //--*--*--*--***--
+    }
+    else if (numstrip[0]-numstrip[1] == -1) {
+      if (numstrip[2]-numstrip[3] == -1) {
+        if (numstrip[4]-numstrip[5] == -1)   clustersize = 222; //--**--**--**--
+        else                                 clustersize = 1122;//--**--**--*--*--
+      }
+      else if (numstrip[3]-numstrip[4] == -1)  clustersize = 1122; //--**--*--**-*--
+      else if (numstrip[4]-numstrip[5] == -1)  clustersize = 1122; //--**--*--*--**--
+      else                                     clustersize = 2; //--**--*--*--*--*--
+    }
+    else if  (numstrip[1]-numstrip[2] == -1) {
+      if (numstrip[3]-numstrip[4] == -1)       clustersize = 1122; //--*--**--**--*--
+      else if (numstrip[4]-numstrip[5] == -1)  clustersize = 1122; //--*--**--*--**--
+      else                                     clustersize = 2; //--*--**--*--*--*--
+    }
+    else if (numstrip[2]-numstrip[3] == -1) {
+      if (numstrip[4]-numstrip[5] == -1)      clustersize = 1122; //--*--*--**--**--
+      else                                    clustersize = 2; //--*--*--**--*--*--
+    }
+    else if (numstrip[3]-numstrip[4] == -1)   clustersize = 2; //--*--*--*--**--*--
+    else if (numstrip[4]-numstrip[5] == -1)   clustersize = 2; //--*--*--*--*--**--
+    else                                      clustersize = 0; //--*--*--*--*--*--*--
+  }
+}
+
+//__________________________________________________
+// 经过以上 CheckClusterSize_Si() 的分析, charge charing
+// 只需考虑 clustersize=2 的情况即可 ！
+void CSHINETrackReconstruction::CalcClusterSize_Equal2_ERatio()
+{
+  Int_t strip[2];
+  Double_t efound[2];
+  Int_t ClusterSize_L2F = -99;
+
+  Double_t ERatio_L1S = -99.;
+  Double_t ERatio_L2F = -99.;
+  Double_t ERatio_L2B = -99.;
+  std::vector<Int_t> NumStrip_L1S;
+  std::vector<Int_t> NumStrip_L2F;
+  std::vector<Int_t> NumStrip_L2B;
+  std::vector<Double_t> EMeV_L1S;
+  std::vector<Double_t> EMeV_L2F;
+  std::vector<Double_t> EMeV_L2B;
+
+  std::string L1S_ERatio[NUM_SSD];
+  std::string L2F_ERatio[NUM_SSD];
+  std::string L2B_ERatio[NUM_SSD];
+  std::string L1S_ECorr[NUM_SSD];
+  std::string L2F_ECorr[NUM_SSD];
+  std::string L2B_ECorr[NUM_SSD];
+
+  TH1D* hist_ERatio_L1S[NUM_SSD];
+  TH1D* hist_ERatio_L2F[NUM_SSD];
+  TH1D* hist_ERatio_L2B[NUM_SSD];
+  TH2D* hist_ECorr_L1S[NUM_SSD];
+  TH2D* hist_ECorr_L2F[NUM_SSD];
+  TH2D* hist_ECorr_L2B[NUM_SSD];
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    L1S_ERatio[ssdindex] = Form("SSD%d_L1S_ERatio",ssdindex+1);
+    L2F_ERatio[ssdindex] = Form("SSD%d_L2F_ERatio",ssdindex+1);
+    L2B_ERatio[ssdindex] = Form("SSD%d_L2B_ERatio",ssdindex+1);
+    L1S_ECorr [ssdindex] = Form("SSD%d_L1S_ECorr",ssdindex+1);
+    L2F_ECorr [ssdindex] = Form("SSD%d_L2F_ECorr",ssdindex+1);
+    L2B_ECorr [ssdindex] = Form("SSD%d_L2B_ECorr",ssdindex+1);
+
+    hist_ERatio_L1S[ssdindex] = new TH1D(L1S_ERatio[ssdindex].c_str(), L1S_ERatio[ssdindex].c_str(), 100, 0, 1);
+    hist_ERatio_L2F[ssdindex] = new TH1D(L2F_ERatio[ssdindex].c_str(), L2F_ERatio[ssdindex].c_str(), 100, 0, 1);
+    hist_ERatio_L2B[ssdindex] = new TH1D(L2B_ERatio[ssdindex].c_str(), L2B_ERatio[ssdindex].c_str(), 100, 0, 1);
+    hist_ECorr_L1S [ssdindex] = new TH2D(L1S_ECorr[ssdindex].c_str(), L1S_ECorr[ssdindex].c_str(),3000,0,300,3000,0,300);
+  }
+
+  Long64_t nentries = fChainLayerTree->GetEntriesFast();
+  cout<<"nentries = "<<nentries<<endl;
+  for (Long64_t ientry=0; ientry<nentries;ientry++) {
+
+    fChainLayerTree->GetEntry(ientry);
+    timeper.PrintPercentageAndRemainingTime(ientry, nentries);
+
+    for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+
+      // for L1S
+      if (fLayerEvent.fSSDL1SMulti[ssdindex]>=2 && fLayerEvent.fSSDL1SMulti[ssdindex]<=MULTICUT_L1S) {
+        for (Int_t l1smulti=0; l1smulti<fLayerEvent.fL1SMulti; l1smulti++) {
+          if (fLayerEvent.fL1SSSDNum[l1smulti]==ssdindex) {
+            NumStrip_L1S.push_back(fLayerEvent.fL1SNumStrip[l1smulti]);
+            EMeV_L1S.push_back(fLayerEvent.fL1SEMeV[l1smulti]);
+          }
+        }
+        ClusterSize_Equal2_SiLayer(fLayerEvent.fSSDL1SMulti[ssdindex], NumStrip_L1S, EMeV_L1S, strip, efound, ERatio_L1S);
+        hist_ERatio_L1S[ssdindex]->Fill(ERatio_L1S);
+        hist_ECorr_L1S [ssdindex]->Fill(efound[0], efound[1]);
+      }
+      // for L2F
+      if (fLayerEvent.fSSDL2FMulti[ssdindex]>=2 && fLayerEvent.fSSDL2FMulti[ssdindex]<=MULTICUT_L2F) {
+        for (Int_t l2fmulti=0; l2fmulti<fLayerEvent.fL2FMulti; l2fmulti++) {
+          NumStrip_L2F.push_back(fLayerEvent.fL2FNumStrip[l2fmulti]);
+          EMeV_L2F.push_back(fLayerEvent.fL2FEMeV[l2fmulti]);
+        }
+        ClusterSize_Equal2_SiLayer(fLayerEvent.fSSDL2FMulti[ssdindex], NumStrip_L2F, EMeV_L2F, strip, efound, ERatio_L2F);
+        hist_ERatio_L2F[ssdindex]->Fill(ERatio_L2F);
+      }
+      // for L2B
+      if (fLayerEvent.fSSDL2BMulti[ssdindex]>=2 && fLayerEvent.fSSDL2BMulti[ssdindex]<=MULTICUT_L2B) {
+        for (Int_t l2bmulti=0; l2bmulti<fLayerEvent.fL2BMulti; l2bmulti++) {
+          if (fLayerEvent.fL2BSSDNum[l2bmulti]==ssdindex) {
+            NumStrip_L2B.push_back(fLayerEvent.fL2BNumStrip[l2bmulti]);
+            EMeV_L2B.push_back(fLayerEvent.fL2BEMeV[l2bmulti]);
+          }
+        }
+        ClusterSize_Equal2_SiLayer(fLayerEvent.fSSDL2BMulti[ssdindex], NumStrip_L2B, EMeV_L2B, strip, efound, ERatio_L2B);
+        hist_ERatio_L2B[ssdindex]->Fill(ERatio_L2B);
+      }
+      NumStrip_L1S.clear();
+      NumStrip_L2F.clear();
+      NumStrip_L2B.clear();
+      EMeV_L1S.clear();
+      EMeV_L2F.clear();
+      EMeV_L2B.clear();
+    }
+  }
+
+  TCanvas* cans_L1S = new TCanvas("cans_L1S", "cans_L1S", 1000, 1000);
+  TCanvas* cans_L2F = new TCanvas("cans_L2F", "cans_L2F", 1000, 1000);
+  TCanvas* cans_L2B = new TCanvas("cans_L2B", "cans_L2B", 1000, 1000);
+  TCanvas* cans_L1S_ECorr = new TCanvas("cans_L1S_ECorr", "cans_L1S_ECorr", 1000, 1000);
+  cans_L1S->Divide(2,2);
+  cans_L2F->Divide(2,2);
+  cans_L2B->Divide(2,2);
+  cans_L1S_ECorr->Divide(2,2);
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    cans_L1S->cd(ssdindex+1);
+    hist_ERatio_L1S[ssdindex]->Draw();
+
+    cans_L2F->cd(ssdindex+1);
+    hist_ERatio_L2F[ssdindex]->Draw();
+
+    cans_L2B->cd(ssdindex+1);
+    hist_ERatio_L2B[ssdindex]->Draw();
+
+    cans_L1S_ECorr->cd(ssdindex+1);
+    hist_ECorr_L1S[ssdindex]->Draw("COLZ");
+  }
+}
+
+
+//______________________________
+// 计算 clustersize = 2 时两个能量的比值
+void CSHINETrackReconstruction::ClusterSize_Equal2_SiLayer(Int_t layermulti, vector<Int_t> numstrip,
+  vector<Double_t> ene, Int_t* strip, Double_t* efound, Double_t& eratio)
+{
+  if (layermulti==2 && (numstrip[0]-numstrip[1] == -1)) {
+    eratio = CalcRatio(ene[0], ene[1]); //---**------
+    strip[0] = numstrip[0]; strip[1] = numstrip[1];
+    efound[0] = ene[0]; efound[1] = ene[1];
+  }
+  // multi = 3
+  if (layermulti==3) {
+    if ((numstrip[0]-numstrip[2]!=-2)&&(numstrip[0]-numstrip[1]==-1)) {
+      eratio = CalcRatio(ene[0], ene[1]); //--**---*-----
+      strip[0] = numstrip[0]; strip[1] = numstrip[1];
+      efound[0] = ene[0]; efound[1] = ene[1];
+    }
+    if ((numstrip[0]-numstrip[2]!=-2)&&(numstrip[1]-numstrip[2]==-1)) {
+      eratio = CalcRatio(ene[1], ene[2]);  //--*---**-----
+      strip[0] = numstrip[1]; strip[1] = numstrip[2];
+      efound[0] = ene[1]; efound[1] = ene[2];
+    }
+  }
+  // multi = 4
+  if (layermulti==4) {
+    if ((numstrip[0]-numstrip[1]==-1)&&(numstrip[1]-numstrip[2]!=-1)&&(numstrip[2]-numstrip[3]!=-1)) {
+      eratio = CalcRatio(ene[0], ene[1]); //---**--*--*--
+      strip[0] = numstrip[0]; strip[1] = numstrip[1];
+      efound[0] = ene[0]; efound[1] = ene[1];
+    }
+    if ((numstrip[0]-numstrip[1]!=-1)&&(numstrip[1]-numstrip[2]==-1)&&(numstrip[2]-numstrip[3]!=-1)) {
+      eratio = CalcRatio(ene[1], ene[2]); //---*--**---*--
+      strip[0] = numstrip[1]; strip[1] = numstrip[2];
+      efound[0] = ene[1]; efound[1] = ene[2];
+    }
+    if ((numstrip[0]-numstrip[1]!=-1)&&(numstrip[1]-numstrip[2]!=-1)&&(numstrip[2]-numstrip[3]==-1)) {
+      eratio = CalcRatio(ene[2], ene[3]); //---*--*--**---
+      strip[0] = numstrip[2]; strip[1] = numstrip[3];
+      efound[0] = ene[2]; efound[1] = ene[3];
+    }
+  }
+  // multi = 5
+  if (layermulti==5) {
+    if ((numstrip[0]-numstrip[1]==-1)&&(numstrip[1]-numstrip[2]!=-1)&&(numstrip[2]-numstrip[3]!=-1)&&(numstrip[3]-numstrip[4]!=-1)) {
+      eratio = CalcRatio(ene[0], ene[1]); //---**--*--*--*--
+      strip[0] = numstrip[0]; strip[1] = numstrip[1];
+      efound[0] = ene[0]; efound[1] = ene[1];
+    }
+    if ((numstrip[0]-numstrip[1]!=-1)&&(numstrip[1]-numstrip[2]==-1)&&(numstrip[2]-numstrip[3]!=-1)&&(numstrip[3]-numstrip[4]!=-1)) {
+      eratio = CalcRatio(ene[1], ene[2]); //--*--**--*--*--
+      strip[0] = numstrip[1]; strip[1] = numstrip[2];
+      efound[0] = ene[1]; efound[1] = ene[2];
+    }
+    if ((numstrip[0]-numstrip[1]!=-1)&&(numstrip[1]-numstrip[2]!=-1)&&(numstrip[2]-numstrip[3]==-1)&&(numstrip[3]-numstrip[4]!=-1)) {
+      eratio = CalcRatio(ene[2], ene[3]); //--*--*--**--*--
+      strip[0] = numstrip[2]; strip[1] = numstrip[3];
+      efound[0] = ene[2]; efound[1] = ene[3];
+    }
+    if ((numstrip[0]-numstrip[1]!=-1)&&(numstrip[1]-numstrip[2]!=-1)&&(numstrip[2]-numstrip[3]!=-1)&&(numstrip[3]-numstrip[4]==-1)) {
+      eratio = CalcRatio(ene[3], ene[4]); //--*--*--*--**--
+      strip[0] = numstrip[3]; strip[1] = numstrip[4];
+      efound[0] = ene[3]; efound[1] = ene[4];
+    }
+  }
+  // mulit = 6
+  if (layermulti==6) {
+    if ((numstrip[0]-numstrip[1]==-1)&&(numstrip[1]-numstrip[2]!=-1)&&(numstrip[2]-numstrip[3]!=-1)&&
+        (numstrip[3]-numstrip[4]!=-1)&&(numstrip[4]-numstrip[5]!=-1)) {
+      eratio = CalcRatio(ene[0], ene[1]); //--**--*--*--*--*--
+      strip[0] = numstrip[0]; strip[1] = numstrip[1];
+      efound[0] = ene[0]; efound[1] = ene[1];
+    }
+    if ((numstrip[0]-numstrip[1]!=-1)&&(numstrip[1]-numstrip[2]==-1)&&(numstrip[2]-numstrip[3]!=-1)&&
+        (numstrip[3]-numstrip[4]!=-1)&&(numstrip[4]-numstrip[5]!=-1)) {
+      eratio = CalcRatio(ene[1], ene[2]); //--*--**--*--*--*--
+      strip[0] = numstrip[1]; strip[1] = numstrip[2];
+      efound[0] = ene[1]; efound[1] = ene[2];
+    }
+    if ((numstrip[0]-numstrip[1]!=-1)&&(numstrip[1]-numstrip[2]!=-1)&&(numstrip[2]-numstrip[3]==-1)&&
+        (numstrip[3]-numstrip[4]!=-1)&&(numstrip[4]-numstrip[5]!=-1)) {
+      eratio = CalcRatio(ene[2], ene[3]); //--*--*--**--*--*--
+      strip[0] = numstrip[2]; strip[1] = numstrip[3];
+      efound[0] = ene[2]; efound[1] = ene[3];
+    }
+    if ((numstrip[0]-numstrip[1]!=-1)&&(numstrip[1]-numstrip[2]!=-1)&&(numstrip[2]-numstrip[3]!=-1)&&
+        (numstrip[3]-numstrip[4]==-1)&&(numstrip[4]-numstrip[5]!=-1)) {
+      eratio = CalcRatio(ene[3], ene[4]); //--*--*--*--**--*--
+      strip[0] = numstrip[3]; strip[1] = numstrip[4];
+      efound[0] = ene[3]; efound[1] = ene[4];
+    }
+    if ((numstrip[0]-numstrip[1]!=-1)&&(numstrip[1]-numstrip[2]!=-1)&&(numstrip[2]-numstrip[3]!=-1)&&
+        (numstrip[3]-numstrip[4]!=-1)&&(numstrip[4]-numstrip[5]==-1)) {
+      eratio = CalcRatio(ene[4], ene[5]); //--*--*--*--*--**--
+      strip[0] = numstrip[4]; strip[1] = numstrip[5];
+      efound[0] = ene[4]; efound[1] = ene[5];
+    }
+  }
+}
+
+
+//_________________________________________
+void CSHINETrackReconstruction::ClusterSize_Equal2_CsI()
+{
+  std::vector<Int_t> csinum;
+  std::vector<Double_t>  csiech;
+
+  Int_t count_eff[4] = {0};
+  Int_t size_2[4]    = {0};
+  Int_t size_1213[4] = {0};
+  Int_t size_1223[4] = {0};
+  Int_t size_1323[4] = {0};
+  Int_t size_12[4]   = {0};
+  Int_t size_13[4]   = {0};
+  Int_t size_23[4]   = {0};
+
+  Double_t ration_sum[4] = {0.};
+  Double_t r_size_2[4]   = {0.};
+  Double_t r_size_1213[4] = {0.};
+  Double_t r_size_1223[4] = {0.};
+  Double_t r_size_1323[4] = {0.};
+  Double_t r_size_12[4]   = {0.};
+  Double_t r_size_13[4]   = {0.};
+  Double_t r_size_23[4]   = {0.};
+
+  TH2D* hist_CsI_ECorr[NUM_SSD];
+  TH2D* hist_CsI_Array[NUM_SSD][NUM_CSI];
+  for (Int_t i=0; i<NUM_SSD; i++) {
+    hist_CsI_ECorr[i] = new TH2D(Form("SSD%d_CsIECorr",i+1), Form("SSD%d_CsIECorr",i+1), 4000,0,4000,4000,0,4000);
+
+    for (Int_t j=0; j<NUM_CSI; j++) {
+      hist_CsI_Array[i][j] = new TH2D(Form("SSD%d_CsI%d", i+1, j), Form("SSD%d_CsI%d", i+1, j), 4000,0,4000,4000,0,4000);
+    }
+  }
+
+  Long64_t nentries = fChainLayerTree->GetEntriesFast();
+  cout<<"nentries = "<<nentries<<endl;
+  for (Long64_t ientry=0; ientry<nentries;ientry++) {
+
+    fChainLayerTree->GetEntry(ientry);
+    timeper.PrintPercentageAndRemainingTime(ientry, nentries);
+
+    for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+
+      if (fLayerEvent.fSSDCsIMulti[ssdindex] >= 1) count_eff[ssdindex]++;
+
+      // for multi = 2
+      if (fLayerEvent.fSSDCsIMulti[ssdindex] == 2) {
+        for (Int_t csimulti=0; csimulti<fLayerEvent.fCsIMulti; csimulti++) {
+          if (fLayerEvent.fCsISSDNum[csimulti] == ssdindex) {
+            csinum.push_back(fLayerEvent.fCsINum[csimulti]);
+            csiech.push_back(fLayerEvent.fCsIECh[csimulti]);
+          }
+        }
+        if (IsAdj_CsI(csinum[0],csinum[1])) {
+          size_2[ssdindex]++;
+          hist_CsI_ECorr[ssdindex]->Fill(csiech[0], csiech[1]);
+          hist_CsI_Array[ssdindex][csinum[0]]->Fill(csiech[0], csiech[1]);
+          // cout<<size_2[ssdindex]<<setw(20)<<csinum[0]<<setw(20)<<csinum[1]<<endl;
+        }
+      }
+      // for multi = 3
+      if (fLayerEvent.fSSDCsIMulti[ssdindex] == 3) {
+        for (Int_t csimulti=0; csimulti<fLayerEvent.fCsIMulti; csimulti++) {
+          if (fLayerEvent.fCsISSDNum[csimulti] == ssdindex) {
+            csinum.push_back(fLayerEvent.fCsINum[csimulti]);
+          }
+        }
+        if (IsAdj_CsI(csinum[0],csinum[1]) && IsAdj_CsI(csinum[0],csinum[2])) size_1213[ssdindex]++;
+        if (IsAdj_CsI(csinum[0],csinum[1]) && IsAdj_CsI(csinum[1],csinum[2])) size_1223[ssdindex]++;
+        if (IsAdj_CsI(csinum[0],csinum[2]) && IsAdj_CsI(csinum[1],csinum[2])) size_1323[ssdindex]++;
+        if (IsAdj_CsI(csinum[0],csinum[1])  && !IsAdj_CsI(csinum[0],csinum[2]) && !IsAdj_CsI(csinum[1],csinum[2])) size_12[ssdindex]++;
+        if (!IsAdj_CsI(csinum[0],csinum[1]) &&  IsAdj_CsI(csinum[0],csinum[2]) && !IsAdj_CsI(csinum[1],csinum[2])) size_13[ssdindex]++;
+        if (!IsAdj_CsI(csinum[0],csinum[1]) && !IsAdj_CsI(csinum[0],csinum[2]) &&  IsAdj_CsI(csinum[1],csinum[2])) size_23[ssdindex]++;
+      }
+      csinum.clear();
+      csiech.clear();
+    }
+  }
+
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    r_size_2[ssdindex]    = (Double_t) size_2[ssdindex]/count_eff[ssdindex];
+    r_size_1213[ssdindex] = (Double_t) size_1213[ssdindex]/count_eff[ssdindex];
+    r_size_1223[ssdindex] = (Double_t) size_1223[ssdindex]/count_eff[ssdindex];
+    r_size_1323[ssdindex] = (Double_t) size_1323[ssdindex]/count_eff[ssdindex];
+    r_size_12[ssdindex]   = (Double_t) size_12[ssdindex]/count_eff[ssdindex];
+    r_size_13[ssdindex]   = (Double_t) size_13[ssdindex]/count_eff[ssdindex];
+    r_size_23[ssdindex]   = (Double_t) size_23[ssdindex]/count_eff[ssdindex];
+
+    ration_sum[ssdindex] = r_size_2[ssdindex]+r_size_1213[ssdindex]+r_size_1223[ssdindex]+
+                           r_size_1323[ssdindex]+r_size_12[ssdindex]+r_size_13[ssdindex]+r_size_23[ssdindex];
+  }
+
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    printf("SSD%d_CsI\n", ssdindex+1);
+    cout<<"count_eff = "<<count_eff[ssdindex]<<endl;
+    cout<<setprecision(4);
+    cout<<setw(10)<<"size_2    = "<<size_2[ssdindex]<<setw(15)<<r_size_2[ssdindex]<<endl;
+    cout<<setw(10)<<"size_1213 = "<<size_1213[ssdindex]<<setw(15)<<r_size_1213[ssdindex]<<endl;
+    cout<<setw(10)<<"size_1223 = "<<size_1223[ssdindex]<<setw(15)<<r_size_1223[ssdindex]<<endl;
+    cout<<setw(10)<<"size_1323 = "<<size_1323[ssdindex]<<setw(15)<<r_size_1323[ssdindex]<<endl;
+    cout<<setw(10)<<"size_12   = "<<size_12[ssdindex]<<setw(15)<<r_size_12[ssdindex]<<endl;
+    cout<<setw(10)<<"size_13   = "<<size_13[ssdindex]<<setw(15)<<r_size_13[ssdindex]<<endl;
+    cout<<setw(10)<<"size_23   = "<<size_23[ssdindex]<<setw(15)<<r_size_23[ssdindex]<<endl;
+    cout<<setw(10)<<"sum       = "<<ration_sum[ssdindex]<<endl;
+    cout<<endl;
+  }
+
+  TCanvas* cans_CsI_ECorr = new TCanvas("cans_CsI_ECorr", "cans_CsI_ECorr", 1000, 1000);
+  cans_CsI_ECorr->Divide(2,2);
+  TCanvas* cans_CsI_Array[NUM_SSD];
+
+  for (Int_t i=0; i<NUM_SSD; i++) {
+    cans_CsI_ECorr->cd(i+1);
+    hist_CsI_ECorr[i]->Draw("COLZ");
+
+    cans_CsI_Array[i] = new TCanvas(Form("cans_SSD%d", i+1), Form("cans_SSD%d", i+1), 1200, 1200);
+    cans_CsI_Array[i]->Divide(3,3);
+    for (Int_t j=0; j<NUM_CSI; j++) {
+      cans_CsI_Array[i]->cd(j+1);
+      hist_CsI_Array[i][j]->Draw("COLZ");
+    }
+  }
+}
+
+
+//_________________________________________
+//        检查 CsI 之间的串扰
+// 选取 L2F, L2B 都只有一个粒子的事件, 然后对 CsI 中的情况进行分类:
+// 如果点火的 CsI 数目大于1, 且至少有那块 CsI 相邻，则认为该事件
+// “可能”存在串扰. 以此通过实验数据给出串扰的概率上限
+//
+void CSHINETrackReconstruction::CheckCrossTalk_CsI()
+{
+  gStyle->SetPalette(1);
+//  gStyle->SetOptStat(0);
+
+  TimeAndPercentage time;
+
+  Int_t firstrun  = 120;
+  Int_t lastrun   = 200;
+
+  Double_t eneratio = 0.15;
+  Int_t csiech_cut = 60;
+
+  Int_t count_csimulti_ge1[4] = {0};
+  Int_t count_csimulti_ge2[4] = {0};
+  Int_t count_multi2_crosstalk[4] = {0};
+  Int_t count_multi3_crosstalk[4] = {0};
+
+  std::vector<Int_t> csinum;
+  std::vector<Int_t> csiene;
+
+  std::string pathFolder("/home/sea/Fission2019_Data/CSHINEEvent/");
+  std::string pathROOT(Form("%sEventTree_Run%04d-Run%04d.root", pathFolder.c_str(),firstrun,lastrun));
+  std::string pathPNGout[4];
+
+  TH1D* hist_CsI[4];
+  TH2D* h2_crosstalk[4];
+  for (Int_t i=0; i<4; i++) {
+    pathPNGout[i] = Form("%sfigure_TrackReconstruction/SSD%d_CsI_CrossTalk.png", PATHFIGURESFOLDER,i+1);
+    hist_CsI[i] = new TH1D(Form("SSD%d_CsIMulti",i+1),Form("SSD%d_CsIMulti",i+1),10,0,10);
+    h2_crosstalk[i] = new TH2D(Form("SSD%d_crosstalk",i+1),Form("SSD%d_crosstalk",i+1),4000,0,4000,4000,0,4000);
+  }
+
+  Long64_t nentries = fChainLayerTree->GetEntries();
+  cout<<"Found "<<nentries<<" entries."<<endl;
+
+  Int_t ientry = 0;
+  for (Long64_t ientry=0; ientry<nentries; ientry++)
+  {
+    fChainLayerTree->GetEntry(ientry);
+    time.PrintPercentageAndRemainingTime(ientry, nentries);
+
+    for (Int_t ssdindex=0; ssdindex<4; ssdindex++) {
+      //_______________________
+      // for L2L3
+      if (fLayerEvent.fSSDL1SMulti[ssdindex]>0 && fLayerEvent.fSSDL2BMulti[ssdindex]==1 &&
+          fLayerEvent.fSSDL2FMulti[ssdindex]==1 && fLayerEvent.fSSDCsIMulti[ssdindex]>0)
+      {
+        hist_CsI[ssdindex]->Fill(fLayerEvent.fSSDCsIMulti[ssdindex]);
+
+        if (fLayerEvent.fSSDCsIMulti[ssdindex]>=1) count_csimulti_ge1[ssdindex]++;
+        if (fLayerEvent.fSSDCsIMulti[ssdindex]>=2) count_csimulti_ge2[ssdindex]++;
+
+        // for multi = 2
+        if (fLayerEvent.fSSDCsIMulti[ssdindex] == 2) {
+          for (Int_t csimulti=0; csimulti<fLayerEvent.fCsIMulti; csimulti++) {
+            if (fLayerEvent.fCsISSDNum[csimulti] == ssdindex) {
+              csinum.push_back(fLayerEvent.fCsINum[csimulti]);
+              csiene.push_back(fLayerEvent.fCsIECh[csimulti]);
+            }
+          }
+          if (csinum.size()>0) {
+            if (IsAdj_CsI(csinum[0],csinum[1])) {
+              if (csiene[0]>csiech_cut && csiene[1]>csiech_cut) {
+                count_multi2_crosstalk[ssdindex]++;
+
+                // SSD4_CsI[4] 与 CsI[5] 信号异常, 需要扔掉
+                if (ssdindex==3 && ((csinum[0]==4 || csinum[0]==5) || (csinum[1]==4 || csinum[1]==5))) continue;
+                h2_crosstalk[ssdindex]->Fill(csiene[0], csiene[1]);
+                //  cout<<"csi no. = "<<csinum[0]<<setw(15)<<"csi no. = "<<csinum[1]<<setw(15)
+                //      <<"csi ene = "<<csiene[0]<<setw(15)<<"csi ene = "<<csiene[1]<<endl;
+              }
+            }
+          }
+        }
+
+        // for multi = 3
+        if (fLayerEvent.fSSDCsIMulti[ssdindex] == 3) {
+          for (Int_t csimulti=0; csimulti<fLayerEvent.fCsIMulti; csimulti++) {
+            if (fLayerEvent.fCsISSDNum[csimulti] == ssdindex) {
+              csinum.push_back(fLayerEvent.fCsINum[csimulti]);
+            }
+          }
+          if ( (IsAdj_CsI(csinum[0],csinum[1]) && IsAdj_CsI(csinum[0],csinum[2])) ||
+               (IsAdj_CsI(csinum[0],csinum[1]) && IsAdj_CsI(csinum[1],csinum[2])) ||
+               (IsAdj_CsI(csinum[0],csinum[2]) && IsAdj_CsI(csinum[1],csinum[2])) ||
+               (IsAdj_CsI(csinum[0],csinum[1]) && IsAdj_CsI(csinum[0],csinum[2]) && IsAdj_CsI(csinum[1],csinum[2])) ||
+               (IsAdj_CsI(csinum[0],csinum[1]) && IsAdj_CsI(csinum[0],csinum[2]) && IsAdj_CsI(csinum[1],csinum[2])) ||
+               (IsAdj_CsI(csinum[0],csinum[1] )&& IsAdj_CsI(csinum[0],csinum[2]) && IsAdj_CsI(csinum[1],csinum[2])) )
+          {
+            count_multi3_crosstalk[ssdindex]++;
+          }
+        }
+        csinum.clear();
+        csiene.clear();
+      }
+    }
+  }
+  for (Int_t i=0; i<4; i++) {
+    cout<<endl;
+    cout<<"for SSD"<<i<<endl;
+    cout<<"count_csimulti_ge1 = "<<count_csimulti_ge1[i]<<endl;
+    cout<<"count_csimulti_ge2 = "<<count_csimulti_ge2[i]<<endl;
+    cout<<"count_multi2_crosstalk = "<<count_multi2_crosstalk[i]<<endl;
+    cout<<"count_multi3_crosstalk = "<<count_multi3_crosstalk[i]<<endl;
+
+    Double_t ratio = (Double_t) count_csimulti_ge2[i]/count_csimulti_ge1[i];
+    Double_t ratio_crosstalk = (Double_t) (count_multi2_crosstalk[i]+count_multi3_crosstalk[i])/count_csimulti_ge1[i];
+    cout<<setprecision(6)<<"multi>=2 / multi>=1 = "<<ratio<<endl;
+    cout<<setprecision(6)<<"ratio_crosstalk = "<<ratio_crosstalk<<endl;
+  }
+
+
+  TCanvas* cans[4];
+  for (Int_t i=0; i<4; i++) {
+    cans[i] = new TCanvas(Form("c_SSD%d",i+1), Form("c_SSD%d",i+1), 1200, 500);
+    cans[i]->Divide(2,1);
+    cans[i]->cd(1);
+    hist_CsI[i]->Draw();
+    cans[i]->cd(2);
+    h2_crosstalk[i]->Draw("COL");
+    cans[i]->Print(pathPNGout[i].c_str());
+  }
+}
+
+//______________________________________________________________________________
+// 判断两块 CsI 晶体是否相邻. 以下是 Fission2019 实验中 CsI 阵列的排布:
+//  -----------
+//   2   5   8
+//   1   4   7
+//   0   3   6
+//  -----------
+Bool_t CSHINETrackReconstruction::IsAdj_CsI(Int_t n1, Int_t n2)
+{
+  //（ 列相邻 || 行相邻 ）
+  return (((n1/3 == n2/3)&&(n1-n2 == -1)) || ((n1%3 == n2%3)&&(n1-n2 == -3)));
+}
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
+
+
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
+//               径迹重建 与 相关检测
+//            ----------------------
+// 径迹重建算法
+//______________________________________________________________________
+// 自定义径迹查找算法1 : 循环-循环-判断-循环-判断-循环-判断
+// 自定义径迹查找算法2 : 循环-循环-循环-循环-判断-判断-判断-判断
+// 经验证, 算法2 与 算法1 等效 !
+// 算法2 更加简洁明了，为方便起见，使用算法2进行后续分析
+// 这一步生成 TrackEvent，便于后续的模式识别使用
+//
+// 为了不引起混乱, 本函数仅用于生成 Track 事件, 对于径迹重建的检查
+// 将由下一个函数 CheckTrackReconstructionResult() 来完成
+void CSHINETrackReconstruction::L2L3_TrackReconstructionAlgorithm()
+{
+  Int_t count_satisfiedmulticut[4] = {0}; // 满足初步 multi cut 计数
+  Int_t count_effentries[4] = {0};        // globalmulti>0 的计数
+
+  std::string LayerTag("L2L3");
+
+  TimeAndPercentage timeper;
+
+  std::string pathTrackEventRoot(Form("%s%s_TrackReconstructionEvent_Run%04d-Run%04d.root", PATHROOTFILESFOLDER,LayerTag.c_str(),fFirstRun,fLastRun));
+
+  ofstream  FileOut[NUM_SSD];
+  for (Int_t i=0; i<NUM_SSD; i++) {
+    FileOut[i].open(Form("%sdata_Test_Multi/SSD%d_%s_Test_Multi_L1L2EnergyCut.dat",PATHDATAFOLDER,i+1,LayerTag.c_str()));
+
+    FileOut[i]<<setw(7)<<"# EntryID"<<setw(15)<<"MultiGlobal"
+              <<setw(11)<<"M_L3A"<<setw(11)<<"M_L2B"<<setw(11)<<"M_L2F"<<setw(11)<<"M_L1S"
+              <<setw(11)<<"CSI"<<setw(11)<<"L2B"<<setw(11)<<"L2F"<<setw(11)<<"L1S"
+              <<setw(13)<<"EL1S"<<setw(13)<<"EL2F"<<setw(13)<<"EL2B"<<setw(13)<<"ECsI"
+              <<endl;
+  }
+
+  TFile* myfile = new TFile(pathTrackEventRoot.c_str(),"RECREATE");
+  TTree* mytree = new TTree("TrackEvent","TrackEvent Tree");
+  mytree->Branch("TrackEvent.", "CSHINETrackEvent", &fTrackEvent, 32000, 2);
+
+  Long64_t nentries = fChainLayerTree->GetEntriesFast();
+  cout<<"nentries = "<<nentries<<endl;
+  cout<<Form("Building TrackEvent for %s: Run%04d-Run%04d ......\n",LayerTag.c_str(),fFirstRun,fLastRun);
+
+  for (Long64_t ientry=0; ientry<nentries; ientry++) {
+
+    fChainLayerTree->GetEntry(ientry);
+    timeper.PrintPercentageAndRemainingTime(ientry, nentries);
+
+    Int_t globalmulti = 0 ;
+    for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+      Int_t ssdglobalmulti = 0;
+
+      if ((fLayerEvent.fSSDCsIMulti[ssdindex]>0 && fLayerEvent.fSSDCsIMulti[ssdindex]<=MULTICUT_L3A) &&
+          (fLayerEvent.fSSDL2BMulti[ssdindex]>0 && fLayerEvent.fSSDL2BMulti[ssdindex]<=MULTICUT_L2B) &&
+          (fLayerEvent.fSSDL2FMulti[ssdindex]>0 && fLayerEvent.fSSDL2FMulti[ssdindex]<=MULTICUT_L2F) &&
+          (fLayerEvent.fSSDL1SMulti[ssdindex]>0 && fLayerEvent.fSSDL1SMulti[ssdindex]<=MULTICUT_L1S)) // 给定初步的 multi cut
+      {
+        count_satisfiedmulticut[ssdindex]++;
+
+        for (Int_t csimulti=0; csimulti<fLayerEvent.fCsIMulti; csimulti++) {
+          for (Int_t l2bmulti=0; l2bmulti<fLayerEvent.fL2BMulti; l2bmulti++) {
+            for (Int_t l2fmulti=0; l2fmulti<fLayerEvent.fL2FMulti; l2fmulti++) {
+              for (Int_t l1smulti=0; l1smulti<fLayerEvent.fL1SMulti; l1smulti++) { // 逐层循环,遍历所有可能的组合
+
+                if (fLayerEvent.fCsISSDNum[csimulti]==ssdindex && fLayerEvent.fL2BSSDNum[l2bmulti]==ssdindex &&
+                    fLayerEvent.fL2FSSDNum[l2fmulti]==ssdindex && fLayerEvent.fL1SSSDNum[l1smulti]==ssdindex)  // 对每个SSD分开讨论
+                {
+                  if (IsGeoConstraint_L3A_L2B(fLayerEvent.fCsINum[csimulti], fLayerEvent.fL2BNumStrip[l2bmulti]) &&
+                      IsGeoConstraint_L3A_L2F(fLayerEvent.fCsINum[csimulti], fLayerEvent.fL2FNumStrip[l2fmulti]) &&
+                    //  IsEneConstraint_L2B_L2F(ssdindex, fLayerEvent.fL2BEMeV[l2bmulti], fLayerEvent.fL2FEMeV[l2fmulti]) &&
+                      IsGeoConstraint_L2B_L1S(fLayerEvent.fL2BNumStrip[l2bmulti], fLayerEvent.fL1SNumStrip[l1smulti]))
+                    //  IsEneConstraint_L1S_L2F(ssdindex, fLayerEvent.fL1SEMeV[l1smulti], fLayerEvent.fL2FEMeV[l2fmulti]) )
+                  {
+                    globalmulti++;
+                    ssdglobalmulti++;
+
+                    fTrackEvent.fGSSDNum.push_back(ssdindex);
+                    fTrackEvent.fGCsINum.push_back(fLayerEvent.fCsINum[csimulti]);
+                    fTrackEvent.fGCsIECh.push_back(fLayerEvent.fCsIECh[csimulti]);
+                    fTrackEvent.fGL2BNumStrip.push_back(fLayerEvent.fL2BNumStrip[l2bmulti]);
+                    fTrackEvent.fGL2BEMeV.push_back(fLayerEvent.fL2BEMeV[l2bmulti]);
+                    fTrackEvent.fGL2FNumStrip.push_back(fLayerEvent.fL2FNumStrip[l2fmulti]);
+                    fTrackEvent.fGL2FEMeV.push_back(fLayerEvent.fL2FEMeV[l2fmulti]);
+                    fTrackEvent.fGL1SNumStrip.push_back(fLayerEvent.fL1SNumStrip[l1smulti]);
+                    fTrackEvent.fGL1SEMeV.push_back(fLayerEvent.fL1SEMeV[l1smulti]);
+
+                    fTrackEvent.fGL2FTime.push_back(fLayerEvent.fL2FTime[l2fmulti]);
+
+                    FileOut[ssdindex]<<setw(7)<<ientry<<setw(10)<<ssdglobalmulti
+                    <<setw(13)<<fLayerEvent.fSSDCsIMulti[ssdindex]
+                    <<setw(11)<<fLayerEvent.fSSDL2BMulti[ssdindex]
+                    <<setw(11)<<fLayerEvent.fSSDL2FMulti[ssdindex]
+                    <<setw(11)<<fLayerEvent.fSSDL1SMulti[ssdindex]
+                    <<setw(11)<<fLayerEvent.fCsINum[csimulti]
+                    <<setw(11)<<fLayerEvent.fL2BNumStrip[l2bmulti]
+                    <<setw(11)<<fLayerEvent.fL2FNumStrip[l2fmulti]
+                    <<setw(11)<<fLayerEvent.fL1SNumStrip[l1smulti]
+                    <<setw(14)<<fLayerEvent.fL1SEMeV[l1smulti]
+                    <<setw(14)<<fLayerEvent.fL2FEMeV[l2fmulti]
+                    <<setw(14)<<fLayerEvent.fL2BEMeV[l2bmulti]
+                    <<setw(14)<<fLayerEvent.fCsIECh[csimulti]
+                    <<endl;
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+      fTrackEvent.fSSDGlobalMulti.push_back(ssdglobalmulti);
+      if (ssdglobalmulti>0) count_effentries[ssdindex]++;
+    }
+    fTrackEvent.fGlobalMulti = globalmulti;
+    mytree->Fill();
+    fTrackEvent.Swap();
+  }
+  mytree->Write();
+  myfile->Close();
+
+  cout<<endl;
+  for (Int_t i=0; i<NUM_SSD; i++) {
+    cout<<Form("count_satisfiedmulticut[%d] = ",i+1)<<count_satisfiedmulticut[i]<<setw(30)
+        <<Form("count_effentries[%d] = ",i+1)<<count_effentries[i]<<setw(20)
+        <<std::setprecision(4)<<(Double_t) count_effentries[i]/count_satisfiedmulticut[i]
+        <<endl;
+  }
+}
+
+
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
+// 确定 L1-L2 的 globalmulti event
+void CSHINETrackReconstruction::L1L2_TrackReconstructionAlgorithm()
+{
+  Int_t count_satisfiedmulticut[4] = {0}; // 满足初步 multi cut 计数
+  Int_t count_effentries[4] = {0};        // globalmulti>0 的计数
+
+  Int_t CsINum = -1;
+  Int_t ECh_CsI = 0;
+
+  std::string LayerTag("L1L2");
+
+  TimeAndPercentage timeper;
+
+  std::string pathTrackEventRoot(Form("%s%s_TrackReconstructionEvent_Run%04d-Run%04d.root", PATHROOTFILESFOLDER,LayerTag.c_str(),fFirstRun,fLastRun));
+
+  ofstream  FileOut[NUM_SSD];
+  for (Int_t i=0; i<NUM_SSD; i++) {
+    FileOut[i].open(Form("%sdata_Test_Multi/SSD%d_%s_Test_Multi_L1L2EnergyCut.dat",PATHDATAFOLDER,i+1,LayerTag.c_str()));
+
+    FileOut[i]<<setw(7)<<"# EntryID"<<setw(15)<<"MultiGlobal"
+              <<setw(11)<<"M_L3A"<<setw(11)<<"M_L2B"<<setw(11)<<"M_L2F"<<setw(11)<<"M_L1S"
+              <<setw(11)<<"CSI"<<setw(11)<<"L2B"<<setw(11)<<"L2F"<<setw(11)<<"L1S"
+              <<setw(13)<<"EL1S"<<setw(13)<<"EL2F"<<setw(13)<<"EL2B"<<setw(13)<<"ECsI"
+              <<endl;
+  }
+
+  TFile* myfile = new TFile(pathTrackEventRoot.c_str(),"RECREATE");
+  TTree* mytree = new TTree("TrackEvent","TrackEvent Tree");
+  mytree->Branch("TrackEvent.", "CSHINETrackEvent", &fTrackEvent, 32000, 2);
+
+  Long64_t nentries = fChainLayerTree->GetEntriesFast();
+  cout<<"nentries = "<<nentries<<endl;
+  cout<<Form("Building TrackEvent for %s: Run%04d-Run%04d ......\n",LayerTag.c_str(),fFirstRun,fLastRun);
+
+  for (Long64_t ientry=0; ientry<nentries; ientry++) {
+
+    fChainLayerTree->GetEntry(ientry);
+    timeper.PrintPercentageAndRemainingTime(ientry, nentries);
+
+    Int_t globalmulti = 0 ;
+    for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+      Int_t ssdglobalmulti = 0;
+
+      if ((fLayerEvent.fSSDCsIMulti[ssdindex] == 0) &&
+          (fLayerEvent.fSSDL2BMulti[ssdindex]>0 && fLayerEvent.fSSDL2BMulti[ssdindex]<=MULTICUT_L2B) &&
+          (fLayerEvent.fSSDL2FMulti[ssdindex]>0 && fLayerEvent.fSSDL2FMulti[ssdindex]<=MULTICUT_L2F) &&
+          (fLayerEvent.fSSDL1SMulti[ssdindex]>0 && fLayerEvent.fSSDL1SMulti[ssdindex]<=MULTICUT_L1S)) // 给定初步的 multi cut
+      {
+        count_satisfiedmulticut[ssdindex]++;
+
+        for (Int_t l2bmulti=0; l2bmulti<fLayerEvent.fL2BMulti; l2bmulti++) {
+          for (Int_t l2fmulti=0; l2fmulti<fLayerEvent.fL2FMulti; l2fmulti++) {
+            for (Int_t l1smulti=0; l1smulti<fLayerEvent.fL1SMulti; l1smulti++) { // 逐层循环,遍历所有可能的组合
+
+              if (fLayerEvent.fL2BSSDNum[l2bmulti]==ssdindex &&
+                  fLayerEvent.fL2FSSDNum[l2fmulti]==ssdindex && fLayerEvent.fL1SSSDNum[l1smulti]==ssdindex)  // 对每个SSD分开讨论
+              {
+                if (IsGeoConstraint_L2B_L1S(fLayerEvent.fL2BNumStrip[l2bmulti], fLayerEvent.fL1SNumStrip[l1smulti]))
+                    //  IsEneConstraint_L2B_L2F(ssdindex, fLayerEvent.fL2BEMeV[l2bmulti], fLayerEvent.fL2FEMeV[l2fmulti]) &&
+                    //  IsEneConstraint_L1S_L2F(ssdindex, fLayerEvent.fL1SEMeV[l1smulti], fLayerEvent.fL2FEMeV[l2fmulti]) )
+                {
+                  globalmulti++;
+                  ssdglobalmulti++;
+
+                  fTrackEvent.fGSSDNum.push_back(ssdindex);
+                  fTrackEvent.fGCsINum.push_back(CsINum);
+                  fTrackEvent.fGCsIECh.push_back(ECh_CsI);
+                  fTrackEvent.fGL2BNumStrip.push_back(fLayerEvent.fL2BNumStrip[l2bmulti]);
+                  fTrackEvent.fGL2BEMeV.push_back(fLayerEvent.fL2BEMeV[l2bmulti]);
+                  fTrackEvent.fGL2FNumStrip.push_back(fLayerEvent.fL2FNumStrip[l2fmulti]);
+                  fTrackEvent.fGL2FEMeV.push_back(fLayerEvent.fL2FEMeV[l2fmulti]);
+                  fTrackEvent.fGL1SNumStrip.push_back(fLayerEvent.fL1SNumStrip[l1smulti]);
+                  fTrackEvent.fGL1SEMeV.push_back(fLayerEvent.fL1SEMeV[l1smulti]);
+
+                  fTrackEvent.fGL2FTime.push_back(fLayerEvent.fL2FTime[l2fmulti]);
+
+                  FileOut[ssdindex]<<setw(7)<<ientry<<setw(10)<<ssdglobalmulti
+                  <<setw(13)<<fLayerEvent.fSSDCsIMulti[ssdindex]
+                  <<setw(11)<<fLayerEvent.fSSDL2BMulti[ssdindex]
+                  <<setw(11)<<fLayerEvent.fSSDL2FMulti[ssdindex]
+                  <<setw(11)<<fLayerEvent.fSSDL1SMulti[ssdindex]
+                  <<setw(11)<<CsINum
+                  <<setw(11)<<fLayerEvent.fL2BNumStrip[l2bmulti]
+                  <<setw(11)<<fLayerEvent.fL2FNumStrip[l2fmulti]
+                  <<setw(11)<<fLayerEvent.fL1SNumStrip[l1smulti]
+                  <<setw(14)<<fLayerEvent.fL1SEMeV[l1smulti]
+                  <<setw(14)<<fLayerEvent.fL2FEMeV[l2fmulti]
+                  <<setw(14)<<fLayerEvent.fL2BEMeV[l2bmulti]
+                  <<setw(14)<<ECh_CsI
+                  <<endl;
+                }
+              }
+            }
+          }
+        }
+      }
+      fTrackEvent.fSSDGlobalMulti.push_back(ssdglobalmulti);
+      if (ssdglobalmulti>0) count_effentries[ssdindex]++;
+    }
+    fTrackEvent.fGlobalMulti = globalmulti;
+    mytree->Fill();
+    fTrackEvent.Swap();
+  }
+  mytree->Write();
+  myfile->Close();
+
+  cout<<endl;
+  for (Int_t i=0; i<NUM_SSD; i++) {
+    cout<<Form("count_satisfiedmulticut[%d] = ",i+1)<<count_satisfiedmulticut[i]<<setw(30)
+        <<Form("count_effentries[%d] = ",i+1)<<count_effentries[i]<<setw(20)
+        <<std::setprecision(4)<<(Double_t) count_effentries[i]/count_satisfiedmulticut[i]
+        <<endl;
+  }
+}
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
+
+//______________________________________________________________________________
+// 分析不同 fGlobalMulti 所占的比例
+void CSHINETrackReconstruction::CheckGlobalMultiRatio(const char* pidtag, Int_t multicut)
+{
+  // 定义变量， 以用于计算不同 fGlobalMulti 的比例
+  Int_t    globalmulti[NUM_SSD][multicut+1];
+  Double_t multiratio_from0[NUM_SSD][multicut+1];
+  Double_t multiratio_from1[NUM_SSD][multicut+1];
+  Double_t ratiosum_from0[NUM_SSD];
+  Double_t ratiosum_from1[NUM_SSD];
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    ratiosum_from0[ssdindex] = 0;
+    ratiosum_from1[ssdindex] = 0;
+    for (Int_t multi=0; multi<=multicut; multi++) {
+      globalmulti[ssdindex][multi] = 0;
+      multiratio_from0[ssdindex][multi] = 0;
+      multiratio_from1[ssdindex][multi] = 0;
+    }
+  }
+
+  std::string pathDataGlobalMultiRatio(Form("%sdata_Test_Multi/%s_GlobalMultiRatio.dat",PATHDATAFOLDER,pidtag));
+  std::string pathTrackEventRoot = Form("%s%s_TrackReconstructionEvent_Run%04d-Run%04d.root",PATHROOTFILESFOLDER,pidtag,fFirstRun,fLastRun);
+  std::string pathMultiRatioOut(Form("%sfigure_TrackReconstruction/%s_MultiRatio_Run%04d-Run%04d.png",PATHFIGURESFOLDER,pidtag,fFirstRun,fLastRun));
+
+  ofstream FileOut(pathDataGlobalMultiRatio.c_str());
+
+  TFile* myfile = new TFile(pathTrackEventRoot.c_str(), "READONLY");
+  if (!myfile || !myfile->IsOpen()) {
+    cout<<Form("File %s not founded.",  myfile->GetName());
+    return;
+  }
+  TTree* mytree = (TTree*)myfile->Get("TrackEvent");
+  Long64_t nentries = mytree->GetEntries();
+  cout<<"Found nentries = "<<nentries<<endl;
+
+  std::vector<Int_t>      TrackEvent_fSSDGlobalMulti;
+  mytree->SetMakeClass(1);  // 如果 tree 的 branch 使用了自定义的类, 则这条语句不能省略！！！
+  mytree->SetBranchAddress("TrackEvent.fSSDGlobalMulti", &TrackEvent_fSSDGlobalMulti);
+
+  for (Long64_t ientry=0; ientry<nentries; ientry++) {
+    mytree->GetEntry(ientry);
+
+    for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+      for (Int_t i=0; i<=multicut; i++) {
+        if (TrackEvent_fSSDGlobalMulti[ssdindex]==i)   globalmulti[ssdindex][i]++;
+      }
+    }
+  }
+
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    FileOut<<"------------------"<<endl;
+    FileOut<<Form("For SSD%d :\n",ssdindex+1)<<endl;
+
+    // 计算比例，从 globalmulti = 0 算起
+    for (Int_t i=0; i<=multicut; i++) {
+      multiratio_from0[ssdindex][i] = (Double_t) globalmulti[ssdindex][i]/nentries;
+      ratiosum_from0[ssdindex] += multiratio_from0[ssdindex][i];
+      FileOut<<Form("multi%d = ", i)<<multiratio_from0[ssdindex][i]<<setw(12);
+    }
+    FileOut<<ratiosum_from0[ssdindex]<<endl;
+
+    // 计算比例，从 globalmulti = 1 算起
+    for (Int_t i=1; i<=multicut; i++) {
+      multiratio_from1[ssdindex][i] = (Double_t) globalmulti[ssdindex][i]/(nentries-globalmulti[ssdindex][0]); // 剔除 fGlobalMulti=0 的情况
+      ratiosum_from1[ssdindex] += multiratio_from1[ssdindex][i];
+      FileOut<<Form("multi%d = ", i)<<multiratio_from1[ssdindex][i]<<setw(12);
+    }
+    FileOut<<ratiosum_from1[ssdindex]<<endl;
+  }
+  myfile->Close();
+  FileOut.close();
+
+  // 画图
+  TH1D* h_multi[NUM_SSD];
+  TCanvas* cans = new TCanvas("cans","cans",1000,1000);
+  cans->Divide(2,2);
+  for (Int_t issd=0; issd<NUM_SSD; issd++) {
+    h_multi[issd] = new TH1D(Form("%s_SSD%d_multi",pidtag,issd+1),Form("%s_SSD%d_multi",pidtag,issd+1),multicut+1,-0.5,multicut+0.5);
+    for (Int_t ibin=1; ibin<=(multicut+1); ibin++) {
+      h_multi[issd]->SetBinContent(ibin, multiratio_from0[issd][ibin-1]);
+    }
+    cans->cd(issd+1);
+    gPad->SetLogy();
+    h_multi[issd]->Draw();
+    h_multi[issd]->GetXaxis()->SetNdivisions(100+multicut+1);
+  }
+  cans->Print(pathMultiRatioOut.c_str());
+}
+
+
+//______________________________________________________________________________
+// 提取不同 fGlobalMulti 的数据，存成单独的文件，以便于对不同的模式进行分类
+void CSHINETrackReconstruction::GlobalMulti_ExtractData(const char* pidtag, Int_t globalmulti)
+{
+  Int_t gmulti_index[NUM_SSD];
+  ifstream FileIn[NUM_SSD];
+  ofstream FileOut[NUM_SSD];
+
+  std::string pathFileOut[NUM_SSD];
+
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    pathFileOut[ssdindex] = Form("%sdata_Test_Multi/%s/globalmulti%d/SSD%d_%s_Test_Multi_fGlobalMulti%d.dat",PATHDATAFOLDER,pidtag,globalmulti,ssdindex+1,pidtag,globalmulti);
+    FileOut[ssdindex].open(pathFileOut[ssdindex].c_str());
+    FileOut[ssdindex]<<setw(10)<<"# EntryNo."<<setw(10)<<" MultiGlobal"
+                     <<setw(8)<<"CSI"<<setw(10)<<"L2B"<<setw(10)<<"L2F"<<setw(10)<<"L1S"
+                     <<setw(10)<<"EL1S"<<setw(10)<<"EL2F"<<setw(10)<<"EL2B"<<setw(10)<<"ECsI"
+                     <<endl;
+  }
+
+  fChainTrackTree->SetEntries(50000000);
+  cout<<Form("Processing globalmulti = %d ......",globalmulti)<<endl;
+  Long64_t nentries = fChainTrackTree->GetEntries();
+  cout<<"Found nentries = "<<nentries<<endl;
+
+  for (Long64_t ientry=0; ientry<nentries; ientry++) {
+    fChainTrackTree->GetEntry(ientry);
+    timeper.PrintPercentageAndRemainingTime(ientry,nentries);
+
+    for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+      if (fTrackEvent.fSSDGlobalMulti[ssdindex]==globalmulti) {
+        gmulti_index[ssdindex] = 0;
+        for (Int_t gmulti=0; gmulti<fTrackEvent.fGlobalMulti; gmulti++) {
+          if (fTrackEvent.fGSSDNum[gmulti]==ssdindex) {
+            gmulti_index[ssdindex]++;
+            FileOut[ssdindex]<<setw(7)<<ientry
+              <<setw(10)<<gmulti_index[ssdindex]
+              <<setw(12)<<fTrackEvent.fGCsINum[gmulti]
+              <<setw(10)<<fTrackEvent.fGL2BNumStrip[gmulti]
+              <<setw(10)<<fTrackEvent.fGL2FNumStrip[gmulti]
+              <<setw(10)<<fTrackEvent.fGL1SNumStrip[gmulti]
+              <<setw(13)<<fTrackEvent.fGL1SEMeV[gmulti]
+              <<setw(10)<<fTrackEvent.fGL2FEMeV[gmulti]
+              <<setw(10)<<fTrackEvent.fGL2BEMeV[gmulti]
+              <<setw(10)<<fTrackEvent.fGCsIECh[gmulti]
+              <<endl;
+          }
+        }
+      }
+    }
+  }
+}
+
+
+//______________________________________________________________________________
+void CSHINETrackReconstruction::L2L3_CheckParallelDraw(const char* gmultitag, Int_t gmulti)
+{
+  gROOT->cd();
+
+  std::string pathDataFileIn[NUM_SSD];
+  std::string pidtag("L2L3");
+
+  std::string pathPDFOut(Form("%sfigure_TrackReconstruction/%s_%s_ParallelDraw.pdf",PATHFIGURESFOLDER,pidtag.c_str(),gmultitag));
+  std::string pathPDFOutBegin(Form("%sfigure_TrackReconstruction/%s_%s_ParallelDraw.pdf[",PATHFIGURESFOLDER,pidtag.c_str(),gmultitag));
+  std::string pathPDFOutEnd(Form("%sfigure_TrackReconstruction/%s_%s_ParallelDraw.pdf]",PATHFIGURESFOLDER,pidtag.c_str(),gmultitag));
+
+  std::string pathTrackRootFile(Form("%s%s_TrackReconstructionEvent_Run%04d-Run%04d.root",PATHROOTFILESFOLDER,pidtag.c_str(),fFirstRun,fLastRun));
+  TFile* myfile = TFile::Open(pathTrackRootFile.c_str());
+  TTree* mytree = (TTree*) myfile->Get("TrackEvent");
+  mytree->SetEntries(10000);
+
+  TCanvas* c_begin = new TCanvas("c_begin","c_begin",600,600);
+  TCanvas* c_end = new TCanvas("c_end","c_end",600,600);
+  TCanvas* cans[NUM_SSD][4];
+
+  c_begin->Print(pathPDFOutBegin.c_str());
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    cans[ssdindex][0] = new TCanvas(Form("SSD%d_Cans%d",ssdindex+1,1),Form("SSD%d_Cans%d",ssdindex+1,1),800,600);
+    cans[ssdindex][0]->cd();
+    mytree->Draw("fGL1SNumStrip:fGL2FNumStrip:fGL2BNumStrip:fGCsINum",Form("fGSSDNum==%d && fSSDGlobalMulti[%d]==%d",ssdindex,ssdindex,gmulti),"PARA");
+
+    cans[ssdindex][1] = new TCanvas(Form("SSD%d_Cans%d",ssdindex+1,2),Form("SSD%d_Cans%d",ssdindex+1,2),800,600);
+    cans[ssdindex][1]->cd();
+    mytree->Draw("fGL1SNumStrip:fGL2BNumStrip:fGCsINum",Form("fGSSDNum==%d && fSSDGlobalMulti[%d]==%d",ssdindex,ssdindex,gmulti),"PARA");
+
+    cans[ssdindex][2] = new TCanvas(Form("SSD%d_Cans%d",ssdindex+1,3),Form("SSD%d_Cans%d",ssdindex+1,3),800,600);
+    cans[ssdindex][2]->cd();
+    mytree->Draw("fGL1SNumStrip:fGL2FNumStrip:fGCsINum",Form("fGSSDNum==%d && fSSDGlobalMulti[%d]==%d",ssdindex,ssdindex,gmulti),"PARA");
+
+    cans[ssdindex][3] = new TCanvas(Form("SSD%d_Cans%d",ssdindex+1,4),Form("SSD%d_Cans%d",ssdindex+1,4),800,600);
+    cans[ssdindex][3]->cd();
+    mytree->Draw("fGL1SEMeV:fGL2FEMeV:fGL2BEMeV:fGCsIECh",Form("fGSSDNum==%d && fSSDGlobalMulti[%d]==%d",ssdindex,ssdindex,gmulti),"PARA");
+
+    cans[ssdindex][0]->Print(pathPDFOut.c_str());
+    cans[ssdindex][1]->Print(pathPDFOut.c_str());
+    cans[ssdindex][2]->Print(pathPDFOut.c_str());
+    cans[ssdindex][3]->Print(pathPDFOut.c_str());
+  }
+  c_end->Print(pathPDFOutEnd.c_str());
+}
+
+//______________________________________________________________________________
+void CSHINETrackReconstruction::L2L3_CheckL2L3DEEPlot(const char* gmultitag, Int_t gmulti)
+{
+  gROOT->cd();
+//  gStyle->SetOptStat(kFALSE);
+
+  Double_t EL2Range[4] = {300., 250., 150., 80.};
+	Int_t    NBinsL2[4]  = {3000, 2500, 1500, 800};
+
+  std::string pidtag("L2L3");
+  std::string pathFileIn[NUM_SSD];
+  std::string pathPDFOut(Form("%sfigure_TrackReconstruction/%s_EL2FvsECsI_%s.pdf",PATHFIGURESFOLDER,pidtag.c_str(),gmultitag));
+  std::string pathPDFOutBegin(Form("%sfigure_TrackReconstruction/%s_EL2FvsECsI_%s.pdf[",PATHFIGURESFOLDER,pidtag.c_str(),gmultitag));
+  std::string pathPDFOutEnd(Form("%sfigure_TrackReconstruction/%s_EL2FvsECsI_%s.pdf]",PATHFIGURESFOLDER,pidtag.c_str(),gmultitag));
+
+  std::string pathTrackRootFile(Form("%s%s_TrackReconstructionEvent_Run%04d-Run%04d.root",PATHROOTFILESFOLDER,pidtag.c_str(),fFirstRun,fLastRun));
+  TFile* myfile = TFile::Open(pathTrackRootFile.c_str());
+  TTree* mytree = (TTree*) myfile->Get("TrackEvent");
+
+  TH2D* h2d_DEE[NUM_SSD][NUM_CSI];
+  TCanvas* cans = new TCanvas("cans_L2L3","",800,800);
+  TCanvas* c_begin = new TCanvas("c_begin","c_begin",600,600);
+  TCanvas* c_end = new TCanvas("c_end","c_end",600,600);
+
+  c_begin->Print(pathPDFOutBegin.c_str());
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
+      h2d_DEE[ssdindex][csiindex] = new TH2D(Form("SSD%d_CsI%d_EL2FvsECsI",ssdindex+1,csiindex),Form("SSD%d_CsI%d_EL2FvsECsI",
+                                             ssdindex+1,csiindex),4096,0,4096,NBinsL2[ssdindex],0,EL2Range[ssdindex]);
+
+      mytree->Draw(Form("fGL2FEMeV:fGCsIECh>>SSD%d_CsI%d_EL2FvsECsI",ssdindex+1,csiindex),Form("fGSSDNum==%d && fSSDGlobalMulti[%d]==%d && fGCsINum==%d",ssdindex,ssdindex,gmulti,csiindex));
+
+      cans->cd();
+      gPad->SetBottomMargin(0.12);
+      gPad->SetLeftMargin(0.12);
+      h2d_DEE[ssdindex][csiindex]->SetTitle(Form("SSD%d_CsI%d_EL2FvsECsI",ssdindex+1,csiindex));
+      h2d_DEE[ssdindex][csiindex]->SetTitleSize(0.05);
+      h2d_DEE[ssdindex][csiindex]->GetXaxis()->SetTitle("ECsI (Ch)");
+      h2d_DEE[ssdindex][csiindex]->GetXaxis()->SetTitleSize(0.05);
+      h2d_DEE[ssdindex][csiindex]->GetXaxis()->CenterTitle(kTRUE);
+      h2d_DEE[ssdindex][csiindex]->GetXaxis()->SetLabelSize(0.05);
+      h2d_DEE[ssdindex][csiindex]->GetXaxis()->SetNdivisions(505);
+      h2d_DEE[ssdindex][csiindex]->GetYaxis()->SetTitle("EL2F (MeV)");
+      h2d_DEE[ssdindex][csiindex]->GetYaxis()->SetTitleSize(0.05);
+      h2d_DEE[ssdindex][csiindex]->GetYaxis()->SetTitleOffset(1.2);
+      h2d_DEE[ssdindex][csiindex]->GetYaxis()->CenterTitle(kTRUE);
+      h2d_DEE[ssdindex][csiindex]->GetYaxis()->SetLabelSize(0.05);
+      h2d_DEE[ssdindex][csiindex]->GetYaxis()->SetNdivisions(510);
+      h2d_DEE[ssdindex][csiindex]->Draw("COL");
+
+      gPad->Modified();
+      gPad->Update();
+
+      cans->Print(pathPDFOut.c_str());
+    }
+  }
+  c_end->Print(pathPDFOutEnd.c_str());
+}
+
+
+//______________________________________________________________________________
+void CSHINETrackReconstruction::L2L3_CheckL1L2DEEPlot(const char* gmultitag, Int_t gmulti)
+{
+  gROOT->cd();
+
+  std::string pidtag("L2L3");
+  std::string pathDataInput[NUM_SSD];
+  std::string pathPDFOut(Form("%sfigure_TrackReconstruction/%s_EL1vsEL2F_%s.pdf",PATHFIGURESFOLDER,pidtag.c_str(),gmultitag));
+  std::string pathPDFOutBegin(Form("%sfigure_TrackReconstruction/%s_EL1vsEL2F_%s.pdf[",PATHFIGURESFOLDER,pidtag.c_str(),gmultitag));
+  std::string pathPDFOutEnd(Form("%sfigure_TrackReconstruction/%s_EL1vsEL2F_%s.pdf]",PATHFIGURESFOLDER,pidtag.c_str(),gmultitag));
+
+  std::string pathTrackRootFile(Form("%s%s_TrackReconstructionEvent_Run%04d-Run%04d.root",PATHROOTFILESFOLDER,pidtag.c_str(),fFirstRun,fLastRun));
+  TFile* myfile = TFile::Open(pathTrackRootFile.c_str());
+  TTree* mytree = (TTree*) myfile->Get("TrackEvent");
+
+  TCanvas* cans_L1L2 = new TCanvas("cans_L1L2","cans_L1L2",800,600);
+  TCanvas* c_begin = new TCanvas("c_begin","c_begin",600,600);
+  TCanvas* c_end = new TCanvas("c_end","c_end",600,600);
+  c_begin->Print(pathPDFOutBegin.c_str());
+
+  TH2D* hist2[NUM_SSD];
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    pathDataInput[ssdindex] = Form("%sdata_Test_Multi/globalmulti%d/SSD%d_%s_Test_Multi_%s.dat",PATHDATAFOLDER,gmulti,ssdindex+1,pidtag.c_str(),gmultitag);
+    hist2[ssdindex] = new TH2D(Form("SSD%d_EL1SvsEL2F",ssdindex+1),Form("SSD%d_EL1SvsEL2F",ssdindex+1),
+                               NBinsL2[ssdindex],0,EL2Range[ssdindex],NBinsL1[ssdindex],0,EL1Range[ssdindex]);
+
+    mytree->Draw(Form("fGL1SEMeV:fGL2FEMeV>>SSD%d_EL1SvsEL2F",ssdindex+1),Form("fGSSDNum==%d && fSSDGlobalMulti[%d]==%d",ssdindex,ssdindex,gmulti));
+
+    cans_L1L2->cd();
+    gPad->SetBottomMargin(0.12);
+    gPad->SetLeftMargin(0.12);
+    hist2[ssdindex]->Draw("COL");
+    hist2[ssdindex]->SetTitle(Form("SSD%d_EL1SvsEL2F_%s",ssdindex+1,gmultitag));
+    hist2[ssdindex]->SetTitleSize(0.05);
+    hist2[ssdindex]->GetXaxis()->SetTitle("EL2F (MeV)");
+    hist2[ssdindex]->GetXaxis()->SetTitleSize(0.05);
+    hist2[ssdindex]->GetYaxis()->SetTitleOffset(1.1);
+    hist2[ssdindex]->GetXaxis()->CenterTitle(kTRUE);
+    hist2[ssdindex]->GetXaxis()->SetLabelSize(0.05);
+    hist2[ssdindex]->GetXaxis()->SetNdivisions(505);
+    hist2[ssdindex]->GetYaxis()->SetTitle("EL1 (MeV)");
+    hist2[ssdindex]->GetYaxis()->SetTitleSize(0.05);
+    hist2[ssdindex]->GetYaxis()->CenterTitle(kTRUE);
+    hist2[ssdindex]->GetYaxis()->SetLabelSize(0.05);
+    hist2[ssdindex]->GetYaxis()->SetNdivisions(505);
+
+    gPad->Modified();
+    gPad->Update();
+
+    cans_L1L2->Print(pathPDFOut.c_str());
+  }
+  c_end->Print(pathPDFOutEnd.c_str());
+}
+
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
+
+
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
+// L2L3 径迹重建模式定义： 根据 globalmulti 定义模式
+void CSHINETrackReconstruction::L2L3_GenerateModeFromGMulti(Int_t globalmulti, vector<string>& mode)
+{
+  if (globalmulti<1) { cout<<"Error: globalmulti<1"<<endl; return; }
+  for (Int_t ml3a=0; ml3a<globalmulti; ml3a++) {
+    for (Int_t ml2b=0; ml2b<globalmulti; ml2b++) {
+      for (Int_t ml2f=0; ml2f<globalmulti; ml2f++) {
+        for (Int_t ml1s=0; ml1s<globalmulti; ml1s++) {
+          mode.push_back(Form("%d%d%d%d",ml3a,ml2b,ml2f,ml1s));
+        }
+      }
+    }
+  }
+}
+
+//____________________________
+// 根据实验数据进行模式匹配
+string CSHINETrackReconstruction::L2L3_CalcModeFromExpData(Int_t globalmultti, vector<Int_t> mcsi, vector<Int_t> ml2b,
+  vector<Int_t> ml2f, vector<Int_t> ml1s)
+{
+  if (globalmultti<2) { cout<<"globalmulti<2, no need for mode classification!"<<endl; return "error"; }
+  if (globalmultti != mcsi.size()) { cout<<"Error: globalmutli != ecsi.size()"<<endl; return "error"; }
+
+  string mode_exp;
+  Int_t candimulti_csi=0, candimulti_l2b=0, candimulti_l2f=0, candimulti_l1s=0;
+
+  sort(mcsi.begin(), mcsi.end());
+  sort(ml2b.begin(), ml2b.end());
+  sort(ml2f.begin(), ml2f.end());
+  sort(ml1s.begin(), ml1s.end());
+
+  // 判断 CsI 中的径迹点
+  for (Int_t itrackcsi=0; itrackcsi<(globalmultti-1); itrackcsi++) {
+    if (mcsi[itrackcsi+1] != mcsi[itrackcsi]) candimulti_csi++;
+  }
+  // 判断 L2B 中的径迹点
+  for (Int_t itrackl2b=0; itrackl2b<(globalmultti-1); itrackl2b++) {
+    if (ml2b[itrackl2b+1] != ml2b[itrackl2b]) candimulti_l2b++;
+  }
+  // 判断 L2F 中的径迹点
+  for (Int_t itrackl2f=0; itrackl2f<(globalmultti-1); itrackl2f++) {
+    if (ml2f[itrackl2f+1] != ml2f[itrackl2f]) candimulti_l2f++;
+  }
+  // 判断 L1S 中的径迹点
+  for (Int_t itrackl1s=0; itrackl1s<(globalmultti-1); itrackl1s++) {
+    if (ml1s[itrackl1s+1] != ml1s[itrackl1s]) candimulti_l1s++;
+  }
+
+  mode_exp = Form("%d%d%d%d",candimulti_csi,candimulti_l2b,candimulti_l2f,candimulti_l1s);
+  return mode_exp;
+}
+
+//___________________________________
+// 画出不同 globalmulti 下的模式分布
+void CSHINETrackReconstruction::L2L3_Mode_DrawClassification(Int_t globalmulti)
+{
+  Int_t nummode = pow(globalmulti, 4);
+  Int_t gssdnum = -1;
+
+  string pidtag("L2L3");
+
+  string mode_exp;
+  vector<string> mode;
+  L2L3_GenerateModeFromGMulti(globalmulti, mode);
+
+  std::string pathModeDistribution(Form("%sfigure_TrackReconstruction/%s_GlobalMulti%d_ModeStatistic.png", PATHFIGURESFOLDER, pidtag.c_str(), globalmulti));
+
+  TH1I* h_modecount[NUM_SSD];
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    h_modecount[ssdindex] = new TH1I(Form("SSD%d_gmulti%d_modes",ssdindex+1,globalmulti),Form("SSD%d_gmulti%d_modes",ssdindex+1,globalmulti),nummode,-0.5,nummode-0.5);
+  }
+
+  // fChainTrackTree->SetEntries(100000);
+  Long64_t nentries = fChainTrackTree->GetEntries();
+  cout<<"Found nentries = "<<nentries<<endl;
+  cout<<Form("Processing DrawClassification globalmulti = %d ......", globalmulti)<<endl;
+
+  for (Long64_t ientry=0; ientry<nentries; ientry++) {
+    fChainTrackTree->GetEntry(ientry);
+    timeper.PrintPercentageAndRemainingTime(ientry, nentries);
+
+    // fill data
+    if (fTrackEvent.fGlobalMulti > 0) {
+      for (Int_t gmulti=0; gmulti<fTrackEvent.fGlobalMulti; gmulti++) {
+        gssdnum = fTrackEvent.fGSSDNum[gmulti];
+        L2L3_CsINum[gssdnum].push_back(fTrackEvent.fGCsINum[gmulti]);
+        L2L3_L2BStripNum[gssdnum].push_back(fTrackEvent.fGL2BNumStrip[gmulti]);
+        L2L3_L2FStripNum[gssdnum].push_back(fTrackEvent.fGL2FNumStrip[gmulti]);
+        L2L3_L1SStripNum[gssdnum].push_back(fTrackEvent.fGL1SNumStrip[gmulti]);
+      }
+    }
+    // save data
+    for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+      if (fTrackEvent.fSSDGlobalMulti[ssdindex] == globalmulti) {
+        mode_exp = L2L3_CalcModeFromExpData(globalmulti,L2L3_CsINum[ssdindex],L2L3_L2BStripNum[ssdindex],L2L3_L2FStripNum[ssdindex],L2L3_L1SStripNum[ssdindex]);
+        for (Int_t imode=0; imode<nummode; imode++) {
+          if (strcmp(mode_exp.c_str(), mode[imode].c_str()) == 0) {
+            h_modecount[ssdindex]->Fill(imode);
+          }
+        }
+      }
+      // clear the vectors
+      L2L3_CsINum[ssdindex].clear();
+      L2L3_L2BStripNum[ssdindex].clear();
+      L2L3_L2FStripNum[ssdindex].clear();
+      L2L3_L1SStripNum[ssdindex].clear();
+    }
+  }
+  // 画图
+  TCanvas* cans = new TCanvas("cans", "cans", 1200, 1200);
+  cans->Divide(2,2);
+
+  cans->cd(1);
+  h_modecount[0]->Draw();
+//  h_modecount[0]->GetXaxis()->SetNdivisions(100+nummode);
+  h_modecount[0]->GetYaxis()->SetRangeUser(0, 1.1*h_modecount[0]->GetMaximum());
+
+  cans->cd(2);
+  h_modecount[1]->Draw();
+//  h_modecount[1]->GetXaxis()->SetNdivisions(100+nummode);
+  h_modecount[1]->GetYaxis()->SetRangeUser(0, 1.1*h_modecount[1]->GetMaximum());
+
+  cans->cd(3);
+  h_modecount[2]->Draw();
+//  h_modecount[2]->GetXaxis()->SetNdivisions(100+nummode);
+  h_modecount[2]->GetYaxis()->SetRangeUser(0, 1.1*h_modecount[2]->GetMaximum());
+
+  cans->cd(4);
+  h_modecount[3]->Draw();
+//  h_modecount[3]->GetXaxis()->SetNdivisions(100+nummode);
+  h_modecount[3]->GetYaxis()->SetRangeUser(0, 1.1*h_modecount[3]->GetMaximum());
+
+  cans->Print(pathModeDistribution.c_str());
+}
+
+//_________________________________________
+// 计算不同模式的占比
+void CSHINETrackReconstruction::L2L3_Mode_CalcRatio(Int_t globalmulti)
+{
+  Int_t nummode = pow(globalmulti, 4);
+  Int_t gssdnum = -1;
+
+  Double_t ratio_sum[NUM_SSD];
+  Double_t ratio_mode[NUM_SSD][nummode];
+
+  Int_t entry_globalmulti[NUM_SSD];
+  Int_t entry_mode[NUM_SSD][nummode];
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    ratio_sum[ssdindex] = 0.;
+    entry_globalmulti[ssdindex] = 0;
+    for (Int_t imode=0; imode<nummode; imode++) {
+      entry_mode[ssdindex][imode] = 0;
+    }
+  }
+
+  string mode_exp;
+  vector<string> mode;
+  L2L3_GenerateModeFromGMulti(globalmulti, mode);
+
+  std::string pidtag("L2L3");
+  std::string pathModeRatioOut(Form("%sdata_Test_Multi/%s_Test_Multi_fGlobalMulti%d_ModeRatio.dat",PATHDATAFOLDER,pidtag.c_str(),globalmulti));
+  ofstream FileOut(pathModeRatioOut.c_str());
+  FileOut<<"* Ratio of different modes of events with globalmulti=2"<<endl;
+
+//  fChainTrackTree->SetEntries(10000);
+  Long64_t nentries = fChainTrackTree->GetEntries();
+  cout<<"Found nentries = "<<nentries<<endl;
+  cout<<Form("Processing CaliRatio globalmulti = %d ......", globalmulti)<<endl;
+
+  for (Long64_t ientry=0; ientry<nentries; ientry++) {
+    fChainTrackTree->GetEntry(ientry);
+    timeper.PrintPercentageAndRemainingTime(ientry, nentries);
+
+    // fill data
+    if (fTrackEvent.fGlobalMulti > 0) {
+      for (Int_t gmulti=0; gmulti<fTrackEvent.fGlobalMulti; gmulti++) {
+        gssdnum = fTrackEvent.fGSSDNum[gmulti];
+        L2L3_CsINum[gssdnum].push_back(fTrackEvent.fGCsINum[gmulti]);
+        L2L3_L2BStripNum[gssdnum].push_back(fTrackEvent.fGL2BNumStrip[gmulti]);
+        L2L3_L2FStripNum[gssdnum].push_back(fTrackEvent.fGL2FNumStrip[gmulti]);
+        L2L3_L1SStripNum[gssdnum].push_back(fTrackEvent.fGL1SNumStrip[gmulti]);
+      }
+    }
+    // save data
+    for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+      if (fTrackEvent.fSSDGlobalMulti[ssdindex] == globalmulti) {
+        entry_globalmulti[ssdindex]++;
+        mode_exp = L2L3_CalcModeFromExpData(globalmulti,L2L3_CsINum[ssdindex],L2L3_L2BStripNum[ssdindex],L2L3_L2FStripNum[ssdindex],L2L3_L1SStripNum[ssdindex]);
+        for (Int_t imode=0; imode<nummode; imode++) {
+          if (strcmp(mode_exp.c_str(), mode[imode].c_str()) == 0) {
+            entry_mode[ssdindex][imode]++;
+          }
+        }
+      }
+      // clear the vectors
+      L2L3_CsINum[ssdindex].clear();
+      L2L3_L2BStripNum[ssdindex].clear();
+      L2L3_L2FStripNum[ssdindex].clear();
+      L2L3_L1SStripNum[ssdindex].clear();
+    }
+  }
+  // 计算模式比例
+  for (Int_t ssdindex=0; ssdindex<4; ssdindex++) {
+    cout<<endl;
+    for (Int_t imode=0; imode<nummode; imode++) {
+      ratio_mode[ssdindex][imode] = (Double_t) entry_mode[ssdindex][imode]/entry_globalmulti[ssdindex];
+      ratio_sum[ssdindex] += ratio_mode[ssdindex][imode];
+
+      cout<<"SSD"<<ssdindex+1<<setw(10)<<Form("mode[%d] = %s",imode,mode[imode].c_str())<<setw(10)<<setprecision(6)<<"ratio = "<<ratio_mode[ssdindex][imode]<<endl;
+      FileOut<<"SSD"<<ssdindex+1<<setw(10)<<Form("mode[%d] = %s",imode,mode[imode].c_str())<<setw(10)<<setprecision(6)<<"ratio = "<<ratio_mode[ssdindex][imode]<<endl;
+    }
+    cout<<"SSD"<<ssdindex+1<<setw(15)<<"ratio_sum = "<<ratio_sum[ssdindex]<<endl;
+    FileOut<<"SSD"<<ssdindex+1<<setw(15)<<"ratio_sum = "<<ratio_sum[ssdindex]<<endl;
+    cout<<endl;
+  }
+}
+
+//__________________________________
+// 根据 globalmulti 提取不同模式的数据
+void CSHINETrackReconstruction::L2L3_Mode_ExtractData(Int_t globalmulti)
+{
+  Int_t nummode = pow(globalmulti, 4);
+  Int_t gssdnum = -1;
+
+  std::string pidtag("L2L3");
+
+  Int_t entry_mode[NUM_SSD][nummode];
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t imode=0; imode<nummode; imode++) {
+      entry_mode[ssdindex][imode] = 0;
+    }
+  }
+
+  string mode_exp;
+  vector<string> mode;
+  L2L3_GenerateModeFromGMulti(globalmulti, mode);
+
+  std::string pathModeDistribution(Form("%sfigure_TrackReconstruction/%s_GlobalMulti%d_ModeStatistic.png", PATHFIGURESFOLDER, pidtag.c_str(), globalmulti));
+
+  std::string pathDataOutput[NUM_SSD][nummode];
+  ofstream FileOut[NUM_SSD][nummode];
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t imode=0; imode<nummode; imode++) {
+      pathDataOutput[ssdindex][imode] = Form("%sdata_Test_Multi/%s/globalmulti%d/SSD%d_%s_Test_Multi_fGlobalMulti%d_%s.dat", PATHDATAFOLDER, pidtag.c_str(), globalmulti, ssdindex+1, pidtag.c_str(), globalmulti, mode[imode].c_str());
+      FileOut[ssdindex][imode].open(pathDataOutput[ssdindex][imode].c_str());
+      FileOut[ssdindex][imode]<<setw(10)<<"# EntryNo."<<setw(10)<<"MultiGlobal"<<setw(8)<<"CSI"<<setw(10)<<"L2B"
+                              <<setw(10)<<"L2F"<<setw(10)<<"L1S"<<setw(10)<<"EL1S"
+                              <<setw(10)<<"EL2F"<<setw(10)<<"EL2B"<<setw(10)<<"ECsI"
+                              <<endl;
+    }
+  }
+
+  // fChainTrackTree->SetEntries(10000);
+  Long64_t nentries = fChainTrackTree->GetEntries();
+  cout<<"Found nentries = "<<nentries<<endl;
+  cout<<Form("Processing ExtractData globalmulti = %d ......", globalmulti)<<endl;
+
+  for (Long64_t ientry=0; ientry<nentries; ientry++) {
+    fChainTrackTree->GetEntry(ientry);
+    timeper.PrintPercentageAndRemainingTime(ientry, nentries);
+
+    // fill data
+    if (fTrackEvent.fGlobalMulti > 0) {
+      for (Int_t gmulti=0; gmulti<fTrackEvent.fGlobalMulti; gmulti++) {
+        gssdnum = fTrackEvent.fGSSDNum[gmulti];
+        L2L3_CSIECh [gssdnum].push_back(fTrackEvent.fGCsIECh[gmulti]);
+        L2L3_L2BEMeV[gssdnum].push_back(fTrackEvent.fGL2BEMeV[gmulti]);
+        L2L3_L2FEMeV[gssdnum].push_back(fTrackEvent.fGL2FEMeV[gmulti]);
+        L2L3_L1SEMeV[gssdnum].push_back(fTrackEvent.fGL1SEMeV[gmulti]);
+        L2L3_CsINum[gssdnum].push_back(fTrackEvent.fGCsINum[gmulti]);
+        L2L3_L2BStripNum[gssdnum].push_back(fTrackEvent.fGL2BNumStrip[gmulti]);
+        L2L3_L2FStripNum[gssdnum].push_back(fTrackEvent.fGL2FNumStrip[gmulti]);
+        L2L3_L1SStripNum[gssdnum].push_back(fTrackEvent.fGL1SNumStrip[gmulti]);
+      }
+    }
+    // save data
+    for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+      if (fTrackEvent.fSSDGlobalMulti[ssdindex] == globalmulti) {
+        mode_exp = L2L3_CalcModeFromExpData(globalmulti,L2L3_CsINum[ssdindex],L2L3_L2BStripNum[ssdindex],L2L3_L2FStripNum[ssdindex],L2L3_L1SStripNum[ssdindex]);
+        for (Int_t imode=0; imode<nummode; imode++) {
+          if (strcmp(mode_exp.c_str(), mode[imode].c_str()) == 0) {
+            for (Int_t ssdgmulti=0; ssdgmulti<globalmulti; ssdgmulti++) {
+              entry_mode[ssdindex][imode]++;
+
+              FileOut[ssdindex][imode]<<setw(7)<<ientry
+                <<setw(10)<<ssdgmulti+1
+                <<setw(12)<<L2L3_CsINum[ssdindex][ssdgmulti]
+                <<setw(10)<<L2L3_L2BStripNum[ssdindex][ssdgmulti]
+                <<setw(10)<<L2L3_L2FStripNum[ssdindex][ssdgmulti]
+                <<setw(10)<<L2L3_L1SStripNum[ssdindex][ssdgmulti]
+                <<setw(13)<<L2L3_L1SEMeV[ssdindex][ssdgmulti]
+                <<setw(10)<<L2L3_L2FEMeV[ssdindex][ssdgmulti]
+                <<setw(10)<<L2L3_L2BEMeV[ssdindex][ssdgmulti]
+                <<setw(10)<<L2L3_CSIECh[ssdindex][ssdgmulti]
+                <<endl;
+            }
+          }
+        }
+      }
+      // clear the vectors
+      L2L3_CSIECh [ssdindex].clear();
+      L2L3_L2BEMeV[ssdindex].clear();
+      L2L3_L2FEMeV[ssdindex].clear();
+      L2L3_L1SEMeV[ssdindex].clear();
+      L2L3_CsINum[ssdindex].clear();
+      L2L3_L2BStripNum[ssdindex].clear();
+      L2L3_L2FStripNum[ssdindex].clear();
+      L2L3_L1SStripNum[ssdindex].clear();
+    }
+  }
+  // 删除空的文件
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t imode=0; imode<nummode; imode++) {
+      if (entry_mode[ssdindex][imode] == 0) system(Form("rm %s",pathDataOutput[ssdindex][imode].c_str()));  //删除空文件
+    }
+  }
+}
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
+
+
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
+// L1L2 径迹重建模式定义： 根据 globalmulti 定义模式
+void CSHINETrackReconstruction::L1L2_GenerateModeFromGMulti(Int_t globalmulti, vector<string>& mode)
+{
+  if (globalmulti<1) { cout<<"Error: globalmulti<1"<<endl; return; }
+  for (Int_t ml2b=0; ml2b<globalmulti; ml2b++) {
+    for (Int_t ml2f=0; ml2f<globalmulti; ml2f++) {
+      for (Int_t ml1s=0; ml1s<globalmulti; ml1s++) {
+        mode.push_back(Form("%d%d%d",ml2b,ml2f,ml1s));
+      }
+    }
+  }
+}
+
+//____________________________
+// 根据实验数据进行模式匹配
+string CSHINETrackReconstruction::L1L2_CalcModeFromExpData(Int_t globalmultti, vector<Int_t> ml2b,
+  vector<Int_t> ml2f, vector<Int_t> ml1s)
+{
+  if (globalmultti<2) { cout<<"globalmulti<2, no need for mode classification!"<<endl; return "error"; }
+  if (globalmultti != ml2b.size()) { cout<<"Error: globalmutli != ml2b.size()"<<endl; return "error"; }
+
+  string mode_exp;
+  Int_t candimulti_l2b=0, candimulti_l2f=0, candimulti_l1s=0;
+
+  sort(ml2b.begin(), ml2b.end());
+  sort(ml2f.begin(), ml2f.end());
+  sort(ml1s.begin(), ml1s.end());
+
+  // 判断 L2B 中的径迹点
+  for (Int_t itrackl2b=0; itrackl2b<(globalmultti-1); itrackl2b++) {
+    if (ml2b[itrackl2b+1] != ml2b[itrackl2b]) candimulti_l2b++;
+  }
+  // 判断 L2F 中的径迹点
+  for (Int_t itrackl2f=0; itrackl2f<(globalmultti-1); itrackl2f++) {
+    if (ml2f[itrackl2f+1] != ml2f[itrackl2f]) candimulti_l2f++;
+  }
+  // 判断 L1S 中的径迹点
+  for (Int_t itrackl1s=0; itrackl1s<(globalmultti-1); itrackl1s++) {
+    if (ml1s[itrackl1s+1] != ml1s[itrackl1s]) candimulti_l1s++;
+  }
+
+  mode_exp = Form("%d%d%d",candimulti_l2b,candimulti_l2f,candimulti_l1s);
+  return mode_exp;
+}
+
+//___________________________________
+// 画出不同 globalmulti 下的模式分布
+void CSHINETrackReconstruction::L1L2_Mode_DrawClassification(Int_t globalmulti)
+{
+  Int_t nummode = pow(globalmulti, 3);
+  Int_t gssdnum = -1;
+
+  std::string pidtag("L1L2");
+
+  string mode_exp;
+  vector<string> mode;
+  L1L2_GenerateModeFromGMulti(globalmulti, mode);
+
+  std::string pathModeDistribution(Form("%sfigure_TrackReconstruction/%s_GlobalMulti%d_ModeStatistic.png", PATHFIGURESFOLDER, pidtag.c_str(), globalmulti));
+
+  TH1I* h_modecount[NUM_SSD];
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    h_modecount[ssdindex] = new TH1I(Form("SSD%d_gmulti%d_modes",ssdindex+1,globalmulti),Form("SSD%d_gmulti%d_modes",ssdindex+1,globalmulti),nummode,-0.5,nummode-0.5);
+  }
+
+  fChainTrackTree->SetEntries(50000000);
+  Long64_t nentries = fChainTrackTree->GetEntries();
+  cout<<"Found nentries = "<<nentries<<endl;
+  cout<<Form("Processing DrawClassification globalmulti = %d ......", globalmulti)<<endl;
+
+  for (Long64_t ientry=0; ientry<nentries; ientry++) {
+    fChainTrackTree->GetEntry(ientry);
+    timeper.PrintPercentageAndRemainingTime(ientry, nentries);
+
+    // fill data
+    if (fTrackEvent.fGlobalMulti > 0) {
+      for (Int_t gmulti=0; gmulti<fTrackEvent.fGlobalMulti; gmulti++) {
+        gssdnum = fTrackEvent.fGSSDNum[gmulti];
+        L2L3_CsINum[gssdnum].push_back(fTrackEvent.fGCsINum[gmulti]);
+        L2L3_L2BStripNum[gssdnum].push_back(fTrackEvent.fGL2BNumStrip[gmulti]);
+        L2L3_L2FStripNum[gssdnum].push_back(fTrackEvent.fGL2FNumStrip[gmulti]);
+        L2L3_L1SStripNum[gssdnum].push_back(fTrackEvent.fGL1SNumStrip[gmulti]);
+      }
+    }
+    // save data
+    for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+      if (fTrackEvent.fSSDGlobalMulti[ssdindex] == globalmulti) {
+        mode_exp = L1L2_CalcModeFromExpData(globalmulti,L2L3_L2BStripNum[ssdindex],L2L3_L2FStripNum[ssdindex],L2L3_L1SStripNum[ssdindex]);
+        for (Int_t imode=0; imode<nummode; imode++) {
+          if (strcmp(mode_exp.c_str(), mode[imode].c_str()) == 0) {
+            h_modecount[ssdindex]->Fill(imode);
+          }
+        }
+      }
+      // clear the vectors
+      L2L3_CsINum[ssdindex].clear();
+      L2L3_L2BStripNum[ssdindex].clear();
+      L2L3_L2FStripNum[ssdindex].clear();
+      L2L3_L1SStripNum[ssdindex].clear();
+    }
+  }
+  // 画图
+  TCanvas* cans = new TCanvas("cans", "cans", 1200, 1200);
+  cans->Divide(2,2);
+
+  cans->cd(1);
+  h_modecount[0]->Draw();
+//  h_modecount[0]->GetXaxis()->SetNdivisions(100+nummode);
+  h_modecount[0]->GetYaxis()->SetRangeUser(0, 1.1*h_modecount[0]->GetMaximum());
+
+  cans->cd(2);
+  h_modecount[1]->Draw();
+//  h_modecount[1]->GetXaxis()->SetNdivisions(100+nummode);
+  h_modecount[1]->GetYaxis()->SetRangeUser(0, 1.1*h_modecount[1]->GetMaximum());
+
+  cans->cd(3);
+  h_modecount[2]->Draw();
+//  h_modecount[2]->GetXaxis()->SetNdivisions(100+nummode);
+  h_modecount[2]->GetYaxis()->SetRangeUser(0, 1.1*h_modecount[2]->GetMaximum());
+
+  cans->cd(4);
+  h_modecount[3]->Draw();
+//  h_modecount[3]->GetXaxis()->SetNdivisions(100+nummode);
+  h_modecount[3]->GetYaxis()->SetRangeUser(0, 1.1*h_modecount[3]->GetMaximum());
+
+  cans->Print(pathModeDistribution.c_str());
+}
+
+//_________________________________________
+// 计算不同模式的占比
+void CSHINETrackReconstruction::L1L2_Mode_CalcRatio(Int_t globalmulti)
+{
+  Int_t nummode = pow(globalmulti, 3);
+  Int_t gssdnum = -1;
+
+  Double_t ratio_sum[NUM_SSD];
+  Double_t ratio_mode[NUM_SSD][nummode];
+
+  Int_t entry_globalmulti[NUM_SSD];
+  Int_t entry_mode[NUM_SSD][nummode];
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    ratio_sum[ssdindex] = 0.;
+    entry_globalmulti[ssdindex] = 0;
+    for (Int_t imode=0; imode<nummode; imode++) {
+      entry_mode[ssdindex][imode] = 0;
+    }
+  }
+
+  string mode_exp;
+  vector<string> mode;
+  L1L2_GenerateModeFromGMulti(globalmulti, mode);
+
+  std::string pidtag("L1L2");
+  std::string pathModeRatioOut(Form("%sdata_Test_Multi/%s_Test_Multi_fGlobalMulti%d_ModeRatio.dat",PATHDATAFOLDER,pidtag.c_str(),globalmulti));
+  ofstream FileOut(pathModeRatioOut.c_str());
+  FileOut<<"* Ratio of different modes of events with globalmulti=2"<<endl;
+
+  fChainTrackTree->SetEntries(50000000);
+  Long64_t nentries = fChainTrackTree->GetEntries();
+  cout<<"Found nentries = "<<nentries<<endl;
+  cout<<Form("Processing CaliRatio globalmulti = %d ......", globalmulti)<<endl;
+
+  for (Long64_t ientry=0; ientry<nentries; ientry++) {
+    fChainTrackTree->GetEntry(ientry);
+    timeper.PrintPercentageAndRemainingTime(ientry, nentries);
+
+    // fill data
+    if (fTrackEvent.fGlobalMulti > 0) {
+      for (Int_t gmulti=0; gmulti<fTrackEvent.fGlobalMulti; gmulti++) {
+        gssdnum = fTrackEvent.fGSSDNum[gmulti];
+        L2L3_CsINum[gssdnum].push_back(fTrackEvent.fGCsINum[gmulti]);
+        L2L3_L2BStripNum[gssdnum].push_back(fTrackEvent.fGL2BNumStrip[gmulti]);
+        L2L3_L2FStripNum[gssdnum].push_back(fTrackEvent.fGL2FNumStrip[gmulti]);
+        L2L3_L1SStripNum[gssdnum].push_back(fTrackEvent.fGL1SNumStrip[gmulti]);
+      }
+    }
+    // save data
+    for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+      if (fTrackEvent.fSSDGlobalMulti[ssdindex] == globalmulti) {
+        entry_globalmulti[ssdindex]++;
+        mode_exp = L1L2_CalcModeFromExpData(globalmulti,L2L3_L2BStripNum[ssdindex],L2L3_L2FStripNum[ssdindex],L2L3_L1SStripNum[ssdindex]);
+        for (Int_t imode=0; imode<nummode; imode++) {
+          if (strcmp(mode_exp.c_str(), mode[imode].c_str()) == 0) {
+            entry_mode[ssdindex][imode]++;
+          }
+        }
+      }
+      // clear the vectors
+      L2L3_CsINum[ssdindex].clear();
+      L2L3_L2BStripNum[ssdindex].clear();
+      L2L3_L2FStripNum[ssdindex].clear();
+      L2L3_L1SStripNum[ssdindex].clear();
+    }
+  }
+  // 计算模式比例
+  for (Int_t ssdindex=0; ssdindex<4; ssdindex++) {
+    cout<<endl;
+    for (Int_t imode=0; imode<nummode; imode++) {
+      ratio_mode[ssdindex][imode] = (Double_t) entry_mode[ssdindex][imode]/entry_globalmulti[ssdindex];
+      ratio_sum[ssdindex] += ratio_mode[ssdindex][imode];
+
+      cout<<"SSD"<<ssdindex+1<<setw(10)<<Form("mode[%d] = %s",imode,mode[imode].c_str())<<setw(10)<<setprecision(6)<<"ratio = "<<ratio_mode[ssdindex][imode]<<endl;
+      FileOut<<"SSD"<<ssdindex+1<<setw(10)<<Form("mode[%d] = %s",imode,mode[imode].c_str())<<setw(10)<<setprecision(6)<<"ratio = "<<ratio_mode[ssdindex][imode]<<endl;
+    }
+    cout<<"SSD"<<ssdindex+1<<setw(15)<<"ratio_sum = "<<ratio_sum[ssdindex]<<endl;
+    FileOut<<"SSD"<<ssdindex+1<<setw(15)<<"ratio_sum = "<<ratio_sum[ssdindex]<<endl;
+    cout<<endl;
+  }
+}
+
+//__________________________________
+// 根据 globalmulti 提取不同模式的数据
+void CSHINETrackReconstruction::L1L2_Mode_ExtractData(Int_t globalmulti)
+{
+  Int_t nummode = pow(globalmulti, 3);
+  Int_t gssdnum = -1;
+
+  std::string pidtag("L1L2");
+
+  Int_t entry_mode[NUM_SSD][nummode];
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t imode=0; imode<nummode; imode++) {
+      entry_mode[ssdindex][imode] = 0;
+    }
+  }
+
+  string mode_exp;
+  vector<string> mode;
+  L1L2_GenerateModeFromGMulti(globalmulti, mode);
+
+  std::string pathModeDistribution(Form("%sfigure_TrackReconstruction/%s_GlobalMulti%d_ModeStatistic.png",PATHFIGURESFOLDER,pidtag.c_str(),globalmulti));
+
+  std::string pathDataOutput[NUM_SSD][nummode];
+  ofstream FileOut[NUM_SSD][nummode];
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t imode=0; imode<nummode; imode++) {
+      pathDataOutput[ssdindex][imode] = Form("%sdata_Test_Multi/%s/globalmulti%d/SSD%d_%s_Test_Multi_fGlobalMulti%d_%s.dat", PATHDATAFOLDER, pidtag.c_str(), globalmulti, ssdindex+1, pidtag.c_str(), globalmulti, mode[imode].c_str());
+      FileOut[ssdindex][imode].open(pathDataOutput[ssdindex][imode].c_str());
+      FileOut[ssdindex][imode]<<setw(10)<<"# EntryNo."<<setw(10)<<"MultiGlobal"<<setw(8)<<"CSI"<<setw(10)<<"L2B"
+                              <<setw(10)<<"L2F"<<setw(10)<<"L1S"<<setw(10)<<"EL1S"
+                              <<setw(10)<<"EL2F"<<setw(10)<<"EL2B"<<setw(10)<<"ECsI"
+                              <<endl;
+    }
+  }
+
+  fChainTrackTree->SetEntries(5000000);
+  Long64_t nentries = fChainTrackTree->GetEntries();
+  cout<<"Found nentries = "<<nentries<<endl;
+  cout<<Form("Processing ExtractData globalmulti = %d ......", globalmulti)<<endl;
+
+  for (Long64_t ientry=0; ientry<nentries; ientry++) {
+    fChainTrackTree->GetEntry(ientry);
+    timeper.PrintPercentageAndRemainingTime(ientry, nentries);
+
+    // fill data
+    if (fTrackEvent.fGlobalMulti > 0) {
+      for (Int_t gmulti=0; gmulti<fTrackEvent.fGlobalMulti; gmulti++) {
+        gssdnum = fTrackEvent.fGSSDNum[gmulti];
+        L2L3_CSIECh [gssdnum].push_back(fTrackEvent.fGCsIECh[gmulti]);
+        L2L3_L2BEMeV[gssdnum].push_back(fTrackEvent.fGL2BEMeV[gmulti]);
+        L2L3_L2FEMeV[gssdnum].push_back(fTrackEvent.fGL2FEMeV[gmulti]);
+        L2L3_L1SEMeV[gssdnum].push_back(fTrackEvent.fGL1SEMeV[gmulti]);
+        L2L3_CsINum[gssdnum].push_back(fTrackEvent.fGCsINum[gmulti]);
+        L2L3_L2BStripNum[gssdnum].push_back(fTrackEvent.fGL2BNumStrip[gmulti]);
+        L2L3_L2FStripNum[gssdnum].push_back(fTrackEvent.fGL2FNumStrip[gmulti]);
+        L2L3_L1SStripNum[gssdnum].push_back(fTrackEvent.fGL1SNumStrip[gmulti]);
+      }
+    }
+    // save data
+    for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+      if (fTrackEvent.fSSDGlobalMulti[ssdindex] == globalmulti) {
+        mode_exp = L1L2_CalcModeFromExpData(globalmulti,L2L3_L2BStripNum[ssdindex],L2L3_L2FStripNum[ssdindex],L2L3_L1SStripNum[ssdindex]);
+        for (Int_t imode=0; imode<nummode; imode++) {
+          if (strcmp(mode_exp.c_str(), mode[imode].c_str()) == 0) {
+            for (Int_t ssdgmulti=0; ssdgmulti<globalmulti; ssdgmulti++) {
+              entry_mode[ssdindex][imode]++;
+
+              FileOut[ssdindex][imode]<<setw(7)<<ientry
+                <<setw(10)<<ssdgmulti+1
+                <<setw(12)<<L2L3_CsINum[ssdindex][ssdgmulti]
+                <<setw(10)<<L2L3_L2BStripNum[ssdindex][ssdgmulti]
+                <<setw(10)<<L2L3_L2FStripNum[ssdindex][ssdgmulti]
+                <<setw(10)<<L2L3_L1SStripNum[ssdindex][ssdgmulti]
+                <<setw(13)<<L2L3_L1SEMeV[ssdindex][ssdgmulti]
+                <<setw(10)<<L2L3_L2FEMeV[ssdindex][ssdgmulti]
+                <<setw(10)<<L2L3_L2BEMeV[ssdindex][ssdgmulti]
+                <<setw(10)<<L2L3_CSIECh[ssdindex][ssdgmulti]
+                <<endl;
+            }
+          }
+        }
+      }
+      // clear the vectors
+      L2L3_CSIECh [ssdindex].clear();
+      L2L3_L2BEMeV[ssdindex].clear();
+      L2L3_L2FEMeV[ssdindex].clear();
+      L2L3_L1SEMeV[ssdindex].clear();
+      L2L3_CsINum[ssdindex].clear();
+      L2L3_L2BStripNum[ssdindex].clear();
+      L2L3_L2FStripNum[ssdindex].clear();
+      L2L3_L1SStripNum[ssdindex].clear();
+    }
+  }
+  // 删除空的文件
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t imode=0; imode<nummode; imode++) {
+      if (entry_mode[ssdindex][imode] == 0) system(Form("rm %s",pathDataOutput[ssdindex][imode].c_str()));  //删除空文件
+    }
+  }
+}
+
+
+//___________________________________
+// 通过能量条件定义 sub-mode (L2L3)
+Int_t CSHINETrackReconstruction::L2L3_GetSubModeFromEneConstraints(Bool_t IsBananaCut, Bool_t IsEL2BEL2F, Bool_t IsEL1SEL2F)
+{
+  Int_t index;
+  Int_t index_BananaCut, index_EL2BEL2F, index_EL1SEL2F;
+  if (IsBananaCut) { index_BananaCut = 1; }  else { index_BananaCut = 0; }
+  if (IsEL2BEL2F)  { index_EL2BEL2F  = 1; }  else { index_EL2BEL2F  = 0; }
+  if (IsEL1SEL2F)  { index_EL1SEL2F  = 1; }  else { index_EL1SEL2F  = 0; }
+
+  index = index_BananaCut*pow(2,2) + index_EL2BEL2F*pow(2,1) + index_EL1SEL2F*1;
+  return index;
+}
+
+
+//___________________________________
+// 通过能量条件定义 sub-mode (L1L2)
+Int_t CSHINETrackReconstruction::L1L2_GetSubModeFromEneConstraints(Bool_t IsEL2BEL2F, Bool_t IsBananaCut)
+{
+  Int_t index;
+  Int_t index_EL2BEL2F, index_BananaCut;
+  if (IsEL2BEL2F)  { index_EL2BEL2F  = 1; }  else { index_EL2BEL2F  = 0; }
+  if (IsBananaCut) { index_BananaCut = 1; }  else { index_BananaCut = 0; }
+
+  index = index_EL2BEL2F*pow(2,1) + index_BananaCut*1;
+  return index;
+}
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo

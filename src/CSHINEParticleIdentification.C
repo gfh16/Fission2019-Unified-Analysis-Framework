@@ -1,8 +1,13 @@
-# include "../include/CSHINEParticleIdentification.h"
+#include "../include/CSHINEParticleIdentification.h"
 using namespace std;
 
-
 //______________________________________________________________________________
+CSHINEDEEFITPID::CSHINEDEEFITPID()
+{
+	fFirstRun = 100;
+  fLastRun  = 110;
+}
+
 CSHINEDEEFITPID::CSHINEDEEFITPID(Int_t firstrun, Int_t lastrun) : fChain(0)
 {
 	fFirstRun = firstrun;
@@ -31,27 +36,27 @@ void CSHINEDEEFITPID::Init(TTree* tree)
   fChain = tree;
   fChain->SetMakeClass(1);
 
-  fChain->SetBranchAddress("LayerEvent.fL1SMulti",    &LayerEvent_fL1SMulti);
-  fChain->SetBranchAddress("LayerEvent.fL1SSSDNum",   &LayerEvent_fL1SSSDNum);
-  fChain->SetBranchAddress("LayerEvent.fL1SNumStrip", &LayerEvent_fL1SNumStrip);
-  fChain->SetBranchAddress("LayerEvent.fL1SEMeV",     &LayerEvent_fL1SEMeV);
-  fChain->SetBranchAddress("LayerEvent.fL2FMulti",    &LayerEvent_fL2FMulti);
-  fChain->SetBranchAddress("LayerEvent.fL2FSSDNum",   &LayerEvent_fL2FSSDNum);
-  fChain->SetBranchAddress("LayerEvent.fL2FNumStrip", &LayerEvent_fL2FNumStrip);
-  fChain->SetBranchAddress("LayerEvent.fL2FEMeV",     &LayerEvent_fL2FEMeV);
-	fChain->SetBranchAddress("LayerEvent.fL2FTime",     &LayerEvent_fL2FTime);
-  fChain->SetBranchAddress("LayerEvent.fL2BMulti",    &LayerEvent_fL2BMulti);
-  fChain->SetBranchAddress("LayerEvent.fL2BSSDNum",   &LayerEvent_fL2BSSDNum);
-  fChain->SetBranchAddress("LayerEvent.fL2BNumStrip", &LayerEvent_fL2BNumStrip);
-  fChain->SetBranchAddress("LayerEvent.fL2BEMeV",     &LayerEvent_fL2BEMeV);
-  fChain->SetBranchAddress("LayerEvent.fCsIMulti",    &LayerEvent_fCsIMulti);
-  fChain->SetBranchAddress("LayerEvent.fCsISSDNum",   &LayerEvent_fCsISSDNum);
-  fChain->SetBranchAddress("LayerEvent.fCsINum",      &LayerEvent_fCsINum);
-  fChain->SetBranchAddress("LayerEvent.fCsIECh",      &LayerEvent_fCsIECh);
-  fChain->SetBranchAddress("LayerEvent.fSSDL1SMulti", &LayerEvent_fSSDL1SMulti);
-  fChain->SetBranchAddress("LayerEvent.fSSDL2FMulti", &LayerEvent_fSSDL2FMulti);
-  fChain->SetBranchAddress("LayerEvent.fSSDL2BMulti", &LayerEvent_fSSDL2BMulti);
-  fChain->SetBranchAddress("LayerEvent.fSSDCsIMulti", &LayerEvent_fSSDCsIMulti);
+  fChain->SetBranchAddress("LayerEvent.fL1SMulti",    &fLayerEvent.fL1SMulti);
+  fChain->SetBranchAddress("LayerEvent.fL1SSSDNum",   &fLayerEvent.fL1SSSDNum);
+  fChain->SetBranchAddress("LayerEvent.fL1SNumStrip", &fLayerEvent.fL1SNumStrip);
+  fChain->SetBranchAddress("LayerEvent.fL1SEMeV",     &fLayerEvent.fL1SEMeV);
+  fChain->SetBranchAddress("LayerEvent.fL2FMulti",    &fLayerEvent.fL2FMulti);
+  fChain->SetBranchAddress("LayerEvent.fL2FSSDNum",   &fLayerEvent.fL2FSSDNum);
+  fChain->SetBranchAddress("LayerEvent.fL2FNumStrip", &fLayerEvent.fL2FNumStrip);
+  fChain->SetBranchAddress("LayerEvent.fL2FEMeV",     &fLayerEvent.fL2FEMeV);
+	fChain->SetBranchAddress("LayerEvent.fL2FTime",     &fLayerEvent.fL2FTime);
+  fChain->SetBranchAddress("LayerEvent.fL2BMulti",    &fLayerEvent.fL2BMulti);
+  fChain->SetBranchAddress("LayerEvent.fL2BSSDNum",   &fLayerEvent.fL2BSSDNum);
+  fChain->SetBranchAddress("LayerEvent.fL2BNumStrip", &fLayerEvent.fL2BNumStrip);
+  fChain->SetBranchAddress("LayerEvent.fL2BEMeV",     &fLayerEvent.fL2BEMeV);
+  fChain->SetBranchAddress("LayerEvent.fCsIMulti",    &fLayerEvent.fCsIMulti);
+  fChain->SetBranchAddress("LayerEvent.fCsISSDNum",   &fLayerEvent.fCsISSDNum);
+  fChain->SetBranchAddress("LayerEvent.fCsINum",      &fLayerEvent.fCsINum);
+  fChain->SetBranchAddress("LayerEvent.fCsIECh",      &fLayerEvent.fCsIECh);
+  fChain->SetBranchAddress("LayerEvent.fSSDL1SMulti", &fLayerEvent.fSSDL1SMulti);
+  fChain->SetBranchAddress("LayerEvent.fSSDL2FMulti", &fLayerEvent.fSSDL2FMulti);
+  fChain->SetBranchAddress("LayerEvent.fSSDL2BMulti", &fLayerEvent.fSSDL2BMulti);
+  fChain->SetBranchAddress("LayerEvent.fSSDCsIMulti", &fLayerEvent.fSSDCsIMulti);
 }
 //______________________________________________________________________________
 
@@ -100,28 +105,28 @@ void CSHINEDEEFITPID::DEEFITGenerateData_L2L3()
 		timeper.PrintPercentageAndRemainingTime(ientry, nentries);
 
 		for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
-			if (LayerEvent_fSSDCsIMulti[ssdindex]==1 && LayerEvent_fSSDL2BMulti[ssdindex]==1 &&
-	        LayerEvent_fSSDL2FMulti[ssdindex]==1)
+			if (fLayerEvent.fSSDCsIMulti[ssdindex]==1 && fLayerEvent.fSSDL2BMulti[ssdindex]==1 &&
+	        fLayerEvent.fSSDL2FMulti[ssdindex]==1)
 	    {
 	      // 提取 CsI 的数据
-	      for (Int_t csimulti=0; csimulti<LayerEvent_fCsIMulti; csimulti++) {
-	        if (LayerEvent_fCsISSDNum[csimulti] == ssdindex) {
-	          L2L3_NumCsI.push_back(LayerEvent_fCsINum[csimulti]);
-	          L2L3_ECSI.push_back(LayerEvent_fCsIECh[csimulti]);
+	      for (Int_t csimulti=0; csimulti<fLayerEvent.fCsIMulti; csimulti++) {
+	        if (fLayerEvent.fCsISSDNum[csimulti] == ssdindex) {
+	          L2L3_NumCsI.push_back(fLayerEvent.fCsINum[csimulti]);
+	          L2L3_ECSI.push_back(fLayerEvent.fCsIECh[csimulti]);
 	        }
 	      }
 	      // 提取 L2B 的数据
-	      for (Int_t l2bmulti=0; l2bmulti<LayerEvent_fL2BMulti; l2bmulti++) {
-	        if (LayerEvent_fL2BSSDNum[l2bmulti] == ssdindex) {
-	         L2L3_StripL2B.push_back(LayerEvent_fL2BNumStrip[l2bmulti]);
-	         L2L3_EL2B.push_back(LayerEvent_fL2BEMeV[l2bmulti]);
+	      for (Int_t l2bmulti=0; l2bmulti<fLayerEvent.fL2BMulti; l2bmulti++) {
+	        if (fLayerEvent.fL2BSSDNum[l2bmulti] == ssdindex) {
+	         L2L3_StripL2B.push_back(fLayerEvent.fL2BNumStrip[l2bmulti]);
+	         L2L3_EL2B.push_back(fLayerEvent.fL2BEMeV[l2bmulti]);
 	        }
 	      }
 	      // 提取 L2F 的数据
-	      for (Int_t l2fmulti=0; l2fmulti<LayerEvent_fL2FMulti; l2fmulti++) {
-	        if (LayerEvent_fL2FSSDNum[l2fmulti] == ssdindex) {
-	          L2L3_StripL2F.push_back(LayerEvent_fL2FNumStrip[l2fmulti]);
-	          L2L3_EL2F.push_back(LayerEvent_fL2FEMeV[l2fmulti]);
+	      for (Int_t l2fmulti=0; l2fmulti<fLayerEvent.fL2FMulti; l2fmulti++) {
+	        if (fLayerEvent.fL2FSSDNum[l2fmulti] == ssdindex) {
+	          L2L3_StripL2F.push_back(fLayerEvent.fL2FNumStrip[l2fmulti]);
+	          L2L3_EL2F.push_back(fLayerEvent.fL2FEMeV[l2fmulti]);
 	        }
 	      }
 	      // 填充 hist_L2B_L3
@@ -161,6 +166,19 @@ void CSHINEDEEFITPID::DEEFITGenerateData_L2L3()
 	 Histroot->Close();
 }
 
+
+
+//______________________________________________________________________________
+// 根据 StripB, StripF 对硅条表面分区域
+Int_t CSHINEDEEFITPID::GetZone(Int_t stripb, Int_t stripf, Int_t ZoneLength)
+{
+	Int_t num_megded_chs = NUM_STRIP/ZoneLength;
+	Int_t zone_x = std::abs(stripb/num_megded_chs - (ZoneLength-1));
+	Int_t zone_y = std::abs(stripf/num_megded_chs - (ZoneLength-1));
+	return (ZoneLength*zone_x+zone_y);
+}
+
+
 //______________________________________________________________________________
 // 发现: 对于 L1-L2, DEEFIT 公式偏差较大！
 void CSHINEDEEFITPID::DEEFITGenerateData_L1L2()
@@ -172,6 +190,10 @@ void CSHINEDEEFITPID::DEEFITGenerateData_L1L2()
 	Int_t    NBinsL1[4]  = {5000, 5000, 3000, 3000};
 	Double_t EL2Range[4] = {300., 250., 150., 80.};
   Int_t    NBinsL2[4]  = {3000, 2500, 1500, 800};
+
+  Int_t zone_Length = 8;
+	Int_t zone_index;
+	Double_t EL1S_Corrected;
 
 	std::vector<Double_t> L1L2_EL1S;
   std::vector<Double_t> L1L2_EL2F;
@@ -207,8 +229,8 @@ void CSHINEDEEFITPID::DEEFITGenerateData_L1L2()
 		timeper.PrintPercentageAndRemainingTime(ientry, nentries);
 
 		for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
-			if (LayerEvent_fSSDL1SMulti[ssdindex]==1 && LayerEvent_fSSDL2FMulti[ssdindex]==1 &&
-	        LayerEvent_fSSDL2BMulti[ssdindex]==1 && LayerEvent_fSSDCsIMulti[ssdindex]==0)
+			if (fLayerEvent.fSSDL1SMulti[ssdindex]==1 && fLayerEvent.fSSDL2FMulti[ssdindex]==1 &&
+	        fLayerEvent.fSSDL2BMulti[ssdindex]==1 && fLayerEvent.fSSDCsIMulti[ssdindex]==0)
 	    {
 				L1L2_EL1S.clear();
 	      L1L2_EL2F.clear();
@@ -219,25 +241,25 @@ void CSHINEDEEFITPID::DEEFITGenerateData_L1L2()
 				L2FTime.clear();
 
 				// 提取 L1S 的数据
-	      for (Int_t l1smulti=0; l1smulti<LayerEvent_fL1SMulti; l1smulti++) {
-	        if (LayerEvent_fL1SSSDNum[l1smulti] == ssdindex) {
-	          L1L2_StripL1S.push_back(LayerEvent_fL1SNumStrip[l1smulti]);
-	          L1L2_EL1S.push_back(LayerEvent_fL1SEMeV[l1smulti]);
+	      for (Int_t l1smulti=0; l1smulti<fLayerEvent.fL1SMulti; l1smulti++) {
+	        if (fLayerEvent.fL1SSSDNum[l1smulti] == ssdindex) {
+	          L1L2_StripL1S.push_back(fLayerEvent.fL1SNumStrip[l1smulti]);
+	          L1L2_EL1S.push_back(fLayerEvent.fL1SEMeV[l1smulti]);
 	        }
 	      }
 				// 提取 L2F 的数据
-	      for (Int_t l2fmulti=0; l2fmulti<LayerEvent_fL2FMulti; l2fmulti++) {
-	        if (LayerEvent_fL2FSSDNum[l2fmulti] == ssdindex) {
-	          L1L2_StripL2F.push_back(LayerEvent_fL2FNumStrip[l2fmulti]);
-	          L1L2_EL2F.push_back(LayerEvent_fL2FEMeV[l2fmulti]);
-						L2FTime.push_back(LayerEvent_fL2FTime[l2fmulti]);
+	      for (Int_t l2fmulti=0; l2fmulti<fLayerEvent.fL2FMulti; l2fmulti++) {
+	        if (fLayerEvent.fL2FSSDNum[l2fmulti] == ssdindex) {
+	          L1L2_StripL2F.push_back(fLayerEvent.fL2FNumStrip[l2fmulti]);
+	          L1L2_EL2F.push_back(fLayerEvent.fL2FEMeV[l2fmulti]);
+						L2FTime.push_back(fLayerEvent.fL2FTime[l2fmulti]);
 	        }
 	      }
 	      // 提取 L2B 的数据
-	      for (Int_t l2bmulti=0; l2bmulti<LayerEvent_fL2BMulti; l2bmulti++) {
-	        if (LayerEvent_fL2BSSDNum[l2bmulti] == ssdindex) {
-	         L1L2_StripL2B.push_back(LayerEvent_fL2BNumStrip[l2bmulti]);
-	         L1L2_EL2B.push_back(LayerEvent_fL2BEMeV[l2bmulti]);
+	      for (Int_t l2bmulti=0; l2bmulti<fLayerEvent.fL2BMulti; l2bmulti++) {
+	        if (fLayerEvent.fL2BSSDNum[l2bmulti] == ssdindex) {
+	         L1L2_StripL2B.push_back(fLayerEvent.fL2BNumStrip[l2bmulti]);
+	         L1L2_EL2B.push_back(fLayerEvent.fL2BEMeV[l2bmulti]);
 	        }
 	      }
 
@@ -246,11 +268,15 @@ void CSHINEDEEFITPID::DEEFITGenerateData_L1L2()
 	      {
 					if (L1L2_StripL1S[0]==L1L2_StripL2B[0]) {
 					  if (L2FTime[0]>SiTimeCut_Low[ssdindex][L1L2_StripL2F[0]] && L2FTime[0]<SiTimeCut_Up[ssdindex][L1L2_StripL2F[0]]) {
+							// 考虑 SSD3, ssd4 L1S 的厚度修正
+							zone_index = GetZone(L1L2_StripL2B[0], L1L2_StripL2F[0], zone_Length);
+							EL1S_Corrected = L1L2_EL1S[0]*(1+L1S_SITHICKNESSCORRECTION[ssdindex][zone_index]);
+							//
               fdeefitdata->numtel  = (UShort_t) ssdindex;
-							fdeefitdata->desipgf = (Float_t)  L1L2_EL1S[0];
+							fdeefitdata->desipgf = (Float_t)  EL1S_Corrected;
 					    fdeefitdata->fastpg  = (Float_t)  L1L2_EL2F[0];
 						  // 用于 “拉直法” 的 DE-E plot
-							h2d[ssdindex]->Fill(L1L2_EL2F[0], L1L2_EL1S[0]);
+							h2d[ssdindex]->Fill(L1L2_EL2F[0], EL1S_Corrected);
             }
 						newtree->Fill();
 						/*
@@ -785,6 +811,8 @@ Double_t CSHINEStraighteningPID::StraighteningGetMass(Double_t e2, Double_t de1,
 	Double_t mass = -99.;
 	Double_t calc_dE1 = 0.;
 	Double_t dist = 0.;
+	Double_t pidnum_range = 0., e2range = 0.;
+	Double_t xrange_low = 0., xrange_up = 0.;
 
   Double_t calc_eproton = DoCalcdEMeV(e2, pars[0].data(), NPARS);
 	Double_t calc_elastparticle = DoCalcdEMeV(e2, pars[icharge.size()-1].data(), NPARS);
@@ -797,7 +825,6 @@ Double_t CSHINEStraighteningPID::StraighteningGetMass(Double_t e2, Double_t de1,
 			pidnum = StdPIDNumber(icharge[0],imass[0]) * (de1/calc_eproton);
 			mass = StdPIDNumberToMass(pidnum, geticharge);
 			getimass = Int_t (mass + 0.5);
-			return mass;
 		}
 	}
 	// 介于质子线 与 最高粒子线之间的粒子
@@ -808,16 +835,30 @@ Double_t CSHINEStraighteningPID::StraighteningGetMass(Double_t e2, Double_t de1,
 				calc_dE1 = DoCalcdEMeV(e2, pars[ip].data(), NPARS);
 
         if (de1 > calc_dE1) {
-					dist = de1 - calc_dE1;
-          pidnum = StdPIDNumber(icharge[ip],imass[ip]) + dist/(DoCalcdEMeV(e2, pars[ip+1].data(), NPARS)-calc_dE1)*(StdPIDNumber(icharge[ip+1],imass[ip+1])-StdPIDNumber(icharge[ip],imass[ip]));
+					xrange_low = (cut[ip+1]->GetXaxis()->GetXmin());
+					xrange_up  = (cut[ip+1]->GetXaxis()->GetXmax());
+					if (xrange_low<=e2 && e2<=xrange_up) {
+						dist = de1 - calc_dE1;
+						e2range = DoCalcdEMeV(e2, pars[ip+1].data(), NPARS) - calc_dE1;
+						pidnum_range = StdPIDNumber(icharge[ip+1],imass[ip+1]) - StdPIDNumber(icharge[ip],imass[ip]);
+	          pidnum = StdPIDNumber(icharge[ip],imass[ip]) + dist/e2range * pidnum_range;
+					}
+					else { pidnum = StdPIDNumber(icharge[ip],imass[ip]) * (de1/calc_dE1); }
 				}
 				else {
-					dist = de1 - DoCalcdEMeV(e2, pars[ip-1].data(), NPARS);
-          pidnum = StdPIDNumber(icharge[ip-1],imass[ip-1]) + dist/(calc_dE1-DoCalcdEMeV(e2, pars[ip-1].data(), NPARS))*(StdPIDNumber(icharge[ip],imass[ip])-StdPIDNumber(icharge[ip-1],imass[ip-1]));
+					xrange_low = (cut[ip-1]->GetXaxis()->GetXmin());
+          xrange_up  = (cut[ip-1]->GetXaxis()->GetXmax());
+					if (xrange_low<=e2 && e2<=xrange_up) {
+						dist = de1 - DoCalcdEMeV(e2, pars[ip-1].data(), NPARS);
+						e2range = calc_dE1 - DoCalcdEMeV(e2, pars[ip-1].data(), NPARS);
+						pidnum_range = StdPIDNumber(icharge[ip],imass[ip]) - StdPIDNumber(icharge[ip-1],imass[ip-1]);
+	          pidnum = StdPIDNumber(icharge[ip-1],imass[ip-1]) + dist/e2range * pidnum_range;
+					}
+          else { pidnum = StdPIDNumber(icharge[ip],imass[ip]) * (de1/calc_dE1); }
 				}
 				mass = StdPIDNumberToMass(pidnum, geticharge);
 				getimass = Int_t (mass + 0.5);
-				return mass;
+				break;
 			}
 		}
 	}
@@ -828,11 +869,12 @@ Double_t CSHINEStraighteningPID::StraighteningGetMass(Double_t e2, Double_t de1,
 			pidnum = StdPIDNumber(icharge[icharge.size()-1],imass[icharge.size()-1]) * (de1/calc_elastparticle);
 			mass = StdPIDNumberToMass(pidnum, geticharge);
 			getimass = Int_t (mass + 0.5);
-			return mass;
 		}
 	}
 	return mass;
 }
+
+
 
 //______________________________________________________________________________
 // fit_func = [0]/x + pol6
@@ -856,7 +898,7 @@ Double_t CSHINEStraighteningPID::DoCalcdEMeV(Double_t Ex, Double_t* pars, Int_t 
 // 详见参考文献: L.Tassan-Got, Nucl.Instr.and Meth.B 194(2002)503.
 Double_t CSHINEStraighteningPID::StdPIDNumber(Int_t Z_charge, Int_t A_mass)
 {
-	return Z_charge + 0.2*(A_mass - 2.0*Z_charge);
+	return (Z_charge + 0.2*(A_mass - 2.0*Z_charge));
 }
 
 // 反解 StdPIDNumber(), 求出质量数 mass
@@ -933,6 +975,12 @@ void CSHINEStraighteningPID::ReadStraighteningFitPars(Int_t TelNum, const char* 
 
 
 //______________________________________________________________________________
+CSHINECheckDEEPlot::CSHINECheckDEEPlot()
+{
+	fFirstRun = 100;
+	fLastRun  = 110;
+}
+
 CSHINECheckDEEPlot::CSHINECheckDEEPlot(Int_t firstrun, Int_t lastrun)
 {
 	fFirstRun = firstrun;
@@ -973,28 +1021,28 @@ void CSHINECheckDEEPlot::CheckL2L3DEE()
     timeper.PrintPercentageAndRemainingTime(ientry, nentries);
 
     for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
-			if (fDeefit->LayerEvent_fSSDCsIMulti[ssdindex]==1 && fDeefit->LayerEvent_fSSDL2BMulti[ssdindex]==1 &&
-	        fDeefit->LayerEvent_fSSDL2FMulti[ssdindex]==1)
+			if (fDeefit->fLayerEvent.fSSDCsIMulti[ssdindex]==1 && fDeefit->fLayerEvent.fSSDL2BMulti[ssdindex]==1 &&
+	        fDeefit->fLayerEvent.fSSDL2FMulti[ssdindex]==1)
 	    {
 	      // 提取 CsI 的数据
-	      for (Int_t csimulti=0; csimulti<fDeefit->LayerEvent_fCsIMulti; csimulti++) {
-	        if (fDeefit->LayerEvent_fCsISSDNum[csimulti] == ssdindex) {
-	          L2L3_NumCsI.push_back(fDeefit->LayerEvent_fCsINum[csimulti]);
-	          L2L3_ECSI.push_back(fDeefit->LayerEvent_fCsIECh[csimulti]);
+	      for (Int_t csimulti=0; csimulti<fDeefit->fLayerEvent.fCsIMulti; csimulti++) {
+	        if (fDeefit->fLayerEvent.fCsISSDNum[csimulti] == ssdindex) {
+	          L2L3_NumCsI.push_back(fDeefit->fLayerEvent.fCsINum[csimulti]);
+	          L2L3_ECSI.push_back(fDeefit->fLayerEvent.fCsIECh[csimulti]);
 	        }
 	      }
 	      // 提取 L2B 的数据
-	      for (Int_t l2bmulti=0; l2bmulti<fDeefit->LayerEvent_fL2BMulti; l2bmulti++) {
-	        if (fDeefit->LayerEvent_fL2BSSDNum[l2bmulti] == ssdindex) {
-	         L2L3_StripL2B.push_back(fDeefit->LayerEvent_fL2BNumStrip[l2bmulti]);
-	         L2L3_EL2B.push_back(fDeefit->LayerEvent_fL2BEMeV[l2bmulti]);
+	      for (Int_t l2bmulti=0; l2bmulti<fDeefit->fLayerEvent.fL2BMulti; l2bmulti++) {
+	        if (fDeefit->fLayerEvent.fL2BSSDNum[l2bmulti] == ssdindex) {
+	         L2L3_StripL2B.push_back(fDeefit->fLayerEvent.fL2BNumStrip[l2bmulti]);
+	         L2L3_EL2B.push_back(fDeefit->fLayerEvent.fL2BEMeV[l2bmulti]);
 	        }
 	      }
 	      // 提取 L2F 的数据
-	      for (Int_t l2fmulti=0; l2fmulti<fDeefit->LayerEvent_fL2FMulti; l2fmulti++) {
-	        if (fDeefit->LayerEvent_fL2FSSDNum[l2fmulti] == ssdindex) {
-	          L2L3_StripL2F.push_back(fDeefit->LayerEvent_fL2FNumStrip[l2fmulti]);
-	          L2L3_EL2F.push_back(fDeefit->LayerEvent_fL2FEMeV[l2fmulti]);
+	      for (Int_t l2fmulti=0; l2fmulti<fDeefit->fLayerEvent.fL2FMulti; l2fmulti++) {
+	        if (fDeefit->fLayerEvent.fL2FSSDNum[l2fmulti] == ssdindex) {
+	          L2L3_StripL2F.push_back(fDeefit->fLayerEvent.fL2FNumStrip[l2fmulti]);
+	          L2L3_EL2F.push_back(fDeefit->fLayerEvent.fL2FEMeV[l2fmulti]);
 	        }
 	      }
 	      // 填充 hist_L2F_L3
@@ -1056,7 +1104,7 @@ void CSHINECheckDEEPlot::CheckL2L3PIDResults()
 
 	Double_t sigma_sum = 0.;
 
-  std::string pathDEEFITData(Form("%sDEEFITData/DEEFITData_Run%04d-%04d.root",PATHROOTFILESFOLDER,fFirstRun,fLastRun));
+  std::string pathDEEFITData(Form("%sDEEFITData/L2L3_EEFITData_Run%04d-%04d.root",PATHROOTFILESFOLDER,fFirstRun,fLastRun));
 	std::string pathDEEFITPars(Form("%sDEEFITData/Fitparam_table.out",PATHROOTFILESFOLDER));
 	std::string pathPIDResults(Form("%sfigure_PID/PIDResluts_Run%04d-%04d.pdf",PATHFIGURESFOLDER,fFirstRun,fLastRun));
 	std::string pathPIDResultsBegin(Form("%sfigure_PID/PIDResluts_Run%04d-%04d.pdf[",PATHFIGURESFOLDER,fFirstRun,fLastRun));
@@ -1215,8 +1263,8 @@ void CSHINECheckDEEPlot::CheckCsIAlphaEnergyResolution()
 
 	Color_t contour_color[3] = {kRed-4, kAzure-3, kSpring-1};
 
-  std::string pathDEEFITPars(Form("%sDEEFITData/Fitparam_table.out",PATHROOTFILESFOLDER));
-	std::string pathDEEFITData(Form("%sDEEFITData/DEEFITData_Run%04d-%04d.root",PATHROOTFILESFOLDER,fFirstRun,fLastRun));
+  std::string pathDEEFITPars(Form("%sDEEFITData/Fitparam_table_All.out",PATHROOTFILESFOLDER));
+	std::string pathDEEFITData(Form("%sDEEFITData/L2L3_DEEFITData_Run%04d-%04d.root",PATHROOTFILESFOLDER,fFirstRun,fLastRun));
 	std::string pathPDFMassDistr(Form("%sfigure_PID/AlphaMassDistr%04d-%04d.pdf",PATHFIGURESFOLDER,fFirstRun,fLastRun));
 	std::string pathPDFMassDistrBegin(Form("%sfigure_PID/AlphaMassDistr%04d-%04d.pdf[",PATHFIGURESFOLDER,fFirstRun,fLastRun));
 	std::string pathPDFMassDistrEnd(Form("%sfigure_PID/AlphaMassDistr%04d-%04d.pdf]",PATHFIGURESFOLDER,fFirstRun,fLastRun));
@@ -1431,25 +1479,26 @@ Double_t DrawPoly(Double_t* x, Double_t* pars)
 
 void CSHINECheckDEEPlot::CheckPolyFitResults()
 {
-	// for L1L2
-  Int_t NUMTEL = NUM_SSD;
-	std::string DEETag("L1L2");
-	std::string HistName("h2_dE1_dE2");
-	Double_t XRange_Low = 0.;
 	Double_t XRange[4] = {320,280,150,100};
-
-  // for L2L3
-//	Int_t NUMTEL = NUM_SSD*NUM_CSI;
-//	std::string DEETag("L2L3");
-//	std::string HistName("h2_dE2_ECsI");
-//  Double_t XRange_Low = 200.;
-
-	Double_t Erange[4] = {320,280,150,100};
+	Double_t Erange[4] = {320,280,150,80};
+	Double_t NBins[4] = {3200,2800,1500,800};
 	Int_t NPoints = 30; // 每种粒子提取 NPoints 个点
 	Double_t ELoss = -999.;
 	Double_t ECsI_Calc;
 	Int_t Xmin, Xmax;
+	Int_t MaxParticle = 50;
 	Int_t NPARS = 8;
+	Int_t SSDNum;
+
+	// for L1L2
+//  Int_t NUMTEL = 50;
+//	std::string DEETag("L1L2");
+//	std::string HistName("h2_dE1_dE2");
+
+  // for L2L3
+	Int_t NUMTEL = NUM_SSD*NUM_CSI;
+	std::string DEETag("L2L3");
+	std::string HistName("h2_dE2_ECsI");
 
 	std::string pathStraighteningFitPars(Form("%sdata_PID/%s_StraighteningFitPars.dat",PATHDATAFOLDER,DEETag.c_str()));
 	std::string pathDEECutsInput(Form("%sStraighteningData/%sDEECuts.root",PATHROOTFILESFOLDER,DEETag.c_str()));
@@ -1464,13 +1513,12 @@ void CSHINECheckDEEPlot::CheckPolyFitResults()
 	fStraightening.ReadStraighteningFitPars(NUMTEL, pathStraighteningFitPars.c_str(), iCharge, iMass, FitPars);
 
 	TFile* CutFile = new TFile(pathDEECutsInput.c_str(),"READONLY");
-	TCutG* IsotopeCut[NUMTEL][50];
+	TCutG* IsotopeCut[NUMTEL][MaxParticle];
 
 	for (Int_t numtel=0; numtel<NUMTEL; numtel++) {
 		for (Int_t ip=0; ip<iCharge[numtel].size(); ip++) {
 			IsotopeCut[numtel][ip] = (TCutG*) CutFile->Get(Form("%s_Tel%02d_Z%02d_A%02d",HistName.c_str(),numtel,iCharge[numtel][ip],iMass[numtel][ip]));
       if (IsotopeCut[numtel][ip]==0) continue;
-			//cout<<IsotopeCut[ssdindex][ip]->GetName()<<endl;
 		}
 	}
 
@@ -1479,37 +1527,69 @@ void CSHINECheckDEEPlot::CheckPolyFitResults()
 	c_begin->Close();
 	c_end->Close();
   TCanvas* cans[NUMTEL];
-	TF1* func[50];
+	TF1* func[MaxParticle];
 
 	for (Int_t numtel=0; numtel<NUMTEL; numtel++) {
+		if (iCharge[numtel].size() == 1) continue;
+		if (numtel<5) SSDNum = numtel;
+		if (numtel>5) SSDNum = numtel/10;
+
 		cans[numtel] = new TCanvas(Form("Tel%d",numtel),Form("Tel%d",numtel),800,800);
 		cans[numtel]->cd();
-		for (Int_t ip=0; ip<iCharge[numtel].size(); ip++) {
-			if (IsotopeCut[numtel][ip]==0) continue;
-			Xmin = (Int_t) IsotopeCut[numtel][ip]->GetXaxis()->GetXmin();
-			Xmax = (Int_t) IsotopeCut[numtel][ip]->GetXaxis()->GetXmax();
-      // func[ip] = new TF1(Form("func%d",ip),DrawPoly,0,4096,8);  // for L2L3
-			func[ip] = new TF1(Form("func%d",ip),DrawPoly,0,XRange[numtel],8); // for L1L2
-			func[ip]->SetRange(Xmin, Xmax);
-			for (Int_t i=0; i<8; i++) {
-				func[ip]->SetParameter(i,FitPars[numtel][ip][i]);
+    // for L1L2
+		if (strcmp(DEETag.c_str(),"L1L2")==0) {
+			for (Int_t ip=0; ip<iCharge[numtel].size(); ip++) {
+				if (IsotopeCut[numtel][ip]==0) continue;
+				Xmin = (Int_t) IsotopeCut[numtel][ip]->GetXaxis()->GetXmin();
+				Xmax = (Int_t) IsotopeCut[numtel][ip]->GetXaxis()->GetXmax();
+				func[ip] = new TF1(Form("func%d",ip),DrawPoly,0,XRange[SSDNum],NPARS); // for L1L2
+				func[ip]->SetRange(Xmin, Xmax);
+				// cout<<"tel = "<<numtel<<setw(10)<<"ip = "<<ip<<setw(10)<<"xrange = "<<IsotopeCut[numtel][ip]->GetXaxis()->GetXmax()<<endl;
+				for (Int_t i=0; i<NPARS; i++) {
+					func[ip]->SetParameter(i,FitPars[numtel][ip][i]);
+				}
 			}
-		}
-		// TH1D* h1 = new TH1D(Form("h_tel%d",numtel),"",4096,0,4096);  // for L2L3
-		TH1D* h1 = new TH1D(Form("h_tel%d",numtel),"",XRange[numtel],0,XRange[numtel]);  // for L1L2
-		h1->SetTitle(Form("Tel%d",numtel));
-		h1->Draw();
-	 	// h1->GetXaxis()->SetRangeUser(200,4096);       // for L2L3
-		// h1->GetYaxis()->SetRangeUser(0,Erange[numtel/NUM_CSI]);  // for L2L3
-		h1->GetXaxis()->SetRangeUser(2,XRange[numtel]);  // for L1L2
-		h1->GetYaxis()->SetRangeUser(0,Erange[numtel]);  // for L1L2
-		for (Int_t i=0; i<iCharge[numtel].size(); i++) {
+			TH1D* h1 = new TH1D(Form("h_tel%d",numtel),"",NBins[SSDNum],0,XRange[SSDNum]);  // for L1L2
+			h1->SetTitle(Form("Tel%d",numtel));
+			h1->Draw();
+			h1->GetXaxis()->SetRangeUser(2,XRange[SSDNum]);  // for L1L2
+			h1->GetYaxis()->SetRangeUser(0,Erange[SSDNum]);  // for L1L2
+			for (Int_t i=0; i<iCharge[numtel].size(); i++) {
 				func[i]->SetTitle(func[i]->GetName());
 				func[i]->Draw("SAME");
+				IsotopeCut[numtel][i]->Draw("SAME");
+				IsotopeCut[numtel][i]->SetLineColor(kAzure+7);
+			}
+		}
+    // for L2L3
+		if (strcmp(DEETag.c_str(),"L2L3")==0) {
+			for (Int_t ip=0; ip<iCharge[numtel].size(); ip++) {
+				if (IsotopeCut[numtel][ip]==0) continue;
+				Xmin = (Int_t) IsotopeCut[numtel][ip]->GetXaxis()->GetXmin();
+				Xmax = (Int_t) IsotopeCut[numtel][ip]->GetXaxis()->GetXmax();
+	      func[ip] = new TF1(Form("func%d",ip),DrawPoly,0,4096,8);  // for L2L3
+				func[ip]->SetRange(100, 4096);
+				for (Int_t i=0; i<NPARS; i++) {
+					func[ip]->SetParameter(i,FitPars[numtel][ip][i]);
+				}
+			}
+			TH1D* h1 = new TH1D(Form("h_tel%d",numtel),"",4096,0,4096);  // for L2L3
+			h1->SetTitle(Form("Tel%d",numtel));
+			h1->Draw();
+		 	h1->GetXaxis()->SetRangeUser(0,4096);       // for L2L3
+			h1->GetYaxis()->SetRangeUser(0,Erange[numtel/NUM_CSI]);  // for L2L3
+			for (Int_t i=0; i<iCharge[numtel].size(); i++) {
+				func[i]->SetTitle(func[i]->GetName());
+				func[i]->Draw("SAME");
+				IsotopeCut[numtel][i]->Draw("SAME");
+				IsotopeCut[numtel][i]->SetLineColor(kAzure+7);
+			}
 		}
 	}
+
 	c_begin->Print(pathPDFCheckPolyBegin.c_str());
 	for (Int_t numtel=0; numtel<NUMTEL; numtel++) {
+		if (iCharge[numtel].size() == 1) continue;
 		cans[numtel]->Print(pathPDFCheckPoly.c_str());
 	}
 	c_end->Print(pathPDFCheckPolyEnd.c_str());
@@ -1519,126 +1599,122 @@ void CSHINECheckDEEPlot::CheckPolyFitResults()
 //______________________________________________________________________________
 void CSHINECheckDEEPlot::CheckL2L3StraighteningPIDResults()
 {
+	Int_t MAXPARTICLES = NUM_SSD*NUM_CSI;
+  Int_t NumTel;
 	Double_t EL2Range[4] = {300., 250., 150., 80.};
 	Int_t    NBinsL2[4]  = {3000, 2500, 1500, 800};
 
 	Double_t getmass, pidnum;
 	Int_t geticharge, getimass;
 
-  std::string pathDEEDataInput(Form("%sDEEFITData/L2L3_DEEFITData_Run%04d-%04d.root",PATHROOTFILESFOLDER,fFirstRun,fLastRun));
   std::string pathDEECutsInput(Form("%sStraighteningData/L2L3DEECuts.root",PATHROOTFILESFOLDER));
   std::string pathStraighteningFitPars(Form("%sdata_PID/L2L3_StraighteningFitPars.dat",PATHDATAFOLDER));
-	std::string pathPIDPDFOut(Form("%sfigure_PID/L2L3_StraighteningPID.pdf",PATHFIGURESFOLDER));
-	std::string pathPIDPDFOutBegin(Form("%sfigure_PID/L2L3_StraighteningPID.pdf[",PATHFIGURESFOLDER));
-	std::string pathPIDPDFOutEnd(Form("%sfigure_PID/L2L3_StraighteningPID.pdf]",PATHFIGURESFOLDER));
 
-	TH2D* h2d_DEE[NUM_SSD*NUM_CSI];
-	TH2D* h2d_DEE_Cut[NUM_SSD*NUM_CSI];
-	TH1D* h1_PIDNum[NUM_SSD*NUM_CSI];
-	for (Int_t i=0; i<NUM_SSD*NUM_CSI; i++) {
+	std::string pathL2L3PIDOutput(Form("%sfigure_PID/L2L3_StraighteningPID.pdf",PATHFIGURESFOLDER));
+  std::string pathL2L3PIDOutputBegin(Form("%sfigure_PID/L2L3_StraighteningPID.pdf[",PATHFIGURESFOLDER));
+	std::string pathL2L3PIDOutputEnd(Form("%sfigure_PID/L2L3_StraighteningPID.pdf]",PATHFIGURESFOLDER));
+
+	TH2D* h2d_DEE[MAXPARTICLES];
+	TH2D* h2d_DEE_Cut[MAXPARTICLES];
+	TH1D* h1_PIDNum[MAXPARTICLES];
+	for (Int_t i=0; i<MAXPARTICLES; i++) {
 		Int_t ssdindex = (Int_t) i/NUM_CSI;
 		Int_t csiindex = (Int_t) i%NUM_CSI;
 		h2d_DEE[i] = new TH2D(Form("SSD%d_dE2_ECsI%d",ssdindex+1,csiindex),Form("SSD%d_dE2_ECsI%d",ssdindex+1,csiindex),4096,0,4096,NBinsL2[ssdindex],0,EL2Range[ssdindex]);
     h2d_DEE_Cut[i] = new TH2D(Form("SSD%d_dE2_ECsI%d_Cut",ssdindex+1,csiindex),Form("SSD%d_dE2_ECsI%d_Cut",ssdindex+1,csiindex),4096,0,4096,NBinsL2[ssdindex],0,EL2Range[ssdindex]);
-    h1_PIDNum[i] = new TH1D(Form("SSD%d_CsI%d_PID",ssdindex+1,csiindex),Form("SSD%d_CsI%d_PID",ssdindex+1,csiindex),500,0.,50.);
+    h1_PIDNum[i] = new TH1D(Form("SSD%d_CsI%d_PID",ssdindex+1,csiindex),Form("SSD%d_CsI%d_PID",ssdindex+1,csiindex),600,0.,60.);
 	}
 
   std::vector< vector<Int_t> > iCharge;
 	std::vector< vector<Int_t> > iMass;
 	std::vector< vector< vector<Double_t> > > FitPars;
 
-  fStraightening.ReadStraighteningFitPars(NUM_SSD*NUM_CSI, pathStraighteningFitPars.c_str(), iCharge, iMass, FitPars);
+  fStraightening.ReadStraighteningFitPars(MAXPARTICLES, pathStraighteningFitPars.c_str(), iCharge, iMass, FitPars);
 
 	TFile* CutFile = new TFile(pathDEECutsInput.c_str(),"READONLY");
-	TCutG* IsotopeCut[NUM_SSD*NUM_CSI][50];
-
-	for (Int_t numtel=0; numtel<NUM_SSD*NUM_CSI; numtel++) {
+	TCutG* IsotopeCut[MAXPARTICLES][50];
+	for (Int_t numtel=0; numtel<MAXPARTICLES; numtel++) {
 		for (Int_t ip=0; ip<iCharge[numtel].size(); ip++) {
-			IsotopeCut[numtel][ip] = (TCutG*) CutFile->Get(Form("h2_dE2_ECsI_Tel%02d_Z%02d_A%02d",numtel,iCharge[numtel][ip],iMass[numtel][ip]));
-      if (IsotopeCut[numtel][ip]==0) continue;
-			//cout<<IsotopeCut[ssdindex][ip]->GetName()<<endl;
+		 	IsotopeCut[numtel][ip] = (TCutG*) CutFile->Get(Form("h2_dE2_ECsI_Tel%02d_Z%02d_A%02d",numtel,iCharge[numtel][ip],iMass[numtel][ip]));
+			if (IsotopeCut[numtel][ip]==0) continue;
+		 //	cout<<ip<<setw(10)<<IsotopeCut[numtel][ip]->GetName()<<endl;
 		}
+		// cout<<numtel<<setw(10)<<iCharge[numtel].size()<<endl;
 	}
 
-  // 定义变量, 读取 tree 数据
-	Short_t numtel;  // number of csi crystals
-	Float_t desipgf; // dE (MeV)
-	Short_t fastpg;  // ECsI (ADC Chs)
-
-	TFile* myfile = TFile::Open(pathDEEDataInput.c_str());
-	TTree* mytree = (TTree*) myfile->Get("h1");
-	mytree->SetBranchAddress("numtel", &numtel);   // number of CsI
-	mytree->SetBranchAddress("desipgf",&desipgf);  // dE1
-	mytree->SetBranchAddress("fastpg", &fastpg);   // E2
-
-	Long64_t nentries = mytree->GetEntries();
+	Long64_t nentries = (fDeefit->fChain)->GetEntries();
 	cout<<"nentries = "<<nentries<<endl;
 
 	for (Long64_t jentry=0; jentry<nentries; jentry++) {
-		// if (jentry>10000) continue;
-		mytree->GetEntry(jentry);
-		timeper.PrintPercentageAndRemainingTime(jentry, nentries);
+		(fDeefit->fChain)->GetEntry(jentry);
+	  timeper.PrintPercentageAndRemainingTime(jentry, nentries);
 
-		h2d_DEE[numtel]->Fill(fastpg, desipgf);
-		for (Int_t ip=0; ip<iCharge[numtel].size(); ip++) {
-			if (IsotopeCut[numtel][ip]==0) continue;
-			if (IsotopeCut[numtel][ip]->IsInside(fastpg, desipgf)) {
-				h2d_DEE_Cut[numtel]->Fill(fastpg, desipgf);
-				break;
+		for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+			if (fDeefit->fLayerEvent.fSSDL1SMulti[ssdindex]==1 && fDeefit->fLayerEvent.fSSDL2FMulti[ssdindex]==1 &&
+				  fDeefit->fLayerEvent.fSSDL2BMulti[ssdindex]==1 && fDeefit->fLayerEvent.fSSDCsIMulti[ssdindex]==1)
+	    {
+	      L2L3_EL2F.clear();
+	      L2L3_EL2B.clear();
+				L2L3_ECSI.clear();
+	      L2L3_StripL2F.clear();
+	      L2L3_StripL2B.clear();
+				L2L3_NumCsI.clear();
+				L2FTime.clear();
+
+				// 提取 L2F 的数据
+	      for (Int_t l2fmulti=0; l2fmulti<fDeefit->fLayerEvent.fL2FMulti; l2fmulti++) {
+	        if (fDeefit->fLayerEvent.fL2FSSDNum[l2fmulti] == ssdindex) {
+	          L2L3_StripL2F.push_back(fDeefit->fLayerEvent.fL2FNumStrip[l2fmulti]);
+	          L2L3_EL2F.push_back(fDeefit->fLayerEvent.fL2FEMeV[l2fmulti]);
+						L2FTime.push_back(fDeefit->fLayerEvent.fL2FTime[l2fmulti]);
+	        }
+	      }
+	      // 提取 L2B 的数据
+	      for (Int_t l2bmulti=0; l2bmulti<fDeefit->fLayerEvent.fL2BMulti; l2bmulti++) {
+	        if (fDeefit->fLayerEvent.fL2BSSDNum[l2bmulti] == ssdindex) {
+	         L2L3_StripL2B.push_back(fDeefit->fLayerEvent.fL2BNumStrip[l2bmulti]);
+	         L2L3_EL2B.push_back(fDeefit->fLayerEvent.fL2BEMeV[l2bmulti]);
+	        }
+	      }
+				// 提取 CsI 的数据
+	      for (Int_t csimulti=0; csimulti<fDeefit->fLayerEvent.fCsIMulti; csimulti++) {
+	        if (fDeefit->fLayerEvent.fCsISSDNum[csimulti] == ssdindex) {
+	          L2L3_NumCsI.push_back(fDeefit->fLayerEvent.fCsINum[csimulti]);
+	          L2L3_ECSI.push_back(fDeefit->fLayerEvent.fCsIECh[csimulti]);
+	        }
+	      }
+
+				if (fPattern.IsGeoConstraint_L3A_L2B(L2L3_NumCsI[0], L2L3_StripL2B[0]) &&
+	          fPattern.IsGeoConstraint_L3A_L2F(L2L3_NumCsI[0], L2L3_StripL2F[0]) &&
+	          fPattern.IsEneConstraint_L2B_L2F(ssdindex, L2L3_EL2B[0], L2L3_EL2F[0]))
+	      {
+					NumTel = ssdindex*9 + L2L3_NumCsI[0];
+					h2d_DEE[NumTel]->Fill(L2L3_ECSI[0], L2L3_EL2F[0]);
+					if (iCharge[NumTel].size()<2) continue;
+					for (Int_t ip=0; ip<iCharge[NumTel].size(); ip++) {
+						if (IsotopeCut[NumTel][ip]->IsInside(L2L3_ECSI[0], L2L3_EL2F[0])) {
+							h2d_DEE_Cut[NumTel]->Fill(L2L3_ECSI[0], L2L3_EL2F[0]);
+							break;
+						}
+					}
+					// PID
+					getmass = fStraightening.StraighteningGetMass(L2L3_ECSI[0],L2L3_EL2F[0],IsotopeCut[NumTel],FitPars[NumTel],iCharge[NumTel], iMass[NumTel], geticharge, getimass, pidnum);
+					if (getmass > 0) h1_PIDNum[NumTel]->Fill(5*geticharge+getmass);
+				}
 			}
 		}
-		if ((numtel!=31) && (numtel!=32)) {
-			getmass = fStraightening.StraighteningGetMass(fastpg,desipgf,IsotopeCut[numtel],FitPars[numtel],iCharge[numtel], iMass[numtel], geticharge, getimass, pidnum);
-			// cout<<"icharge = "<<geticharge<<setw(10)<<"imass = "<<getimass<<setw(10)<<"mass = "<<getmass<<setw(10)<<"pid = "<<pidnum<<endl;
-			if (getmass > 0.) h1_PIDNum[numtel]->Fill(5*geticharge+getmass);
-		}
+
 	}
 
 	// 画图
-	TCanvas* c_begin = new TCanvas("c_begin","c_begin");
-	TCanvas* c_end = new TCanvas("c_end","c_end");
-	c_begin->Close();
-	c_begin->Close();
-	TCanvas* cans[NUM_SSD*NUM_CSI];
-
-	c_begin->Print(pathPIDPDFOutBegin.c_str());
-	for (Int_t numtel=0; numtel<NUM_SSD*NUM_CSI; numtel++) {
-		Int_t ssdindex = (Int_t) numtel/NUM_CSI;
-		Int_t csiindex = (Int_t) numtel%NUM_CSI;
-
-		cans[numtel] = new TCanvas(Form("c_SSD%d",numtel+1),Form("c_SSD%d",numtel+1),1000,1000);
-
-		cans[numtel]->cd();
-		TPad* pad1 = new TPad("pad1", "", 0.05, 0.5, 0.5, 0.95);
-	  pad1->Draw();
-	  pad1->cd();
-	  gPad->SetFillStyle(0);
-		h2d_DEE[numtel]->Draw("COL");
-
-    cans[numtel]->cd();
-		TPad* pad2 = new TPad("pad2", "", 0.5, 0.5, 0.95, 0.95);
-	  pad2->Draw();
-	  pad2->cd();
-	  gPad->SetFillStyle(0);
-		h2d_DEE_Cut[numtel]->Draw("COL");
-
-    cans[numtel]->cd();
-		TPad* pad3 = new TPad("pad3", "", 0.05, 0.05, 0.95, 0.5);
-	  pad3->Draw();
-	  pad3->cd();
-	  gPad->SetFillStyle(0);
-		h1_PIDNum[numtel]->Draw();
-		TPad* subpad = new TPad("subpad","",0.32,0.15,0.9,0.9);
-		subpad->Draw();
-	  subpad->cd();
-	  gPad->SetFillStyle(0);
-		TH1D* hpid_clone = (TH1D*) h1_PIDNum[numtel]->Clone();
-		hpid_clone->GetXaxis()->SetRangeUser(18,80);
-    hpid_clone->Draw();
-
-		cans[numtel]->Print(pathPIDPDFOut.c_str());
+	TCanvas* c_begin = new TCanvas("c_begin","c_begin",600,600);
+	TCanvas* c_end = new TCanvas("c_end","c_end",600,600);
+	c_begin->Print(pathL2L3PIDOutputBegin.c_str());
+	for (Int_t ssdindex=0; ssdindex<MAXPARTICLES; ssdindex++) {
+	  if (iCharge[ssdindex].size()<2) continue;
+		DrawPID(h2d_DEE[ssdindex], h2d_DEE_Cut[ssdindex], h1_PIDNum[ssdindex], pathL2L3PIDOutput.c_str());
 	}
-	c_end->Print(pathPIDPDFOutEnd.c_str());
+	c_end->Print(pathL2L3PIDOutputEnd.c_str());
 }
 
 
@@ -1674,29 +1750,29 @@ void CSHINECheckDEEPlot::CheckL1L2DEE()
     timeper.PrintPercentageAndRemainingTime(ientry, nentries);
 
     for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
-			if (fDeefit->LayerEvent_fSSDCsIMulti[ssdindex]==0 && fDeefit->LayerEvent_fSSDL2BMulti[ssdindex]==1 &&
-	        fDeefit->LayerEvent_fSSDL2FMulti[ssdindex]==1 && fDeefit->LayerEvent_fSSDL1SMulti[ssdindex]==1)
+			if (fDeefit->fLayerEvent.fSSDCsIMulti[ssdindex]==0 && fDeefit->fLayerEvent.fSSDL2BMulti[ssdindex]==1 &&
+	        fDeefit->fLayerEvent.fSSDL2FMulti[ssdindex]==1 && fDeefit->fLayerEvent.fSSDL1SMulti[ssdindex]==1)
 	    {
 	      // 提取 L2B 的数据
-	      for (Int_t l2bmulti=0; l2bmulti<fDeefit->LayerEvent_fL2BMulti; l2bmulti++) {
-	        if (fDeefit->LayerEvent_fL2BSSDNum[l2bmulti] == ssdindex) {
-	         L1L2_StripL2B.push_back(fDeefit->LayerEvent_fL2BNumStrip[l2bmulti]);
-	         L1L2_EL2B.push_back(fDeefit->LayerEvent_fL2BEMeV[l2bmulti]);
+	      for (Int_t l2bmulti=0; l2bmulti<fDeefit->fLayerEvent.fL2BMulti; l2bmulti++) {
+	        if (fDeefit->fLayerEvent.fL2BSSDNum[l2bmulti] == ssdindex) {
+	         L1L2_StripL2B.push_back(fDeefit->fLayerEvent.fL2BNumStrip[l2bmulti]);
+	         L1L2_EL2B.push_back(fDeefit->fLayerEvent.fL2BEMeV[l2bmulti]);
 	        }
 	      }
 	      // 提取 L2F 的数据
-	      for (Int_t l2fmulti=0; l2fmulti<fDeefit->LayerEvent_fL2FMulti; l2fmulti++) {
-	        if (fDeefit->LayerEvent_fL2FSSDNum[l2fmulti] == ssdindex) {
-	          L1L2_StripL2F.push_back(fDeefit->LayerEvent_fL2FNumStrip[l2fmulti]);
-	          L1L2_EL2F.push_back(fDeefit->LayerEvent_fL2FEMeV[l2fmulti]);
-						L2FTime.push_back(fDeefit->LayerEvent_fL2FTime[l2fmulti]);
+	      for (Int_t l2fmulti=0; l2fmulti<fDeefit->fLayerEvent.fL2FMulti; l2fmulti++) {
+	        if (fDeefit->fLayerEvent.fL2FSSDNum[l2fmulti] == ssdindex) {
+	          L1L2_StripL2F.push_back(fDeefit->fLayerEvent.fL2FNumStrip[l2fmulti]);
+	          L1L2_EL2F.push_back(fDeefit->fLayerEvent.fL2FEMeV[l2fmulti]);
+						L2FTime.push_back(fDeefit->fLayerEvent.fL2FTime[l2fmulti]);
 	        }
 	      }
 				// 提取 L1S 的数据
-	      for (Int_t l1smulti=0; l1smulti<fDeefit->LayerEvent_fL1SMulti; l1smulti++) {
-	        if (fDeefit->LayerEvent_fL1SSSDNum[l1smulti] == ssdindex) {
-	          L1L2_StripL1S.push_back(fDeefit->LayerEvent_fL1SNumStrip[l1smulti]);
-	          L1L2_EL1S.push_back(fDeefit->LayerEvent_fL1SEMeV[l1smulti]);
+	      for (Int_t l1smulti=0; l1smulti<fDeefit->fLayerEvent.fL1SMulti; l1smulti++) {
+	        if (fDeefit->fLayerEvent.fL1SSSDNum[l1smulti] == ssdindex) {
+	          L1L2_StripL1S.push_back(fDeefit->fLayerEvent.fL1SNumStrip[l1smulti]);
+	          L1L2_EL1S.push_back(fDeefit->fLayerEvent.fL1SEMeV[l1smulti]);
 	        }
 	      }
 	      // 填充 hist_L1_L2F
@@ -1821,34 +1897,34 @@ void CSHINECheckDEEPlot::CheckL1L2DEE_Uncalibrated()
     timeper.PrintPercentageAndRemainingTime(ientry, nentries);
 
     for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
-			if (fDeefit->LayerEvent_fSSDCsIMulti[ssdindex]==0 && fDeefit->LayerEvent_fSSDL2BMulti[ssdindex]==1 &&
-	        fDeefit->LayerEvent_fSSDL2FMulti[ssdindex]==1 && fDeefit->LayerEvent_fSSDL1SMulti[ssdindex]==1)
+			if (fDeefit->fLayerEvent.fSSDCsIMulti[ssdindex]==0 && fDeefit->fLayerEvent.fSSDL2BMulti[ssdindex]==1 &&
+	        fDeefit->fLayerEvent.fSSDL2FMulti[ssdindex]==1 && fDeefit->fLayerEvent.fSSDL1SMulti[ssdindex]==1)
 	    {
 	      // 提取 L2B 的数据
-	      for (Int_t l2bmulti=0; l2bmulti<fDeefit->LayerEvent_fL2BMulti; l2bmulti++) {
-	        if (fDeefit->LayerEvent_fL2BSSDNum[l2bmulti] == ssdindex) {
-	         L1L2_StripL2B.push_back(fDeefit->LayerEvent_fL2BNumStrip[l2bmulti]);
-	         L1L2_EL2B.push_back(fDeefit->LayerEvent_fL2BEMeV[l2bmulti]);
+	      for (Int_t l2bmulti=0; l2bmulti<fDeefit->fLayerEvent.fL2BMulti; l2bmulti++) {
+	        if (fDeefit->fLayerEvent.fL2BSSDNum[l2bmulti] == ssdindex) {
+	         L1L2_StripL2B.push_back(fDeefit->fLayerEvent.fL2BNumStrip[l2bmulti]);
+	         L1L2_EL2B.push_back(fDeefit->fLayerEvent.fL2BEMeV[l2bmulti]);
 	        }
 	      }
 	      // 提取 L2F 的数据
-	      for (Int_t l2fmulti=0; l2fmulti<fDeefit->LayerEvent_fL2FMulti; l2fmulti++) {
-	        if (fDeefit->LayerEvent_fL2FSSDNum[l2fmulti] == ssdindex) {
-	          L1L2_StripL2F.push_back(fDeefit->LayerEvent_fL2FNumStrip[l2fmulti]);
-	          L1L2_EL2F.push_back(fDeefit->LayerEvent_fL2FEMeV[l2fmulti]);
-						L2FTime.push_back(fDeefit->LayerEvent_fL2FTime[l2fmulti]);
+	      for (Int_t l2fmulti=0; l2fmulti<fDeefit->fLayerEvent.fL2FMulti; l2fmulti++) {
+	        if (fDeefit->fLayerEvent.fL2FSSDNum[l2fmulti] == ssdindex) {
+	          L1L2_StripL2F.push_back(fDeefit->fLayerEvent.fL2FNumStrip[l2fmulti]);
+	          L1L2_EL2F.push_back(fDeefit->fLayerEvent.fL2FEMeV[l2fmulti]);
+						L2FTime.push_back(fDeefit->fLayerEvent.fL2FTime[l2fmulti]);
 	        }
 	      }
 				// 提取 L1S 的数据
-	      for (Int_t l1smulti=0; l1smulti<fDeefit->LayerEvent_fL1SMulti; l1smulti++) {
-	        if (fDeefit->LayerEvent_fL1SSSDNum[l1smulti] == ssdindex) {
-	          L1L2_StripL1S.push_back(fDeefit->LayerEvent_fL1SNumStrip[l1smulti]);
-	          L1L2_EL1S.push_back(fDeefit->LayerEvent_fL1SEMeV[l1smulti]);
+	      for (Int_t l1smulti=0; l1smulti<fDeefit->fLayerEvent.fL1SMulti; l1smulti++) {
+	        if (fDeefit->fLayerEvent.fL1SSSDNum[l1smulti] == ssdindex) {
+	          L1L2_StripL1S.push_back(fDeefit->fLayerEvent.fL1SNumStrip[l1smulti]);
+	          L1L2_EL1S.push_back(fDeefit->fLayerEvent.fL1SEMeV[l1smulti]);
 	        }
 	      }
 	      // 填充 hist_L1_L2F
 	      if (fPattern.IsEneConstraint_L2B_L2F(ssdindex, L1L2_EL2B[0], L1L2_EL2F[0])) {
-					for (Int_t l1smulti=0; l1smulti<fDeefit->LayerEvent_fSSDL1SMulti[ssdindex]; l1smulti++) {
+					for (Int_t l1smulti=0; l1smulti<fDeefit->fLayerEvent.fSSDL1SMulti[ssdindex]; l1smulti++) {
 						if (abs(L1L2_StripL1S[l1smulti]-L1L2_StripL2B[0])<=1) {
 							if (L2FTime[0]>TimeCut_Low[ssdindex][L1L2_StripL2F[0]] && L2FTime[0]<TimeCut_Up[ssdindex][L1L2_StripL2F[0]]) {
 								//hist_L1L2_Merged[ssdindex]->Fill(SSD_L2F_E[ssdindex][L1L2_StripL2F[0]], SSD_L1S_E[ssdindex][L1L2_StripL1S[l1smulti]]);
@@ -1961,113 +2037,137 @@ void CSHINECheckDEEPlot::CheckDEEL1L2_SiResolution()
 //________________________________________________________________
 void CSHINECheckDEEPlot::CheckL1L2StraighteningPIDResults()
 {
-	Double_t EL1Range[4] = {400., 320., 100., 50.};
-	Int_t    NBinsL1[4]  = {4000, 3200, 1000, 500};
-	Double_t EL2Range[4] = {300., 250., 150., 80.};
-	Int_t    NBinsL2[4]  = {3000, 2500, 1500, 800};
+	Int_t MAXPARTICLES = 40;
+  Int_t NumSSD;
+	Int_t csinum;
+	Double_t EL1Range[4] = {400., 320., 100., 100.};
+	Int_t    NBinsL1[4]  = {4000, 3200, 1000, 1000};
+	Double_t EL2Range[4] = {300., 250., 150., 100.};
+	Int_t    NBinsL2[4]  = {3000, 2500, 1500, 1000};
 
 	Double_t getmass, pidnum;
 	Int_t geticharge, getimass;
 
-  std::string pathDEEDataInput(Form("%sDEEFITData/L1L2_DEEFITData_Run%04d-%04d.root",PATHROOTFILESFOLDER,fFirstRun,fLastRun));
   std::string pathDEECutsInput(Form("%sStraighteningData/L1L2DEECuts.root",PATHROOTFILESFOLDER));
   std::string pathStraighteningFitPars(Form("%sdata_PID/L1L2_StraighteningFitPars.dat",PATHDATAFOLDER));
 
-	TH2D* h2d_DEE[NUM_SSD];
-	TH2D* h2d_DEE_Cut[NUM_SSD];
-	TH1D* h1_PIDNum[NUM_SSD];
-	for (Int_t i=0; i<NUM_SSD; i++) {
-		h2d_DEE[i] = new TH2D(Form("SSD%d_dE1_E2",i+1),Form("SSD%d_dE1_E2",i+1),NBinsL2[i],0,EL2Range[i],NBinsL1[i],0,EL1Range[i]);
-    h2d_DEE_Cut[i] = new TH2D(Form("SSD%d_dE1_E2_Cut",i+1),Form("SSD%d_dE1_E2_Cut",i+1),NBinsL2[i],0,EL2Range[i],NBinsL1[i],0,EL1Range[i]);
-    h1_PIDNum[i] = new TH1D(Form("SSD%d_L1L2_PID",i+1),Form("SSD%d_L1L2_PID",i+1),800,0.,80.);
+	std::string pathL1L2PIDOutput(Form("%sfigure_PID/L1L2_StraighteningPID.pdf",PATHFIGURESFOLDER));
+  std::string pathL1L2PIDOutputBegin(Form("%sfigure_PID/L1L2_StraighteningPID.pdf[",PATHFIGURESFOLDER));
+	std::string pathL1L2PIDOutputEnd(Form("%sfigure_PID/L1L2_StraighteningPID.pdf]",PATHFIGURESFOLDER));
+
+	TH2D* h2d_DEE[MAXPARTICLES];
+	TH2D* h2d_DEE_Cut[MAXPARTICLES];
+	TH1D* h1_PIDNum[MAXPARTICLES];
+	for (Int_t i=0; i<MAXPARTICLES; i++) {
+		if (i<4) NumSSD = i;
+		if (i>4) NumSSD = i/10;
+		h2d_DEE[i] = new TH2D(Form("Tel%d_dE1_E2",i),Form("Tel%d_dE1_E2",i),NBinsL2[NumSSD],0,EL2Range[NumSSD],NBinsL1[NumSSD],0,EL1Range[NumSSD]);
+    h2d_DEE_Cut[i] = new TH2D(Form("Tel%d_dE1_E2_Cut",i),Form("Tel%d_dE1_E2_Cut",i),NBinsL2[NumSSD],0,EL2Range[NumSSD],NBinsL1[NumSSD],0,EL1Range[NumSSD]);
+    h1_PIDNum[i] = new TH1D(Form("Tel%d_L1L2_PID",i),Form("Tel%d_L1L2_PID",i),1600,0.,80.);
 	}
 
   std::vector< vector<Int_t> > iCharge;
 	std::vector< vector<Int_t> > iMass;
 	std::vector< vector< vector<Double_t> > > FitPars;
 
-  fStraightening.ReadStraighteningFitPars(NUM_SSD, pathStraighteningFitPars.c_str(), iCharge, iMass, FitPars);
+  fStraightening.ReadStraighteningFitPars(MAXPARTICLES, pathStraighteningFitPars.c_str(), iCharge, iMass, FitPars);
 
 	TFile* CutFile = new TFile(pathDEECutsInput.c_str(),"READONLY");
-	TCutG* IsotopeCut[NUM_SSD][50];
-	for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+	TCutG* IsotopeCut[MAXPARTICLES][50];
+	for (Int_t ssdindex=0; ssdindex<MAXPARTICLES; ssdindex++) {
 		for (Int_t ip=0; ip<iCharge[ssdindex].size(); ip++) {
-			IsotopeCut[ssdindex][ip] = (TCutG*) CutFile->Get(Form("h2_dE1_dE2_Tel%02d_Z%02d_A%02d",ssdindex,iCharge[ssdindex][ip],iMass[ssdindex][ip]));
-      // cout<<IsotopeCut[ssdindex][ip]->GetName()<<endl;
+		 	IsotopeCut[ssdindex][ip] = (TCutG*) CutFile->Get(Form("h2_dE1_dE2_Tel%02d_Z%02d_A%02d",ssdindex,iCharge[ssdindex][ip],iMass[ssdindex][ip]));
+			if (IsotopeCut[ssdindex][ip]==0) continue;
 		}
 	}
 
-  // 定义变量, 读取 tree 数据
-	Short_t numtel;  // number of csi crystals
-	Float_t desipgf; // dE (MeV)
-	Float_t fastpg;  // ECsI (ADC Chs)
-
-	TFile* myfile = TFile::Open(pathDEEDataInput.c_str());
-	TTree* mytree = (TTree*) myfile->Get("h1");
-	mytree->SetBranchAddress("numtel", &numtel);   // number of CsI
-	mytree->SetBranchAddress("desipgf",&desipgf);  // dE1
-	mytree->SetBranchAddress("fastpg", &fastpg);   // E2
-
-	Long64_t nentries = mytree->GetEntries();
+	Long64_t nentries = (fDeefit->fChain)->GetEntries();
 	cout<<"nentries = "<<nentries<<endl;
 
 	for (Long64_t jentry=0; jentry<nentries; jentry++) {
-		//if (jentry>10000) continue;
-		mytree->GetEntry(jentry);
-		timeper.PrintPercentageAndRemainingTime(jentry, nentries);
+		(fDeefit->fChain)->GetEntry(jentry);
+	  timeper.PrintPercentageAndRemainingTime(jentry, nentries);
 
-		h2d_DEE[numtel]->Fill(fastpg, desipgf);
-		for (Int_t ip=0; ip<iCharge[numtel].size(); ip++) {
-			if (IsotopeCut[numtel][ip]->IsInside(fastpg, desipgf)) {
-				h2d_DEE_Cut[numtel]->Fill(fastpg, desipgf);
-				break;
+		for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+			if (fDeefit->fLayerEvent.fSSDL1SMulti[ssdindex]==1 && fDeefit->fLayerEvent.fSSDL2FMulti[ssdindex]==1 &&
+				  fDeefit->fLayerEvent.fSSDL2BMulti[ssdindex]==1 && fDeefit->fLayerEvent.fSSDCsIMulti[ssdindex]==0)
+	    {
+				L1L2_EL1S.clear();
+	      L1L2_EL2F.clear();
+	      L1L2_EL2B.clear();
+				L1L2_StripL1S.clear();
+	      L1L2_StripL2F.clear();
+	      L1L2_StripL2B.clear();
+				L2FTime.clear();
+
+				// 提取 L1S 的数据
+	      for (Int_t l1smulti=0; l1smulti<fDeefit->fLayerEvent.fL1SMulti; l1smulti++) {
+	        if (fDeefit->fLayerEvent.fL1SSSDNum[l1smulti] == ssdindex) {
+	          L1L2_StripL1S.push_back(fDeefit->fLayerEvent.fL1SNumStrip[l1smulti]);
+	          L1L2_EL1S.push_back(fDeefit->fLayerEvent.fL1SEMeV[l1smulti]);
+	        }
+	      }
+				// 提取 L2F 的数据
+	      for (Int_t l2fmulti=0; l2fmulti<fDeefit->fLayerEvent.fL2FMulti; l2fmulti++) {
+	        if (fDeefit->fLayerEvent.fL2FSSDNum[l2fmulti] == ssdindex) {
+	          L1L2_StripL2F.push_back(fDeefit->fLayerEvent.fL2FNumStrip[l2fmulti]);
+	          L1L2_EL2F.push_back(fDeefit->fLayerEvent.fL2FEMeV[l2fmulti]);
+						L2FTime.push_back(fDeefit->fLayerEvent.fL2FTime[l2fmulti]);
+	        }
+	      }
+	      // 提取 L2B 的数据
+	      for (Int_t l2bmulti=0; l2bmulti<fDeefit->fLayerEvent.fL2BMulti; l2bmulti++) {
+	        if (fDeefit->fLayerEvent.fL2BSSDNum[l2bmulti] == ssdindex) {
+	         L1L2_StripL2B.push_back(fDeefit->fLayerEvent.fL2BNumStrip[l2bmulti]);
+	         L1L2_EL2B.push_back(fDeefit->fLayerEvent.fL2BEMeV[l2bmulti]);
+	        }
+	      }
+
+				csinum = fPattern.GetCsINumFromPixel(L1L2_StripL2F[0],L1L2_StripL2B[0]);
+				if (IsPixelOnCsIGap(L1L2_StripL2F[0],L1L2_StripL2B[0])) continue;
+	      if (fPattern.IsEneConstraint_L2B_L2F(ssdindex, L1L2_EL2B[0], L1L2_EL2F[0]))
+	      {
+					if (L1L2_StripL1S[0]==L1L2_StripL2B[0]) {
+					  if (L2FTime[0]>SiTimeCut_Low[ssdindex][L1L2_StripL2F[0]] && L2FTime[0]<SiTimeCut_Up[ssdindex][L1L2_StripL2F[0]]) {
+              // h2d_DEE
+							h2d_DEE[ssdindex]->Fill(L1L2_EL2F[0], L1L2_EL1S[0]);
+						  if (ssdindex==2 || ssdindex==3) h2d_DEE[ssdindex*10+csinum]->Fill(L1L2_EL2F[0], L1L2_EL1S[0]);
+              // h2d_DEE_Cut
+							for (Int_t ip=0; ip<iCharge[ssdindex].size(); ip++) {
+								if (IsotopeCut[ssdindex][ip]->IsInside(L1L2_EL2F[0], L1L2_EL1S[0])) {
+									h2d_DEE_Cut[ssdindex]->Fill(L1L2_EL2F[0], L1L2_EL1S[0]);
+									if (ssdindex==2 || ssdindex==3) h2d_DEE_Cut[ssdindex*10+csinum]->Fill(L1L2_EL2F[0], L1L2_EL1S[0]);
+									break;
+								}
+							}
+              // PID
+							getmass = fStraightening.StraighteningGetMass(L1L2_EL2F[0],L1L2_EL1S[0],IsotopeCut[ssdindex],FitPars[ssdindex],iCharge[ssdindex], iMass[ssdindex], geticharge, getimass, pidnum);
+              if (getmass > 0) h1_PIDNum[ssdindex]->Fill(5*geticharge+getmass);
+              if (ssdindex==2 || ssdindex==3) {
+								getmass = fStraightening.StraighteningGetMass(L1L2_EL2F[0],L1L2_EL1S[0],IsotopeCut[ssdindex*10+csinum],FitPars[ssdindex*10+csinum],iCharge[ssdindex*10+csinum], iMass[ssdindex*10+csinum], geticharge, getimass, pidnum);
+                if (getmass > 0) h1_PIDNum[ssdindex*10+csinum]->Fill(5*geticharge+getmass);
+							}
+            }
+					}
+	      }
 			}
 		}
-		getmass = fStraightening.StraighteningGetMass(fastpg,desipgf,IsotopeCut[numtel],FitPars[numtel],iCharge[numtel], iMass[numtel], geticharge, getimass, pidnum);
-    // cout<<"icharge = "<<geticharge<<setw(10)<<"imass = "<<getimass<<setw(10)<<"mass = "<<getmass<<setw(10)<<"pid = "<<pidnum<<endl;
-		if (getmass > 0) h1_PIDNum[numtel]->Fill(5*geticharge+getmass);
 	}
 
 	// 画图
-	TCanvas* cans[NUM_SSD];
-	for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
-		cans[ssdindex] = new TCanvas(Form("c_SSD%d",ssdindex+1),Form("c_SSD%d",ssdindex+1),1000,1000);
-
-		cans[ssdindex]->cd();
-		TPad* pad1 = new TPad("pad1", "", 0.05, 0.5, 0.5, 0.95);
-	  pad1->Draw();
-	  pad1->cd();
-	  gPad->SetFillStyle(0);
-		h2d_DEE[ssdindex]->Draw("COL");
-
-    cans[ssdindex]->cd();
-		TPad* pad2 = new TPad("pad2", "", 0.5, 0.5, 0.95, 0.95);
-	  pad2->Draw();
-	  pad2->cd();
-	  gPad->SetFillStyle(0);
-		h2d_DEE_Cut[ssdindex]->Draw("COL");
-
-    cans[ssdindex]->cd();
-		TPad* pad3 = new TPad("pad3", "", 0.05, 0.05, 0.95, 0.5);
-	  pad3->Draw();
-	  pad3->cd();
-	  gPad->SetFillStyle(0);
-		h1_PIDNum[ssdindex]->Draw();
-		TPad* subpad = new TPad("subpad","",0.25,0.15,0.9,0.9);
-		subpad->Draw();
-	  subpad->cd();
-	  gPad->SetFillStyle(0);
-		TH1D* hpid_clone = (TH1D*) h1_PIDNum[ssdindex]->Clone();
-		hpid_clone->GetXaxis()->SetRangeUser(18,80);
-    hpid_clone->Draw();
-
-		cans[ssdindex]->Print(Form("%sfigure_PID/SSD%d_L1L2_StraighteningPID.png",PATHFIGURESFOLDER,ssdindex+1));
+	TCanvas* c_begin = new TCanvas("c_begin","c_begin",600,600);
+	TCanvas* c_end = new TCanvas("c_end","c_end",600,600);
+	c_begin->Print(pathL1L2PIDOutputBegin.c_str());
+	for (Int_t ssdindex=0; ssdindex<MAXPARTICLES; ssdindex++) {
+		if (iCharge[ssdindex].size()<5) continue;
+		DrawPID(h2d_DEE[ssdindex], h2d_DEE_Cut[ssdindex], h1_PIDNum[ssdindex], pathL1L2PIDOutput.c_str());
 	}
+	c_end->Print(pathL1L2PIDOutputEnd.c_str());
 }
 
 
 //______________________________________________________________________________
-void DrawPID(TH2D* h2d, TH2D* h2d_cut, TH1D* h_pid, std::string path)
+void CSHINECheckDEEPlot::DrawPID(TH2D* h2d, TH2D* h2d_cut, TH1D* h_pid, std::string path)
 {
 	TCanvas* cans = new TCanvas("cans","cans",1000,1000);
 
@@ -2097,7 +2197,9 @@ void DrawPID(TH2D* h2d, TH2D* h2d_cut, TH1D* h_pid, std::string path)
 	h_pid->Draw();
 	gPad->Modified();
 	gPad->Update();
-	TPad* subpad = new TPad("subpad","",0.25,0.15,0.9,0.9);
+
+	Double_t pad_xmin = (Double_t) 20./(h_pid->GetXaxis()->GetXmax());
+	TPad* subpad = new TPad("subpad","",pad_xmin,0.15,0.9,0.9);
 	subpad->Draw();
 	subpad->cd();
 	gPad->SetFillStyle(0);
@@ -2110,7 +2212,8 @@ void DrawPID(TH2D* h2d, TH2D* h2d_cut, TH1D* h_pid, std::string path)
 	cans->Print(path.c_str());
 }
 
-Bool_t IsPixelOnCsIGap(Int_t stripf, Int_t stripb)
+//______________________________________________________________________________
+Bool_t CSHINECheckDEEPlot::IsPixelOnCsIGap(Int_t stripf, Int_t stripb)
 {
 	Bool_t index = kFALSE;
 
@@ -2123,6 +2226,8 @@ Bool_t IsPixelOnCsIGap(Int_t stripf, Int_t stripb)
 	return index;
 }
 
+
+//______________________________________________________________________________
 void CSHINECheckDEEPlot::CheckGoodPIDOfSSD3AndSSD4()
 {
 	Double_t EL1Range[4] = {400., 320., 100., 100.};
@@ -2237,8 +2342,8 @@ void CSHINECheckDEEPlot::CheckGoodPIDOfSSD3AndSSD4()
 		timeper.PrintPercentageAndRemainingTime(ientry, nentries);
 
 		for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
-			if (fDeefit->LayerEvent_fSSDL1SMulti[ssdindex]==1 && fDeefit->LayerEvent_fSSDL2FMulti[ssdindex]==1 &&
-	        fDeefit->LayerEvent_fSSDL2BMulti[ssdindex]==1 && fDeefit->LayerEvent_fSSDCsIMulti[ssdindex]==0)
+			if (fDeefit->fLayerEvent.fSSDL1SMulti[ssdindex]==1 && fDeefit->fLayerEvent.fSSDL2FMulti[ssdindex]==1 &&
+	        fDeefit->fLayerEvent.fSSDL2BMulti[ssdindex]==1 && fDeefit->fLayerEvent.fSSDCsIMulti[ssdindex]==0)
 	    {
 				L1L2_EL1S.clear();
 	      L1L2_EL2F.clear();
@@ -2249,25 +2354,25 @@ void CSHINECheckDEEPlot::CheckGoodPIDOfSSD3AndSSD4()
 				L2FTime.clear();
 
 				// 提取 L1S 的数据
-	      for (Int_t l1smulti=0; l1smulti<fDeefit->LayerEvent_fL1SMulti; l1smulti++) {
-	        if (fDeefit->LayerEvent_fL1SSSDNum[l1smulti] == ssdindex) {
-	          L1L2_StripL1S.push_back(fDeefit->LayerEvent_fL1SNumStrip[l1smulti]);
-	          L1L2_EL1S.push_back(fDeefit->LayerEvent_fL1SEMeV[l1smulti]);
+	      for (Int_t l1smulti=0; l1smulti<fDeefit->fLayerEvent.fL1SMulti; l1smulti++) {
+	        if (fDeefit->fLayerEvent.fL1SSSDNum[l1smulti] == ssdindex) {
+	          L1L2_StripL1S.push_back(fDeefit->fLayerEvent.fL1SNumStrip[l1smulti]);
+	          L1L2_EL1S.push_back(fDeefit->fLayerEvent.fL1SEMeV[l1smulti]);
 	        }
 	      }
 				// 提取 L2F 的数据
-	      for (Int_t l2fmulti=0; l2fmulti<fDeefit->LayerEvent_fL2FMulti; l2fmulti++) {
-	        if (fDeefit->LayerEvent_fL2FSSDNum[l2fmulti] == ssdindex) {
-	          L1L2_StripL2F.push_back(fDeefit->LayerEvent_fL2FNumStrip[l2fmulti]);
-	          L1L2_EL2F.push_back(fDeefit->LayerEvent_fL2FEMeV[l2fmulti]);
-						L2FTime.push_back(fDeefit->LayerEvent_fL2FTime[l2fmulti]);
+	      for (Int_t l2fmulti=0; l2fmulti<fDeefit->fLayerEvent.fL2FMulti; l2fmulti++) {
+	        if (fDeefit->fLayerEvent.fL2FSSDNum[l2fmulti] == ssdindex) {
+	          L1L2_StripL2F.push_back(fDeefit->fLayerEvent.fL2FNumStrip[l2fmulti]);
+	          L1L2_EL2F.push_back(fDeefit->fLayerEvent.fL2FEMeV[l2fmulti]);
+						L2FTime.push_back(fDeefit->fLayerEvent.fL2FTime[l2fmulti]);
 	        }
 	      }
 	      // 提取 L2B 的数据
-	      for (Int_t l2bmulti=0; l2bmulti<fDeefit->LayerEvent_fL2BMulti; l2bmulti++) {
-	        if (fDeefit->LayerEvent_fL2BSSDNum[l2bmulti] == ssdindex) {
-	         L1L2_StripL2B.push_back(fDeefit->LayerEvent_fL2BNumStrip[l2bmulti]);
-	         L1L2_EL2B.push_back(fDeefit->LayerEvent_fL2BEMeV[l2bmulti]);
+	      for (Int_t l2bmulti=0; l2bmulti<fDeefit->fLayerEvent.fL2BMulti; l2bmulti++) {
+	        if (fDeefit->fLayerEvent.fL2BSSDNum[l2bmulti] == ssdindex) {
+	         L1L2_StripL2B.push_back(fDeefit->fLayerEvent.fL2BNumStrip[l2bmulti]);
+	         L1L2_EL2B.push_back(fDeefit->fLayerEvent.fL2BEMeV[l2bmulti]);
 	        }
 	      }
 
@@ -2419,8 +2524,6 @@ void CSHINECheckDEEPlot::CheckL1L2DEEPunchThrough()
 	Double_t EL2Range[4] = {300., 250., 150., 80.};
 	Int_t    NBinsL2[4]  = {3000, 2500, 1500, 800};
 
-	Double_t getmass = 0., pidnum = 0.;
-	Int_t geticharge = 0, getimass = 0;
 	Int_t csinum = -99;
 
   std::string pathL1L2PunchThroughCuts(Form("%sStraighteningData/L1L2PunchThroughCuts.root",PATHROOTFILESFOLDER));
@@ -2456,7 +2559,7 @@ void CSHINECheckDEEPlot::CheckL1L2DEEPunchThrough()
 		timeper.PrintPercentageAndRemainingTime(ientry, nentries);
 
 		for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
-			if (fDeefit->LayerEvent_fSSDL1SMulti[ssdindex]==1 && fDeefit->LayerEvent_fSSDL2FMulti[ssdindex]==1 && fDeefit->LayerEvent_fSSDL2BMulti[ssdindex]==1)
+			if (fDeefit->fLayerEvent.fSSDL1SMulti[ssdindex]==1 && fDeefit->fLayerEvent.fSSDL2FMulti[ssdindex]==1 && fDeefit->fLayerEvent.fSSDL2BMulti[ssdindex]==1)
 	    {
 				L1L2_EL1S.clear();
 	      L1L2_EL2F.clear();
@@ -2467,25 +2570,25 @@ void CSHINECheckDEEPlot::CheckL1L2DEEPunchThrough()
 				L2FTime.clear();
 
 				// 提取 L1S 的数据
-	      for (Int_t l1smulti=0; l1smulti<fDeefit->LayerEvent_fL1SMulti; l1smulti++) {
-	        if (fDeefit->LayerEvent_fL1SSSDNum[l1smulti] == ssdindex) {
-	          L1L2_StripL1S.push_back(fDeefit->LayerEvent_fL1SNumStrip[l1smulti]);
-	          L1L2_EL1S.push_back(fDeefit->LayerEvent_fL1SEMeV[l1smulti]);
+	      for (Int_t l1smulti=0; l1smulti<fDeefit->fLayerEvent.fL1SMulti; l1smulti++) {
+	        if (fDeefit->fLayerEvent.fL1SSSDNum[l1smulti] == ssdindex) {
+	          L1L2_StripL1S.push_back(fDeefit->fLayerEvent.fL1SNumStrip[l1smulti]);
+	          L1L2_EL1S.push_back(fDeefit->fLayerEvent.fL1SEMeV[l1smulti]);
 	        }
 	      }
 				// 提取 L2F 的数据
-	      for (Int_t l2fmulti=0; l2fmulti<fDeefit->LayerEvent_fL2FMulti; l2fmulti++) {
-	        if (fDeefit->LayerEvent_fL2FSSDNum[l2fmulti] == ssdindex) {
-	          L1L2_StripL2F.push_back(fDeefit->LayerEvent_fL2FNumStrip[l2fmulti]);
-	          L1L2_EL2F.push_back(fDeefit->LayerEvent_fL2FEMeV[l2fmulti]);
-						L2FTime.push_back(fDeefit->LayerEvent_fL2FTime[l2fmulti]);
+	      for (Int_t l2fmulti=0; l2fmulti<fDeefit->fLayerEvent.fL2FMulti; l2fmulti++) {
+	        if (fDeefit->fLayerEvent.fL2FSSDNum[l2fmulti] == ssdindex) {
+	          L1L2_StripL2F.push_back(fDeefit->fLayerEvent.fL2FNumStrip[l2fmulti]);
+	          L1L2_EL2F.push_back(fDeefit->fLayerEvent.fL2FEMeV[l2fmulti]);
+						L2FTime.push_back(fDeefit->fLayerEvent.fL2FTime[l2fmulti]);
 	        }
 	      }
 	      // 提取 L2B 的数据
-	      for (Int_t l2bmulti=0; l2bmulti<fDeefit->LayerEvent_fL2BMulti; l2bmulti++) {
-	        if (fDeefit->LayerEvent_fL2BSSDNum[l2bmulti] == ssdindex) {
-	         L1L2_StripL2B.push_back(fDeefit->LayerEvent_fL2BNumStrip[l2bmulti]);
-	         L1L2_EL2B.push_back(fDeefit->LayerEvent_fL2BEMeV[l2bmulti]);
+	      for (Int_t l2bmulti=0; l2bmulti<fDeefit->fLayerEvent.fL2BMulti; l2bmulti++) {
+	        if (fDeefit->fLayerEvent.fL2BSSDNum[l2bmulti] == ssdindex) {
+	         L1L2_StripL2B.push_back(fDeefit->fLayerEvent.fL2BNumStrip[l2bmulti]);
+	         L1L2_EL2B.push_back(fDeefit->fLayerEvent.fL2BEMeV[l2bmulti]);
 	        }
 	      }
 
@@ -2496,7 +2599,7 @@ void CSHINECheckDEEPlot::CheckL1L2DEEPunchThrough()
 					if (L1L2_StripL1S[0]==L1L2_StripL2B[0]) {
 					  if (L2FTime[0]>SiTimeCut_Low[ssdindex][L1L2_StripL2F[0]] && L2FTime[0]<SiTimeCut_Up[ssdindex][L1L2_StripL2F[0]]) {
 							h2d_DEE_OneCsI[ssdindex][csinum]->Fill(L1L2_EL2F[0], L1L2_EL1S[0]);
-							if (fDeefit->LayerEvent_fSSDCsIMulti[ssdindex]==0) {
+							if (fDeefit->fLayerEvent.fSSDCsIMulti[ssdindex]==0) {
 								h2d_DEE_OneCsI_MCsI0[ssdindex][csinum]->Fill(L1L2_EL2F[0], L1L2_EL1S[0]);
 								if (cuts[ssdindex]->IsInside(L1L2_EL2F[0], L1L2_EL1S[0])) {
 									h2d_PunchThrough_SiPixelFired[ssdindex]->Fill(L1L2_StripL2B[0],L1L2_StripL2F[0]);
@@ -2574,5 +2677,541 @@ void CSHINECheckDEEPlot::CheckL1L2DEEPunchThrough()
 // 现在考查这个 gap 效应对 L2L3 的 DEE 的影响, 如果影响不大, 则在 L2L3 不用考虑 gap 效应
 void CSHINECheckDEEPlot::CheckL2L3DEECsIGapEffect()
 {
+	Double_t EL2Range[4] = {300., 250., 150., 80.};
+	Int_t    NBinsL2[4]  = {3000, 2500, 1500, 800};
 
+	std::string pathL1L2PunchThroughCuts(Form("%sStraighteningData/L1L2PunchThroughCuts.root",PATHROOTFILESFOLDER));
+	TFile* PunchThroughCuts = new TFile(pathL1L2PunchThroughCuts.c_str(),"READONLY");
+
+	std::string pathCheckL2L3GapEffect(Form("%sfigure_PID/CheckL2L3GapEffect.pdf",PATHFIGURESFOLDER));
+	std::string pathCheckL2L3GapEffectBegin(Form("%sfigure_PID/CheckL2L3GapEffect.pdf[",PATHFIGURESFOLDER));
+	std::string pathCheckL2L3GapEffectEnd(Form("%sfigure_PID/CheckL2L3GapEffect.pdf]",PATHFIGURESFOLDER));
+
+	TH2D* h2d_L2L3DEE[NUM_SSD][NUM_CSI];
+	TH2D* h2d_L2L3DEE_CsIGap[NUM_SSD][NUM_CSI];
+	for (Int_t i=0; i<NUM_SSD; i++) {
+		for (Int_t j=0; j<NUM_CSI; j++) {
+			h2d_L2L3DEE[i][j] = new TH2D(Form("SSD%d_CsI%d",i+1,j),Form("SSD%d_CsI%d",i+1,j),4000,0,4000,NBinsL2[i],0,EL2Range[i]);
+			h2d_L2L3DEE_CsIGap[i][j] = new TH2D(Form("SSD%d_CsI%d_GapEffect",i+1,j),Form("SSD%d_CsI%d_GapEffect",i+1,j),4000,0,4000,NBinsL2[i],0,EL2Range[i]);
+		}
+	}
+
+	Long64_t nentries = (fDeefit->fChain)->GetEntries();
+	cout<<"nentries = "<<nentries<<endl;
+	for (Long64_t ientry=0; ientry<nentries; ientry++) {
+		(fDeefit->fChain)->GetEntry(ientry);
+	//	if (ientry>100) continue;
+		timeper.PrintPercentageAndRemainingTime(ientry, nentries);
+
+		for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+			if (fDeefit->fLayerEvent.fSSDL2FMulti[ssdindex]==1 && fDeefit->fLayerEvent.fSSDL2BMulti[ssdindex]==1 && fDeefit->fLayerEvent.fSSDCsIMulti[ssdindex]==1)
+			{
+				L2L3_EL2F.clear();
+			  L2L3_EL2B.clear();
+			  L2L3_ECSI.clear();
+			  L2L3_StripL2F.clear();
+			  L2L3_StripL2B.clear();
+			  L2L3_NumCsI.clear();
+
+				// 提取 L2F 的数据
+				for (Int_t l2fmulti=0; l2fmulti<fDeefit->fLayerEvent.fL2FMulti; l2fmulti++) {
+					if (fDeefit->fLayerEvent.fL2FSSDNum[l2fmulti] == ssdindex) {
+						L2L3_StripL2F.push_back(fDeefit->fLayerEvent.fL2FNumStrip[l2fmulti]);
+						L2L3_EL2F.push_back(fDeefit->fLayerEvent.fL2FEMeV[l2fmulti]);
+					}
+				}
+				// 提取 L2B 的数据
+				for (Int_t l2bmulti=0; l2bmulti<fDeefit->fLayerEvent.fL2BMulti; l2bmulti++) {
+					if (fDeefit->fLayerEvent.fL2BSSDNum[l2bmulti] == ssdindex) {
+					 L2L3_StripL2B.push_back(fDeefit->fLayerEvent.fL2BNumStrip[l2bmulti]);
+					 L2L3_EL2B.push_back(fDeefit->fLayerEvent.fL2BEMeV[l2bmulti]);
+					}
+				}
+
+				// 提取 CsI 的数据
+				for (Int_t csimulti=0; csimulti<fDeefit->fLayerEvent.fCsIMulti; csimulti++) {
+					if (fDeefit->fLayerEvent.fCsISSDNum[csimulti] == ssdindex) {
+						L2L3_NumCsI.push_back(fDeefit->fLayerEvent.fCsINum[csimulti]);
+						L2L3_ECSI.push_back(fDeefit->fLayerEvent.fCsIECh[csimulti]);
+					}
+				}
+        // 填充 hist
+				if (fPattern.IsGeoConstraint_L3A_L2B(L2L3_NumCsI[0], L2L3_StripL2B[0]) &&
+	          fPattern.IsGeoConstraint_L3A_L2F(L2L3_NumCsI[0], L2L3_StripL2F[0]) &&
+	          fPattern.IsEneConstraint_L2B_L2F(ssdindex, L2L3_EL2B[0], L2L3_EL2F[0]))
+	      {
+					if (fDeefit->fLayerEvent.fSSDL1SMulti[ssdindex]==1) {
+						h2d_L2L3DEE[ssdindex][L2L3_NumCsI[0]]->Fill(L2L3_ECSI[0], L2L3_EL2F[0]);
+						if (!IsPixelOnCsIGap(L2L3_StripL2F[0],L2L3_StripL2B[0])) h2d_L2L3DEE_CsIGap[ssdindex][L2L3_NumCsI[0]]->Fill(L2L3_ECSI[0], L2L3_EL2F[0]);
+					}
+	      }
+			}
+		}
+	}
+
+	// TCanvas
+	TCanvas* c_begin = new TCanvas("c_begin","c_begin",600,600);
+	TCanvas* c_end = new TCanvas("c_end","c_end",600,600);
+	TCanvas* cans = new TCanvas("cans","cans",1200,600);
+	cans->Divide(2,1);
+
+  c_begin->Print(pathCheckL2L3GapEffectBegin.c_str());
+	for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+		for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
+			cans->cd(1);
+			h2d_L2L3DEE[ssdindex][csiindex]->Draw("COL");
+
+			cans->cd(2);
+			h2d_L2L3DEE_CsIGap[ssdindex][csiindex]->Draw("COL");
+
+			gPad->Modified();
+			gPad->Update();
+
+			cans->Print(pathCheckL2L3GapEffect.c_str());
+		}
+	}
+	c_end->Print(pathCheckL2L3GapEffectEnd.c_str());
 }
+//______________________________________________________________________________
+
+
+
+//______________________________________________________________________________
+// 修正薄硅条的厚度
+// 手动调节厚度, 找到最佳的 DE-E
+void CSHINECheckDEEPlot::L1S_FindThicknessUniformity()
+{
+	Int_t ssdindex = 3; // SSD3
+	Int_t ZoneLength = 8;
+	Int_t zone_index;
+	Int_t num_zones = ZoneLength*ZoneLength;
+
+	Double_t EL2FEL2B_Cut = 0.15;
+
+	Int_t num_factor = 21;
+	Double_t factor_min =  -0.05;
+	Double_t factor_step = 0.005;
+
+	Int_t    NBinsL1, NBinsL2;
+	Double_t EL1Range, EL2Range;
+	if (ssdindex == 2) { NBinsL1 = 1000; EL1Range = 100.; NBinsL2 = 1500;  EL2Range = 150.; }
+	if (ssdindex == 3) { NBinsL1 = 1000; EL1Range = 100.; NBinsL2 = 1000;  EL2Range = 100.; }
+
+	Double_t thickness_correction[num_factor];
+  for (Int_t ifactor=0; ifactor<num_factor; ifactor++) {
+		thickness_correction[ifactor] = factor_min + ifactor*factor_step;
+	}
+
+	std::string pathPDFOut(Form("%sfigure_PID/SSD%d_L1S_ThicknessUniformity.pdf",PATHFIGURESFOLDER,ssdindex+1));
+	std::string pathPDFOutBegin(Form("%sfigure_PID/SSD%d_L1S_ThicknessUniformity.pdf[",PATHFIGURESFOLDER,ssdindex+1));
+	std::string pathPDFOutEnd(Form("%sfigure_PID/SSD%d_L1S_ThicknessUniformity.pdf]",PATHFIGURESFOLDER,ssdindex+1));
+
+	TH2D* h2_SSD3_L1L2_DEE[num_zones];
+	for (Int_t izone=0; izone<num_zones; izone++) {
+		h2_SSD3_L1L2_DEE[izone] = new TH2D(Form("SSD%d_L1L2_DEE_Zone%d",ssdindex+1,izone),Form("SSD%d_L1L2_DEE_Zone%d",ssdindex+1,izone),NBinsL2,0,EL2Range,NBinsL1,0,EL1Range);
+	}
+
+	TH2D* h2_SSD3_L1L2_Correction[num_zones-1][num_factor];
+	for (Int_t izone=0; izone<(num_zones-1); izone++) {
+		for (Int_t ifactor=0; ifactor<num_factor; ifactor++) {
+			h2_SSD3_L1L2_Correction[izone][ifactor] = new TH2D(Form("h2_Zone0_Zone%d_%02f",izone+1, thickness_correction[ifactor]),Form("h2_Zone0_Zone%d_%02f",izone+1,thickness_correction[ifactor]),NBinsL2,0,EL2Range,NBinsL1,0,EL1Range);
+		}
+	}
+
+	TH2D* h2_SSD3_L1L2_DEE_Merged = new TH2D(Form("SSD%d_L1L2_DEE_Merged",ssdindex+1),Form("SSD%d_L1L2_DEE_Merged",ssdindex+1),NBinsL2,0,EL2Range,NBinsL1,0,EL1Range);
+	TH2D* h2_SSD3_L1L2_DEE_Corrected = new TH2D(Form("SSD%d_L1L2_DEE_Corrected",ssdindex+1),Form("SSD%d_L1L2_DEE_Corrected",ssdindex+1),NBinsL2,0,EL2Range,NBinsL1,0,EL1Range);
+
+//  (fDeefit->fChain)->SetEntries(1000000);
+	Long64_t nentries = (fDeefit->fChain)->GetEntries();
+  cout<<"nentries = "<<nentries<<endl;
+  for (Long64_t ientry=0; ientry<nentries; ientry++) {
+    (fDeefit->fChain)->GetEntry(ientry);
+		// if (ientry>100) continue;
+		timeper.PrintPercentageAndRemainingTime(ientry, nentries);
+
+		if (fDeefit->fLayerEvent.fSSDL1SMulti[ssdindex]==1 && fDeefit->fLayerEvent.fSSDL2FMulti[ssdindex]==1 &&
+	      fDeefit->fLayerEvent.fSSDL2BMulti[ssdindex]==1 && fDeefit->fLayerEvent.fSSDCsIMulti[ssdindex]==0)
+	  {
+			L1L2_EL1S.clear();
+	    L1L2_EL2F.clear();
+	    L1L2_EL2B.clear();
+			L1L2_StripL1S.clear();
+	    L1L2_StripL2F.clear();
+	    L1L2_StripL2B.clear();
+
+			// 提取 L1S 的数据
+	    for (Int_t l1smulti=0; l1smulti<fDeefit->fLayerEvent.fL1SMulti; l1smulti++) {
+	      if (fDeefit->fLayerEvent.fL1SSSDNum[l1smulti] == ssdindex) {
+	        L1L2_StripL1S.push_back(fDeefit->fLayerEvent.fL1SNumStrip[l1smulti]);
+	        L1L2_EL1S.push_back(fDeefit->fLayerEvent.fL1SEMeV[l1smulti]);
+	      }
+	    }
+			// 提取 L2F 的数据
+	    for (Int_t l2fmulti=0; l2fmulti<fDeefit->fLayerEvent.fL2FMulti; l2fmulti++) {
+	      if (fDeefit->fLayerEvent.fL2FSSDNum[l2fmulti] == ssdindex) {
+	        L1L2_StripL2F.push_back(fDeefit->fLayerEvent.fL2FNumStrip[l2fmulti]);
+		  		L1L2_EL2F.push_back(fDeefit->fLayerEvent.fL2FEMeV[l2fmulti]);
+	      }
+	    }
+	    // 提取 L2B 的数据
+	    for (Int_t l2bmulti=0; l2bmulti<fDeefit->fLayerEvent.fL2BMulti; l2bmulti++) {
+	      if (fDeefit->fLayerEvent.fL2BSSDNum[l2bmulti] == ssdindex) {
+	        L1L2_StripL2B.push_back(fDeefit->fLayerEvent.fL2BNumStrip[l2bmulti]);
+	        L1L2_EL2B.push_back(fDeefit->fLayerEvent.fL2BEMeV[l2bmulti]);
+	      }
+	    }
+			if (std::abs(L1L2_EL2B[0]-L1L2_EL2F[0])/L1L2_EL2F[0]<EL2FEL2B_Cut) {
+				zone_index = fDeefit->GetZone(L1L2_StripL2B[0], L1L2_StripL2F[0], ZoneLength);
+				h2_SSD3_L1L2_DEE[zone_index]->Fill(L1L2_EL2F[0], L1L2_EL1S[0]);
+				h2_SSD3_L1L2_DEE_Merged->Fill(L1L2_EL2F[0], L1L2_EL1S[0]);
+				for (Int_t ifactor=0; ifactor<num_factor; ifactor++) {
+					if (zone_index==0)  {
+						for (Int_t izone=0; izone<(num_zones-1); izone++) {
+							h2_SSD3_L1L2_Correction[izone][ifactor]->Fill(L1L2_EL2F[0], L1L2_EL1S[0]);
+						}
+					}
+					if (zone_index>0) {
+						h2_SSD3_L1L2_Correction[zone_index-1][ifactor]->Fill(L1L2_EL2F[0], L1L2_EL1S[0]*(1+thickness_correction[ifactor]));
+					}
+				}
+			}
+		}
+	}
+	// 画图
+	TCanvas* cans = new TCanvas("cans","cans",1000,1000);
+	TCanvas* c_begin = new TCanvas("c_begin","c_bein",600,600);
+	TCanvas* c_end = new TCanvas("c_end","c_end",600,600);
+  // draw zone
+	c_begin->Print(pathPDFOutBegin.c_str());
+	for (Int_t izone=0; izone<num_zones; izone++) {
+		cans->cd();
+		h2_SSD3_L1L2_DEE[izone]->Draw("COL");
+
+		cans->Print(pathPDFOut.c_str());
+
+		gPad->Modified();
+		gPad->Update();
+	}
+  // draw factor
+	for (Int_t izone=0; izone<(num_zones-1); izone++) {
+		for (Int_t ifactor=0; ifactor<num_factor; ifactor++) {
+			cans->cd();
+			h2_SSD3_L1L2_Correction[izone][ifactor]->Draw("COL");
+
+			cans->Print(pathPDFOut.c_str());
+
+			gPad->Modified();
+			gPad->Update();
+		}
+	}
+
+	// draw merged
+	cans->cd();
+	h2_SSD3_L1L2_DEE_Merged->Draw("COL");
+	cans->Print(pathPDFOut.c_str());
+
+	c_end->Print(pathPDFOutEnd.c_str());
+}
+//______________________________________________________________________________
+
+
+void CSHINECheckDEEPlot::L1S_DetermineThicknessUniformity()
+{
+	Int_t ssdindex = 3; // 2-SSD3 ,3-SSD4
+	Int_t ZoneLength = 8;
+	Int_t zone_index;
+	Int_t num_zones = ZoneLength*ZoneLength;
+	Double_t EL2FEL2B_Cut = 0.15;
+
+	Int_t    NBinsL1, NBinsL2;
+	Double_t EL1Range, EL2Range;
+	if (ssdindex == 2) { NBinsL1 = 1200; EL1Range = 120.; NBinsL2 = 1200; EL2Range = 120.; }
+	if (ssdindex == 3) { NBinsL1 = 900;  EL1Range = 90.;  NBinsL2 = 700;  EL2Range = 70.; }
+
+  Double_t SSD3_L1S_corrfatcor[64] = {  0.000, 0.000, 0.005, 0.015, 0.040, 0.045, 0.050, 0.055,
+		                                    0.000, 0.000, 0.000, 0.000, 0.020, 0.040, 0.050, 0.055,
+																      	0.000, 0.000, 0.000, 0.000, 0.010, 0.030, 0.040, 0.055,
+														  	       -0.010, 0.000, 0.000,-0.005,-0.010, 0.030, 0.040, 0.050,
+																	      0.000, 0.000, 0.005, 0.020, 0.030, 0.040, 0.050, 0.050,
+																	      0.000, 0.000, 0.020, 0.020, 0.030, 0.040, 0.045, 0.055,
+																	      0.000, 0.000, 0.020, 0.020, 0.035, 0.040, 0.050, 0.055,
+																        0.000, 0.015, 0.030, 0.030, 0.050, 0.050, 0.050, 0.060
+																     };
+
+	Double_t SSD4_L1S_corrfatcor[64] = {  0.000, 0.020, 0.015,-0.020,-0.020,-0.020,-0.150,-0.050,
+	                                      0.000, 0.000, 0.000, 0.000,-0.020,-0.020,-0.030,-0.040,
+																			  0.015,-0.010,-0.020, 0.000,-0.010,-0.020,-0.015,-0.030,
+																			  0.030, 0.000, 0.000, 0.010, 0.020, 0.000, 0.000,-0.020,
+																			  0.020, 0.000, 0.000, 0.010, 0.010, 0.000,-0.020,-0.025,
+																			  0.030, 0.020, 0.010,-0.010, 0.005, 0.000,-0.020,-0.035,
+																			  0.030, 0.020, 0.010,-0.010, 0.005,-0.010,-0.020,-0.040,
+																			  0.025, 0.000, 0.000,-0.010, 0.000,-0.010,-0.020,-0.040
+																		 };
+
+  Double_t L1S_corrfatcor[num_zones];
+	for (Int_t izone=0; izone<num_zones; izone++) {
+		if (ssdindex == 2) L1S_corrfatcor[izone] = SSD3_L1S_corrfatcor[izone];
+		if (ssdindex == 3) L1S_corrfatcor[izone] = SSD4_L1S_corrfatcor[izone];
+	}
+
+	std::string pathPDFOut(Form("%sfigure_PID/SSD%d_L1S_ThicknessUniformity_Corrected.png",PATHFIGURESFOLDER,ssdindex+1));
+	std::string pathROOTout(Form("%sSSD3_SSD4_L1L2_DEE_ThicknessCorrection.root",PATHROOTFILESFOLDER));
+	TFile* myfile = new TFile(pathROOTout.c_str(),"UPDATE");
+
+	TH2D* h2_SSD3_L1L2_DEE_Merged = new TH2D(Form("SSD%d_L1L2_DEE_Merged",ssdindex+1),Form("SSD%d_L1L2_DEE_Merged",ssdindex+1),NBinsL2,0,EL2Range,NBinsL1,0,EL1Range);
+	TH2D* h2_SSD3_L1L2_DEE_Corrected = new TH2D(Form("SSD%d_L1L2_DEE_Corrected",ssdindex+1),Form("SSD%d_L1L2_DEE_Corrected",ssdindex+1),NBinsL2,0,EL2Range,NBinsL1,0,EL1Range);
+
+	TH2D* h2_ThicknessCorrection = new TH2D(Form("SSD%d_ThicknessVariation",ssdindex+1),Form("SSD%d_ThicknessVariation",ssdindex+1),ZoneLength,0,ZoneLength,ZoneLength,0,ZoneLength);
+	for (Int_t izonex=0; izonex<ZoneLength; izonex++) {
+		for (Int_t izoney=0; izoney<ZoneLength; izoney++) {
+			h2_ThicknessCorrection->SetBinContent(izonex,izoney,L1S_corrfatcor[izonex*ZoneLength+izoney]*100);
+		}
+	}
+
+  //(fDeefit->fChain)->SetEntries(100);
+	Long64_t nentries = (fDeefit->fChain)->GetEntries();
+  cout<<"nentries = "<<nentries<<endl;
+  for (Long64_t ientry=0; ientry<nentries; ientry++) {
+    (fDeefit->fChain)->GetEntry(ientry);
+		// if (ientry>100) continue;
+		timeper.PrintPercentageAndRemainingTime(ientry, nentries);
+
+		if (fDeefit->fLayerEvent.fSSDL1SMulti[ssdindex]==1 && fDeefit->fLayerEvent.fSSDL2FMulti[ssdindex]==1 &&
+	      fDeefit->fLayerEvent.fSSDL2BMulti[ssdindex]==1 && fDeefit->fLayerEvent.fSSDCsIMulti[ssdindex]==0)
+	  {
+			L1L2_EL1S.clear();
+	    L1L2_EL2F.clear();
+	    L1L2_EL2B.clear();
+			L1L2_StripL1S.clear();
+	    L1L2_StripL2F.clear();
+	    L1L2_StripL2B.clear();
+			L2FTime.clear();
+
+			// 提取 L1S 的数据
+	    for (Int_t l1smulti=0; l1smulti<fDeefit->fLayerEvent.fL1SMulti; l1smulti++) {
+	      if (fDeefit->fLayerEvent.fL1SSSDNum[l1smulti] == ssdindex) {
+	        L1L2_StripL1S.push_back(fDeefit->fLayerEvent.fL1SNumStrip[l1smulti]);
+	        L1L2_EL1S.push_back(fDeefit->fLayerEvent.fL1SEMeV[l1smulti]);
+	      }
+	    }
+			// 提取 L2F 的数据
+	    for (Int_t l2fmulti=0; l2fmulti<fDeefit->fLayerEvent.fL2FMulti; l2fmulti++) {
+	      if (fDeefit->fLayerEvent.fL2FSSDNum[l2fmulti] == ssdindex) {
+	        L1L2_StripL2F.push_back(fDeefit->fLayerEvent.fL2FNumStrip[l2fmulti]);
+		  		L1L2_EL2F.push_back(fDeefit->fLayerEvent.fL2FEMeV[l2fmulti]);
+					L2FTime.push_back(fDeefit->fLayerEvent.fL2FTime[l2fmulti]);
+	      }
+	    }
+	    // 提取 L2B 的数据
+	    for (Int_t l2bmulti=0; l2bmulti<fDeefit->fLayerEvent.fL2BMulti; l2bmulti++) {
+	      if (fDeefit->fLayerEvent.fL2BSSDNum[l2bmulti] == ssdindex) {
+	        L1L2_StripL2B.push_back(fDeefit->fLayerEvent.fL2BNumStrip[l2bmulti]);
+	        L1L2_EL2B.push_back(fDeefit->fLayerEvent.fL2BEMeV[l2bmulti]);
+	      }
+	    }
+			if (std::abs(L1L2_EL2B[0]-L1L2_EL2F[0])/L1L2_EL2F[0]<EL2FEL2B_Cut) {
+				zone_index = fDeefit->GetZone(L1L2_StripL2B[0], L1L2_StripL2F[0], ZoneLength);
+				if (L2FTime[0]>SiTimeCut_Low[ssdindex][L1L2_StripL2F[0]] && L2FTime[0]<SiTimeCut_Up[ssdindex][L1L2_StripL2F[0]]) {
+					h2_SSD3_L1L2_DEE_Merged->Fill(L1L2_EL2F[0], L1L2_EL1S[0]);
+					h2_SSD3_L1L2_DEE_Corrected->Fill(L1L2_EL2F[0], L1L2_EL1S[0]*(1+L1S_corrfatcor[zone_index]));
+				}
+			}
+		}
+	}
+	// 画图
+	TCanvas* cans = new TCanvas("cans","cans",1500,600);
+	cans->Divide(3,1);
+
+	// draw merged
+	cans->cd(1);
+	gPad->SetLeftMargin(0.12);
+	h2_SSD3_L1L2_DEE_Merged->Draw("COL");
+	h2_SSD3_L1L2_DEE_Merged->GetXaxis()->SetTitle("EL2F (MeV)");
+	h2_SSD3_L1L2_DEE_Merged->GetXaxis()->CenterTitle();
+	h2_SSD3_L1L2_DEE_Merged->GetYaxis()->SetTitle("EL1S (MeV)");
+	h2_SSD3_L1L2_DEE_Merged->GetYaxis()->CenterTitle();
+
+	cans->cd(2);
+	gPad->SetLeftMargin(0.12);
+	h2_SSD3_L1L2_DEE_Corrected->Draw("COL");
+	h2_SSD3_L1L2_DEE_Corrected->GetXaxis()->SetTitle("EL2F (MeV)");
+	h2_SSD3_L1L2_DEE_Corrected->GetXaxis()->CenterTitle();
+	h2_SSD3_L1L2_DEE_Corrected->GetYaxis()->SetTitle("EL1S (MeV)");
+	h2_SSD3_L1L2_DEE_Corrected->GetYaxis()->CenterTitle();
+
+  cans->cd(3);
+	h2_ThicknessCorrection->Draw("LEGO");
+	h2_ThicknessCorrection->GetXaxis()->SetTitle("StripB_Zone");
+	h2_ThicknessCorrection->GetXaxis()->CenterTitle();
+	h2_ThicknessCorrection->GetXaxis()->SetTitleOffset(1.5);
+	h2_ThicknessCorrection->GetYaxis()->SetTitle("StripF_Zone");
+	h2_ThicknessCorrection->GetYaxis()->CenterTitle();
+	h2_ThicknessCorrection->GetYaxis()->SetTitleOffset(1.5);
+	h2_ThicknessCorrection->GetZaxis()->SetTitle("Thickness Variation (%)");
+	h2_ThicknessCorrection->GetZaxis()->CenterTitle();
+
+	cans->Print(pathPDFOut.c_str());
+
+	// 写入 root file
+	myfile->WriteTObject(h2_SSD3_L1L2_DEE_Merged,    h2_SSD3_L1L2_DEE_Merged->GetName());
+	myfile->WriteTObject(h2_SSD3_L1L2_DEE_Corrected, h2_SSD3_L1L2_DEE_Corrected->GetName());
+	myfile->WriteTObject(h2_ThicknessCorrection,     h2_ThicknessCorrection->GetName());
+ //	myfile->Close();
+}
+
+
+/*
+//______________________________________________________________________________
+void CSHINECheckDEEPlot::SSD4L1S_ThicknessUniformity()
+{
+
+  Int_t    NBinsL1 = 1000;
+	Double_t EL1Range = 100.;
+	Int_t    NBinsL2 = 1500;
+	Double_t EL2Range = 150.;
+
+	Int_t zone_index;
+
+  Int_t ssdindex = 3; // SSD3
+  Double_t EL2FEL2B_Cut = 0.15;
+
+	Int_t num_factor = 21;
+	Double_t thickness_correction[21] = {-0.05,-0.045,-0.04,-0.035,-0.03,-0.025,-0.02,-0.015,-0.01,-0.005,
+		                                    0,0.005,0.01,0.015,0.02,0.025,0.03,0.035,0.04,0.045,0.05};
+
+	std::string pathPDFOut(Form("%sfigure_PID/SSD4L1S_ThicknessUniformity.pdf",PATHFIGURESFOLDER));
+	std::string pathPDFOutBegin(Form("%sfigure_PID/SSD4L1S_ThicknessUniformity.pdf[",PATHFIGURESFOLDER));
+	std::string pathPDFOutEnd(Form("%sfigure_PID/SSD4L1S_ThicknessUniformity.pdf]",PATHFIGURESFOLDER));
+
+	TH2D* h2_SSD4_L1L2_DEE[16];
+	for (Int_t izone=0; izone<16; izone++) {
+		h2_SSD4_L1L2_DEE[izone] = new TH2D(Form("SSD4_L1L2_DEE_Zone%d",izone),Form("SSD4_L1L2_DEE_Zone%d",izone),NBinsL2,0,EL2Range,NBinsL1,0,EL1Range);
+	}
+
+	TH2D* h2_SSD4_L1L2_Correction[num_factor];
+	for (Int_t ifactor=0; ifactor<num_factor; ifactor++) {
+		h2_SSD4_L1L2_Correction[ifactor] = new TH2D(Form("h2_Correction%02f",thickness_correction[ifactor]),Form("h2_Correction%02f",thickness_correction[ifactor]),NBinsL2,0,EL2Range,NBinsL1,0,EL1Range);
+	}
+
+	TH2D* h2_SSD4_L1L2_DEE_Merged = new TH2D("SSD4_L1L2_DEE_Merged","SSD4_L1L2_DEE_Merged",NBinsL2,0,EL2Range,NBinsL1,0,EL1Range);
+
+  (fDeefit->fChain)->SetEntries(10000000);
+	Long64_t nentries = (fDeefit->fChain)->GetEntries();
+  cout<<"nentries = "<<nentries<<endl;
+  for (Long64_t ientry=0; ientry<nentries; ientry++) {
+    (fDeefit->fChain)->GetEntry(ientry);
+		// if (ientry>100) continue;
+		timeper.PrintPercentageAndRemainingTime(ientry, nentries);
+
+		if (fDeefit->fLayerEvent.fSSDL1SMulti[ssdindex]==1 && fDeefit->fLayerEvent.fSSDL2FMulti[ssdindex]==1 &&
+	      fDeefit->fLayerEvent.fSSDL2BMulti[ssdindex]==1 && fDeefit->fLayerEvent.fSSDCsIMulti[ssdindex]==0)
+	  {
+			L1L2_EL1S.clear();
+	    L1L2_EL2F.clear();
+	    L1L2_EL2B.clear();
+			L1L2_StripL1S.clear();
+	    L1L2_StripL2F.clear();
+	    L1L2_StripL2B.clear();
+
+			// 提取 L1S 的数据
+	    for (Int_t l1smulti=0; l1smulti<fDeefit->fLayerEvent.fL1SMulti; l1smulti++) {
+	      if (fDeefit->fLayerEvent.fL1SSSDNum[l1smulti] == ssdindex) {
+	        L1L2_StripL1S.push_back(fDeefit->fLayerEvent.fL1SNumStrip[l1smulti]);
+	        L1L2_EL1S.push_back(fDeefit->fLayerEvent.fL1SEMeV[l1smulti]);
+	      }
+	    }
+			// 提取 L2F 的数据
+	    for (Int_t l2fmulti=0; l2fmulti<fDeefit->fLayerEvent.fL2FMulti; l2fmulti++) {
+	      if (fDeefit->fLayerEvent.fL2FSSDNum[l2fmulti] == ssdindex) {
+	        L1L2_StripL2F.push_back(fDeefit->fLayerEvent.fL2FNumStrip[l2fmulti]);
+		  		L1L2_EL2F.push_back(fDeefit->fLayerEvent.fL2FEMeV[l2fmulti]);
+	      }
+	    }
+	    // 提取 L2B 的数据
+	    for (Int_t l2bmulti=0; l2bmulti<fDeefit->fLayerEvent.fL2BMulti; l2bmulti++) {
+	      if (fDeefit->fLayerEvent.fL2BSSDNum[l2bmulti] == ssdindex) {
+	        L1L2_StripL2B.push_back(fDeefit->fLayerEvent.fL2BNumStrip[l2bmulti]);
+	        L1L2_EL2B.push_back(fDeefit->fLayerEvent.fL2BEMeV[l2bmulti]);
+	      }
+	    }
+			if (std::abs(L1L2_EL2B[0]-L1L2_EL2F[0])/L1L2_EL2F[0]<EL2FEL2B_Cut) {
+				zone_index = fDeefit->GetZone(L1L2_StripL2B[0], L1L2_StripL2F[0]);
+				h2_SSD4_L1L2_DEE[zone_index]->Fill(L1L2_EL2F[0], L1L2_EL1S[0]);
+				h2_SSD4_L1L2_DEE_Merged->Fill(L1L2_EL2F[0], L1L2_EL1S[0]);
+
+				for (Int_t ifactor=0; ifactor<num_factor; ifactor++) {
+					if (zone_index==0) h2_SSD4_L1L2_Correction[ifactor]->Fill(L1L2_EL2F[0], L1L2_EL1S[0]);
+					if (zone_index==1) h2_SSD4_L1L2_Correction[ifactor]->Fill(L1L2_EL2F[0], L1L2_EL1S[0]);
+					if (zone_index==2) h2_SSD4_L1L2_Correction[ifactor]->Fill(L1L2_EL2F[0], L1L2_EL1S[0]*(1+0.040));
+					if (zone_index==3) h2_SSD4_L1L2_Correction[ifactor]->Fill(L1L2_EL2F[0], L1L2_EL1S[0]*(1+0.050));
+					if (zone_index==4) h2_SSD4_L1L2_Correction[ifactor]->Fill(L1L2_EL2F[0], L1L2_EL1S[0]*(1-0.005));
+					if (zone_index==5) h2_SSD4_L1L2_Correction[ifactor]->Fill(L1L2_EL2F[0], L1L2_EL1S[0]);
+					if (zone_index==6) h2_SSD4_L1L2_Correction[ifactor]->Fill(L1L2_EL2F[0], L1L2_EL1S[0]*(1+0.03));
+					if (zone_index==7) h2_SSD4_L1L2_Correction[ifactor]->Fill(L1L2_EL2F[0], L1L2_EL1S[0]*(1+0.035));
+
+				//	if (zone_index==8) h2_SSD3_L1L2_Correction[ifactor]->Fill(L1L2_EL2F[0], L1L2_EL1S[0]*(1+thickness_correction[ifactor]));
+				//	if (zone_index==9) h2_SSD3_L1L2_Correction[ifactor]->Fill(L1L2_EL2F[0], L1L2_EL1S[0]*(1+thickness_correction[ifactor]));
+				//	if (zone_index==10) h2_SSD3_L1L2_Correction[ifactor]->Fill(L1L2_EL2F[0], L1L2_EL1S[0]*(1+thickness_correction[ifactor]));
+				//	if (zone_index==11) h2_SSD3_L1L2_Correction[ifactor]->Fill(L1L2_EL2F[0], L1L2_EL1S[0]*(1+thickness_correction[ifactor]));
+				//	if (zone_index==12) h2_SSD3_L1L2_Correction[ifactor]->Fill(L1L2_EL2F[0], L1L2_EL1S[0]*(1+thickness_correction[ifactor]));
+				//	if (zone_index==13) h2_SSD3_L1L2_Correction[ifactor]->Fill(L1L2_EL2F[0], L1L2_EL1S[0]*(1+thickness_correction[ifactor]));
+				//	if (zone_index==14) h2_SSD3_L1L2_Correction[ifactor]->Fill(L1L2_EL2F[0], L1L2_EL1S[0]*(1+thickness_correction[ifactor]));
+				//	if (zone_index==15) h2_SSD3_L1L2_Correction[ifactor]->Fill(L1L2_EL2F[0], L1L2_EL1S[0]*(1+thickness_correction[ifactor]));
+				}
+			}
+		}
+	}
+	// 画图
+	TCanvas* cans = new TCanvas("cans","cans",1000,1000);
+	TCanvas* c_begin = new TCanvas("c_begin","c_bein",600,600);
+	TCanvas* c_end = new TCanvas("c_end","c_end",600,600);
+
+	c_begin->Print(pathPDFOutBegin.c_str());
+	for (Int_t izone=0; izone<16; izone++) {
+		cans->cd();
+		h2_SSD4_L1L2_DEE[izone]->Draw("COL");
+
+		cans->Print(pathPDFOut.c_str());
+
+		gPad->Modified();
+		gPad->Update();
+	}
+	for (Int_t ifactor=0; ifactor<num_factor; ifactor++) {
+		cans->cd();
+		h2_SSD4_L1L2_Correction[ifactor]->Draw("COL");
+
+		cans->Print(pathPDFOut.c_str());
+
+		gPad->Modified();
+		gPad->Update();
+	}
+
+	cans->cd();
+	h2_SSD4_L1L2_DEE_Merged->Draw("COL");
+	cans->Print(pathPDFOut.c_str());
+
+	c_end->Print(pathPDFOutEnd.c_str());
+}
+*/
+
+
+
+/*
+if (zone_index==0)  h2_SSD3_L1L2_Correction[ifactor]->Fill(L1L2_EL2F[0], L1L2_EL1S[0]);
+if (zone_index==1)  h2_SSD3_L1L2_Correction[ifactor]->Fill(L1L2_EL2F[0], L1L2_EL1S[0]*(1+0.013));
+//	if (zone_index==2)  h2_SSD3_L1L2_Correction[ifactor]-->Fill(L1L2_EL2F[0], L1L2_EL1S[0]*(1+thickness_correction[ifactor])); !!
+//	if (zone_index==3)  h2_SSD3_L1L2_Correction[ifactor]-->Fill(L1L2_EL2F[0], L1L2_EL1S[0]*(1+0.05)); !!
+
+//	if (zone_index==4)  h2_SSD3_L1L2_Correction[ifactor]-->Fill(L1L2_EL2F[0], L1L2_EL1S[0]*(1-0.005)); !!
+//	if (zone_index==5)  h2_SSD3_L1L2_Correction[ifactor]-->Fill(L1L2_EL2F[0], L1L2_EL1S[0]);           !!
+//	if (zone_index==6)  h2_SSD3_L1L2_Correction[ifactor]-->Fill(L1L2_EL2F[0], L1L2_EL1S[0]*(1+0.03));  !!
+if (zone_index==7)  h2_SSD3_L1L2_Correction[ifactor]->Fill(L1L2_EL2F[0], L1L2_EL1S[0]*(1+thickness_correction[ifactor]));
+//	if (zone_index==8)  h2_SSD3_L1L2_Correction[ifactor]-->Fill(L1L2_EL2F[0], L1L2_EL1S[0]);
+//	if (zone_index==9)  h2_SSD3_L1L2_Correction[ifactor]-->Fill(L1L2_EL2F[0], L1L2_EL1S[0]*(1+0.02));
+//	if (zone_index==10) h2_SSD3_L1L2_Correction[ifactor]-->Fill(L1L2_EL2F[0], L1L2_EL1S[0]*(1+0.035));
+//	if (zone_index==11) h2_SSD3_L1L2_Correction[ifactor]-->Fill(L1L2_EL2F[0], L1L2_EL1S[0]*(1+0.045));
+//	if (zone_index==12) h2_SSD3_L1L2_Correction[ifactor]-->Fill(L1L2_EL2F[0], L1L2_EL1S[0]*(1+0.015));
+//	if (zone_index==13) h2_SSD3_L1L2_Correction[ifactor]-->Fill(L1L2_EL2F[0], L1L2_EL1S[0]*(1+0.03));
+//	if (zone_ex==14) h2_SSD3_L1L2_Correction[ifactor]-->Fill(L1L2_EL2F[0], L1L2_EL1S[0]*(1+0.04));
+//	if (zone_index==15) h2_SSD3_L1L2_Correction[ifactor]-->Fill(L1L2_EL2F[0], L1L2_EL1S[0]);
+*/

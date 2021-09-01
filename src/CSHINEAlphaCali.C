@@ -3,17 +3,17 @@
 using namespace std;
 
 
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 CSHINEAlphaCali::CSHINEAlphaCali()
 {}
 
 //______________________________________
 CSHINEAlphaCali::~CSHINEAlphaCali()
 {}
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
 
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 ////////////////////////////////////////////////////////////////////////////////
 //                  ALPHA CALIBRATION CALCULATION ENERGY
 //    修正 alpha 的能量. 能量修正主要来源于两部分:
@@ -98,10 +98,10 @@ void CSHINEAlphaCali::CalculateAlphaEnergy()
   FileOut.close();
   return;
 }
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
 
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 ////////////////////////////////////////////////////////////////////////////////
 //     刻度时， 一般需要对直方图进行拟合. 为方便起见，这里将刻度文件合并，累成直方图,
 //     同时存成 root 文件.
@@ -245,10 +245,10 @@ void CSHINEAlphaCali::MergeAlphaCaliFiles(const char* layertag, Int_t firstrun, 
   FileOut->Close();
   delete myData;
 }
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
 
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 ////////////////////////////////////////////////////////////////////////////////
 //    手动提取选取刻度区间，同时对 3 个 alpha 峰进行拟合.
 //    这是因为: 手动可以自由选取拟合范围，同时方便将拟合区间保存下来.
@@ -468,10 +468,10 @@ void CSHINEAlphaCali::ClickToFindAlphaPeaks(const char* layertag, const char* al
   cout<<"File .dat closed"<<endl;
   return;
 }
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
 
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 ////////////////////////////////////////////////////////////////////////////////
 //   1. 在 Fission2019 实验中, 对于 SSD_L1 的放射源刻度, 我们进行了两次, 这是因为
 //      第一次刻度时, 有些条没有刻度到. 因此第一次刻度完, 又开了第二次靶室.
@@ -824,10 +824,10 @@ void CSHINEAlphaCali::AlphaCali_SSD4_L2F_EstimateCH13_CH14()
 
   cans_CH13_14->Print(pathPNGOut.c_str());
 }
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
 
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 //                        ------------------
 //                             手动选点
 //                        ------------------
@@ -873,4 +873,4 @@ void CSHINEAlphaCali::SetPoints(Int_t event, Int_t x, Int_t y, TObject* selected
   }
   return;
 }
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo

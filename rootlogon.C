@@ -21,8 +21,18 @@
   gROOT->ProcessLine(".L src/CSHINECsIEnergyCali.C");
   gROOT->ProcessLine(".L src/CSHINEDataAnalysisFramework.C");
   gROOT->ProcessLine(".L src/CSHINESSDDataAnalysisFramework.C");
-  gROOT->ProcessLine(".L Test_Multi.C");
+  //gROOT->ProcessLine(".L Test_Multi.C");
   gROOT->ProcessLine(".L ExtractDEEPointsGUI/ExtractDEEPointsGUI.C+");
+  gROOT->ProcessLine(".L src/L2L3TrackFinding.C");
+  gROOT->ProcessLine(".L src/L1L2TrackFinding.C");
+
+  gROOT->ProcessLine(".L src/CSHINETrackReconstructionSimplified.C");
+  gROOT->ProcessLine(".L src/CSHINECsIEnergyCaliSimplified.C");
+  gROOT->ProcessLine(".L src/CSHINEParticleIdentificationSimplified.C");
+
+  gROOT->ProcessLine(".L src/CSHINEUnCaliDataToPhysicsEvent.C");
+
+  gROOT->ProcessLine(".L src/PhysicalCalculator.C");
 
   printf("Welcome to Fission2019-Unified-Analysis-Framework/\n");
 }

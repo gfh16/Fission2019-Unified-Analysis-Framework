@@ -1,5 +1,5 @@
-#ifndef CSHINESSDCalibratedData_H
-#define CSHINESSDCalibratedData_H
+#ifndef CSHINESSDCALIBRATEDDATA_H
+#define CSHINESSDCALIBRATEDDATA_H
 
 #include "ReadFileModule.h"
 #include "shared.h"
@@ -50,7 +50,9 @@ private:
   Double_t    *fL2FEMeVCut;        // [NUM_SSD*NUM_STRIP]
   Double_t    *fL2BEMeVCut;        // [NUM_SSD*NUM_STRIP]
 
+private:
   ReadFileModule  readfile;
+  std::string     pathSiCaliParsFolder = Form("%sdata_ForPhysicsEvent/",PATHDATAFOLDER);
 };
 
 #endif

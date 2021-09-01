@@ -2,7 +2,7 @@
 using namespace std;
 
 
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 CSHINEPulserCali::CSHINEPulserCali()
 {}
 
@@ -49,7 +49,7 @@ bool compare(Int_t a, Int_t b) {
   return a>b;
 }
 
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 void CSHINEPulserCali::L1_AutoFindPeaksAndFit(const char* pulserfiletag)
 {
   gStyle->SetOptStat(0);
@@ -216,10 +216,10 @@ void CSHINEPulserCali::L1_AutoFindPeaksAndFit(const char* pulserfiletag)
   c_end->Print(pathPDFend.c_str());
   return;
 }
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
 
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 void CSHINEPulserCali::L2_AutoFindPeaksAndFit(const char* pulserfiletag)
 {
   gStyle->SetOptStat(0);
@@ -438,10 +438,10 @@ void CSHINEPulserCali::L2_AutoFindPeaksAndFit(const char* pulserfiletag)
   c_end->Print(pathPDFend.c_str());
   return;
 }
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
 
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 ////////////////////////////////////////////////////////////////////////////////
 //    1.对 SSD1 与 SSD2 的第一层进行 重新刻度, 原因是放射源刻度时，这两层硅条
 //      的看不到信号，因而增大了放大倍数
@@ -638,10 +638,10 @@ void CSHINEPulserCali::L1_AutoFindPeaksAndFit_ReCali(const char* pulserfiletag,c
   c_end->Print(pathPDFend.c_str());
   return;
 }
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
 
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 ////////////////////////////////////////////////////////////////////////////////
 //   由于前放设置的缘故, 在放射源刻度时, SSD1_L1 与 SSD2_L1 看不到信号，
 //   于是，改变了放大倍数：
@@ -805,10 +805,10 @@ void CSHINEPulserCali::L1_GainEffectOnPulseCali_ReCali(const char* pulserfiletag
   cans_end->Print(pathPDFOutputEnd.c_str());
   return;
 }
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
 
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 ////////////////////////////////////////////////////////////////////////////////
 //
 //   Pulser 刻度时， SSD2_L2F_CH00,CH01 两道峰值大约是其他道的一半,
@@ -885,10 +885,10 @@ void CSHINEPulserCali::CaliCheck_SSD_L2F_CH00_01()
   }
   return;
 }
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
 
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 ////////////////////////////////////////////////////////////////////////////////
 //   脉冲刻度时, 我们使用了 "拨档法 (Switch)" 与 "旋钮法 (Height)"
 //   从拟合数据看，两者的差别很小，< 1%
@@ -999,10 +999,10 @@ void CSHINEPulserCali::EstimateErrorOfHightAndSwitch()
   readfile.DeleteData(SwitchIn, NUM_SSD, NUM_STRIP, numpar_SwitchIn);
   return;
 }
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
 
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 ////////////////////////////////////////////////////////////////////////////////
 //   较定量考察 pulser 脉冲刻度的线性性！
 //   虽然从 pulser 刻度的图片看到很好的线性, 但为保险起见，需要对其进行定量考察.
@@ -1180,4 +1180,4 @@ void CSHINEPulserCali::CheckLinearity(const char* layertag, const char* pulserfi
   cans_end->Print(pathPDFOutputEnd.c_str());
   return;
 }
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo

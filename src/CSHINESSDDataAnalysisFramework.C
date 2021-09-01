@@ -1,7 +1,7 @@
 #include "../include/CSHINESSDDataAnalysisFramework.h"
 
 
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 CSHINESSDDataAnalysisFramework::CSHINESSDDataAnalysisFramework()
 {
   cout<<"Enetr class CSHINESSDDataAnalysisFramework !" <<endl;
@@ -11,10 +11,10 @@ CSHINESSDDataAnalysisFramework::~CSHINESSDDataAnalysisFramework()
 {
   cout<<"Exit class CSHINESSDDataAnalysisFramework !" <<endl;
 }
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
 
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 void CSHINESSDDataAnalysisFramework::Step4_SSDDataAnalysisFramework()
 {
   Int_t option4      = 1;
@@ -206,8 +206,8 @@ void CSHINESSDDataAnalysisFramework::Step47_EventTree()
   cout<<endl;
   cout<<"请选择您需要进行的操作: "<<endl;
   cout<<"471.运行 BuildLayerEventTree (Int_t fisrtrun, Int_t lastlun)"<<endl;
-  cout<<"472.运行 BuildSSDEventTree   (Int_t fisrtrun, Int_t lastlun)"<<endl;
-  cout<<"473.运行 BuildGlobalEventTree(Int_t fisrtrun, Int_t lastlun)"<<endl;
+//  cout<<"472.运行 BuildSSDEventTree   (Int_t fisrtrun, Int_t lastlun)"<<endl;
+//  cout<<"473.运行 BuildGlobalEventTree(Int_t fisrtrun, Int_t lastlun)"<<endl;
 
   while (option47 == 1) {
     cout<<"============================================="<<endl;
@@ -225,8 +225,8 @@ void CSHINESSDDataAnalysisFramework::Step47_EventTree()
       cin >>LastRun;
     }
     if (option_step47 == 471)  buildevent.BuildLayerEventTree (FirstRun, LastRun);
-    if (option_step47 == 472)  buildevent.BuildSSDEventTree   (FirstRun, LastRun);
-    if (option_step47 == 472)  buildevent.BuildGlobalEventTree(FirstRun, LastRun);
+  //  if (option_step47 == 472)  buildevent.BuildSSDEventTree   (FirstRun, LastRun);
+  //  if (option_step47 == 472)  buildevent.BuildGlobalEventTree(FirstRun, LastRun);
 
     cout<<"请选择下一步操作: "<<endl;
     cout<<"1.返回 Step47, 重新进行操作选择"<<endl;
@@ -240,10 +240,10 @@ void CSHINESSDDataAnalysisFramework::Step47_EventTree()
     }
   }
 }
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
 
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 void CSHINESSDDataAnalysisFramework::Step411_AutoFindPedestals()
 {
   Int_t option411    = 1;
@@ -333,10 +333,10 @@ void CSHINESSDDataAnalysisFramework::Step413_EstimateErrorsOfPedestals()
     }
   }
 }
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
 
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 void CSHINESSDDataAnalysisFramework::Step421_PulserCali()
 {
   Int_t option421      = 1;
@@ -552,10 +552,10 @@ void CSHINESSDDataAnalysisFramework::Step423_SiEnergyCali()
     }
   }
 }
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
 
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 // for Step41_PedestalCali()
 void CSHINESSDDataAnalysisFramework::InputLayerTagWithLabel(Int_t opt_layer, std::string& layertag)
 {
@@ -738,4 +738,4 @@ void CSHINESSDDataAnalysisFramework::InputLayerAndAlphaTag(Int_t opt_layer,std::
     if (opt_alphafile == 3) alphafiletag = AlphaCali00_48;
   }
 }
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo

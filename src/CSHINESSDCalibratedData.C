@@ -2,7 +2,7 @@
 using namespace std;
 
 
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 CSHINESSDCalibratedData::CSHINESSDCalibratedData()
 {
   fL1SEChPedestals  = new Double_t [NUM_SSD*NUM_STRIP];
@@ -55,15 +55,14 @@ CSHINESSDCalibratedData::~CSHINESSDCalibratedData()
 
   //cout<<"Exit Class CSHINESSDCalibratedData\n";
 }
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
 
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 //  提取 pedestals
 Double_t* CSHINESSDCalibratedData::GetSiEChPedestals(const char* layertag)
 {
-  std::string pathDataFolder(Form("%sdata_Pedestals/", PATHDATAFOLDER));
-  std::string pathDataInput(Form("%sSSD_%s_PulserCaliPedestals_Pedestal0000.dat", pathDataFolder.c_str(), layertag));
+  std::string pathDataInput(Form("%sSSD_%s_PulserCaliPedestals_Pedestal0000.dat", pathSiCaliParsFolder.c_str(), layertag));
 
   if (!readfile.IsFileExists(pathDataInput.c_str())) {
     cout<<Form("文件 %s 不存在!", pathDataInput.c_str())<<endl;
@@ -91,15 +90,14 @@ Double_t* CSHINESSDCalibratedData::GetSiEChPedestals(const char* layertag)
   readfile.DeleteData(pedestals,NUM_SSD,NUM_STRIP,numpar);
   return fSiEChPedestals;
 }
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
 
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 // 计算 ECh_Cut = pedestal + num * sigma
 Double_t* CSHINESSDCalibratedData::GetSiEChCut(const char* layertag)
 {
-  std::string pathDataFolder(Form("%sdata_Pedestals/", PATHDATAFOLDER));
-  std::string pathDataInput(Form("%sSSD_%s_PulserCaliPedestals_Pedestal0000.dat", pathDataFolder.c_str(), layertag));
+  std::string pathDataInput(Form("%sSSD_%s_PulserCaliPedestals_Pedestal0000.dat", pathSiCaliParsFolder.c_str(), layertag));
 
   if (!readfile.IsFileExists(pathDataInput.c_str())) {
     cout<<Form("文件 %s 不存在!", pathDataInput.c_str())<<endl;
@@ -137,15 +135,14 @@ Double_t* CSHINESSDCalibratedData::GetSiEChCut(const char* layertag)
   readfile.DeleteData(pedestals,NUM_SSD,NUM_STRIP,numpar);
   return fSiEChCut;
 }
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
 
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 // 计算 ECh_Cut = pedestal + num * sigma
 Double_t* CSHINESSDCalibratedData::GetSiEChCut(const char* layertag, Double_t numsigma)
 {
-  std::string pathDataFolder(Form("%sdata_Pedestals/", PATHDATAFOLDER));
-  std::string pathDataInput(Form("%sSSD_%s_PulserCaliPedestals_Pedestal0000.dat", pathDataFolder.c_str(), layertag));
+  std::string pathDataInput(Form("%sSSD_%s_PulserCaliPedestals_Pedestal0000.dat", pathSiCaliParsFolder.c_str(), layertag));
 
   if (!readfile.IsFileExists(pathDataInput.c_str())) {
     cout<<Form("文件 %s 不存在!", pathDataInput.c_str())<<endl;
@@ -173,15 +170,14 @@ Double_t* CSHINESSDCalibratedData::GetSiEChCut(const char* layertag, Double_t nu
   readfile.DeleteData(pedestals,NUM_SSD,NUM_STRIP,numpar);
   return fSiEChCut;
 }
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
 
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 //  提取硅条的能量曲线的斜率, 参数为 <peak1 + peak2> 的情况
 Double_t* CSHINESSDCalibratedData::GetSiCaliSlope(const char* layertag)
 {
-  std::string pathDataFolder(Form("%sdata_SiEnergyCali/", PATHDATAFOLDER));
-  std::string pathDataInput(Form("%sSSD_%s_SiEnergyCaliParameters.dat", pathDataFolder.c_str(), layertag));
+  std::string pathDataInput(Form("%sSSD_%s_SiEnergyCaliParameters.dat", pathSiCaliParsFolder.c_str(), layertag));
 
   if (!readfile.IsFileExists(pathDataInput.c_str())) {
     cout<<Form("文件 %s 不存在!", pathDataInput.c_str())<<endl;
@@ -209,15 +205,14 @@ Double_t* CSHINESSDCalibratedData::GetSiCaliSlope(const char* layertag)
   readfile.DeleteData(pedestals,NUM_SSD,NUM_STRIP,numpar);
   return fSiCaliSlope;
 }
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
 
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 //  提取硅条的能量曲线的截距, 参数为 <peak1 + peak2> 的情况
 Double_t* CSHINESSDCalibratedData::GetSiCaliIntercept(const char* layertag)
 {
-  std::string pathDataFolder(Form("%sdata_SiEnergyCali/", PATHDATAFOLDER));
-  std::string pathDataInput(Form("%sSSD_%s_SiEnergyCaliParameters.dat", pathDataFolder.c_str(), layertag));
+  std::string pathDataInput(Form("%sSSD_%s_SiEnergyCaliParameters.dat", pathSiCaliParsFolder.c_str(), layertag));
 
   if (!readfile.IsFileExists(pathDataInput.c_str())) {
     cout<<Form("文件 %s 不存在!", pathDataInput.c_str())<<endl;
@@ -245,10 +240,10 @@ Double_t* CSHINESSDCalibratedData::GetSiCaliIntercept(const char* layertag)
   readfile.DeleteData(pedestals,NUM_SSD,NUM_STRIP,numpar);
   return fSiCaliIntercept;
 }
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
 
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 // 计算参数为 <peak1 + peak2> 的情况下, ECh_Cut 对应的能量 EMeV_Cut
 Double_t* CSHINESSDCalibratedData::GetSiEMeVCut(const char* layertag)
 {
@@ -272,10 +267,10 @@ Double_t* CSHINESSDCalibratedData::GetSiEMeVCut(const char* layertag)
   }
   return fSiEMeVCut;
 }
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
 
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 // 对于每个 SSD 的 每个 Ch, 给定 ECh 时, 计算对应的能量 EMeV
 Double_t CSHINESSDCalibratedData::GetSiEMeV(Int_t ssdindex, const char* layertag, Int_t chindex, Int_t ech)
 {
@@ -285,14 +280,13 @@ Double_t CSHINESSDCalibratedData::GetSiEMeV(Int_t ssdindex, const char* layertag
   if (ech < echcut[ssdindex*NUM_STRIP+chindex]) return -9999; // 忽略 ech<cut 的事件
   return  slope[ssdindex*NUM_STRIP+chindex]*ech + intercept[ssdindex*NUM_STRIP+chindex];
 }
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
 
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 Double_t* CSHINESSDCalibratedData::GetCsIEChCut(const char* layertag)
 {
-  std::string pathDataFolder(Form("%sdata_Pedestals/", PATHDATAFOLDER));
-  std::string pathDataInput(Form("%sSSD_%s_PulserCaliPedestals_Pedestal0000.dat", pathDataFolder.c_str(), layertag));
+  std::string pathDataInput(Form("%sSSD_%s_PulserCaliPedestals_Pedestal0000.dat", pathSiCaliParsFolder.c_str(), layertag));
 
   if (!readfile.IsFileExists(pathDataInput.c_str())) {
     cout<<Form("文件 %s 不存在!", pathDataInput.c_str())<<endl;
@@ -316,14 +310,13 @@ Double_t* CSHINESSDCalibratedData::GetCsIEChCut(const char* layertag)
   readfile.DeleteData(echcut,NUM_SSD,NUM_CSI,numpar);
   return fCsIEChCut;
 }
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
 
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 Double_t* CSHINESSDCalibratedData::GetCsIEChCut(const char* layertag, Double_t numsigma)
 {
-  std::string pathDataFolder(Form("%sdata_Pedestals/", PATHDATAFOLDER));
-  std::string pathDataInput(Form("%sSSD_%s_PulserCaliPedestals_Pedestal0000.dat", pathDataFolder.c_str(), layertag));
+  std::string pathDataInput(Form("%sSSD_%s_PulserCaliPedestals_Pedestal0000.dat", pathSiCaliParsFolder.c_str(), layertag));
 
   if (!readfile.IsFileExists(pathDataInput.c_str())) {
     cout<<Form("文件 %s 不存在!", pathDataInput.c_str())<<endl;
@@ -342,4 +335,4 @@ Double_t* CSHINESSDCalibratedData::GetCsIEChCut(const char* layertag, Double_t n
   readfile.DeleteData(echcut,NUM_SSD,NUM_CSI,numpar);
   return fCsIEChCut;
 }
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo

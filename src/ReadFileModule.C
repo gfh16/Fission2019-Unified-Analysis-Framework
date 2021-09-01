@@ -2,7 +2,7 @@
 using namespace std;
 
 
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 ReadFileModule::ReadFileModule()
 {
   //cout<<"ReadFileModule Loaded!"<<endl;
@@ -13,10 +13,10 @@ ReadFileModule::~ReadFileModule()
 {
   //cout<<"ReadFileModule Deleted!"<<endl;
 }
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
 
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 Double_t*** ReadFileModule::ReadData(const Char_t* datapath, Int_t SSDNum,
             Int_t CHNum, Int_t ParNum)
 {
@@ -54,10 +54,10 @@ Double_t*** ReadFileModule::ReadData(const Char_t* datapath, Int_t SSDNum,
   in.close();
   return readpar;
 }
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
 
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 void ReadFileModule::DeleteData(Double_t*** p, Int_t SSDNum, Int_t CHNum, Int_t ParNum)
 {
   for(Int_t i=0; i<SSDNum; i++) {
@@ -70,10 +70,10 @@ void ReadFileModule::DeleteData(Double_t*** p, Int_t SSDNum, Int_t CHNum, Int_t 
   }
   delete [] p;
 }
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
 
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 void ReadFileModule::AddChain(TChain* chain, const char* LayerTag, Int_t* dataarray, Int_t size, Int_t index)
 {
   for (Int_t j=0; j<size; j++) {
@@ -84,10 +84,10 @@ void ReadFileModule::AddChain(TChain* chain, const char* LayerTag, Int_t* dataar
   chain->SetBranchStatus(SSD_E_bname.c_str(), true);
   chain->SetBranchAddress(SSD_E_bname.c_str(), dataarray);
 }
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
 
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 void ReadFileModule::GetFileNamesFromFolder(const char* pathfolder, const char* pathfileout)
 {
 	DIR* directory_pointer;
@@ -119,10 +119,10 @@ void ReadFileModule::GetFileNamesFromFolder(const char* pathfolder, const char* 
   fileout.close();
   printf("文件 %s 已生成!\n", pathfileout);
 }
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
 
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 void ReadFileModule::GetFileNamesFromFile(const char* pathfilein, vector<string>& filelist)
 {
   std::string filename;
@@ -148,13 +148,91 @@ void ReadFileModule::GetFileNamesFromFile(const char* pathfilein, vector<string>
   }
   printf("文件 %s 已读取完成!\n", pathfilein);
 }
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
 
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 Bool_t ReadFileModule::IsFileExists(const std::string& filename)
 {
   ifstream filein(filename.c_str());
   return filein.good();
 }
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
+
+
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
+void ReadFileModule::CsICaliLoadPars(std::vector<Double_t> parlist[NUM_SSD*NUM_CSI], const char* pathFarsFile, Int_t npars)
+{
+  Int_t numtel;
+  Int_t ssdnum, csinum;
+  Double_t pars[npars];
+
+  // 按行读取 CsI 能量拟合参数
+	ifstream FileInPars(pathFarsFile);
+
+	if (!FileInPars.is_open()) {
+		printf("Error: file %s not found\n",pathFarsFile);
+    return;
+	}
+	while (FileInPars.good()) {
+		// 按行读取数据
+    std::string LineRead;
+    std::getline(FileInPars, LineRead);
+    LineRead.assign(LineRead.substr(0, LineRead.find('*')));
+    if(LineRead.empty()) continue;
+    if(LineRead.find_first_not_of(' ')==std::string::npos) continue;
+    std::istringstream LineStream(LineRead);
+
+		LineStream>>numtel>>ssdnum>>csinum;
+    for (Int_t i=0; i<npars; i++)  {
+      LineStream>>pars[i];
+      parlist[numtel].push_back(pars[i]);
+    }
+	}
+	FileInPars.close();
+}
+
+
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
+Double_t** ReadFileModule::CsICaliLoadPars2(const char* pathFarsFile, Int_t npars)
+{
+  Int_t numtel;
+  Int_t ssdnum, csinum;
+  Double_t pars[npars];
+
+  Double_t** fvpar = NULL;
+	fvpar = new Double_t* [NUM_SSD*NUM_CSI]; // four Si-Si-CsI telescopes, 36 CsI crystals in total
+  for (Int_t i=0; i<NUM_SSD*NUM_CSI; i++) {
+    fvpar[i] = new Double_t[npars];
+	}
+
+  ifstream filein(pathFarsFile, ios::in);
+
+  if (!filein.is_open()) {
+		printf("Error: file %s not found\n",pathFarsFile);
+    return NULL;
+	}
+
+  if (filein) {
+    while(!filein.eof()) {
+			// 这里的按行读取数据的方式与 DEEFIT 元代码稍有不同！ 但不影响正常使用！
+			std::string LineRead;
+      std::getline(filein, LineRead);
+			LineRead.assign(LineRead.substr(0, LineRead.find('*')));
+      if(LineRead.empty()) continue;
+      if(LineRead.find_first_not_of(' ')==std::string::npos) continue;
+      std::istringstream LineStream(LineRead);
+
+      LineStream>>numtel>>ssdnum>>csinum;
+
+      if(!LineStream.fail()) {
+        for(Int_t ipar=0; ipar<npars; ipar++) {
+          LineStream>>pars[ipar];
+          fvpar[numtel][ipar] = pars[ipar];
+        }
+      }
+    }
+    filein.close();
+  }
+  return fvpar;
+}

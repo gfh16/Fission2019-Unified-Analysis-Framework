@@ -2,7 +2,7 @@
 using namespace std;
 
 
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 TimeAndPercentage::TimeAndPercentage()
 {
   fBeginTime = 0;
@@ -15,10 +15,10 @@ TimeAndPercentage::~TimeAndPercentage()
   std::cout<<"\n";
   cout<<"The total computing time is "<<GetRunTime()<<" s"<<endl;
 }
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
 
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 clock_t TimeAndPercentage::GetBeginTime()
 {
   fBeginTime = clock();
@@ -37,10 +37,10 @@ Double_t TimeAndPercentage::GetRunTime()
 {
   return (Double_t)(fEndTime-fBeginTime)/CLOCKS_PER_SEC;
 }
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
 
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 void TimeAndPercentage::PrintPercentage(Long64_t ientry, Long64_t nentries)
 {
   std::cout<<" Percentage = "<<std::fixed<<std::setprecision(1)<<std::setw(5)
@@ -52,10 +52,10 @@ void TimeAndPercentage::PrintPercentage(Long64_t ientry, Long64_t nentries)
   std::cout<<"]\r";
   std::cout.flush();
 }
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
 
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 void TimeAndPercentage::PrintPercentageAndRemainingTime(Long64_t ientry, Long64_t nentries)
 {
   Double_t time_elapsed = (Double_t)(clock()-fBeginTime)/CLOCKS_PER_SEC;
@@ -80,4 +80,4 @@ void TimeAndPercentage::PrintPercentageAndRemainingTime(Long64_t ientry, Long64_
   std::cout<<"\r";
   std::cout.flush();
 }
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo

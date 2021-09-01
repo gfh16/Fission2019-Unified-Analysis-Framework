@@ -1,7 +1,7 @@
 #include "../include/Nuclear_masses.h"
 
 
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 // 构造函数
 Nuclear_masses::Nuclear_masses () :
 fElectron_mass(0.510998918),
@@ -36,9 +36,9 @@ fUMA_MeV(931.494028)
   }
   return;
 }
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 // 析构函数
 Nuclear_masses::~Nuclear_masses()
 {
@@ -61,17 +61,17 @@ Nuclear_masses::~Nuclear_masses()
     delete [] fElement_names;
   }
 }
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
 
-//******************************************************************************
-double Nuclear_masses::GetMass_Z_A(int Z, int A) const
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
+double Nuclear_masses::GetMass_Z_A_MeV(int Z, int A) const
 {
   return fAtomic_masses[Z][A]*fUMA_MeV - fElectron_mass*Z;
 }
 
-//******************************************************************************
-double Nuclear_masses::GetMass_Z_A_uma(int Z, int A) const
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
+double Nuclear_masses::GetMass_Z_A_UMA(int Z, int A) const
 {
   return fAtomic_masses[Z][A] - fElectron_mass*Z/fUMA_MeV;
 }
