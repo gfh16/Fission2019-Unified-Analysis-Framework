@@ -322,6 +322,11 @@ private:
   Double_t          fVelocity;
 
 private:
+  Double_t          fCsINum_Init  = -1;
+  Double_t          fCsIEMeV_Init = -1;
+
+
+private:
   CSHINESiPixelGeometry                   pixel;
   PhysicalCalculator                      physcalc;
   Vector3                                 vechitpoint;

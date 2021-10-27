@@ -293,6 +293,7 @@ void  L2L3_TrackDecoded::FillGlobalEvent_L2L3(CSHINESSDEvent* globalevent, Int_t
   globalevent->fGSSDNum.push_back(ssdindex);
   globalevent->fGL1SNumStrip.push_back(Stripl1s);
   globalevent->fGL1SEMeV.push_back(fGetEL1S);
+  globalevent->fGL1SEMeVCorrected.push_back(fGetEL1S);
   globalevent->fGL2FNumStrip.push_back(Stripl2f);
   globalevent->fGL2FEMeV.push_back(El2f);
   globalevent->fGL2BNumStrip.push_back(Stripl2b);
@@ -3937,6 +3938,8 @@ void L1L2_TrackDecoded::FillGlobalEvent_L1L2(CSHINESSDEvent* globalevent, Int_t 
   globalevent->fGL2FEMeV.push_back(El2f);
   globalevent->fGL2BNumStrip.push_back(Stripl2b);
   globalevent->fGL2BEMeV.push_back(El2b);
+  globalevent->fGCsINum.push_back(fCsINum_Init);
+  globalevent->fGCsIEMeV.push_back(fCsIEMeV_Init);
   globalevent->fGL2FTime.push_back(Timel2f);
   globalevent->fDist.push_back(vechitpoint.R());
 	globalevent->fTheta.push_back(vechitpoint.ThetaDeg());

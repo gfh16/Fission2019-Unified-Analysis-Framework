@@ -82,7 +82,7 @@ void BuildTreeFromFile(Int_t runnumber)
     l1l2track->L1L2_g3_TrackDecoded(globalevent,trackevent,kTRUE);
     l1l2track->L1L2_g4_TrackDecoded(globalevent,trackevent,kTRUE);
     l1l2track->L1L2_g6_TrackDecoded(globalevent,trackevent,kTRUE);
-   
+
 
 		// for PPAC
 		//buildppacevent->FillPPACEvent(ppacevent);
