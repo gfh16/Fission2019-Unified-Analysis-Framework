@@ -1719,6 +1719,107 @@ void CSHINECheckDEEPlot::CheckL2L3StraighteningPIDResults()
 
 
 //______________________________________________________________________________
+void CSHINECheckDEEPlot::L2L3DrawPIDECsIMap()
+{
+	Int_t MAXPARTICLES = NUM_SSD*NUM_CSI;
+  Int_t NumTel;
+	Double_t EL2Range[4] = {300., 250., 150., 80.};
+	Int_t    NBinsL2[4]  = {3000, 2500, 1500, 800};
+
+	Double_t getmass, pidnum;
+	Int_t geticharge, getimass;
+
+	std::string pathDEECutsInput(Form("%sStraighteningData/L2L3DEECuts.root",PATHROOTFILESFOLDER));
+  std::string pathStraighteningFitPars(Form("%sdata_PID/L2L3_StraighteningFitPars.dat",PATHDATAFOLDER));
+
+	TFile* fileout = new TFile("/home/sea/Fission2019_Data/StraighteningData/L2L3_PIDNum.root","RECREATE");
+
+	TH2D* h2d_PID_vs_ECsI[MAXPARTICLES];
+	for (Int_t i=0; i<MAXPARTICLES; i++) {
+		Int_t ssdindex = (Int_t) i/NUM_CSI;
+		Int_t csiindex = (Int_t) i%NUM_CSI;
+		h2d_PID_vs_ECsI[i] = new TH2D(Form("SSD%d_CsI%02d",ssdindex+1,csiindex),Form("SSD%d_CsI%02d",ssdindex+1,csiindex),4096,0,4096,1000,0,10);
+	}
+
+  std::vector< vector<Int_t> > iCharge;
+	std::vector< vector<Int_t> > iMass;
+	std::vector< vector< vector<Double_t> > > FitPars;
+
+  fStraightening.ReadStraighteningFitPars(MAXPARTICLES, pathStraighteningFitPars.c_str(), iCharge, iMass, FitPars);
+
+	TFile* CutFile = new TFile(pathDEECutsInput.c_str(),"READONLY");
+	TCutG* IsotopeCut[MAXPARTICLES][50];
+	for (Int_t numtel=0; numtel<MAXPARTICLES; numtel++) {
+		for (Int_t ip=0; ip<iCharge[numtel].size(); ip++) {
+		 	IsotopeCut[numtel][ip] = (TCutG*) CutFile->Get(Form("h2_dE2_ECsI_Tel%02d_Z%02d_A%02d",numtel,iCharge[numtel][ip],iMass[numtel][ip]));
+			if (IsotopeCut[numtel][ip]==0) continue;
+		}
+	}
+
+	Long64_t nentries = (fDeefit->fChain)->GetEntries();
+	cout<<"nentries = "<<nentries<<endl;
+
+	for (Long64_t jentry=0; jentry<nentries; jentry++) {
+		(fDeefit->fChain)->GetEntry(jentry);
+	  timeper.PrintPercentageAndRemainingTime(jentry, nentries);
+
+		for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+			if (fDeefit->fLayerEvent.fSSDL1SMulti[ssdindex]==1 && fDeefit->fLayerEvent.fSSDL2FMulti[ssdindex]==1 &&
+				  fDeefit->fLayerEvent.fSSDL2BMulti[ssdindex]==1 && fDeefit->fLayerEvent.fSSDCsIMulti[ssdindex]==1)
+	    {
+	      L2L3_EL2F.clear();
+	      L2L3_EL2B.clear();
+				L2L3_ECSI.clear();
+	      L2L3_StripL2F.clear();
+	      L2L3_StripL2B.clear();
+				L2L3_NumCsI.clear();
+				L2FTime.clear();
+
+				// 提取 L2F 的数据
+	      for (Int_t l2fmulti=0; l2fmulti<fDeefit->fLayerEvent.fL2FMulti; l2fmulti++) {
+	        if (fDeefit->fLayerEvent.fL2FSSDNum[l2fmulti] == ssdindex) {
+	          L2L3_StripL2F.push_back(fDeefit->fLayerEvent.fL2FNumStrip[l2fmulti]);
+	          L2L3_EL2F.push_back(fDeefit->fLayerEvent.fL2FEMeV[l2fmulti]);
+						L2FTime.push_back(fDeefit->fLayerEvent.fL2FTime[l2fmulti]);
+	        }
+	      }
+	      // 提取 L2B 的数据
+	      for (Int_t l2bmulti=0; l2bmulti<fDeefit->fLayerEvent.fL2BMulti; l2bmulti++) {
+	        if (fDeefit->fLayerEvent.fL2BSSDNum[l2bmulti] == ssdindex) {
+	         L2L3_StripL2B.push_back(fDeefit->fLayerEvent.fL2BNumStrip[l2bmulti]);
+	         L2L3_EL2B.push_back(fDeefit->fLayerEvent.fL2BEMeV[l2bmulti]);
+	        }
+	      }
+				// 提取 CsI 的数据
+	      for (Int_t csimulti=0; csimulti<fDeefit->fLayerEvent.fCsIMulti; csimulti++) {
+	        if (fDeefit->fLayerEvent.fCsISSDNum[csimulti] == ssdindex) {
+	          L2L3_NumCsI.push_back(fDeefit->fLayerEvent.fCsINum[csimulti]);
+	          L2L3_ECSI.push_back(fDeefit->fLayerEvent.fCsIECh[csimulti]);
+	        }
+	      }
+
+				if (fPattern.IsGeoConstraint_L3A_L2B(L2L3_NumCsI[0], L2L3_StripL2B[0]) &&
+	          fPattern.IsGeoConstraint_L3A_L2F(L2L3_NumCsI[0], L2L3_StripL2F[0]) &&
+	          fPattern.IsEneConstraint_L2B_L2F(ssdindex, L2L3_EL2B[0], L2L3_EL2F[0]))
+	      {
+					NumTel = ssdindex*9 + L2L3_NumCsI[0];
+					if (iCharge[NumTel].size()<2) continue;
+					// PID
+					getmass = fStraightening.StraighteningGetMass(L2L3_ECSI[0],L2L3_EL2F[0],IsotopeCut[NumTel],FitPars[NumTel],iCharge[NumTel], iMass[NumTel], geticharge, getimass, pidnum);
+					if (getmass > 0) {
+						h2d_PID_vs_ECsI[NumTel]->Fill(L2L3_ECSI[0], pidnum);
+					}
+				}
+			}
+		}
+	}
+	for (Int_t numtel=0; numtel<MAXPARTICLES; numtel++) {
+    fileout->WriteTObject(h2d_PID_vs_ECsI[numtel]);
+	}
+  fileout->Close();
+}
+
+//______________________________________________________________________________
 // 产生 DEEFIT 数据前, 先检查 L1L2 的能量关联是否正常
 void CSHINECheckDEEPlot::CheckL1L2DEE()
 {
@@ -2781,7 +2882,7 @@ void CSHINECheckDEEPlot::CheckL2L3DEECsIGapEffect()
 // 手动调节厚度, 找到最佳的 DE-E
 void CSHINECheckDEEPlot::L1S_FindThicknessUniformity()
 {
-	Int_t ssdindex = 3; // SSD3
+	Int_t ssdindex = 2; // SSD3
 	Int_t ZoneLength = 8;
 	Int_t zone_index;
 	Int_t num_zones = ZoneLength*ZoneLength;
@@ -2821,7 +2922,7 @@ void CSHINECheckDEEPlot::L1S_FindThicknessUniformity()
 	TH2D* h2_SSD3_L1L2_DEE_Merged = new TH2D(Form("SSD%d_L1L2_DEE_Merged",ssdindex+1),Form("SSD%d_L1L2_DEE_Merged",ssdindex+1),NBinsL2,0,EL2Range,NBinsL1,0,EL1Range);
 	TH2D* h2_SSD3_L1L2_DEE_Corrected = new TH2D(Form("SSD%d_L1L2_DEE_Corrected",ssdindex+1),Form("SSD%d_L1L2_DEE_Corrected",ssdindex+1),NBinsL2,0,EL2Range,NBinsL1,0,EL1Range);
 
-//  (fDeefit->fChain)->SetEntries(1000000);
+  (fDeefit->fChain)->SetEntries(1000000);
 	Long64_t nentries = (fDeefit->fChain)->GetEntries();
   cout<<"nentries = "<<nentries<<endl;
   for (Long64_t ientry=0; ientry<nentries; ientry++) {
@@ -2917,7 +3018,7 @@ void CSHINECheckDEEPlot::L1S_FindThicknessUniformity()
 
 void CSHINECheckDEEPlot::L1S_DetermineThicknessUniformity()
 {
-	Int_t ssdindex = 3; // 2-SSD3 ,3-SSD4
+	Int_t ssdindex = 2; // 2-SSD3 ,3-SSD4
 	Int_t ZoneLength = 8;
 	Int_t zone_index;
 	Int_t num_zones = ZoneLength*ZoneLength;
@@ -2956,7 +3057,7 @@ void CSHINECheckDEEPlot::L1S_DetermineThicknessUniformity()
 
 	std::string pathPDFOut(Form("%sfigure_PID/SSD%d_L1S_ThicknessUniformity_Corrected.png",PATHFIGURESFOLDER,ssdindex+1));
 	std::string pathROOTout(Form("%sSSD3_SSD4_L1L2_DEE_ThicknessCorrection.root",PATHROOTFILESFOLDER));
-	TFile* myfile = new TFile(pathROOTout.c_str(),"UPDATE");
+	TFile* myfile = new TFile(pathROOTout.c_str(),"RECREATE");
 
 	TH2D* h2_SSD3_L1L2_DEE_Merged = new TH2D(Form("SSD%d_L1L2_DEE_Merged",ssdindex+1),Form("SSD%d_L1L2_DEE_Merged",ssdindex+1),NBinsL2,0,EL2Range,NBinsL1,0,EL1Range);
 	TH2D* h2_SSD3_L1L2_DEE_Corrected = new TH2D(Form("SSD%d_L1L2_DEE_Corrected",ssdindex+1),Form("SSD%d_L1L2_DEE_Corrected",ssdindex+1),NBinsL2,0,EL2Range,NBinsL1,0,EL1Range);
@@ -2968,7 +3069,7 @@ void CSHINECheckDEEPlot::L1S_DetermineThicknessUniformity()
 		}
 	}
 
-  //(fDeefit->fChain)->SetEntries(100);
+  (fDeefit->fChain)->SetEntries(20000000);
 	Long64_t nentries = (fDeefit->fChain)->GetEntries();
   cout<<"nentries = "<<nentries<<endl;
   for (Long64_t ientry=0; ientry<nentries; ientry++) {
@@ -3012,8 +3113,12 @@ void CSHINECheckDEEPlot::L1S_DetermineThicknessUniformity()
 			if (std::abs(L1L2_EL2B[0]-L1L2_EL2F[0])/L1L2_EL2F[0]<EL2FEL2B_Cut) {
 				zone_index = fDeefit->GetZone(L1L2_StripL2B[0], L1L2_StripL2F[0], ZoneLength);
 				if (L2FTime[0]>SiTimeCut_Low[ssdindex][L1L2_StripL2F[0]] && L2FTime[0]<SiTimeCut_Up[ssdindex][L1L2_StripL2F[0]]) {
-					h2_SSD3_L1L2_DEE_Merged->Fill(L1L2_EL2F[0], L1L2_EL1S[0]);
-					h2_SSD3_L1L2_DEE_Corrected->Fill(L1L2_EL2F[0], L1L2_EL1S[0]*(1+L1S_corrfatcor[zone_index]));
+					if ((L1L2_StripL2B[0]!=0)&&(L1L2_StripL2B[0]!=4)&&(L1L2_StripL2B[0]!=5)&&(L1L2_StripL2B[0]!=10)&&(L1L2_StripL2B[0]!=11)&&(L1L2_StripL2B[0]!=15) &&
+				      (L1L2_StripL2F[0]!=0)&&(L1L2_StripL2F[0]!=4)&&(L1L2_StripL2F[0]!=5)&&(L1L2_StripL2F[0]!=10)&&(L1L2_StripL2F[0]!=11)&&(L1L2_StripL2F[0]!=15))
+					{
+						h2_SSD3_L1L2_DEE_Merged->Fill(L1L2_EL2F[0], L1L2_EL1S[0]);
+						h2_SSD3_L1L2_DEE_Corrected->Fill(L1L2_EL2F[0], L1L2_EL1S[0]*(1+L1S_corrfatcor[zone_index]));
+					}
 				}
 			}
 		}

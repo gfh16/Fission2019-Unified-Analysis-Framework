@@ -82,8 +82,8 @@ const double EL2B_TO_EL2F_SCALE[4] = {1/0.90, 1/0.85, 1., 1.};
 // const double L1L2_ENERGYHIGHCUT[4] = {0.6, 0.6, 0.6, 0.6};
 //-----------
 // 2021-07-26
-const double L1L2_ENERGYLOWCUT [4] = {0.15, 0.15, 0.10, 0.15};
-const double L1L2_ENERGYHIGHCUT[4] = {0.35, 0.30, 0.20, 0.30};
+const double L1L2_ENERGYLOWCUT [4] = {0.10, 0.10, 0.10, 0.10};
+const double L1L2_ENERGYHIGHCUT[4] = {0.40, 0.40, 0.30, 0.30};
 
 
 //______________________________________________________________________________

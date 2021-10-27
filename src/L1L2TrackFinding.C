@@ -6,6 +6,18 @@
 ////////////////////////////////////////////////////////////////////////////////
 #include "../include/L1L2TrackFinding.h"
 
+//______________________________________________________________________________
+// 开关: 是否剔除 CsI 的 gap 对应的条
+Bool_t IsStripsOnCsIGap(Int_t stripb, Int_t stripf)
+{
+  Bool_t index = kFALSE;
+	if ((stripb==0) || (stripb==4) || (stripb==5) || (stripb==10) || (stripb==11) || (stripb==15) ||
+      (stripf==0) || (stripf==4) || (stripf==5) || (stripf==10) || (stripf==11) || (stripf==15))
+	{
+		index = kTRUE;
+	}
+	return index;
+}
 
 
 //oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
@@ -52,6 +64,7 @@ L1L2_DecodefGlobalMulti1::~L1L2_DecodefGlobalMulti1()
 void L1L2_DecodefGlobalMulti1::L1L2_GlobalMulti1_Decode()
 {
 	const Int_t globalmulti = 1;
+	const char* mode = "111";
 
 	Double_t lost_ratio[NUM_SSD] = {0};
 	Int_t candimulti[NUM_SSD];
@@ -81,7 +94,7 @@ void L1L2_DecodefGlobalMulti1::L1L2_GlobalMulti1_Decode()
 		h2_L1L2_DEE_Discard[ssdindex]= TH2F(Form("SSD%d_L1L2_Discard",ssdindex+1),Form("SSD%d_L1L2_Discard",ssdindex+1),NBinsL2[ssdindex],0,EL2Range[ssdindex],NBinsL1[ssdindex],0,EL1Range[ssdindex]);
   }
 
-  trackreconstruct->fChainTrackTree->SetEntries(10000000);
+  //trackreconstruct->fChainTrackTree->SetEntries(10000000);
   Long64_t nentries = trackreconstruct->fChainTrackTree->GetEntries();
   cout<<"Found nentries = "<<nentries<<endl;
 
@@ -125,18 +138,21 @@ void L1L2_DecodefGlobalMulti1::L1L2_GlobalMulti1_Decode()
         for (Int_t itrack=0; itrack<globalmulti; itrack++) {
 					if (L1L2_L2FTime[ssdindex][itrack]>SiTimeCut_Low[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]] && L1L2_L2FTime[ssdindex][itrack]<SiTimeCut_Up[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]])
 					{
-						h2_L1L2_DEE[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+						if (!IsStripsOnCsIGap(L1L2_L2BStripNum[ssdindex][itrack], L1L2_L2FStripNum[ssdindex][itrack]))
+						{
+							h2_L1L2_DEE[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
 
-	          // 填充 mode statistic
-	          bin_index[itrack] = trackreconstruct->L1L2_GetSubModeFromEneConstraints(trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,L1L2_L2BEMeV[ssdindex][itrack],L1L2_L2FEMeV[ssdindex][itrack]),
-							                                                                      trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]));
-					  h1_modestat[ssdindex]->Fill(bin_index[itrack]);
+		          // 填充 mode statistic
+		          bin_index[itrack] = trackreconstruct->L1L2_GetSubModeFromEneConstraints(trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,L1L2_L2BEMeV[ssdindex][itrack],L1L2_L2FEMeV[ssdindex][itrack]),
+								                                                                      trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]));
+						  h1_modestat[ssdindex]->Fill(bin_index[itrack]);
 
-	          if (trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,L1L2_L2BEMeV[ssdindex][itrack],L1L2_L2FEMeV[ssdindex][itrack]) &&
-	              trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]))
-	          {
-	            candimulti[ssdindex]++;
-	          }
+		          if (trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,L1L2_L2BEMeV[ssdindex][itrack],L1L2_L2FEMeV[ssdindex][itrack]) &&
+		              trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]))
+		          {
+		            candimulti[ssdindex]++;
+		          }
+						}
 					}
         }
         //____________________________________________________________________
@@ -144,27 +160,44 @@ void L1L2_DecodefGlobalMulti1::L1L2_GlobalMulti1_Decode()
         //          -------------------------------------------------------
 				if (L1L2_L2FTime[ssdindex][0]>SiTimeCut_Low[ssdindex][L1L2_L2FStripNum[ssdindex][0]] && L1L2_L2FTime[ssdindex][0]<SiTimeCut_Up[ssdindex][L1L2_L2FStripNum[ssdindex][0]])
 				{
-					if (trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,L1L2_L2BEMeV[ssdindex][0],L1L2_L2FEMeV[ssdindex][0]) &&
-				      trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2FEMeV[ssdindex][0],L1L2_L1SEMeV_Corrected[ssdindex][0]))
+					if (!IsStripsOnCsIGap(L1L2_L2BStripNum[ssdindex][0], L1L2_L2FStripNum[ssdindex][0]))
 					{
-						candimulti_corrected[ssdindex]++;
-						h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][0],L1L2_L1SEMeV_Corrected[ssdindex][0]);
-					}
-	        else {
-						h2_L1L2_DEE_Discard[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][0],L1L2_L1SEMeV_Corrected[ssdindex][0]);
-					}
-					//______________________________________________________________________
-	        // 填充每一个 SSD 的 candidate multi
-	        h1_candimulti[ssdindex]->Fill(candimulti[ssdindex]);
-					//
-					if (candimulti_corrected[ssdindex] > 0) {
-						for (Int_t itrack=0; itrack<globalmulti; itrack++) {
-							h1_SubmodeCorrected[ssdindex]->Fill(bin_index[itrack]);
+						if (trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,L1L2_L2BEMeV[ssdindex][0],L1L2_L2FEMeV[ssdindex][0]) &&
+					      trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2FEMeV[ssdindex][0],L1L2_L1SEMeV_Corrected[ssdindex][0]))
+						{
+							candimulti_corrected[ssdindex]++;
+							h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][0],L1L2_L1SEMeV_Corrected[ssdindex][0]);
+						}
+		        else {
+							h2_L1L2_DEE_Discard[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][0],L1L2_L1SEMeV_Corrected[ssdindex][0]);
+						}
+						//______________________________________________________________________
+		        // 填充每一个 SSD 的 candidate multi
+		        h1_candimulti[ssdindex]->Fill(candimulti[ssdindex]);
+						//
+						if (candimulti_corrected[ssdindex] > 0) {
+							for (Int_t itrack=0; itrack<globalmulti; itrack++) {
+								h1_SubmodeCorrected[ssdindex]->Fill(bin_index[itrack]);
+							}
 						}
 					}
 				}
       }
     }
+  }
+
+	//
+  TFile* fileout = new TFile(Form("/home/sea/Fission2019_Data/TrackDecoded/L1L2_g%d_0%s.root",globalmulti,mode),"RECREATE");
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    fileout->WriteTObject(&h2_L1L2_DEE[ssdindex],Form("h2_DEE_SSD%d_g%d_0%s",ssdindex+1,globalmulti,mode));
+  }
+  //
+	for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    fileout->WriteTObject(&h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex],Form("h2_GOOD_SSD%d_g%d_0%s",ssdindex+1,globalmulti,mode));
+  }
+	//
+	for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    fileout->WriteTObject(&h2_L1L2_DEE_Discard[ssdindex],Form("h2_LOST_SSD%d_g%d_0%s",ssdindex+1,globalmulti,mode));
   }
 
   // 计算比例
@@ -297,6 +330,11 @@ void L1L2_DecodefGlobalMulti2::L1L2_GlobalMulti2_Decode_001()
 
 	Double_t EL1S_Sum01;
 
+	Double_t MHits_Ratio[NUM_SSD]   = {0};
+  Double_t Sharing_Ratio[NUM_SSD] = {0};
+  Int_t MHits_Entries[NUM_SSD]    = {0};
+  Int_t Sharing_Entries[NUM_SSD]  = {0};
+
   std::string pathPDFOut(Form("%sfigure_TrackReconstruction/L1L2_GlobalMulti%d_Decode_%s.pdf",PATHFIGURESFOLDER,globalmulti,mode));
   std::string pathPDFOutBegin(Form("%sfigure_TrackReconstruction/L1L2_GlobalMulti%d_Decode_%s.pdf[",PATHFIGURESFOLDER,globalmulti,mode));
   std::string pathPDFOutEnd(Form("%sfigure_TrackReconstruction/L1L2_GlobalMulti%d_Decode_%s.pdf]",PATHFIGURESFOLDER,globalmulti,mode));
@@ -322,7 +360,7 @@ void L1L2_DecodefGlobalMulti2::L1L2_GlobalMulti2_Decode_001()
   }
 
   printf("Processing mode g%d-%s ...\n", globalmulti, mode);
-  //trackreconstruct->fChainTrackTree->SetEntries(10000000);
+  //trackreconstruct->fChainTrackTree->SetEntries(1000000);
   Long64_t nentries = trackreconstruct->fChainTrackTree->GetEntries();
   cout<<"Found nentries = "<<nentries<<endl;
 
@@ -369,18 +407,21 @@ void L1L2_DecodefGlobalMulti2::L1L2_GlobalMulti2_Decode_001()
           for (Int_t itrack=0; itrack<globalmulti; itrack++) {
 					  if (L1L2_L2FTime[ssdindex][itrack]>SiTimeCut_Low[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]] && L1L2_L2FTime[ssdindex][itrack]<SiTimeCut_Up[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]])
 					  {
-						  h2_L1L2_DEE[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+							if (!IsStripsOnCsIGap(L1L2_L2BStripNum[ssdindex][itrack], L1L2_L2FStripNum[ssdindex][itrack]))
+							{
+								h2_L1L2_DEE[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
 
-	            // 填充 mode statistic
-	            bin_index[itrack] = trackreconstruct->L1L2_GetSubModeFromEneConstraints(trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,L1L2_L2BEMeV[ssdindex][itrack],L1L2_L2FEMeV[ssdindex][itrack]),
-							                                                                        trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]));
-					    h1_modestat[ssdindex]->Fill(bin_index[itrack]);
+		            // 填充 mode statistic
+		            bin_index[itrack] = trackreconstruct->L1L2_GetSubModeFromEneConstraints(trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,L1L2_L2BEMeV[ssdindex][itrack],L1L2_L2FEMeV[ssdindex][itrack]),
+								                                                                        trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]));
+						    h1_modestat[ssdindex]->Fill(bin_index[itrack]);
 
-	            if (trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,L1L2_L2BEMeV[ssdindex][itrack],L1L2_L2FEMeV[ssdindex][itrack]) &&
-	                trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]))
-	            {
-	              candimulti[ssdindex]++;
-	            }
+		            if (trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,L1L2_L2BEMeV[ssdindex][itrack],L1L2_L2FEMeV[ssdindex][itrack]) &&
+		                trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]))
+		            {
+		              candimulti[ssdindex]++;
+		            }
+							}
 					  }
           }
           //____________________________________________________________________
@@ -393,9 +434,12 @@ void L1L2_DecodefGlobalMulti2::L1L2_GlobalMulti2_Decode_001()
 				       (TMath::Abs(L1L2_L1SStripNum[ssdindex][0]-L1L2_L1SStripNum[ssdindex][1])==1) &&
 							 (trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2FEMeV[ssdindex][0],EL1S_Sum01)) )
 					{
-						candimulti_corrected[ssdindex]++;
-						candimulti_sharing[ssdindex]++;
-						h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][0],EL1S_Sum01);
+						if (!IsStripsOnCsIGap(L1L2_L2BStripNum[ssdindex][0], L1L2_L2FStripNum[ssdindex][0]))
+						{
+							candimulti_corrected[ssdindex]++;
+							candimulti_sharing[ssdindex]++;
+							h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][0],EL1S_Sum01);
+						}
 					}
 
 					for (Int_t itrack=0; itrack<globalmulti; itrack++) {
@@ -404,9 +448,12 @@ void L1L2_DecodefGlobalMulti2::L1L2_GlobalMulti2_Decode_001()
 						  if (trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,L1L2_L2BEMeV[ssdindex][itrack],L1L2_L2FEMeV[ssdindex][itrack]) &&
 					        trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]))
 						  {
-							  candimulti_corrected[ssdindex]++;
-							  h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
-								break;
+								if (!IsStripsOnCsIGap(L1L2_L2BStripNum[ssdindex][itrack], L1L2_L2FStripNum[ssdindex][itrack]))
+								{
+									candimulti_corrected[ssdindex]++;
+								  h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+									break;
+								}
 						  }
 						}
 					}
@@ -427,13 +474,17 @@ void L1L2_DecodefGlobalMulti2::L1L2_GlobalMulti2_Decode_001()
 						for (Int_t itrack=0; itrack<globalmulti; itrack++) {
 							if (L1L2_L2FTime[ssdindex][itrack]>SiTimeCut_Low[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]] && L1L2_L2FTime[ssdindex][itrack]<SiTimeCut_Up[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]])
 						  {
-							  h2_L1L2_DEE_Discard[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+								if (!IsStripsOnCsIGap(L1L2_L2BStripNum[ssdindex][itrack], L1L2_L2FStripNum[ssdindex][itrack]))
+								{
+								  h2_L1L2_DEE_Discard[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+								}
 							}
 						}
 					}
 					//
 					//
 					if (candimulti_sharing[ssdindex] > 0) {
+						Sharing_Entries[ssdindex]++;
 						for (Int_t itrack=0; itrack<globalmulti; itrack++) {
 							if (L1L2_L2FTime[ssdindex][itrack]>SiTimeCut_Low[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]] && L1L2_L2FTime[ssdindex][itrack]<SiTimeCut_Up[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]])
 						  {
@@ -446,6 +497,20 @@ void L1L2_DecodefGlobalMulti2::L1L2_GlobalMulti2_Decode_001()
     }
   }
 
+	//
+  TFile* fileout = new TFile(Form("/home/sea/Fission2019_Data/TrackDecoded/L1L2_g%d_0%s.root",globalmulti,mode),"RECREATE");
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    fileout->WriteTObject(&h2_L1L2_DEE[ssdindex],Form("h2_DEE_SSD%d_g%d_0%s",ssdindex+1,globalmulti,mode));
+  }
+  //
+	for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    fileout->WriteTObject(&h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex],Form("h2_GOOD_SSD%d_g%d_0%s",ssdindex+1,globalmulti,mode));
+  }
+	//
+	for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    fileout->WriteTObject(&h2_L1L2_DEE_Discard[ssdindex],Form("h2_LOST_SSD%d_g%d_0%s",ssdindex+1,globalmulti,mode));
+  }
+
   // 计算比例
   Int_t entry_all[NUM_SSD] = {0};
   Int_t entry_discard[NUM_SSD] = {0};
@@ -453,18 +518,26 @@ void L1L2_DecodefGlobalMulti2::L1L2_GlobalMulti2_Decode_001()
     entry_all[ssdindex] = h2_L1L2_DEE[ssdindex].GetEntries();
     entry_discard[ssdindex] = h2_L1L2_DEE_Discard[ssdindex].GetEntries();
 
-    lost_ratio[ssdindex] = (Double_t) entry_discard[ssdindex]/entry_all[ssdindex] * 100;
+    lost_ratio[ssdindex]    = (Double_t) entry_discard[ssdindex]/entry_all[ssdindex] * 100;
+		MHits_Ratio[ssdindex]   = (Double_t) MHits_Entries[ssdindex] * globalmulti/entry_all[ssdindex] * 100;
+    Sharing_Ratio[ssdindex] = (Double_t) Sharing_Entries[ssdindex] * globalmulti/entry_all[ssdindex] * 100;
   }
 
-  // 定义 latex
-  Double_t x1,y1;
+	// 定义 latex
+  Double_t x1,y1,x2,y2;
   TLatex* latex_ratio[NUM_SSD];
+  TLatex* latex_decoded[NUM_SSD];
   for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
-    x1 = 0.25 * EL2Range[ssdindex];
-    y1 = 0.90 * EL1Range[ssdindex];
-    latex_ratio[ssdindex] = new TLatex(x1, y1, Form("r_{lost} = %.4f%%",lost_ratio[ssdindex]));
+    x1 = 0.4 * EL2Range[ssdindex];
+    y1 = 0.8 * EL1Range[ssdindex];
+    x2 = 0.2 * EL2Range[ssdindex];
+    y2 = 0.5 * EL1Range[ssdindex];
+    latex_ratio[ssdindex] = new TLatex(x1, y1, Form("r_{lost} = %.2f%%",lost_ratio[ssdindex]));
     latex_ratio[ssdindex]->SetTextSize(0.05);
     latex_ratio[ssdindex]->SetTextColor(kOrange);
+    latex_decoded[ssdindex] = new TLatex(x2, y2, Form("r_{sh}=%.4f%%, r_{mh}=%.4f%%",Sharing_Ratio[ssdindex],MHits_Ratio[ssdindex]));
+    latex_decoded[ssdindex]->SetTextSize(0.05);
+    latex_decoded[ssdindex]->SetTextColor(kOrange);
   }
 
 	// 定义 Legend
@@ -501,6 +574,7 @@ void L1L2_DecodefGlobalMulti2::L1L2_GlobalMulti2_Decode_001()
     cans.cd(3);
     h2_L1L2_DEE_Discard[ssdindex].Draw("COL");
 		latex_ratio[ssdindex]->Draw("SAME");
+		latex_decoded[ssdindex]->Draw("SAME");
 
     //
     cans.cd(4);
@@ -549,6 +623,11 @@ void L1L2_DecodefGlobalMulti2::L1L2_GlobalMulti2_Decode_010()
 
 	Double_t EL2F_Sum;
 
+	Double_t MHits_Ratio[NUM_SSD]   = {0};
+  Double_t Sharing_Ratio[NUM_SSD] = {0};
+  Int_t MHits_Entries[NUM_SSD]    = {0};
+  Int_t Sharing_Entries[NUM_SSD]  = {0};
+
   std::string pathPDFOut(Form("%sfigure_TrackReconstruction/L1L2_GlobalMulti%d_Decode_%s.pdf",PATHFIGURESFOLDER,globalmulti,mode));
   std::string pathPDFOutBegin(Form("%sfigure_TrackReconstruction/L1L2_GlobalMulti%d_Decode_%s.pdf[",PATHFIGURESFOLDER,globalmulti,mode));
   std::string pathPDFOutEnd(Form("%sfigure_TrackReconstruction/L1L2_GlobalMulti%d_Decode_%s.pdf]",PATHFIGURESFOLDER,globalmulti,mode));
@@ -574,7 +653,7 @@ void L1L2_DecodefGlobalMulti2::L1L2_GlobalMulti2_Decode_010()
   }
 
   printf("Processing mode g%d-%s ...\n", globalmulti, mode);
-  trackreconstruct->fChainTrackTree->SetEntries(10000000);
+  //trackreconstruct->fChainTrackTree->SetEntries(100000);
   Long64_t nentries = trackreconstruct->fChainTrackTree->GetEntries();
   cout<<"Found nentries = "<<nentries<<endl;
 
@@ -621,18 +700,21 @@ void L1L2_DecodefGlobalMulti2::L1L2_GlobalMulti2_Decode_010()
           for (Int_t itrack=0; itrack<globalmulti; itrack++) {
 					  if (L1L2_L2FTime[ssdindex][itrack]>SiTimeCut_Low[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]] && L1L2_L2FTime[ssdindex][itrack]<SiTimeCut_Up[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]])
 					  {
-						  h2_L1L2_DEE[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+							if (!IsStripsOnCsIGap(L1L2_L2BStripNum[ssdindex][itrack], L1L2_L2FStripNum[ssdindex][itrack]))
+							{
+								h2_L1L2_DEE[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
 
-	            // 填充 mode statistic
-	            bin_index[itrack] = trackreconstruct->L1L2_GetSubModeFromEneConstraints(trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,L1L2_L2BEMeV[ssdindex][itrack],L1L2_L2FEMeV[ssdindex][itrack]),
-							                                                                        trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]));
-					    h1_modestat[ssdindex]->Fill(bin_index[itrack]);
+		            // 填充 mode statistic
+		            bin_index[itrack] = trackreconstruct->L1L2_GetSubModeFromEneConstraints(trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,L1L2_L2BEMeV[ssdindex][itrack],L1L2_L2FEMeV[ssdindex][itrack]),
+								                                                                        trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]));
+						    h1_modestat[ssdindex]->Fill(bin_index[itrack]);
 
-	            if (trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,L1L2_L2BEMeV[ssdindex][itrack],L1L2_L2FEMeV[ssdindex][itrack]) &&
-	                trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]))
-	            {
-	              candimulti[ssdindex]++;
-	            }
+		            if (trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,L1L2_L2BEMeV[ssdindex][itrack],L1L2_L2FEMeV[ssdindex][itrack]) &&
+		                trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]))
+		            {
+		              candimulti[ssdindex]++;
+		            }
+							}
 					  }
           }
           //____________________________________________________________________
@@ -646,9 +728,12 @@ void L1L2_DecodefGlobalMulti2::L1L2_GlobalMulti2_Decode_010()
 								(trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,L1L2_L2BEMeV[ssdindex][0],EL2F_Sum)) &&
 								(trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],EL2F_Sum,L1L2_L1SEMeV_Corrected[ssdindex][0])) )
           {
-						candimulti_corrected[ssdindex]++;
-						candimulti_sharing[ssdindex]++;
-						h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(EL2F_Sum,L1L2_L1SEMeV_Corrected[ssdindex][0]);
+						if (!IsStripsOnCsIGap(L1L2_L2BStripNum[ssdindex][0], L1L2_L2FStripNum[ssdindex][0]))
+						{
+							candimulti_corrected[ssdindex]++;
+							candimulti_sharing[ssdindex]++;
+							h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(EL2F_Sum,L1L2_L1SEMeV_Corrected[ssdindex][0]);
+						}
 					}
 					else {
 						for (Int_t itrack=0; itrack<globalmulti; itrack++) {
@@ -657,9 +742,12 @@ void L1L2_DecodefGlobalMulti2::L1L2_GlobalMulti2_Decode_010()
 							  if (trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,L1L2_L2BEMeV[ssdindex][itrack],L1L2_L2FEMeV[ssdindex][itrack]) &&
 						        trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]))
 							  {
-								  candimulti_corrected[ssdindex]++;
-								  h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
-									break;
+									if (!IsStripsOnCsIGap(L1L2_L2BStripNum[ssdindex][itrack], L1L2_L2FStripNum[ssdindex][itrack]))
+									{
+										candimulti_corrected[ssdindex]++;
+									  h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+										break;
+									}
 							  }
 							}
 						}
@@ -681,12 +769,16 @@ void L1L2_DecodefGlobalMulti2::L1L2_GlobalMulti2_Decode_010()
 						for (Int_t itrack=0; itrack<globalmulti; itrack++) {
 							if (L1L2_L2FTime[ssdindex][itrack]>SiTimeCut_Low[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]] && L1L2_L2FTime[ssdindex][itrack]<SiTimeCut_Up[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]])
 						  {
-							  h2_L1L2_DEE_Discard[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+								if (!IsStripsOnCsIGap(L1L2_L2BStripNum[ssdindex][itrack], L1L2_L2FStripNum[ssdindex][itrack]))
+								{
+								  h2_L1L2_DEE_Discard[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+								}
 							}
 						}
 					}
 					//
 					if (candimulti_sharing[ssdindex] > 0) {
+						Sharing_Entries[ssdindex]++;
 						for (Int_t itrack=0; itrack<globalmulti; itrack++) {
 							if (L1L2_L2FTime[ssdindex][itrack]>SiTimeCut_Low[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]] && L1L2_L2FTime[ssdindex][itrack]<SiTimeCut_Up[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]])
 						  {
@@ -700,25 +792,47 @@ void L1L2_DecodefGlobalMulti2::L1L2_GlobalMulti2_Decode_010()
     }
   }
 
-  // 计算比例
+	//
+  TFile* fileout = new TFile(Form("/home/sea/Fission2019_Data/TrackDecoded/L1L2_g%d_0%s.root",globalmulti,mode),"RECREATE");
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    fileout->WriteTObject(&h2_L1L2_DEE[ssdindex],Form("h2_DEE_SSD%d_g%d_0%s",ssdindex+1,globalmulti,mode));
+  }
+  //
+	for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    fileout->WriteTObject(&h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex],Form("h2_GOOD_SSD%d_g%d_0%s",ssdindex+1,globalmulti,mode));
+  }
+	//
+	for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    fileout->WriteTObject(&h2_L1L2_DEE_Discard[ssdindex],Form("h2_LOST_SSD%d_g%d_0%s",ssdindex+1,globalmulti,mode));
+  }
+
+	// 计算比例
   Int_t entry_all[NUM_SSD] = {0};
   Int_t entry_discard[NUM_SSD] = {0};
   for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
     entry_all[ssdindex] = h2_L1L2_DEE[ssdindex].GetEntries();
     entry_discard[ssdindex] = h2_L1L2_DEE_Discard[ssdindex].GetEntries();
 
-    lost_ratio[ssdindex] = (Double_t) entry_discard[ssdindex]/entry_all[ssdindex] * 100;
+    lost_ratio[ssdindex]    = (Double_t) entry_discard[ssdindex]/entry_all[ssdindex] * 100;
+		MHits_Ratio[ssdindex]   = (Double_t) MHits_Entries[ssdindex] * globalmulti/entry_all[ssdindex] * 100;
+    Sharing_Ratio[ssdindex] = (Double_t) Sharing_Entries[ssdindex] * globalmulti/entry_all[ssdindex] * 100;
   }
 
-  // 定义 latex
-  Double_t x1,y1;
+	// 定义 latex
+  Double_t x1,y1,x2,y2;
   TLatex* latex_ratio[NUM_SSD];
+  TLatex* latex_decoded[NUM_SSD];
   for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
-    x1 = 0.25 * EL2Range[ssdindex];
-    y1 = 0.90 * EL1Range[ssdindex];
-    latex_ratio[ssdindex] = new TLatex(x1, y1, Form("r_{lost} = %.4f%%",lost_ratio[ssdindex]));
+    x1 = 0.4 * EL2Range[ssdindex];
+    y1 = 0.8 * EL1Range[ssdindex];
+    x2 = 0.2 * EL2Range[ssdindex];
+    y2 = 0.5 * EL1Range[ssdindex];
+    latex_ratio[ssdindex] = new TLatex(x1, y1, Form("r_{lost} = %.2f%%",lost_ratio[ssdindex]));
     latex_ratio[ssdindex]->SetTextSize(0.05);
     latex_ratio[ssdindex]->SetTextColor(kOrange);
+    latex_decoded[ssdindex] = new TLatex(x2, y2, Form("r_{sh}=%.4f%%, r_{mh}=%.4f%%",Sharing_Ratio[ssdindex],MHits_Ratio[ssdindex]));
+    latex_decoded[ssdindex]->SetTextSize(0.05);
+    latex_decoded[ssdindex]->SetTextColor(kOrange);
   }
 
 	// 定义 Legend
@@ -755,6 +869,7 @@ void L1L2_DecodefGlobalMulti2::L1L2_GlobalMulti2_Decode_010()
     cans.cd(3);
     h2_L1L2_DEE_Discard[ssdindex].Draw("COL");
 		latex_ratio[ssdindex]->Draw("SAME");
+		latex_decoded[ssdindex]->Draw("SAME");
 
     //
     cans.cd(4);
@@ -803,6 +918,11 @@ void L1L2_DecodefGlobalMulti2::L1L2_GlobalMulti2_Decode_100()
 
 	Double_t EL2B_Sum;
 
+	Double_t MHits_Ratio[NUM_SSD]   = {0};
+  Double_t Sharing_Ratio[NUM_SSD] = {0};
+  Int_t MHits_Entries[NUM_SSD]    = {0};
+  Int_t Sharing_Entries[NUM_SSD]  = {0};
+
   std::string pathPDFOut(Form("%sfigure_TrackReconstruction/L1L2_GlobalMulti%d_Decode_%s.pdf",PATHFIGURESFOLDER,globalmulti,mode));
   std::string pathPDFOutBegin(Form("%sfigure_TrackReconstruction/L1L2_GlobalMulti%d_Decode_%s.pdf[",PATHFIGURESFOLDER,globalmulti,mode));
   std::string pathPDFOutEnd(Form("%sfigure_TrackReconstruction/L1L2_GlobalMulti%d_Decode_%s.pdf]",PATHFIGURESFOLDER,globalmulti,mode));
@@ -828,7 +948,7 @@ void L1L2_DecodefGlobalMulti2::L1L2_GlobalMulti2_Decode_100()
   }
 
   printf("Processing mode g%d-%s ...\n", globalmulti, mode);
-  trackreconstruct->fChainTrackTree->SetEntries(10000000);
+  //trackreconstruct->fChainTrackTree->SetEntries(100000);
   Long64_t nentries = trackreconstruct->fChainTrackTree->GetEntries();
   cout<<"Found nentries = "<<nentries<<endl;
 
@@ -875,18 +995,21 @@ void L1L2_DecodefGlobalMulti2::L1L2_GlobalMulti2_Decode_100()
           for (Int_t itrack=0; itrack<globalmulti; itrack++) {
 					  if (L1L2_L2FTime[ssdindex][itrack]>SiTimeCut_Low[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]] && L1L2_L2FTime[ssdindex][itrack]<SiTimeCut_Up[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]])
 					  {
-						  h2_L1L2_DEE[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+							if (!IsStripsOnCsIGap(L1L2_L2BStripNum[ssdindex][itrack], L1L2_L2FStripNum[ssdindex][itrack]))
+							{
+								h2_L1L2_DEE[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
 
-	            // 填充 mode statistic
-	            bin_index[itrack] = trackreconstruct->L1L2_GetSubModeFromEneConstraints(trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,L1L2_L2BEMeV[ssdindex][itrack],L1L2_L2FEMeV[ssdindex][itrack]),
-							                                                                        trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]));
-					    h1_modestat[ssdindex]->Fill(bin_index[itrack]);
+							 // 填充 mode statistic
+							 bin_index[itrack] = trackreconstruct->L1L2_GetSubModeFromEneConstraints(trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,L1L2_L2BEMeV[ssdindex][itrack],L1L2_L2FEMeV[ssdindex][itrack]),
+																																											 trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]));
+							 h1_modestat[ssdindex]->Fill(bin_index[itrack]);
 
-	            if (trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,L1L2_L2BEMeV[ssdindex][itrack],L1L2_L2FEMeV[ssdindex][itrack]) &&
-	                trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]))
-	            {
-	              candimulti[ssdindex]++;
-	            }
+							 if (trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,L1L2_L2BEMeV[ssdindex][itrack],L1L2_L2FEMeV[ssdindex][itrack]) &&
+									 trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]))
+							 {
+								 candimulti[ssdindex]++;
+							 }
+						 }
 					  }
           }
           //____________________________________________________________________
@@ -899,9 +1022,12 @@ void L1L2_DecodefGlobalMulti2::L1L2_GlobalMulti2_Decode_100()
 							 (trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,EL2B_Sum,L1L2_L2FEMeV[ssdindex][0])) &&
 							 (trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2FEMeV[ssdindex][0],L1L2_L1SEMeV_Corrected[ssdindex][0])) )
           {
-						candimulti_corrected[ssdindex]++;
-						candimulti_sharing[ssdindex]++;
-						h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][0],L1L2_L1SEMeV_Corrected[ssdindex][0]);
+						if (!IsStripsOnCsIGap(L1L2_L2BStripNum[ssdindex][0], L1L2_L2FStripNum[ssdindex][0]))
+						{
+							candimulti_corrected[ssdindex]++;
+							candimulti_sharing[ssdindex]++;
+							h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][0],L1L2_L1SEMeV_Corrected[ssdindex][0]);
+						}
 					}
 					else {
 						for (Int_t itrack=0; itrack<globalmulti; itrack++) {
@@ -910,9 +1036,12 @@ void L1L2_DecodefGlobalMulti2::L1L2_GlobalMulti2_Decode_100()
 							  if (trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,L1L2_L2BEMeV[ssdindex][itrack],L1L2_L2FEMeV[ssdindex][itrack]) &&
 						        trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]))
 							  {
-								  candimulti_corrected[ssdindex]++;
-								  h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
-									break;
+									if (!IsStripsOnCsIGap(L1L2_L2BStripNum[ssdindex][itrack], L1L2_L2FStripNum[ssdindex][itrack]))
+									{
+										candimulti_corrected[ssdindex]++;
+									  h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+										break;
+									}
 							  }
 							}
 						}
@@ -934,12 +1063,16 @@ void L1L2_DecodefGlobalMulti2::L1L2_GlobalMulti2_Decode_100()
 						for (Int_t itrack=0; itrack<globalmulti; itrack++) {
 							if (L1L2_L2FTime[ssdindex][itrack]>SiTimeCut_Low[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]] && L1L2_L2FTime[ssdindex][itrack]<SiTimeCut_Up[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]])
 						  {
-							  h2_L1L2_DEE_Discard[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+								if (!IsStripsOnCsIGap(L1L2_L2BStripNum[ssdindex][itrack], L1L2_L2FStripNum[ssdindex][itrack]))
+								{
+								  h2_L1L2_DEE_Discard[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+								}
 							}
 						}
 					}
 					//
 					if (candimulti_sharing[ssdindex] > 0) {
+						Sharing_Entries[ssdindex]++;
 						for (Int_t itrack=0; itrack<globalmulti; itrack++) {
 							if (L1L2_L2FTime[ssdindex][itrack]>SiTimeCut_Low[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]] && L1L2_L2FTime[ssdindex][itrack]<SiTimeCut_Up[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]])
 						  {
@@ -953,14 +1086,47 @@ void L1L2_DecodefGlobalMulti2::L1L2_GlobalMulti2_Decode_100()
     }
   }
 
-  // 计算比例
+	//
+  TFile* fileout = new TFile(Form("/home/sea/Fission2019_Data/TrackDecoded/L1L2_g%d_0%s.root",globalmulti,mode),"RECREATE");
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    fileout->WriteTObject(&h2_L1L2_DEE[ssdindex],Form("h2_DEE_SSD%d_g%d_0%s",ssdindex+1,globalmulti,mode));
+  }
+  //
+	for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    fileout->WriteTObject(&h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex],Form("h2_GOOD_SSD%d_g%d_0%s",ssdindex+1,globalmulti,mode));
+  }
+	//
+	for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    fileout->WriteTObject(&h2_L1L2_DEE_Discard[ssdindex],Form("h2_LOST_SSD%d_g%d_0%s",ssdindex+1,globalmulti,mode));
+  }
+
+	// 计算比例
   Int_t entry_all[NUM_SSD] = {0};
   Int_t entry_discard[NUM_SSD] = {0};
   for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
     entry_all[ssdindex] = h2_L1L2_DEE[ssdindex].GetEntries();
     entry_discard[ssdindex] = h2_L1L2_DEE_Discard[ssdindex].GetEntries();
 
-    lost_ratio[ssdindex] = (Double_t) entry_discard[ssdindex]/entry_all[ssdindex] * 100;
+    lost_ratio[ssdindex]    = (Double_t) entry_discard[ssdindex]/entry_all[ssdindex] * 100;
+		MHits_Ratio[ssdindex]   = (Double_t) MHits_Entries[ssdindex] * globalmulti/entry_all[ssdindex] * 100;
+    Sharing_Ratio[ssdindex] = (Double_t) Sharing_Entries[ssdindex] * globalmulti/entry_all[ssdindex] * 100;
+  }
+
+	// 定义 latex
+  Double_t x1,y1,x2,y2;
+  TLatex* latex_ratio[NUM_SSD];
+  TLatex* latex_decoded[NUM_SSD];
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    x1 = 0.4 * EL2Range[ssdindex];
+    y1 = 0.8 * EL1Range[ssdindex];
+    x2 = 0.2 * EL2Range[ssdindex];
+    y2 = 0.5 * EL1Range[ssdindex];
+    latex_ratio[ssdindex] = new TLatex(x1, y1, Form("r_{lost} = %.2f%%",lost_ratio[ssdindex]));
+    latex_ratio[ssdindex]->SetTextSize(0.05);
+    latex_ratio[ssdindex]->SetTextColor(kOrange);
+    latex_decoded[ssdindex] = new TLatex(x2, y2, Form("r_{sh}=%.4f%%, r_{mh}=%.4f%%",Sharing_Ratio[ssdindex],MHits_Ratio[ssdindex]));
+    latex_decoded[ssdindex]->SetTextSize(0.05);
+    latex_decoded[ssdindex]->SetTextColor(kOrange);
   }
 
 	// 定义 Legend
@@ -971,17 +1137,6 @@ void L1L2_DecodefGlobalMulti2::L1L2_GlobalMulti2_Decode_100()
     legend_SubMode[ssdindex]->AddEntry(h1_modestat[ssdindex],"sub-modes","l");
 		legend_SubMode[ssdindex]->AddEntry(h1_SubmodeCorrected[ssdindex],"corrected","l");
 		legend_SubMode[ssdindex]->AddEntry(h1_SubmodeSharing[ssdindex],"sharing","l");
-  }
-
-  // 定义 latex
-  Double_t x1,y1;
-  TLatex* latex_ratio[NUM_SSD];
-  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
-    x1 = 0.25 * EL2Range[ssdindex];
-    y1 = 0.90 * EL1Range[ssdindex];
-    latex_ratio[ssdindex] = new TLatex(x1, y1, Form("r_{lost} = %.4f%%",lost_ratio[ssdindex]));
-    latex_ratio[ssdindex]->SetTextSize(0.05);
-    latex_ratio[ssdindex]->SetTextColor(kOrange);
   }
 
   // 画图
@@ -1008,6 +1163,7 @@ void L1L2_DecodefGlobalMulti2::L1L2_GlobalMulti2_Decode_100()
     cans.cd(3);
     h2_L1L2_DEE_Discard[ssdindex].Draw("COL");
 		latex_ratio[ssdindex]->Draw("SAME");
+		latex_decoded[ssdindex]->Draw("SAME");
 
     //
     cans.cd(4);
@@ -1058,6 +1214,11 @@ void L1L2_DecodefGlobalMulti2::L1L2_GlobalMulti2_Decode_101()
 	Double_t EL2B_Sum01;
 	Double_t EL1S_Sum01;
 
+	Double_t MHits_Ratio[NUM_SSD]   = {0};
+  Double_t Sharing_Ratio[NUM_SSD] = {0};
+  Int_t MHits_Entries[NUM_SSD]    = {0};
+  Int_t Sharing_Entries[NUM_SSD]  = {0};
+
   std::string pathPDFOut(Form("%sfigure_TrackReconstruction/L1L2_GlobalMulti%d_Decode_%s.pdf",PATHFIGURESFOLDER,globalmulti,mode));
   std::string pathPDFOutBegin(Form("%sfigure_TrackReconstruction/L1L2_GlobalMulti%d_Decode_%s.pdf[",PATHFIGURESFOLDER,globalmulti,mode));
   std::string pathPDFOutEnd(Form("%sfigure_TrackReconstruction/L1L2_GlobalMulti%d_Decode_%s.pdf]",PATHFIGURESFOLDER,globalmulti,mode));
@@ -1085,7 +1246,7 @@ void L1L2_DecodefGlobalMulti2::L1L2_GlobalMulti2_Decode_101()
   }
 
   printf("Processing mode g%d-%s ...\n", globalmulti, mode);
-  trackreconstruct->fChainTrackTree->SetEntries(10000000);
+  //trackreconstruct->fChainTrackTree->SetEntries(100000);
   Long64_t nentries = trackreconstruct->fChainTrackTree->GetEntries();
   cout<<"Found nentries = "<<nentries<<endl;
 
@@ -1107,6 +1268,7 @@ void L1L2_DecodefGlobalMulti2::L1L2_GlobalMulti2_Decode_101()
       candimulti[ssdindex] = 0;
       candimulti_corrected[ssdindex] = 0;
 			candimulti_2hit[ssdindex] = 0;
+			candimulti_sharing[ssdindex] = 0;
 
       if (trackreconstruct->fTrackEvent.fSSDGlobalMulti[ssdindex] == globalmulti) {
         for (Int_t gmulti=0; gmulti<trackreconstruct->fTrackEvent.fGlobalMulti; gmulti++) {
@@ -1132,18 +1294,21 @@ void L1L2_DecodefGlobalMulti2::L1L2_GlobalMulti2_Decode_101()
           for (Int_t itrack=0; itrack<globalmulti; itrack++) {
 					  if (L1L2_L2FTime[ssdindex][itrack]>SiTimeCut_Low[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]] && L1L2_L2FTime[ssdindex][itrack]<SiTimeCut_Up[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]])
 					  {
-						  h2_L1L2_DEE[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+							if (!IsStripsOnCsIGap(L1L2_L2BStripNum[ssdindex][itrack], L1L2_L2FStripNum[ssdindex][itrack]))
+							{
+								h2_L1L2_DEE[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
 
-	            // 填充 mode statistic
-	            bin_index[itrack] = trackreconstruct->L1L2_GetSubModeFromEneConstraints(trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,L1L2_L2BEMeV[ssdindex][itrack],L1L2_L2FEMeV[ssdindex][itrack]),
-							                                                                        trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]));
-					    h1_modestat[ssdindex]->Fill(bin_index[itrack]);
+		            // 填充 mode statistic
+		            bin_index[itrack] = trackreconstruct->L1L2_GetSubModeFromEneConstraints(trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,L1L2_L2BEMeV[ssdindex][itrack],L1L2_L2FEMeV[ssdindex][itrack]),
+								                                                                        trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]));
+						    h1_modestat[ssdindex]->Fill(bin_index[itrack]);
 
-	            if (trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,L1L2_L2BEMeV[ssdindex][itrack],L1L2_L2FEMeV[ssdindex][itrack]) &&
-	                trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]))
-	            {
-	              candimulti[ssdindex]++;
-	            }
+		            if (trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,L1L2_L2BEMeV[ssdindex][itrack],L1L2_L2FEMeV[ssdindex][itrack]) &&
+		                trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]))
+		            {
+		              candimulti[ssdindex]++;
+		            }
+							}
 					  }
           }
           //____________________________________________________________________
@@ -1153,11 +1318,15 @@ void L1L2_DecodefGlobalMulti2::L1L2_GlobalMulti2_Decode_101()
 					EL1S_Sum01 = L1L2_L1SEMeV[ssdindex][0]+L1L2_L1SEMeV[ssdindex][1];
 					//
 					// 考虑 L2F 双击
-					if ( (trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,EL2B_Sum01,L1L2_L2FEMeV[ssdindex][0])) )
+					if ( (trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,EL2B_Sum01,L1L2_L2FEMeV[ssdindex][0])) &&
+				       (trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2BEMeV[ssdindex][0]*EL2B_TO_EL2F_SCALE[ssdindex],L1L2_L1SEMeV_Corrected[ssdindex][0])) &&
+					     (trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2BEMeV[ssdindex][1]*EL2B_TO_EL2F_SCALE[ssdindex],L1L2_L1SEMeV_Corrected[ssdindex][1])) &&
+				       (L1L2_L2FTime[ssdindex][0]>SiTimeCut_Low[ssdindex][L1L2_L2FStripNum[ssdindex][0]] && L1L2_L2FTime[ssdindex][0]<SiTimeCut_Up[ssdindex][L1L2_L2FStripNum[ssdindex][0]]) &&
+						   (L1L2_L2FTime[ssdindex][1]>SiTimeCut_Low[ssdindex][L1L2_L2FStripNum[ssdindex][1]] && L1L2_L2FTime[ssdindex][1]<SiTimeCut_Up[ssdindex][L1L2_L2FStripNum[ssdindex][1]]))
 					{
 						for (Int_t itrack=0; itrack<globalmulti; itrack++)
 						{
-							if (trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2BEMeV[ssdindex][itrack]*EL2B_TO_EL2F_SCALE[ssdindex],L1L2_L1SEMeV_Corrected[ssdindex][itrack]))
+							if (!IsStripsOnCsIGap(L1L2_L2BStripNum[ssdindex][itrack], L1L2_L2FStripNum[ssdindex][itrack]))
 							{
 								candimulti_corrected[ssdindex]++;
 								candimulti_2hit[ssdindex]++;
@@ -1173,9 +1342,12 @@ void L1L2_DecodefGlobalMulti2::L1L2_GlobalMulti2_Decode_101()
             if ( (TMath::Abs(L1L2_L1SStripNum[ssdindex][0]-L1L2_L1SStripNum[ssdindex][1])==1) &&
 							   (trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2FEMeV[ssdindex][0],EL1S_Sum01)) )
 						{
-							candimulti_corrected[ssdindex]++;
-							candimulti_sharing[ssdindex]++;
-							h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][0],EL1S_Sum01);
+							if (!IsStripsOnCsIGap(L1L2_L2BStripNum[ssdindex][0], L1L2_L2FStripNum[ssdindex][0]))
+							{
+								candimulti_corrected[ssdindex]++;
+								candimulti_sharing[ssdindex]++;
+								h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][0],EL1S_Sum01);
+							}
 						}
 						else
 						{
@@ -1183,10 +1355,13 @@ void L1L2_DecodefGlobalMulti2::L1L2_GlobalMulti2_Decode_101()
 							{
 								if (trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]))
 								{
-									candimulti_corrected[ssdindex]++;
-									candimulti_sharing[ssdindex]++;
-									h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
-									break;
+									if (!IsStripsOnCsIGap(L1L2_L2BStripNum[ssdindex][itrack], L1L2_L2FStripNum[ssdindex][itrack]))
+									{
+										candimulti_corrected[ssdindex]++;
+										candimulti_sharing[ssdindex]++;
+										h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+										break;
+									}
 								}
 							}
 						}
@@ -1198,9 +1373,12 @@ void L1L2_DecodefGlobalMulti2::L1L2_GlobalMulti2_Decode_101()
 							  if (trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,L1L2_L2BEMeV[ssdindex][itrack],L1L2_L2FEMeV[ssdindex][itrack]) &&
 						        trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]))
 							  {
-								  candimulti_corrected[ssdindex]++;
-								  h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
-									break;
+									if (!IsStripsOnCsIGap(L1L2_L2BStripNum[ssdindex][itrack], L1L2_L2FStripNum[ssdindex][itrack]))
+									{
+										candimulti_corrected[ssdindex]++;
+									  h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+										break;
+									}
 							  }
 							}
 						}
@@ -1222,12 +1400,16 @@ void L1L2_DecodefGlobalMulti2::L1L2_GlobalMulti2_Decode_101()
 						for (Int_t itrack=0; itrack<globalmulti; itrack++) {
 							if (L1L2_L2FTime[ssdindex][itrack]>SiTimeCut_Low[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]] && L1L2_L2FTime[ssdindex][itrack]<SiTimeCut_Up[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]])
 						  {
-							  h2_L1L2_DEE_Discard[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+								if (!IsStripsOnCsIGap(L1L2_L2BStripNum[ssdindex][itrack], L1L2_L2FStripNum[ssdindex][itrack]))
+							  {
+									h2_L1L2_DEE_Discard[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+								}
 							}
 						}
 					}
 					//
 					if (candimulti_2hit[ssdindex] > 0) {
+						MHits_Entries[ssdindex]++;
 						for (Int_t itrack=0; itrack<globalmulti; itrack++) {
 							if (L1L2_L2FTime[ssdindex][itrack]>SiTimeCut_Low[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]] && L1L2_L2FTime[ssdindex][itrack]<SiTimeCut_Up[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]])
 						  {
@@ -1237,6 +1419,7 @@ void L1L2_DecodefGlobalMulti2::L1L2_GlobalMulti2_Decode_101()
 					}
 					//
 					if (candimulti_sharing[ssdindex] > 0) {
+						Sharing_Entries[ssdindex]++;
 						for (Int_t itrack=0; itrack<globalmulti; itrack++) {
 							if (L1L2_L2FTime[ssdindex][itrack]>SiTimeCut_Low[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]] && L1L2_L2FTime[ssdindex][itrack]<SiTimeCut_Up[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]])
 						  {
@@ -1249,25 +1432,47 @@ void L1L2_DecodefGlobalMulti2::L1L2_GlobalMulti2_Decode_101()
     }
   }
 
-  // 计算比例
+	//
+  TFile* fileout = new TFile(Form("/home/sea/Fission2019_Data/TrackDecoded/L1L2_g%d_0%s.root",globalmulti,mode),"RECREATE");
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    fileout->WriteTObject(&h2_L1L2_DEE[ssdindex],Form("h2_DEE_SSD%d_g%d_0%s",ssdindex+1,globalmulti,mode));
+  }
+  //
+	for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    fileout->WriteTObject(&h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex],Form("h2_GOOD_SSD%d_g%d_0%s",ssdindex+1,globalmulti,mode));
+  }
+	//
+	for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    fileout->WriteTObject(&h2_L1L2_DEE_Discard[ssdindex],Form("h2_LOST_SSD%d_g%d_0%s",ssdindex+1,globalmulti,mode));
+  }
+
+	// 计算比例
   Int_t entry_all[NUM_SSD] = {0};
   Int_t entry_discard[NUM_SSD] = {0};
   for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
     entry_all[ssdindex] = h2_L1L2_DEE[ssdindex].GetEntries();
     entry_discard[ssdindex] = h2_L1L2_DEE_Discard[ssdindex].GetEntries();
 
-    lost_ratio[ssdindex] = (Double_t) entry_discard[ssdindex]/entry_all[ssdindex] * 100;
+    lost_ratio[ssdindex]    = (Double_t) entry_discard[ssdindex]/entry_all[ssdindex] * 100;
+		MHits_Ratio[ssdindex]   = (Double_t) MHits_Entries[ssdindex] * globalmulti/entry_all[ssdindex] * 100;
+    Sharing_Ratio[ssdindex] = (Double_t) Sharing_Entries[ssdindex] * globalmulti/entry_all[ssdindex] * 100;
   }
 
-  // 定义 latex
-  Double_t x1,y1;
+	// 定义 latex
+  Double_t x1,y1,x2,y2;
   TLatex* latex_ratio[NUM_SSD];
+  TLatex* latex_decoded[NUM_SSD];
   for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
-    x1 = 0.25 * EL2Range[ssdindex];
-    y1 = 0.90 * EL1Range[ssdindex];
-    latex_ratio[ssdindex] = new TLatex(x1, y1, Form("r_{lost} = %.4f%%",lost_ratio[ssdindex]));
+    x1 = 0.4 * EL2Range[ssdindex];
+    y1 = 0.8 * EL1Range[ssdindex];
+    x2 = 0.2 * EL2Range[ssdindex];
+    y2 = 0.5 * EL1Range[ssdindex];
+    latex_ratio[ssdindex] = new TLatex(x1, y1, Form("r_{lost} = %.2f%%",lost_ratio[ssdindex]));
     latex_ratio[ssdindex]->SetTextSize(0.05);
     latex_ratio[ssdindex]->SetTextColor(kOrange);
+    latex_decoded[ssdindex] = new TLatex(x2, y2, Form("r_{sh}=%.4f%%, r_{mh}=%.4f%%",Sharing_Ratio[ssdindex],MHits_Ratio[ssdindex]));
+    latex_decoded[ssdindex]->SetTextSize(0.05);
+    latex_decoded[ssdindex]->SetTextColor(kOrange);
   }
 
 	// 定义 Legend
@@ -1305,6 +1510,7 @@ void L1L2_DecodefGlobalMulti2::L1L2_GlobalMulti2_Decode_101()
     cans.cd(3);
     h2_L1L2_DEE_Discard[ssdindex].Draw("COL");
 		latex_ratio[ssdindex]->Draw("SAME");
+		latex_decoded[ssdindex]->Draw("SAME");
 
     //
     cans.cd(4);
@@ -1420,7 +1626,7 @@ void L1L2_DecodefGlobalMulti3::L1L2_GlobalMulti3_Decode_002()
   }
 
   printf("Processing mode g%d-%s ...\n", globalmulti, mode);
-  trackreconstruct->fChainTrackTree->SetEntries(10000000);
+  //trackreconstruct->fChainTrackTree->SetEntries(10000000);
   Long64_t nentries = trackreconstruct->fChainTrackTree->GetEntries();
   cout<<"Found nentries = "<<nentries<<endl;
 
@@ -1467,18 +1673,21 @@ void L1L2_DecodefGlobalMulti3::L1L2_GlobalMulti3_Decode_002()
           for (Int_t itrack=0; itrack<globalmulti; itrack++) {
 					  if (L1L2_L2FTime[ssdindex][itrack]>SiTimeCut_Low[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]] && L1L2_L2FTime[ssdindex][itrack]<SiTimeCut_Up[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]])
 					  {
-						  h2_L1L2_DEE[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+							if (!IsStripsOnCsIGap(L1L2_L2BStripNum[ssdindex][itrack], L1L2_L2FStripNum[ssdindex][itrack]))
+							{
+								h2_L1L2_DEE[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
 
-	            // 填充 mode statistic
-	            bin_index[itrack] = trackreconstruct->L1L2_GetSubModeFromEneConstraints(trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,L1L2_L2BEMeV[ssdindex][itrack],L1L2_L2FEMeV[ssdindex][itrack]),
-							                                                                        trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]));
-					    h1_modestat[ssdindex]->Fill(bin_index[itrack]);
+		            // 填充 mode statistic
+		            bin_index[itrack] = trackreconstruct->L1L2_GetSubModeFromEneConstraints(trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,L1L2_L2BEMeV[ssdindex][itrack],L1L2_L2FEMeV[ssdindex][itrack]),
+								                                                                        trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]));
+						    h1_modestat[ssdindex]->Fill(bin_index[itrack]);
 
-	            if (trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,L1L2_L2BEMeV[ssdindex][itrack],L1L2_L2FEMeV[ssdindex][itrack]) &&
-	                trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]))
-	            {
-	              candimulti[ssdindex]++;
-	            }
+		            if (trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,L1L2_L2BEMeV[ssdindex][itrack],L1L2_L2FEMeV[ssdindex][itrack]) &&
+		                trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]))
+		            {
+		              candimulti[ssdindex]++;
+		            }
+							}
 					  }
           }
           //____________________________________________________________________
@@ -1490,9 +1699,12 @@ void L1L2_DecodefGlobalMulti3::L1L2_GlobalMulti3_Decode_002()
 						  if (trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,L1L2_L2BEMeV[ssdindex][itrack],L1L2_L2FEMeV[ssdindex][itrack]) &&
 					        trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]))
 						  {
-							  candimulti_corrected[ssdindex]++;
-							  h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
-								break;
+								if (!IsStripsOnCsIGap(L1L2_L2BStripNum[ssdindex][itrack], L1L2_L2FStripNum[ssdindex][itrack]))
+							  {
+									candimulti_corrected[ssdindex]++;
+								  h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+									break;
+								}
 						  }
 						}
 					}
@@ -1513,7 +1725,10 @@ void L1L2_DecodefGlobalMulti3::L1L2_GlobalMulti3_Decode_002()
 						for (Int_t itrack=0; itrack<globalmulti; itrack++) {
 							if (L1L2_L2FTime[ssdindex][itrack]>SiTimeCut_Low[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]] && L1L2_L2FTime[ssdindex][itrack]<SiTimeCut_Up[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]])
 						  {
-							  h2_L1L2_DEE_Discard[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+								if (!IsStripsOnCsIGap(L1L2_L2BStripNum[ssdindex][itrack], L1L2_L2FStripNum[ssdindex][itrack]))
+							  {
+								  h2_L1L2_DEE_Discard[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+								}
 							}
 						}
 					}
@@ -1530,6 +1745,20 @@ void L1L2_DecodefGlobalMulti3::L1L2_GlobalMulti3_Decode_002()
 				}
       }
     }
+  }
+
+	//
+  TFile* fileout = new TFile(Form("/home/sea/Fission2019_Data/TrackDecoded/L1L2_g%d_0%s.root",globalmulti,mode),"RECREATE");
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    fileout->WriteTObject(&h2_L1L2_DEE[ssdindex],Form("h2_DEE_SSD%d_g%d_0%s",ssdindex+1,globalmulti,mode));
+  }
+  //
+	for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    fileout->WriteTObject(&h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex],Form("h2_GOOD_SSD%d_g%d_0%s",ssdindex+1,globalmulti,mode));
+  }
+	//
+	for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    fileout->WriteTObject(&h2_L1L2_DEE_Discard[ssdindex],Form("h2_LOST_SSD%d_g%d_0%s",ssdindex+1,globalmulti,mode));
   }
 
   // 计算比例
@@ -1636,6 +1865,11 @@ void L1L2_DecodefGlobalMulti3::L1L2_GlobalMulti3_Decode_020()
 	Double_t EL2F_Sum01;
 	Double_t EL2F_Sum12;
 
+	Double_t MHits_Ratio[NUM_SSD]   = {0};
+  Double_t Sharing_Ratio[NUM_SSD] = {0};
+  Int_t MHits_Entries[NUM_SSD]    = {0};
+  Int_t Sharing_Entries[NUM_SSD]  = {0};
+
   std::string pathPDFOut(Form("%sfigure_TrackReconstruction/L1L2_GlobalMulti%d_Decode_%s.pdf",PATHFIGURESFOLDER,globalmulti,mode));
   std::string pathPDFOutBegin(Form("%sfigure_TrackReconstruction/L1L2_GlobalMulti%d_Decode_%s.pdf[",PATHFIGURESFOLDER,globalmulti,mode));
   std::string pathPDFOutEnd(Form("%sfigure_TrackReconstruction/L1L2_GlobalMulti%d_Decode_%s.pdf]",PATHFIGURESFOLDER,globalmulti,mode));
@@ -1661,7 +1895,7 @@ void L1L2_DecodefGlobalMulti3::L1L2_GlobalMulti3_Decode_020()
   }
 
   printf("Processing mode g%d-%s ...\n", globalmulti, mode);
-  trackreconstruct->fChainTrackTree->SetEntries(10000000);
+  //trackreconstruct->fChainTrackTree->SetEntries(1000000);
   Long64_t nentries = trackreconstruct->fChainTrackTree->GetEntries();
   cout<<"Found nentries = "<<nentries<<endl;
 
@@ -1708,18 +1942,21 @@ void L1L2_DecodefGlobalMulti3::L1L2_GlobalMulti3_Decode_020()
           for (Int_t itrack=0; itrack<globalmulti; itrack++) {
 					  if (L1L2_L2FTime[ssdindex][itrack]>SiTimeCut_Low[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]] && L1L2_L2FTime[ssdindex][itrack]<SiTimeCut_Up[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]])
 					  {
-						  h2_L1L2_DEE[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+							if (!IsStripsOnCsIGap(L1L2_L2BStripNum[ssdindex][itrack], L1L2_L2FStripNum[ssdindex][itrack]))
+							{
+								h2_L1L2_DEE[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
 
-	            // 填充 mode statistic
-	            bin_index[itrack] = trackreconstruct->L1L2_GetSubModeFromEneConstraints(trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,L1L2_L2BEMeV[ssdindex][itrack],L1L2_L2FEMeV[ssdindex][itrack]),
-							                                                                        trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]));
-					    h1_modestat[ssdindex]->Fill(bin_index[itrack]);
+		            // 填充 mode statistic
+		            bin_index[itrack] = trackreconstruct->L1L2_GetSubModeFromEneConstraints(trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,L1L2_L2BEMeV[ssdindex][itrack],L1L2_L2FEMeV[ssdindex][itrack]),
+								                                                                        trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]));
+						    h1_modestat[ssdindex]->Fill(bin_index[itrack]);
 
-	            if (trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,L1L2_L2BEMeV[ssdindex][itrack],L1L2_L2FEMeV[ssdindex][itrack]) &&
-	                trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]))
-	            {
-	              candimulti[ssdindex]++;
-	            }
+		            if (trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,L1L2_L2BEMeV[ssdindex][itrack],L1L2_L2FEMeV[ssdindex][itrack]) &&
+		                trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]))
+		            {
+		              candimulti[ssdindex]++;
+		            }
+							}
 					  }
           }
           //____________________________________________________________________
@@ -1734,9 +1971,12 @@ void L1L2_DecodefGlobalMulti3::L1L2_GlobalMulti3_Decode_020()
 							 (trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,L1L2_L2BEMeV[ssdindex][0],EL2F_Sum01)) &&
 							 (trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],EL2F_Sum01,L1L2_L1SEMeV_Corrected[ssdindex][0])) )
           {
-						candimulti_corrected[ssdindex]++;
-						candimulti_sharing[ssdindex]++;
-						h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(EL2F_Sum01,L1L2_L1SEMeV_Corrected[ssdindex][0]);
+						if (!IsStripsOnCsIGap(L1L2_L2BStripNum[ssdindex][0], L1L2_L2FStripNum[ssdindex][0]))
+						{
+							candimulti_corrected[ssdindex]++;
+							candimulti_sharing[ssdindex]++;
+							h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(EL2F_Sum01,L1L2_L1SEMeV_Corrected[ssdindex][0]);
+						}
 					}
 					else if ( ((L1L2_L2FTime[ssdindex][1]>SiTimeCut_Low[ssdindex][L1L2_L2FStripNum[ssdindex][1]] && L1L2_L2FTime[ssdindex][1]<SiTimeCut_Up[ssdindex][L1L2_L2FStripNum[ssdindex][1]]) ||
 					           (L1L2_L2FTime[ssdindex][2]>SiTimeCut_Low[ssdindex][L1L2_L2FStripNum[ssdindex][2]] && L1L2_L2FTime[ssdindex][2]<SiTimeCut_Up[ssdindex][L1L2_L2FStripNum[ssdindex][2]])) &&
@@ -1744,9 +1984,12 @@ void L1L2_DecodefGlobalMulti3::L1L2_GlobalMulti3_Decode_020()
 							    	(trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,L1L2_L2BEMeV[ssdindex][1],EL2F_Sum12)) &&
 								    (trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],EL2F_Sum12,L1L2_L1SEMeV_Corrected[ssdindex][1])) )
           {
-						candimulti_corrected[ssdindex]++;
-						candimulti_sharing[ssdindex]++;
-						h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(EL2F_Sum12,L1L2_L1SEMeV_Corrected[ssdindex][1]);
+						if (!IsStripsOnCsIGap(L1L2_L2BStripNum[ssdindex][1], L1L2_L2FStripNum[ssdindex][1]))
+						{
+							candimulti_corrected[ssdindex]++;
+							candimulti_sharing[ssdindex]++;
+							h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(EL2F_Sum12,L1L2_L1SEMeV_Corrected[ssdindex][1]);
+						}
 					}
 					else {
 						for (Int_t itrack=0; itrack<globalmulti; itrack++) {
@@ -1755,9 +1998,12 @@ void L1L2_DecodefGlobalMulti3::L1L2_GlobalMulti3_Decode_020()
 							  if (trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,L1L2_L2BEMeV[ssdindex][itrack],L1L2_L2FEMeV[ssdindex][itrack]) &&
 						        trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]))
 							  {
-								  candimulti_corrected[ssdindex]++;
-								  h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
-									break;
+									if (!IsStripsOnCsIGap(L1L2_L2BStripNum[ssdindex][itrack], L1L2_L2FStripNum[ssdindex][itrack]))
+							    {
+										candimulti_corrected[ssdindex]++;
+									  h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+										break;
+									}
 							  }
 							}
 						}
@@ -1780,12 +2026,16 @@ void L1L2_DecodefGlobalMulti3::L1L2_GlobalMulti3_Decode_020()
 						for (Int_t itrack=0; itrack<globalmulti; itrack++) {
 							if (L1L2_L2FTime[ssdindex][itrack]>SiTimeCut_Low[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]] && L1L2_L2FTime[ssdindex][itrack]<SiTimeCut_Up[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]])
 						  {
-							  h2_L1L2_DEE_Discard[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+								if (!IsStripsOnCsIGap(L1L2_L2BStripNum[ssdindex][itrack], L1L2_L2FStripNum[ssdindex][itrack]))
+							  {
+									h2_L1L2_DEE_Discard[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+								}
 							}
 						}
 					}
 					//
 					if (candimulti_sharing[ssdindex] > 0) {
+						Sharing_Entries[ssdindex]++;
 						for (Int_t itrack=0; itrack<globalmulti; itrack++) {
 							if (L1L2_L2FTime[ssdindex][itrack]>SiTimeCut_Low[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]] && L1L2_L2FTime[ssdindex][itrack]<SiTimeCut_Up[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]])
 						  {
@@ -1799,25 +2049,47 @@ void L1L2_DecodefGlobalMulti3::L1L2_GlobalMulti3_Decode_020()
     }
   }
 
-  // 计算比例
+	//
+  TFile* fileout = new TFile(Form("/home/sea/Fission2019_Data/TrackDecoded/L1L2_g%d_0%s.root",globalmulti,mode),"RECREATE");
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    fileout->WriteTObject(&h2_L1L2_DEE[ssdindex],Form("h2_DEE_SSD%d_g%d_0%s",ssdindex+1,globalmulti,mode));
+  }
+  //
+	for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    fileout->WriteTObject(&h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex],Form("h2_GOOD_SSD%d_g%d_0%s",ssdindex+1,globalmulti,mode));
+  }
+	//
+	for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    fileout->WriteTObject(&h2_L1L2_DEE_Discard[ssdindex],Form("h2_LOST_SSD%d_g%d_0%s",ssdindex+1,globalmulti,mode));
+  }
+
+	// 计算比例
   Int_t entry_all[NUM_SSD] = {0};
   Int_t entry_discard[NUM_SSD] = {0};
   for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
     entry_all[ssdindex] = h2_L1L2_DEE[ssdindex].GetEntries();
     entry_discard[ssdindex] = h2_L1L2_DEE_Discard[ssdindex].GetEntries();
 
-    lost_ratio[ssdindex] = (Double_t) entry_discard[ssdindex]/entry_all[ssdindex] * 100;
+    lost_ratio[ssdindex]    = (Double_t) entry_discard[ssdindex]/entry_all[ssdindex] * 100;
+		MHits_Ratio[ssdindex]   = (Double_t) MHits_Entries[ssdindex] * globalmulti/entry_all[ssdindex] * 100;
+    Sharing_Ratio[ssdindex] = (Double_t) Sharing_Entries[ssdindex] * globalmulti/entry_all[ssdindex] * 100;
   }
 
-  // 定义 latex
-  Double_t x1,y1;
+	// 定义 latex
+  Double_t x1,y1,x2,y2;
   TLatex* latex_ratio[NUM_SSD];
+  TLatex* latex_decoded[NUM_SSD];
   for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
-    x1 = 0.25 * EL2Range[ssdindex];
-    y1 = 0.90 * EL1Range[ssdindex];
-    latex_ratio[ssdindex] = new TLatex(x1, y1, Form("r_{lost} = %.4f%%",lost_ratio[ssdindex]));
+    x1 = 0.4 * EL2Range[ssdindex];
+    y1 = 0.8 * EL1Range[ssdindex];
+    x2 = 0.2 * EL2Range[ssdindex];
+    y2 = 0.5 * EL1Range[ssdindex];
+    latex_ratio[ssdindex] = new TLatex(x1, y1, Form("r_{lost} = %.2f%%",lost_ratio[ssdindex]));
     latex_ratio[ssdindex]->SetTextSize(0.05);
     latex_ratio[ssdindex]->SetTextColor(kOrange);
+    latex_decoded[ssdindex] = new TLatex(x2, y2, Form("r_{sh}=%.4f%%, r_{mh}=%.4f%%",Sharing_Ratio[ssdindex],MHits_Ratio[ssdindex]));
+    latex_decoded[ssdindex]->SetTextSize(0.05);
+    latex_decoded[ssdindex]->SetTextColor(kOrange);
   }
 
 	// 定义 Legend
@@ -1854,6 +2126,7 @@ void L1L2_DecodefGlobalMulti3::L1L2_GlobalMulti3_Decode_020()
     cans.cd(3);
     h2_L1L2_DEE_Discard[ssdindex].Draw("COL");
 		latex_ratio[ssdindex]->Draw("SAME");
+		latex_decoded[ssdindex]->Draw("SAME");
 
     //
     cans.cd(4);
@@ -1905,6 +2178,11 @@ void L1L2_DecodefGlobalMulti3::L1L2_GlobalMulti3_Decode_101()
 	Double_t EL2B_Sum02;
 	Double_t EL2B_Sum12;
 
+	Double_t MHits_Ratio[NUM_SSD]   = {0};
+  Double_t Sharing_Ratio[NUM_SSD] = {0};
+  Int_t MHits_Entries[NUM_SSD]    = {0};
+  Int_t Sharing_Entries[NUM_SSD]  = {0};
+
   std::string pathPDFOut(Form("%sfigure_TrackReconstruction/L1L2_GlobalMulti%d_Decode_%s.pdf",PATHFIGURESFOLDER,globalmulti,mode));
   std::string pathPDFOutBegin(Form("%sfigure_TrackReconstruction/L1L2_GlobalMulti%d_Decode_%s.pdf[",PATHFIGURESFOLDER,globalmulti,mode));
   std::string pathPDFOutEnd(Form("%sfigure_TrackReconstruction/L1L2_GlobalMulti%d_Decode_%s.pdf]",PATHFIGURESFOLDER,globalmulti,mode));
@@ -1932,7 +2210,7 @@ void L1L2_DecodefGlobalMulti3::L1L2_GlobalMulti3_Decode_101()
   }
 
   printf("Processing mode g%d-%s ...\n", globalmulti, mode);
-  trackreconstruct->fChainTrackTree->SetEntries(10000000);
+  //trackreconstruct->fChainTrackTree->SetEntries(10000000);
   Long64_t nentries = trackreconstruct->fChainTrackTree->GetEntries();
   cout<<"Found nentries = "<<nentries<<endl;
 
@@ -1980,18 +2258,21 @@ void L1L2_DecodefGlobalMulti3::L1L2_GlobalMulti3_Decode_101()
           for (Int_t itrack=0; itrack<globalmulti; itrack++) {
 					  if (L1L2_L2FTime[ssdindex][itrack]>SiTimeCut_Low[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]] && L1L2_L2FTime[ssdindex][itrack]<SiTimeCut_Up[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]])
 					  {
-						  h2_L1L2_DEE[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+							if (!IsStripsOnCsIGap(L1L2_L2BStripNum[ssdindex][itrack], L1L2_L2FStripNum[ssdindex][itrack]))
+							{
+								h2_L1L2_DEE[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
 
-	            // 填充 mode statistic
-	            bin_index[itrack] = trackreconstruct->L1L2_GetSubModeFromEneConstraints(trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,L1L2_L2BEMeV[ssdindex][itrack],L1L2_L2FEMeV[ssdindex][itrack]),
-							                                                                        trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]));
-					    h1_modestat[ssdindex]->Fill(bin_index[itrack]);
+		            // 填充 mode statistic
+		            bin_index[itrack] = trackreconstruct->L1L2_GetSubModeFromEneConstraints(trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,L1L2_L2BEMeV[ssdindex][itrack],L1L2_L2FEMeV[ssdindex][itrack]),
+								                                                                        trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]));
+						    h1_modestat[ssdindex]->Fill(bin_index[itrack]);
 
-	            if (trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,L1L2_L2BEMeV[ssdindex][itrack],L1L2_L2FEMeV[ssdindex][itrack]) &&
-	                trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]))
-	            {
-	              candimulti[ssdindex]++;
-	            }
+		            if (trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,L1L2_L2BEMeV[ssdindex][itrack],L1L2_L2FEMeV[ssdindex][itrack]) &&
+		                trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]))
+		            {
+		              candimulti[ssdindex]++;
+		            }
+							}
 					  }
           }
           //____________________________________________________________________
@@ -2010,9 +2291,12 @@ void L1L2_DecodefGlobalMulti3::L1L2_GlobalMulti3_Decode_101()
 							if (itrack!=1) {
 								if ((L1L2_L2FTime[ssdindex][itrack]>SiTimeCut_Low[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]] && L1L2_L2FTime[ssdindex][itrack]<SiTimeCut_Up[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]]))
 								{
-									candimulti_corrected[ssdindex]++;
-									candimulti_2hit[ssdindex]++;
-								  h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2BEMeV[ssdindex][itrack]*EL2B_TO_EL2F_SCALE[ssdindex],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+							 		if (!IsStripsOnCsIGap(L1L2_L2BStripNum[ssdindex][itrack], L1L2_L2FStripNum[ssdindex][itrack]))
+						    	{
+										candimulti_corrected[ssdindex]++;
+										candimulti_2hit[ssdindex]++;
+									  h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2BEMeV[ssdindex][itrack]*EL2B_TO_EL2F_SCALE[ssdindex],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+									}
 								}
 							}
 						}
@@ -2025,10 +2309,13 @@ void L1L2_DecodefGlobalMulti3::L1L2_GlobalMulti3_Decode_101()
 							if (itrack==0 || itrack==2) {
 								if (trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]))
 								{
-									candimulti_corrected[ssdindex]++;
-									candimulti_sharing[ssdindex]++;
-									h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
-									break;
+									if (!IsStripsOnCsIGap(L1L2_L2BStripNum[ssdindex][itrack], L1L2_L2FStripNum[ssdindex][itrack]))
+							    {
+										candimulti_corrected[ssdindex]++;
+										candimulti_sharing[ssdindex]++;
+										h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+										break;
+									}
 								}
 							}
 						}
@@ -2041,9 +2328,12 @@ void L1L2_DecodefGlobalMulti3::L1L2_GlobalMulti3_Decode_101()
 							  if (trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,L1L2_L2BEMeV[ssdindex][itrack],L1L2_L2FEMeV[ssdindex][itrack]) &&
 						        trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]))
 							  {
-								  candimulti_corrected[ssdindex]++;
-								  h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
-									break;
+									if (!IsStripsOnCsIGap(L1L2_L2BStripNum[ssdindex][itrack], L1L2_L2FStripNum[ssdindex][itrack]))
+							    {
+										candimulti_corrected[ssdindex]++;
+									  h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+										break;
+									}
 							  }
 							}
 						}
@@ -2065,12 +2355,16 @@ void L1L2_DecodefGlobalMulti3::L1L2_GlobalMulti3_Decode_101()
 						for (Int_t itrack=0; itrack<globalmulti; itrack++) {
 							if (L1L2_L2FTime[ssdindex][itrack]>SiTimeCut_Low[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]] && L1L2_L2FTime[ssdindex][itrack]<SiTimeCut_Up[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]])
 						  {
-							  h2_L1L2_DEE_Discard[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+								if (!IsStripsOnCsIGap(L1L2_L2BStripNum[ssdindex][itrack], L1L2_L2FStripNum[ssdindex][itrack]))
+							  {
+								  h2_L1L2_DEE_Discard[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+								}
 							}
 						}
 					}
 					//
 					if (candimulti_2hit[ssdindex] > 0) {
+						MHits_Entries[ssdindex]++;
 						for (Int_t itrack=0; itrack<globalmulti; itrack++) {
 							if (L1L2_L2FTime[ssdindex][itrack]>SiTimeCut_Low[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]] && L1L2_L2FTime[ssdindex][itrack]<SiTimeCut_Up[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]])
 						  {
@@ -2080,6 +2374,7 @@ void L1L2_DecodefGlobalMulti3::L1L2_GlobalMulti3_Decode_101()
 					}
 					//
 					if (candimulti_sharing[ssdindex] > 0) {
+						Sharing_Entries[ssdindex]++;
 						for (Int_t itrack=0; itrack<globalmulti; itrack++) {
 							if (L1L2_L2FTime[ssdindex][itrack]>SiTimeCut_Low[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]] && L1L2_L2FTime[ssdindex][itrack]<SiTimeCut_Up[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]])
 						  {
@@ -2092,25 +2387,47 @@ void L1L2_DecodefGlobalMulti3::L1L2_GlobalMulti3_Decode_101()
     }
   }
 
-  // 计算比例
+	//
+  TFile* fileout = new TFile(Form("/home/sea/Fission2019_Data/TrackDecoded/L1L2_g%d_0%s.root",globalmulti,mode),"RECREATE");
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    fileout->WriteTObject(&h2_L1L2_DEE[ssdindex],Form("h2_DEE_SSD%d_g%d_0%s",ssdindex+1,globalmulti,mode));
+  }
+  //
+	for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    fileout->WriteTObject(&h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex],Form("h2_GOOD_SSD%d_g%d_0%s",ssdindex+1,globalmulti,mode));
+  }
+	//
+	for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    fileout->WriteTObject(&h2_L1L2_DEE_Discard[ssdindex],Form("h2_LOST_SSD%d_g%d_0%s",ssdindex+1,globalmulti,mode));
+  }
+
+	// 计算比例
   Int_t entry_all[NUM_SSD] = {0};
   Int_t entry_discard[NUM_SSD] = {0};
   for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
     entry_all[ssdindex] = h2_L1L2_DEE[ssdindex].GetEntries();
     entry_discard[ssdindex] = h2_L1L2_DEE_Discard[ssdindex].GetEntries();
 
-    lost_ratio[ssdindex] = (Double_t) entry_discard[ssdindex]/entry_all[ssdindex] * 100;
+    lost_ratio[ssdindex]    = (Double_t) entry_discard[ssdindex]/entry_all[ssdindex] * 100;
+		MHits_Ratio[ssdindex]   = (Double_t) MHits_Entries[ssdindex] * globalmulti/entry_all[ssdindex] * 100;
+    Sharing_Ratio[ssdindex] = (Double_t) Sharing_Entries[ssdindex] * globalmulti/entry_all[ssdindex] * 100;
   }
 
-  // 定义 latex
-  Double_t x1,y1;
+	// 定义 latex
+  Double_t x1,y1,x2,y2;
   TLatex* latex_ratio[NUM_SSD];
+  TLatex* latex_decoded[NUM_SSD];
   for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
-    x1 = 0.25 * EL2Range[ssdindex];
-    y1 = 0.90 * EL1Range[ssdindex];
-    latex_ratio[ssdindex] = new TLatex(x1, y1, Form("r_{lost} = %.4f%%",lost_ratio[ssdindex]));
+    x1 = 0.4 * EL2Range[ssdindex];
+    y1 = 0.8 * EL1Range[ssdindex];
+    x2 = 0.2 * EL2Range[ssdindex];
+    y2 = 0.5 * EL1Range[ssdindex];
+    latex_ratio[ssdindex] = new TLatex(x1, y1, Form("r_{lost} = %.2f%%",lost_ratio[ssdindex]));
     latex_ratio[ssdindex]->SetTextSize(0.05);
     latex_ratio[ssdindex]->SetTextColor(kOrange);
+    latex_decoded[ssdindex] = new TLatex(x2, y2, Form("r_{sh}=%.4f%%, r_{mh}=%.4f%%",Sharing_Ratio[ssdindex],MHits_Ratio[ssdindex]));
+    latex_decoded[ssdindex]->SetTextSize(0.05);
+    latex_decoded[ssdindex]->SetTextColor(kOrange);
   }
 
 	// 定义 Legend
@@ -2148,6 +2465,7 @@ void L1L2_DecodefGlobalMulti3::L1L2_GlobalMulti3_Decode_101()
     cans.cd(3);
     h2_L1L2_DEE_Discard[ssdindex].Draw("COL");
 		latex_ratio[ssdindex]->Draw("SAME");
+		latex_decoded[ssdindex]->Draw("SAME");
 
     //
     cans.cd(4);
@@ -2202,6 +2520,11 @@ void L1L2_DecodefGlobalMulti3::L1L2_GlobalMulti3_Decode_102()
 	Double_t EL2B_Sum02;
 	Double_t EL2B_Sum12;
 
+	Double_t MHits_Ratio[NUM_SSD]   = {0};
+  Double_t Sharing_Ratio[NUM_SSD] = {0};
+  Int_t MHits_Entries[NUM_SSD]    = {0};
+  Int_t Sharing_Entries[NUM_SSD]  = {0};
+
   std::string pathPDFOut(Form("%sfigure_TrackReconstruction/L1L2_GlobalMulti%d_Decode_%s.pdf",PATHFIGURESFOLDER,globalmulti,mode));
   std::string pathPDFOutBegin(Form("%sfigure_TrackReconstruction/L1L2_GlobalMulti%d_Decode_%s.pdf[",PATHFIGURESFOLDER,globalmulti,mode));
   std::string pathPDFOutEnd(Form("%sfigure_TrackReconstruction/L1L2_GlobalMulti%d_Decode_%s.pdf]",PATHFIGURESFOLDER,globalmulti,mode));
@@ -2229,13 +2552,13 @@ void L1L2_DecodefGlobalMulti3::L1L2_GlobalMulti3_Decode_102()
   }
 
   printf("Processing mode g%d-%s ...\n", globalmulti, mode);
-  trackreconstruct->fChainTrackTree->SetEntries(10000000);
+  //trackreconstruct->fChainTrackTree->SetEntries(1000000);
   Long64_t nentries = trackreconstruct->fChainTrackTree->GetEntries();
   cout<<"Found nentries = "<<nentries<<endl;
 
   for (Long64_t ientry=0; ientry<nentries; ientry++) {
     trackreconstruct->fChainTrackTree->GetEntry(ientry);
-  //  timeper.PrintPercentageAndRemainingTime(ientry, nentries);
+    timeper.PrintPercentageAndRemainingTime(ientry, nentries);
 
     for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
       L1L2_L2BEMeV[ssdindex].clear();
@@ -2277,18 +2600,21 @@ void L1L2_DecodefGlobalMulti3::L1L2_GlobalMulti3_Decode_102()
           for (Int_t itrack=0; itrack<globalmulti; itrack++) {
 					  if (L1L2_L2FTime[ssdindex][itrack]>SiTimeCut_Low[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]] && L1L2_L2FTime[ssdindex][itrack]<SiTimeCut_Up[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]])
 					  {
-						  h2_L1L2_DEE[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+							if (!IsStripsOnCsIGap(L1L2_L2BStripNum[ssdindex][itrack], L1L2_L2FStripNum[ssdindex][itrack]))
+							{
+								h2_L1L2_DEE[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
 
-	            // 填充 mode statistic
-	            bin_index[itrack] = trackreconstruct->L1L2_GetSubModeFromEneConstraints(trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,L1L2_L2BEMeV[ssdindex][itrack],L1L2_L2FEMeV[ssdindex][itrack]),
-							                                                                        trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]));
-					    h1_modestat[ssdindex]->Fill(bin_index[itrack]);
+		            // 填充 mode statistic
+		            bin_index[itrack] = trackreconstruct->L1L2_GetSubModeFromEneConstraints(trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,L1L2_L2BEMeV[ssdindex][itrack],L1L2_L2FEMeV[ssdindex][itrack]),
+								                                                                        trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]));
+						    h1_modestat[ssdindex]->Fill(bin_index[itrack]);
 
-	            if (trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,L1L2_L2BEMeV[ssdindex][itrack],L1L2_L2FEMeV[ssdindex][itrack]) &&
-	                trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]))
-	            {
-	              candimulti[ssdindex]++;
-	            }
+		            if (trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,L1L2_L2BEMeV[ssdindex][itrack],L1L2_L2FEMeV[ssdindex][itrack]) &&
+		                trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]))
+		            {
+		              candimulti[ssdindex]++;
+		            }
+							}
 					  }
           }
           //____________________________________________________________________
@@ -2307,9 +2633,12 @@ void L1L2_DecodefGlobalMulti3::L1L2_GlobalMulti3_Decode_102()
 							if (itrack!=2) {
 								if ((L1L2_L2FTime[ssdindex][itrack]>SiTimeCut_Low[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]] && L1L2_L2FTime[ssdindex][itrack]<SiTimeCut_Up[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]]))
 								{
-									candimulti_corrected[ssdindex]++;
-									candimulti_2hit[ssdindex]++;
-								  h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2BEMeV[ssdindex][itrack]*EL2B_TO_EL2F_SCALE[ssdindex],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+									if (!IsStripsOnCsIGap(L1L2_L2BStripNum[ssdindex][itrack], L1L2_L2FStripNum[ssdindex][itrack]))
+							    {
+										candimulti_corrected[ssdindex]++;
+										candimulti_2hit[ssdindex]++;
+									  h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2BEMeV[ssdindex][itrack]*EL2B_TO_EL2F_SCALE[ssdindex],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+									}
 								}
 							}
 						}
@@ -2324,9 +2653,12 @@ void L1L2_DecodefGlobalMulti3::L1L2_GlobalMulti3_Decode_102()
 							if (itrack!=1) {
 								if ((L1L2_L2FTime[ssdindex][itrack]>SiTimeCut_Low[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]] && L1L2_L2FTime[ssdindex][itrack]<SiTimeCut_Up[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]]))
 								{
-									candimulti_corrected[ssdindex]++;
-									candimulti_2hit[ssdindex]++;
-								  h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2BEMeV[ssdindex][itrack]*EL2B_TO_EL2F_SCALE[ssdindex],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+									if (!IsStripsOnCsIGap(L1L2_L2BStripNum[ssdindex][itrack], L1L2_L2FStripNum[ssdindex][itrack]))
+							    {
+										candimulti_corrected[ssdindex]++;
+										candimulti_2hit[ssdindex]++;
+									  h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2BEMeV[ssdindex][itrack]*EL2B_TO_EL2F_SCALE[ssdindex],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+									}
 								}
 							}
 						}
@@ -2341,9 +2673,12 @@ void L1L2_DecodefGlobalMulti3::L1L2_GlobalMulti3_Decode_102()
 							if (itrack!=0) {
 								if ((L1L2_L2FTime[ssdindex][itrack]>SiTimeCut_Low[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]] && L1L2_L2FTime[ssdindex][itrack]<SiTimeCut_Up[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]]))
 								{
-									candimulti_corrected[ssdindex]++;
-									candimulti_2hit[ssdindex]++;
-								  h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2BEMeV[ssdindex][itrack]*EL2B_TO_EL2F_SCALE[ssdindex],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+									if (!IsStripsOnCsIGap(L1L2_L2BStripNum[ssdindex][itrack], L1L2_L2FStripNum[ssdindex][itrack]))
+							    {
+										candimulti_corrected[ssdindex]++;
+										candimulti_2hit[ssdindex]++;
+										h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2BEMeV[ssdindex][itrack]*EL2B_TO_EL2F_SCALE[ssdindex],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+									}
 								}
 							}
 						}
@@ -2355,10 +2690,13 @@ void L1L2_DecodefGlobalMulti3::L1L2_GlobalMulti3_Decode_102()
 							if ((itrack!=2) && (trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]))) {
 								if ((L1L2_L2FTime[ssdindex][itrack]>SiTimeCut_Low[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]] && L1L2_L2FTime[ssdindex][itrack]<SiTimeCut_Up[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]]))
 								{
-									candimulti_corrected[ssdindex]++;
-									candimulti_sharing[ssdindex]++;
-								  h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][0],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
-									break;
+									if (!IsStripsOnCsIGap(L1L2_L2BStripNum[ssdindex][0], L1L2_L2FStripNum[ssdindex][0]))
+							    {
+										candimulti_corrected[ssdindex]++;
+										candimulti_sharing[ssdindex]++;
+									  h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][0],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+										break;
+									}
 								}
 							}
 						}
@@ -2371,10 +2709,13 @@ void L1L2_DecodefGlobalMulti3::L1L2_GlobalMulti3_Decode_102()
 							if ((itrack!=0) && (trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]))) {
 								if ((L1L2_L2FTime[ssdindex][itrack]>SiTimeCut_Low[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]] && L1L2_L2FTime[ssdindex][itrack]<SiTimeCut_Up[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]]))
 								{
-									candimulti_corrected[ssdindex]++;
-									candimulti_sharing[ssdindex]++;
-								  h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][1],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
-									break;
+									if (!IsStripsOnCsIGap(L1L2_L2BStripNum[ssdindex][1], L1L2_L2FStripNum[ssdindex][1]))
+							    {
+										candimulti_corrected[ssdindex]++;
+										candimulti_sharing[ssdindex]++;
+									  h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][1],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+										break;
+									}
 								}
 							}
 						}
@@ -2387,9 +2728,12 @@ void L1L2_DecodefGlobalMulti3::L1L2_GlobalMulti3_Decode_102()
 							  if (trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,L1L2_L2BEMeV[ssdindex][itrack],L1L2_L2FEMeV[ssdindex][itrack]) &&
 						        trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]))
 							  {
-								  candimulti_corrected[ssdindex]++;
-								  h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
-									break;
+									if (!IsStripsOnCsIGap(L1L2_L2BStripNum[ssdindex][itrack], L1L2_L2FStripNum[ssdindex][itrack]))
+							    {
+										candimulti_corrected[ssdindex]++;
+									  h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+										break;
+									}
 							  }
 							}
 						}
@@ -2411,12 +2755,16 @@ void L1L2_DecodefGlobalMulti3::L1L2_GlobalMulti3_Decode_102()
 						for (Int_t itrack=0; itrack<globalmulti; itrack++) {
 							if (L1L2_L2FTime[ssdindex][itrack]>SiTimeCut_Low[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]] && L1L2_L2FTime[ssdindex][itrack]<SiTimeCut_Up[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]])
 						  {
-							  h2_L1L2_DEE_Discard[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+								if (!IsStripsOnCsIGap(L1L2_L2BStripNum[ssdindex][itrack], L1L2_L2FStripNum[ssdindex][itrack]))
+							  {
+								  h2_L1L2_DEE_Discard[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+								}
 							}
 						}
 					}
 					//
 					if (candimulti_2hit[ssdindex] > 0) {
+						MHits_Entries[ssdindex]++;
 						for (Int_t itrack=0; itrack<globalmulti; itrack++) {
 							if (L1L2_L2FTime[ssdindex][itrack]>SiTimeCut_Low[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]] && L1L2_L2FTime[ssdindex][itrack]<SiTimeCut_Up[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]])
 						  {
@@ -2426,6 +2774,7 @@ void L1L2_DecodefGlobalMulti3::L1L2_GlobalMulti3_Decode_102()
 					}
 					//
 					if (candimulti_sharing[ssdindex] > 0) {
+						Sharing_Entries[ssdindex]++;
 						for (Int_t itrack=0; itrack<globalmulti; itrack++) {
 							if (L1L2_L2FTime[ssdindex][itrack]>SiTimeCut_Low[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]] && L1L2_L2FTime[ssdindex][itrack]<SiTimeCut_Up[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]])
 						  {
@@ -2438,25 +2787,47 @@ void L1L2_DecodefGlobalMulti3::L1L2_GlobalMulti3_Decode_102()
     }
   }
 
-  // 计算比例
+	//
+  TFile* fileout = new TFile(Form("/home/sea/Fission2019_Data/TrackDecoded/L1L2_g%d_0%s.root",globalmulti,mode),"RECREATE");
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    fileout->WriteTObject(&h2_L1L2_DEE[ssdindex],Form("h2_DEE_SSD%d_g%d_0%s",ssdindex+1,globalmulti,mode));
+  }
+  //
+	for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    fileout->WriteTObject(&h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex],Form("h2_GOOD_SSD%d_g%d_0%s",ssdindex+1,globalmulti,mode));
+  }
+	//
+	for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    fileout->WriteTObject(&h2_L1L2_DEE_Discard[ssdindex],Form("h2_LOST_SSD%d_g%d_0%s",ssdindex+1,globalmulti,mode));
+  }
+
+	// 计算比例
   Int_t entry_all[NUM_SSD] = {0};
   Int_t entry_discard[NUM_SSD] = {0};
   for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
     entry_all[ssdindex] = h2_L1L2_DEE[ssdindex].GetEntries();
     entry_discard[ssdindex] = h2_L1L2_DEE_Discard[ssdindex].GetEntries();
 
-    lost_ratio[ssdindex] = (Double_t) entry_discard[ssdindex]/entry_all[ssdindex] * 100;
+    lost_ratio[ssdindex]    = (Double_t) entry_discard[ssdindex]/entry_all[ssdindex] * 100;
+		MHits_Ratio[ssdindex]   = (Double_t) MHits_Entries[ssdindex] * globalmulti/entry_all[ssdindex] * 100;
+    Sharing_Ratio[ssdindex] = (Double_t) Sharing_Entries[ssdindex] * globalmulti/entry_all[ssdindex] * 100;
   }
 
-  // 定义 latex
-  Double_t x1,y1;
+	// 定义 latex
+  Double_t x1,y1,x2,y2;
   TLatex* latex_ratio[NUM_SSD];
+  TLatex* latex_decoded[NUM_SSD];
   for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
-    x1 = 0.25 * EL2Range[ssdindex];
-    y1 = 0.90 * EL1Range[ssdindex];
-    latex_ratio[ssdindex] = new TLatex(x1, y1, Form("r_{lost} = %.4f%%",lost_ratio[ssdindex]));
+    x1 = 0.4 * EL2Range[ssdindex];
+    y1 = 0.8 * EL1Range[ssdindex];
+    x2 = 0.2 * EL2Range[ssdindex];
+    y2 = 0.5 * EL1Range[ssdindex];
+    latex_ratio[ssdindex] = new TLatex(x1, y1, Form("r_{lost} = %.2f%%",lost_ratio[ssdindex]));
     latex_ratio[ssdindex]->SetTextSize(0.05);
     latex_ratio[ssdindex]->SetTextColor(kOrange);
+    latex_decoded[ssdindex] = new TLatex(x2, y2, Form("r_{sh}=%.4f%%, r_{mh}=%.4f%%",Sharing_Ratio[ssdindex],MHits_Ratio[ssdindex]));
+    latex_decoded[ssdindex]->SetTextSize(0.05);
+    latex_decoded[ssdindex]->SetTextColor(kOrange);
   }
 
 	// 定义 Legend
@@ -2494,6 +2865,7 @@ void L1L2_DecodefGlobalMulti3::L1L2_GlobalMulti3_Decode_102()
     cans.cd(3);
     h2_L1L2_DEE_Discard[ssdindex].Draw("COL");
 		latex_ratio[ssdindex]->Draw("SAME");
+		latex_decoded[ssdindex]->Draw("SAME");
 
     //
     cans.cd(4);
@@ -2547,6 +2919,11 @@ void L1L2_DecodefGlobalMulti3::L1L2_GlobalMulti3_Decode_200()
 	Double_t EL2B_Sum02;
 	Double_t EL2B_Sum12;
 
+	Double_t MHits_Ratio[NUM_SSD]   = {0};
+  Double_t Sharing_Ratio[NUM_SSD] = {0};
+  Int_t MHits_Entries[NUM_SSD]    = {0};
+  Int_t Sharing_Entries[NUM_SSD]  = {0};
+
   std::string pathPDFOut(Form("%sfigure_TrackReconstruction/L1L2_GlobalMulti%d_Decode_%s.pdf",PATHFIGURESFOLDER,globalmulti,mode));
   std::string pathPDFOutBegin(Form("%sfigure_TrackReconstruction/L1L2_GlobalMulti%d_Decode_%s.pdf[",PATHFIGURESFOLDER,globalmulti,mode));
   std::string pathPDFOutEnd(Form("%sfigure_TrackReconstruction/L1L2_GlobalMulti%d_Decode_%s.pdf]",PATHFIGURESFOLDER,globalmulti,mode));
@@ -2572,7 +2949,7 @@ void L1L2_DecodefGlobalMulti3::L1L2_GlobalMulti3_Decode_200()
   }
 
   printf("Processing mode g%d-%s ...\n", globalmulti, mode);
-  trackreconstruct->fChainTrackTree->SetEntries(10000000);
+  //trackreconstruct->fChainTrackTree->SetEntries(1000000);
   Long64_t nentries = trackreconstruct->fChainTrackTree->GetEntries();
   cout<<"Found nentries = "<<nentries<<endl;
 
@@ -2619,18 +2996,21 @@ void L1L2_DecodefGlobalMulti3::L1L2_GlobalMulti3_Decode_200()
           for (Int_t itrack=0; itrack<globalmulti; itrack++) {
 					  if (L1L2_L2FTime[ssdindex][itrack]>SiTimeCut_Low[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]] && L1L2_L2FTime[ssdindex][itrack]<SiTimeCut_Up[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]])
 					  {
-						  h2_L1L2_DEE[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+							if (!IsStripsOnCsIGap(L1L2_L2BStripNum[ssdindex][itrack], L1L2_L2FStripNum[ssdindex][itrack]))
+							{
+								h2_L1L2_DEE[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
 
-	            // 填充 mode statistic
-	            bin_index[itrack] = trackreconstruct->L1L2_GetSubModeFromEneConstraints(trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,L1L2_L2BEMeV[ssdindex][itrack],L1L2_L2FEMeV[ssdindex][itrack]),
-							                                                                        trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]));
-					    h1_modestat[ssdindex]->Fill(bin_index[itrack]);
+		            // 填充 mode statistic
+		            bin_index[itrack] = trackreconstruct->L1L2_GetSubModeFromEneConstraints(trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,L1L2_L2BEMeV[ssdindex][itrack],L1L2_L2FEMeV[ssdindex][itrack]),
+								                                                                        trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]));
+						    h1_modestat[ssdindex]->Fill(bin_index[itrack]);
 
-	            if (trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,L1L2_L2BEMeV[ssdindex][itrack],L1L2_L2FEMeV[ssdindex][itrack]) &&
-	                trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]))
-	            {
-	              candimulti[ssdindex]++;
-	            }
+		            if (trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,L1L2_L2BEMeV[ssdindex][itrack],L1L2_L2FEMeV[ssdindex][itrack]) &&
+		                trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]))
+		            {
+		              candimulti[ssdindex]++;
+		            }
+							}
 					  }
           }
           //____________________________________________________________________
@@ -2645,18 +3025,24 @@ void L1L2_DecodefGlobalMulti3::L1L2_GlobalMulti3_Decode_200()
 				       (trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,EL2B_Sum01,L1L2_L2FEMeV[ssdindex][0])) &&
 						   (trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2FEMeV[ssdindex][0],L1L2_L1SEMeV_Corrected[ssdindex][0])) )
 					{
-						candimulti_corrected[ssdindex]++;
-						candimulti_sharing[ssdindex]++;
-						h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][0],L1L2_L1SEMeV_Corrected[ssdindex][0]);
+						if (!IsStripsOnCsIGap(L1L2_L2BStripNum[ssdindex][0], L1L2_L2FStripNum[ssdindex][0]))
+						{
+							candimulti_corrected[ssdindex]++;
+							candimulti_sharing[ssdindex]++;
+							h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][0],L1L2_L1SEMeV_Corrected[ssdindex][0]);
+						}
 					}
 					else if ( (L1L2_L2FTime[ssdindex][1]>SiTimeCut_Low[ssdindex][L1L2_L2FStripNum[ssdindex][1]] && L1L2_L2FTime[ssdindex][1]<SiTimeCut_Up[ssdindex][L1L2_L2FStripNum[ssdindex][1]]) &&
 						        (TMath::Abs(L1L2_L2BStripNum[ssdindex][1]-L1L2_L2BStripNum[ssdindex][2])==1) &&
 				            (trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,EL2B_Sum12,L1L2_L2FEMeV[ssdindex][1])) &&
 						        (trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2FEMeV[ssdindex][1],L1L2_L1SEMeV_Corrected[ssdindex][1])) )
 					{
-						candimulti_corrected[ssdindex]++;
-						candimulti_sharing[ssdindex]++;
-						h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][1],L1L2_L1SEMeV_Corrected[ssdindex][1]);
+						if (!IsStripsOnCsIGap(L1L2_L2BStripNum[ssdindex][1], L1L2_L2FStripNum[ssdindex][1]))
+						{
+							candimulti_corrected[ssdindex]++;
+							candimulti_sharing[ssdindex]++;
+							h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][1],L1L2_L1SEMeV_Corrected[ssdindex][1]);
+						}
 					}
 					else {
 						for (Int_t itrack=0; itrack<globalmulti; itrack++) {
@@ -2665,9 +3051,12 @@ void L1L2_DecodefGlobalMulti3::L1L2_GlobalMulti3_Decode_200()
 							  if (trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,L1L2_L2BEMeV[ssdindex][itrack],L1L2_L2FEMeV[ssdindex][itrack]) &&
 						        trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]))
 							  {
-								  candimulti_corrected[ssdindex]++;
-								  h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
-									break;
+									if (!IsStripsOnCsIGap(L1L2_L2BStripNum[ssdindex][itrack], L1L2_L2FStripNum[ssdindex][itrack]))
+							    {
+										candimulti_corrected[ssdindex]++;
+									  h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+										break;
+									}
 							  }
 							}
 						}
@@ -2689,12 +3078,16 @@ void L1L2_DecodefGlobalMulti3::L1L2_GlobalMulti3_Decode_200()
 						for (Int_t itrack=0; itrack<globalmulti; itrack++) {
 							if (L1L2_L2FTime[ssdindex][itrack]>SiTimeCut_Low[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]] && L1L2_L2FTime[ssdindex][itrack]<SiTimeCut_Up[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]])
 						  {
-							  h2_L1L2_DEE_Discard[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+								if (!IsStripsOnCsIGap(L1L2_L2BStripNum[ssdindex][itrack], L1L2_L2FStripNum[ssdindex][itrack]))
+							  {
+									h2_L1L2_DEE_Discard[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+								}
 							}
 						}
 					}
 					//
 					if (candimulti_sharing[ssdindex] > 0) {
+						Sharing_Entries[ssdindex]++;
 						for (Int_t itrack=0; itrack<globalmulti; itrack++) {
 							if (L1L2_L2FTime[ssdindex][itrack]>SiTimeCut_Low[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]] && L1L2_L2FTime[ssdindex][itrack]<SiTimeCut_Up[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]])
 						  {
@@ -2708,25 +3101,47 @@ void L1L2_DecodefGlobalMulti3::L1L2_GlobalMulti3_Decode_200()
     }
   }
 
-  // 计算比例
+	//
+  TFile* fileout = new TFile(Form("/home/sea/Fission2019_Data/TrackDecoded/L1L2_g%d_0%s.root",globalmulti,mode),"RECREATE");
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    fileout->WriteTObject(&h2_L1L2_DEE[ssdindex],Form("h2_DEE_SSD%d_g%d_0%s",ssdindex+1,globalmulti,mode));
+  }
+  //
+	for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    fileout->WriteTObject(&h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex],Form("h2_GOOD_SSD%d_g%d_0%s",ssdindex+1,globalmulti,mode));
+  }
+	//
+	for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    fileout->WriteTObject(&h2_L1L2_DEE_Discard[ssdindex],Form("h2_LOST_SSD%d_g%d_0%s",ssdindex+1,globalmulti,mode));
+  }
+
+	// 计算比例
   Int_t entry_all[NUM_SSD] = {0};
   Int_t entry_discard[NUM_SSD] = {0};
   for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
     entry_all[ssdindex] = h2_L1L2_DEE[ssdindex].GetEntries();
     entry_discard[ssdindex] = h2_L1L2_DEE_Discard[ssdindex].GetEntries();
 
-    lost_ratio[ssdindex] = (Double_t) entry_discard[ssdindex]/entry_all[ssdindex] * 100;
+    lost_ratio[ssdindex]    = (Double_t) entry_discard[ssdindex]/entry_all[ssdindex] * 100;
+		MHits_Ratio[ssdindex]   = (Double_t) MHits_Entries[ssdindex] * globalmulti/entry_all[ssdindex] * 100;
+    Sharing_Ratio[ssdindex] = (Double_t) Sharing_Entries[ssdindex] * globalmulti/entry_all[ssdindex] * 100;
   }
 
-  // 定义 latex
-  Double_t x1,y1;
+	// 定义 latex
+  Double_t x1,y1,x2,y2;
   TLatex* latex_ratio[NUM_SSD];
+  TLatex* latex_decoded[NUM_SSD];
   for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
-    x1 = 0.25 * EL2Range[ssdindex];
-    y1 = 0.90 * EL1Range[ssdindex];
-    latex_ratio[ssdindex] = new TLatex(x1, y1, Form("r_{lost} = %.4f%%",lost_ratio[ssdindex]));
+    x1 = 0.4 * EL2Range[ssdindex];
+    y1 = 0.8 * EL1Range[ssdindex];
+    x2 = 0.2 * EL2Range[ssdindex];
+    y2 = 0.5 * EL1Range[ssdindex];
+    latex_ratio[ssdindex] = new TLatex(x1, y1, Form("r_{lost} = %.2f%%",lost_ratio[ssdindex]));
     latex_ratio[ssdindex]->SetTextSize(0.05);
     latex_ratio[ssdindex]->SetTextColor(kOrange);
+    latex_decoded[ssdindex] = new TLatex(x2, y2, Form("r_{sh}=%.4f%%, r_{mh}=%.4f%%",Sharing_Ratio[ssdindex],MHits_Ratio[ssdindex]));
+    latex_decoded[ssdindex]->SetTextSize(0.05);
+    latex_decoded[ssdindex]->SetTextColor(kOrange);
   }
 
 	// 定义 Legend
@@ -2763,6 +3178,7 @@ void L1L2_DecodefGlobalMulti3::L1L2_GlobalMulti3_Decode_200()
     cans.cd(3);
     h2_L1L2_DEE_Discard[ssdindex].Draw("COL");
 		latex_ratio[ssdindex]->Draw("SAME");
+		latex_decoded[ssdindex]->Draw("SAME");
 
     //
     cans.cd(4);
@@ -2814,6 +3230,11 @@ void L1L2_DecodefGlobalMulti3::L1L2_GlobalMulti3_Decode_201()
 	Double_t EL2B_Sum02;
 	Double_t EL2B_Sum12;
 
+	Double_t MHits_Ratio[NUM_SSD]   = {0};
+  Double_t Sharing_Ratio[NUM_SSD] = {0};
+  Int_t MHits_Entries[NUM_SSD]    = {0};
+  Int_t Sharing_Entries[NUM_SSD]  = {0};
+
   std::string pathPDFOut(Form("%sfigure_TrackReconstruction/L1L2_GlobalMulti%d_Decode_%s.pdf",PATHFIGURESFOLDER,globalmulti,mode));
   std::string pathPDFOutBegin(Form("%sfigure_TrackReconstruction/L1L2_GlobalMulti%d_Decode_%s.pdf[",PATHFIGURESFOLDER,globalmulti,mode));
   std::string pathPDFOutEnd(Form("%sfigure_TrackReconstruction/L1L2_GlobalMulti%d_Decode_%s.pdf]",PATHFIGURESFOLDER,globalmulti,mode));
@@ -2841,13 +3262,13 @@ void L1L2_DecodefGlobalMulti3::L1L2_GlobalMulti3_Decode_201()
   }
 
   printf("Processing mode g%d-%s ...\n", globalmulti, mode);
-  trackreconstruct->fChainTrackTree->SetEntries(10000000);
+  //trackreconstruct->fChainTrackTree->SetEntries(1000000);
   Long64_t nentries = trackreconstruct->fChainTrackTree->GetEntries();
   cout<<"Found nentries = "<<nentries<<endl;
 
   for (Long64_t ientry=0; ientry<nentries; ientry++) {
     trackreconstruct->fChainTrackTree->GetEntry(ientry);
-  //  timeper.PrintPercentageAndRemainingTime(ientry, nentries);
+    timeper.PrintPercentageAndRemainingTime(ientry, nentries);
 
     for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
       L1L2_L2BEMeV[ssdindex].clear();
@@ -2889,18 +3310,21 @@ void L1L2_DecodefGlobalMulti3::L1L2_GlobalMulti3_Decode_201()
           for (Int_t itrack=0; itrack<globalmulti; itrack++) {
 					  if (L1L2_L2FTime[ssdindex][itrack]>SiTimeCut_Low[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]] && L1L2_L2FTime[ssdindex][itrack]<SiTimeCut_Up[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]])
 					  {
-						  h2_L1L2_DEE[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+							if (!IsStripsOnCsIGap(L1L2_L2BStripNum[ssdindex][itrack], L1L2_L2FStripNum[ssdindex][itrack]))
+							{
+								h2_L1L2_DEE[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
 
-	            // 填充 mode statistic
-	            bin_index[itrack] = trackreconstruct->L1L2_GetSubModeFromEneConstraints(trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,L1L2_L2BEMeV[ssdindex][itrack],L1L2_L2FEMeV[ssdindex][itrack]),
-							                                                                        trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]));
-					    h1_modestat[ssdindex]->Fill(bin_index[itrack]);
+		            // 填充 mode statistic
+		            bin_index[itrack] = trackreconstruct->L1L2_GetSubModeFromEneConstraints(trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,L1L2_L2BEMeV[ssdindex][itrack],L1L2_L2FEMeV[ssdindex][itrack]),
+								                                                                        trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]));
+						    h1_modestat[ssdindex]->Fill(bin_index[itrack]);
 
-	            if (trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,L1L2_L2BEMeV[ssdindex][itrack],L1L2_L2FEMeV[ssdindex][itrack]) &&
-	                trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]))
-	            {
-	              candimulti[ssdindex]++;
-	            }
+		            if (trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,L1L2_L2BEMeV[ssdindex][itrack],L1L2_L2FEMeV[ssdindex][itrack]) &&
+		                trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]))
+		            {
+		              candimulti[ssdindex]++;
+		            }
+							}
 					  }
           }
           //____________________________________________________________________
@@ -2919,9 +3343,12 @@ void L1L2_DecodefGlobalMulti3::L1L2_GlobalMulti3_Decode_201()
 							if (itrack!=2) {
 								if ((L1L2_L2FTime[ssdindex][itrack]>SiTimeCut_Low[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]] && L1L2_L2FTime[ssdindex][itrack]<SiTimeCut_Up[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]]))
 								{
-									candimulti_corrected[ssdindex]++;
-									candimulti_2hit[ssdindex]++;
-								  h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2BEMeV[ssdindex][itrack]*EL2B_TO_EL2F_SCALE[ssdindex],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+									if (!IsStripsOnCsIGap(L1L2_L2BStripNum[ssdindex][itrack], L1L2_L2FStripNum[ssdindex][itrack]))
+							    {
+										candimulti_corrected[ssdindex]++;
+										candimulti_2hit[ssdindex]++;
+									  h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2BEMeV[ssdindex][itrack]*EL2B_TO_EL2F_SCALE[ssdindex],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+									}
 								}
 							}
 						}
@@ -2936,9 +3363,12 @@ void L1L2_DecodefGlobalMulti3::L1L2_GlobalMulti3_Decode_201()
 							if (itrack!=1) {
 								if ((L1L2_L2FTime[ssdindex][itrack]>SiTimeCut_Low[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]] && L1L2_L2FTime[ssdindex][itrack]<SiTimeCut_Up[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]]))
 								{
-									candimulti_corrected[ssdindex]++;
-									candimulti_2hit[ssdindex]++;
-								  h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2BEMeV[ssdindex][itrack]*EL2B_TO_EL2F_SCALE[ssdindex],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+									if (!IsStripsOnCsIGap(L1L2_L2BStripNum[ssdindex][itrack], L1L2_L2FStripNum[ssdindex][itrack]))
+							    {
+										candimulti_corrected[ssdindex]++;
+										candimulti_2hit[ssdindex]++;
+									  h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2BEMeV[ssdindex][itrack]*EL2B_TO_EL2F_SCALE[ssdindex],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+									}
 								}
 							}
 						}
@@ -2953,9 +3383,12 @@ void L1L2_DecodefGlobalMulti3::L1L2_GlobalMulti3_Decode_201()
 							if (itrack!=0) {
 								if ((L1L2_L2FTime[ssdindex][itrack]>SiTimeCut_Low[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]] && L1L2_L2FTime[ssdindex][itrack]<SiTimeCut_Up[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]]))
 								{
-									candimulti_corrected[ssdindex]++;
-									candimulti_2hit[ssdindex]++;
-								  h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2BEMeV[ssdindex][itrack]*EL2B_TO_EL2F_SCALE[ssdindex],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+									if (!IsStripsOnCsIGap(L1L2_L2BStripNum[ssdindex][itrack], L1L2_L2FStripNum[ssdindex][itrack]))
+							    {
+										candimulti_corrected[ssdindex]++;
+										candimulti_2hit[ssdindex]++;
+									  h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2BEMeV[ssdindex][itrack]*EL2B_TO_EL2F_SCALE[ssdindex],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+									}
 								}
 							}
 						}
@@ -2967,10 +3400,13 @@ void L1L2_DecodefGlobalMulti3::L1L2_GlobalMulti3_Decode_201()
 							if ((itrack!=2) && (trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]))) {
 								if ((L1L2_L2FTime[ssdindex][itrack]>SiTimeCut_Low[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]] && L1L2_L2FTime[ssdindex][itrack]<SiTimeCut_Up[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]]))
 								{
-									candimulti_corrected[ssdindex]++;
-									candimulti_sharing[ssdindex]++;
-								  h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
-									break;
+									if (!IsStripsOnCsIGap(L1L2_L2BStripNum[ssdindex][itrack], L1L2_L2FStripNum[ssdindex][itrack]))
+							    {
+										candimulti_corrected[ssdindex]++;
+										candimulti_sharing[ssdindex]++;
+									  h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+										break;
+									}
 								}
 							}
 						}
@@ -2983,10 +3419,13 @@ void L1L2_DecodefGlobalMulti3::L1L2_GlobalMulti3_Decode_201()
 							if ((itrack!=0) && (trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]))) {
 								if ((L1L2_L2FTime[ssdindex][itrack]>SiTimeCut_Low[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]] && L1L2_L2FTime[ssdindex][itrack]<SiTimeCut_Up[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]]))
 								{
-									candimulti_corrected[ssdindex]++;
-									candimulti_sharing[ssdindex]++;
-								  h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
-									break;
+									if (!IsStripsOnCsIGap(L1L2_L2BStripNum[ssdindex][itrack], L1L2_L2FStripNum[ssdindex][itrack]))
+							    {
+										candimulti_corrected[ssdindex]++;
+										candimulti_sharing[ssdindex]++;
+									  h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+										break;
+									}
 								}
 							}
 						}
@@ -2999,9 +3438,12 @@ void L1L2_DecodefGlobalMulti3::L1L2_GlobalMulti3_Decode_201()
 							  if (trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,L1L2_L2BEMeV[ssdindex][itrack],L1L2_L2FEMeV[ssdindex][itrack]) &&
 						        trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]))
 							  {
-								  candimulti_corrected[ssdindex]++;
-								  h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
-									break;
+									if (!IsStripsOnCsIGap(L1L2_L2BStripNum[ssdindex][itrack], L1L2_L2FStripNum[ssdindex][itrack]))
+							    {
+										candimulti_corrected[ssdindex]++;
+									  h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+										break;
+									}
 							  }
 							}
 						}
@@ -3023,12 +3465,16 @@ void L1L2_DecodefGlobalMulti3::L1L2_GlobalMulti3_Decode_201()
 						for (Int_t itrack=0; itrack<globalmulti; itrack++) {
 							if (L1L2_L2FTime[ssdindex][itrack]>SiTimeCut_Low[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]] && L1L2_L2FTime[ssdindex][itrack]<SiTimeCut_Up[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]])
 						  {
-							  h2_L1L2_DEE_Discard[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+								if (!IsStripsOnCsIGap(L1L2_L2BStripNum[ssdindex][itrack], L1L2_L2FStripNum[ssdindex][itrack]))
+							  {
+									h2_L1L2_DEE_Discard[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+								}
 							}
 						}
 					}
 					//
 					if (candimulti_2hit[ssdindex] > 0) {
+						MHits_Entries[ssdindex]++;
 						for (Int_t itrack=0; itrack<globalmulti; itrack++) {
 							if (L1L2_L2FTime[ssdindex][itrack]>SiTimeCut_Low[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]] && L1L2_L2FTime[ssdindex][itrack]<SiTimeCut_Up[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]])
 						  {
@@ -3038,6 +3484,7 @@ void L1L2_DecodefGlobalMulti3::L1L2_GlobalMulti3_Decode_201()
 					}
 					//
 					if (candimulti_sharing[ssdindex] > 0) {
+						Sharing_Entries[ssdindex]++;
 						for (Int_t itrack=0; itrack<globalmulti; itrack++) {
 							if (L1L2_L2FTime[ssdindex][itrack]>SiTimeCut_Low[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]] && L1L2_L2FTime[ssdindex][itrack]<SiTimeCut_Up[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]])
 						  {
@@ -3050,25 +3497,47 @@ void L1L2_DecodefGlobalMulti3::L1L2_GlobalMulti3_Decode_201()
     }
   }
 
-  // 计算比例
+	//
+  TFile* fileout = new TFile(Form("/home/sea/Fission2019_Data/TrackDecoded/L1L2_g%d_0%s.root",globalmulti,mode),"RECREATE");
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    fileout->WriteTObject(&h2_L1L2_DEE[ssdindex],Form("h2_DEE_SSD%d_g%d_0%s",ssdindex+1,globalmulti,mode));
+  }
+  //
+	for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    fileout->WriteTObject(&h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex],Form("h2_GOOD_SSD%d_g%d_0%s",ssdindex+1,globalmulti,mode));
+  }
+	//
+	for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    fileout->WriteTObject(&h2_L1L2_DEE_Discard[ssdindex],Form("h2_LOST_SSD%d_g%d_0%s",ssdindex+1,globalmulti,mode));
+  }
+
+	// 计算比例
   Int_t entry_all[NUM_SSD] = {0};
   Int_t entry_discard[NUM_SSD] = {0};
   for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
     entry_all[ssdindex] = h2_L1L2_DEE[ssdindex].GetEntries();
     entry_discard[ssdindex] = h2_L1L2_DEE_Discard[ssdindex].GetEntries();
 
-    lost_ratio[ssdindex] = (Double_t) entry_discard[ssdindex]/entry_all[ssdindex] * 100;
+    lost_ratio[ssdindex]    = (Double_t) entry_discard[ssdindex]/entry_all[ssdindex] * 100;
+		MHits_Ratio[ssdindex]   = (Double_t) MHits_Entries[ssdindex] * globalmulti/entry_all[ssdindex] * 100;
+    Sharing_Ratio[ssdindex] = (Double_t) Sharing_Entries[ssdindex] * globalmulti/entry_all[ssdindex] * 100;
   }
 
-  // 定义 latex
-  Double_t x1,y1;
+	// 定义 latex
+  Double_t x1,y1,x2,y2;
   TLatex* latex_ratio[NUM_SSD];
+  TLatex* latex_decoded[NUM_SSD];
   for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
-    x1 = 0.25 * EL2Range[ssdindex];
-    y1 = 0.90 * EL1Range[ssdindex];
-    latex_ratio[ssdindex] = new TLatex(x1, y1, Form("r_{lost} = %.4f%%",lost_ratio[ssdindex]));
+    x1 = 0.4 * EL2Range[ssdindex];
+    y1 = 0.8 * EL1Range[ssdindex];
+    x2 = 0.2 * EL2Range[ssdindex];
+    y2 = 0.5 * EL1Range[ssdindex];
+    latex_ratio[ssdindex] = new TLatex(x1, y1, Form("r_{lost} = %.2f%%",lost_ratio[ssdindex]));
     latex_ratio[ssdindex]->SetTextSize(0.05);
     latex_ratio[ssdindex]->SetTextColor(kOrange);
+    latex_decoded[ssdindex] = new TLatex(x2, y2, Form("r_{sh}=%.4f%%, r_{mh}=%.4f%%",Sharing_Ratio[ssdindex],MHits_Ratio[ssdindex]));
+    latex_decoded[ssdindex]->SetTextSize(0.05);
+    latex_decoded[ssdindex]->SetTextColor(kOrange);
   }
 
 	// 定义 Legend
@@ -3106,6 +3575,7 @@ void L1L2_DecodefGlobalMulti3::L1L2_GlobalMulti3_Decode_201()
     cans.cd(3);
     h2_L1L2_DEE_Discard[ssdindex].Draw("COL");
 		latex_ratio[ssdindex]->Draw("SAME");
+		latex_decoded[ssdindex]->Draw("SAME");
 
     //
     cans.cd(4);
@@ -3158,6 +3628,11 @@ void L1L2_DecodefGlobalMulti3::L1L2_GlobalMulti3_Decode_202()
 
 	Double_t EL2B_Sum012;
 
+	Double_t MHits_Ratio[NUM_SSD]   = {0};
+  Double_t Sharing_Ratio[NUM_SSD] = {0};
+  Int_t MHits_Entries[NUM_SSD]    = {0};
+  Int_t Sharing_Entries[NUM_SSD]  = {0};
+
   std::string pathPDFOut(Form("%sfigure_TrackReconstruction/L1L2_GlobalMulti%d_Decode_%s.pdf",PATHFIGURESFOLDER,globalmulti,mode));
   std::string pathPDFOutBegin(Form("%sfigure_TrackReconstruction/L1L2_GlobalMulti%d_Decode_%s.pdf[",PATHFIGURESFOLDER,globalmulti,mode));
   std::string pathPDFOutEnd(Form("%sfigure_TrackReconstruction/L1L2_GlobalMulti%d_Decode_%s.pdf]",PATHFIGURESFOLDER,globalmulti,mode));
@@ -3185,7 +3660,7 @@ void L1L2_DecodefGlobalMulti3::L1L2_GlobalMulti3_Decode_202()
   }
 
   printf("Processing mode g%d-%s ...\n", globalmulti, mode);
-  trackreconstruct->fChainTrackTree->SetEntries(10000000);
+  //trackreconstruct->fChainTrackTree->SetEntries(1000000);
   Long64_t nentries = trackreconstruct->fChainTrackTree->GetEntries();
   cout<<"Found nentries = "<<nentries<<endl;
 
@@ -3233,18 +3708,21 @@ void L1L2_DecodefGlobalMulti3::L1L2_GlobalMulti3_Decode_202()
           for (Int_t itrack=0; itrack<globalmulti; itrack++) {
 					  if (L1L2_L2FTime[ssdindex][itrack]>SiTimeCut_Low[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]] && L1L2_L2FTime[ssdindex][itrack]<SiTimeCut_Up[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]])
 					  {
-						  h2_L1L2_DEE[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+							if (!IsStripsOnCsIGap(L1L2_L2BStripNum[ssdindex][itrack], L1L2_L2FStripNum[ssdindex][itrack]))
+							{
+								h2_L1L2_DEE[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
 
-	            // 填充 mode statistic
-	            bin_index[itrack] = trackreconstruct->L1L2_GetSubModeFromEneConstraints(trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,L1L2_L2BEMeV[ssdindex][itrack],L1L2_L2FEMeV[ssdindex][itrack]),
-							                                                                        trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]));
-					    h1_modestat[ssdindex]->Fill(bin_index[itrack]);
+		            // 填充 mode statistic
+		            bin_index[itrack] = trackreconstruct->L1L2_GetSubModeFromEneConstraints(trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,L1L2_L2BEMeV[ssdindex][itrack],L1L2_L2FEMeV[ssdindex][itrack]),
+								                                                                        trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]));
+						    h1_modestat[ssdindex]->Fill(bin_index[itrack]);
 
-	            if (trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,L1L2_L2BEMeV[ssdindex][itrack],L1L2_L2FEMeV[ssdindex][itrack]) &&
-	                trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]))
-	            {
-	              candimulti[ssdindex]++;
-	            }
+		            if (trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,L1L2_L2BEMeV[ssdindex][itrack],L1L2_L2FEMeV[ssdindex][itrack]) &&
+		                trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]))
+		            {
+		              candimulti[ssdindex]++;
+		            }
+							}
 					  }
           }
           //____________________________________________________________________
@@ -3258,9 +3736,12 @@ void L1L2_DecodefGlobalMulti3::L1L2_GlobalMulti3_Decode_202()
 							if (trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2BEMeV[ssdindex][itrack]*EL2B_TO_EL2F_SCALE[ssdindex],L1L2_L1SEMeV_Corrected[ssdindex][itrack])) {
 								if ((L1L2_L2FTime[ssdindex][itrack]>SiTimeCut_Low[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]] && L1L2_L2FTime[ssdindex][itrack]<SiTimeCut_Up[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]]))
 								{
-									candimulti_corrected[ssdindex]++;
-									candimulti_3hit[ssdindex]++;
-								  h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2BEMeV[ssdindex][itrack]*EL2B_TO_EL2F_SCALE[ssdindex],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+									if (!IsStripsOnCsIGap(L1L2_L2BStripNum[ssdindex][itrack], L1L2_L2FStripNum[ssdindex][itrack]))
+							    {
+										candimulti_corrected[ssdindex]++;
+										candimulti_3hit[ssdindex]++;
+									  h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2BEMeV[ssdindex][itrack]*EL2B_TO_EL2F_SCALE[ssdindex],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+									}
 								}
 							}
 						}
@@ -3273,9 +3754,12 @@ void L1L2_DecodefGlobalMulti3::L1L2_GlobalMulti3_Decode_202()
 							  if (trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,L1L2_L2BEMeV[ssdindex][itrack],L1L2_L2FEMeV[ssdindex][itrack]) &&
 						        trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]))
 							  {
-								  candimulti_corrected[ssdindex]++;
-								  h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
-									break;
+									if (!IsStripsOnCsIGap(L1L2_L2BStripNum[ssdindex][itrack], L1L2_L2FStripNum[ssdindex][itrack]))
+							    {
+										candimulti_corrected[ssdindex]++;
+									  h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+										break;
+									}
 							  }
 							}
 						}
@@ -3297,12 +3781,16 @@ void L1L2_DecodefGlobalMulti3::L1L2_GlobalMulti3_Decode_202()
 						for (Int_t itrack=0; itrack<globalmulti; itrack++) {
 							if (L1L2_L2FTime[ssdindex][itrack]>SiTimeCut_Low[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]] && L1L2_L2FTime[ssdindex][itrack]<SiTimeCut_Up[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]])
 						  {
-							  h2_L1L2_DEE_Discard[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+								if (!IsStripsOnCsIGap(L1L2_L2BStripNum[ssdindex][itrack], L1L2_L2FStripNum[ssdindex][itrack]))
+							  {
+								  h2_L1L2_DEE_Discard[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+								}
 							}
 						}
 					}
 					//
 					if (candimulti_3hit[ssdindex] > 0) {
+					  MHits_Entries[ssdindex]++;
 						for (Int_t itrack=0; itrack<globalmulti; itrack++) {
 							if (L1L2_L2FTime[ssdindex][itrack]>SiTimeCut_Low[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]] && L1L2_L2FTime[ssdindex][itrack]<SiTimeCut_Up[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]])
 						  {
@@ -3312,6 +3800,7 @@ void L1L2_DecodefGlobalMulti3::L1L2_GlobalMulti3_Decode_202()
 					}
 					//
 					if (candimulti_sharing[ssdindex] > 0) {
+						Sharing_Entries[ssdindex]++;
 						for (Int_t itrack=0; itrack<globalmulti; itrack++) {
 							if (L1L2_L2FTime[ssdindex][itrack]>SiTimeCut_Low[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]] && L1L2_L2FTime[ssdindex][itrack]<SiTimeCut_Up[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]])
 						  {
@@ -3324,25 +3813,47 @@ void L1L2_DecodefGlobalMulti3::L1L2_GlobalMulti3_Decode_202()
     }
   }
 
-  // 计算比例
+	//
+  TFile* fileout = new TFile(Form("/home/sea/Fission2019_Data/TrackDecoded/L1L2_g%d_0%s.root",globalmulti,mode),"RECREATE");
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    fileout->WriteTObject(&h2_L1L2_DEE[ssdindex],Form("h2_DEE_SSD%d_g%d_0%s",ssdindex+1,globalmulti,mode));
+  }
+  //
+	for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    fileout->WriteTObject(&h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex],Form("h2_GOOD_SSD%d_g%d_0%s",ssdindex+1,globalmulti,mode));
+  }
+	//
+	for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    fileout->WriteTObject(&h2_L1L2_DEE_Discard[ssdindex],Form("h2_LOST_SSD%d_g%d_0%s",ssdindex+1,globalmulti,mode));
+  }
+
+	// 计算比例
   Int_t entry_all[NUM_SSD] = {0};
   Int_t entry_discard[NUM_SSD] = {0};
   for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
     entry_all[ssdindex] = h2_L1L2_DEE[ssdindex].GetEntries();
     entry_discard[ssdindex] = h2_L1L2_DEE_Discard[ssdindex].GetEntries();
 
-    lost_ratio[ssdindex] = (Double_t) entry_discard[ssdindex]/entry_all[ssdindex] * 100;
+    lost_ratio[ssdindex]    = (Double_t) entry_discard[ssdindex]/entry_all[ssdindex] * 100;
+		MHits_Ratio[ssdindex]   = (Double_t) MHits_Entries[ssdindex] * globalmulti/entry_all[ssdindex] * 100;
+    Sharing_Ratio[ssdindex] = (Double_t) Sharing_Entries[ssdindex] * globalmulti/entry_all[ssdindex] * 100;
   }
 
-  // 定义 latex
-  Double_t x1,y1;
+	// 定义 latex
+  Double_t x1,y1,x2,y2;
   TLatex* latex_ratio[NUM_SSD];
+  TLatex* latex_decoded[NUM_SSD];
   for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
-    x1 = 0.25 * EL2Range[ssdindex];
-    y1 = 0.90 * EL1Range[ssdindex];
-    latex_ratio[ssdindex] = new TLatex(x1, y1, Form("r_{lost} = %.4f%%",lost_ratio[ssdindex]));
+    x1 = 0.4 * EL2Range[ssdindex];
+    y1 = 0.8 * EL1Range[ssdindex];
+    x2 = 0.2 * EL2Range[ssdindex];
+    y2 = 0.5 * EL1Range[ssdindex];
+    latex_ratio[ssdindex] = new TLatex(x1, y1, Form("r_{lost} = %.2f%%",lost_ratio[ssdindex]));
     latex_ratio[ssdindex]->SetTextSize(0.05);
     latex_ratio[ssdindex]->SetTextColor(kOrange);
+    latex_decoded[ssdindex] = new TLatex(x2, y2, Form("r_{sh}=%.4f%%, r_{mh}=%.4f%%",Sharing_Ratio[ssdindex],MHits_Ratio[ssdindex]));
+    latex_decoded[ssdindex]->SetTextSize(0.05);
+    latex_decoded[ssdindex]->SetTextColor(kOrange);
   }
 
 	// 定义 Legend
@@ -3380,6 +3891,7 @@ void L1L2_DecodefGlobalMulti3::L1L2_GlobalMulti3_Decode_202()
     cans.cd(3);
     h2_L1L2_DEE_Discard[ssdindex].Draw("COL");
 		latex_ratio[ssdindex]->Draw("SAME");
+		latex_decoded[ssdindex]->Draw("SAME");
 
     //
     cans.cd(4);
@@ -3475,6 +3987,11 @@ void L1L2_DecodefGlobalMulti4::L1L2_GlobalMulti4_Decode_011()
 	Double_t EL2F_Sum12;
 	Double_t EL1S_Sum01;
 
+	Double_t MHits_Ratio[NUM_SSD]   = {0};
+  Double_t Sharing_Ratio[NUM_SSD] = {0};
+  Int_t MHits_Entries[NUM_SSD]    = {0};
+  Int_t Sharing_Entries[NUM_SSD]  = {0};
+
   std::string pathPDFOut(Form("%sfigure_TrackReconstruction/L1L2_GlobalMulti%d_Decode_%s.pdf",PATHFIGURESFOLDER,globalmulti,mode));
   std::string pathPDFOutBegin(Form("%sfigure_TrackReconstruction/L1L2_GlobalMulti%d_Decode_%s.pdf[",PATHFIGURESFOLDER,globalmulti,mode));
   std::string pathPDFOutEnd(Form("%sfigure_TrackReconstruction/L1L2_GlobalMulti%d_Decode_%s.pdf]",PATHFIGURESFOLDER,globalmulti,mode));
@@ -3502,7 +4019,7 @@ void L1L2_DecodefGlobalMulti4::L1L2_GlobalMulti4_Decode_011()
   }
 
   printf("Processing mode g%d-%s ...\n", globalmulti, mode);
-  trackreconstruct->fChainTrackTree->SetEntries(10000000);
+  //trackreconstruct->fChainTrackTree->SetEntries(10000000);
   Long64_t nentries = trackreconstruct->fChainTrackTree->GetEntries();
   cout<<"Found nentries = "<<nentries<<endl;
 
@@ -3550,18 +4067,21 @@ void L1L2_DecodefGlobalMulti4::L1L2_GlobalMulti4_Decode_011()
           for (Int_t itrack=0; itrack<globalmulti; itrack++) {
 					  if (L1L2_L2FTime[ssdindex][itrack]>SiTimeCut_Low[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]] && L1L2_L2FTime[ssdindex][itrack]<SiTimeCut_Up[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]])
 					  {
-						  h2_L1L2_DEE[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+							if (!IsStripsOnCsIGap(L1L2_L2BStripNum[ssdindex][itrack], L1L2_L2FStripNum[ssdindex][itrack]))
+							{
+								h2_L1L2_DEE[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
 
-	            // 填充 mode statistic
-	            bin_index[itrack] = trackreconstruct->L1L2_GetSubModeFromEneConstraints(trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,L1L2_L2BEMeV[ssdindex][itrack],L1L2_L2FEMeV[ssdindex][itrack]),
-							                                                                        trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]));
-					    h1_modestat[ssdindex]->Fill(bin_index[itrack]);
+		            // 填充 mode statistic
+		            bin_index[itrack] = trackreconstruct->L1L2_GetSubModeFromEneConstraints(trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,L1L2_L2BEMeV[ssdindex][itrack],L1L2_L2FEMeV[ssdindex][itrack]),
+								                                                                        trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]));
+						    h1_modestat[ssdindex]->Fill(bin_index[itrack]);
 
-	            if (trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,L1L2_L2BEMeV[ssdindex][itrack],L1L2_L2FEMeV[ssdindex][itrack]) &&
-	                trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]))
-	            {
-	              candimulti[ssdindex]++;
-	            }
+		            if (trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,L1L2_L2BEMeV[ssdindex][itrack],L1L2_L2FEMeV[ssdindex][itrack]) &&
+		                trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]))
+		            {
+		              candimulti[ssdindex]++;
+		            }
+							}
 					  }
           }
           //____________________________________________________________________
@@ -3584,9 +4104,12 @@ void L1L2_DecodefGlobalMulti4::L1L2_GlobalMulti4_Decode_011()
 							if ((itrack!=1) && (itrack!=2)) {
 								if ((L1L2_L2FTime[ssdindex][itrack]>SiTimeCut_Low[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]] && L1L2_L2FTime[ssdindex][itrack]<SiTimeCut_Up[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]]))
 								{
-									candimulti_corrected[ssdindex]++;
-									candimulti_2hit[ssdindex]++;
-								  h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+									if (!IsStripsOnCsIGap(L1L2_L2BStripNum[ssdindex][itrack], L1L2_L2FStripNum[ssdindex][itrack]))
+							    {
+										candimulti_corrected[ssdindex]++;
+										candimulti_2hit[ssdindex]++;
+									  h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+									}
 								}
 							}
 						}
@@ -3600,9 +4123,12 @@ void L1L2_DecodefGlobalMulti4::L1L2_GlobalMulti4_Decode_011()
 							if ((itrack!=0) && (itrack!=3)) {
 								if ((L1L2_L2FTime[ssdindex][itrack]>SiTimeCut_Low[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]] && L1L2_L2FTime[ssdindex][itrack]<SiTimeCut_Up[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]]))
 								{
-									candimulti_corrected[ssdindex]++;
-									candimulti_2hit[ssdindex]++;
-								  h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+									if (!IsStripsOnCsIGap(L1L2_L2BStripNum[ssdindex][itrack], L1L2_L2FStripNum[ssdindex][itrack]))
+							    {
+										candimulti_corrected[ssdindex]++;
+										candimulti_2hit[ssdindex]++;
+									  h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+									}
                   /*
 									cout<<"ientry="<<ientry<<setw(12)<<"itrack="<<itrack<<setw(12)<<"StripL2B="<<L1L2_L2BStripNum[ssdindex][itrack]<<setw(12)<<"StripL2F="<<L1L2_L2FStripNum[ssdindex][itrack]<<setw(12)
 									    <<"StripL1S="<<L1L2_L1SStripNum[ssdindex][itrack]<<setw(12)<<"EL2B="<<L1L2_L2BEMeV[ssdindex][itrack]<<setw(12)<<"EL2F="<<L1L2_L2FEMeV[ssdindex][itrack]<<setw(12)
@@ -3621,9 +4147,12 @@ void L1L2_DecodefGlobalMulti4::L1L2_GlobalMulti4_Decode_011()
 						if ( (L1L2_L2FTime[ssdindex][0]>SiTimeCut_Low[ssdindex][L1L2_L2FStripNum[ssdindex][0]] && L1L2_L2FTime[ssdindex][0]<SiTimeCut_Up[ssdindex][L1L2_L2FStripNum[ssdindex][0]]) ||
 					       (L1L2_L2FTime[ssdindex][3]>SiTimeCut_Low[ssdindex][L1L2_L2FStripNum[ssdindex][3]] && L1L2_L2FTime[ssdindex][3]<SiTimeCut_Up[ssdindex][L1L2_L2FStripNum[ssdindex][3]]) )
 						{
-							candimulti_corrected[ssdindex]++;
-							candimulti_sharing[ssdindex]++;
-							h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(EL2F_Sum03,L1L2_L1SEMeV_Corrected[ssdindex][0]);
+							if (!IsStripsOnCsIGap(L1L2_L2BStripNum[ssdindex][0], L1L2_L2FStripNum[ssdindex][0]))
+							{
+								candimulti_corrected[ssdindex]++;
+								candimulti_sharing[ssdindex]++;
+								h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(EL2F_Sum03,L1L2_L1SEMeV_Corrected[ssdindex][0]);
+							}
 						}
 					}
 					// 考虑 L2F sharing
@@ -3634,9 +4163,12 @@ void L1L2_DecodefGlobalMulti4::L1L2_GlobalMulti4_Decode_011()
 						if ( (L1L2_L2FTime[ssdindex][0]>SiTimeCut_Low[ssdindex][L1L2_L2FStripNum[ssdindex][0]] && L1L2_L2FTime[ssdindex][0]<SiTimeCut_Up[ssdindex][L1L2_L2FStripNum[ssdindex][0]]) ||
 					       (L1L2_L2FTime[ssdindex][3]>SiTimeCut_Low[ssdindex][L1L2_L2FStripNum[ssdindex][3]] && L1L2_L2FTime[ssdindex][3]<SiTimeCut_Up[ssdindex][L1L2_L2FStripNum[ssdindex][3]]) )
 						{
-							candimulti_corrected[ssdindex]++;
-							candimulti_sharing[ssdindex]++;
-							h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(EL2F_Sum03,L1L2_L1SEMeV_Corrected[ssdindex][3]);
+							if (!IsStripsOnCsIGap(L1L2_L2BStripNum[ssdindex][3], L1L2_L2FStripNum[ssdindex][3]))
+							{
+								candimulti_corrected[ssdindex]++;
+								candimulti_sharing[ssdindex]++;
+								h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(EL2F_Sum03,L1L2_L1SEMeV_Corrected[ssdindex][3]);
+							}
 						}
 					}
 					// 考虑 L1S sharing
@@ -3646,9 +4178,12 @@ void L1L2_DecodefGlobalMulti4::L1L2_GlobalMulti4_Decode_011()
 					{
 						if (L1L2_L2FTime[ssdindex][0]>SiTimeCut_Low[ssdindex][L1L2_L2FStripNum[ssdindex][0]] && L1L2_L2FTime[ssdindex][0]<SiTimeCut_Up[ssdindex][L1L2_L2FStripNum[ssdindex][0]])
 						{
-							candimulti_corrected[ssdindex]++;
-							candimulti_sharing[ssdindex]++;
-							h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][0],EL1S_Sum01);
+							if (!IsStripsOnCsIGap(L1L2_L2BStripNum[ssdindex][0], L1L2_L2FStripNum[ssdindex][0]))
+							{
+								candimulti_corrected[ssdindex]++;
+								candimulti_sharing[ssdindex]++;
+								h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][0],EL1S_Sum01);
+							}
 						}
 					}
           else if ( trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,L1L2_L2BEMeV[ssdindex][3],L1L2_L2FEMeV[ssdindex][3]) &&
@@ -3657,9 +4192,12 @@ void L1L2_DecodefGlobalMulti4::L1L2_GlobalMulti4_Decode_011()
 					{
 						if (L1L2_L2FTime[ssdindex][3]>SiTimeCut_Low[ssdindex][L1L2_L2FStripNum[ssdindex][3]] && L1L2_L2FTime[ssdindex][3]<SiTimeCut_Up[ssdindex][L1L2_L2FStripNum[ssdindex][3]])
 						{
-							candimulti_corrected[ssdindex]++;
-							candimulti_sharing[ssdindex]++;
-							h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][3],EL1S_Sum01);
+							if (!IsStripsOnCsIGap(L1L2_L2BStripNum[ssdindex][3], L1L2_L2FStripNum[ssdindex][3]))
+							{
+								candimulti_corrected[ssdindex]++;
+								candimulti_sharing[ssdindex]++;
+								h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][3],EL1S_Sum01);
+							}
 						}
 					}
 					// 考虑只有一个粒子的情况
@@ -3670,9 +4208,12 @@ void L1L2_DecodefGlobalMulti4::L1L2_GlobalMulti4_Decode_011()
 							  if (trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,L1L2_L2BEMeV[ssdindex][itrack],L1L2_L2FEMeV[ssdindex][itrack]) &&
 						        trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]))
 							  {
-								  candimulti_corrected[ssdindex]++;
-								  h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
-									break;
+									if (!IsStripsOnCsIGap(L1L2_L2BStripNum[ssdindex][itrack], L1L2_L2FStripNum[ssdindex][itrack]))
+							    {
+										candimulti_corrected[ssdindex]++;
+									  h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+										break;
+									}
 							  }
 							}
 						}
@@ -3694,7 +4235,10 @@ void L1L2_DecodefGlobalMulti4::L1L2_GlobalMulti4_Decode_011()
 						for (Int_t itrack=0; itrack<globalmulti; itrack++) {
 							if (L1L2_L2FTime[ssdindex][itrack]>SiTimeCut_Low[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]] && L1L2_L2FTime[ssdindex][itrack]<SiTimeCut_Up[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]])
 						  {
-							  h2_L1L2_DEE_Discard[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+								if (!IsStripsOnCsIGap(L1L2_L2BStripNum[ssdindex][itrack], L1L2_L2FStripNum[ssdindex][itrack]))
+							  {
+									h2_L1L2_DEE_Discard[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+								}
                 /*
 								cout<<"ientry="<<ientry<<setw(12)<<"itrack="<<itrack<<setw(12)<<"StripL2B="<<L1L2_L2BStripNum[ssdindex][itrack]<<setw(12)<<"StripL2F="<<L1L2_L2FStripNum[ssdindex][itrack]<<setw(12)
 										<<"StripL1S="<<L1L2_L1SStripNum[ssdindex][itrack]<<setw(12)<<"EL2B="<<L1L2_L2BEMeV[ssdindex][itrack]<<setw(12)<<"EL2F="<<L1L2_L2FEMeV[ssdindex][itrack]<<setw(12)
@@ -3709,6 +4253,7 @@ void L1L2_DecodefGlobalMulti4::L1L2_GlobalMulti4_Decode_011()
 					}
 					//
 					if (candimulti_2hit[ssdindex] > 0) {
+						MHits_Entries[ssdindex]++;
 						for (Int_t itrack=0; itrack<globalmulti; itrack++) {
 							if (L1L2_L2FTime[ssdindex][itrack]>SiTimeCut_Low[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]] && L1L2_L2FTime[ssdindex][itrack]<SiTimeCut_Up[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]])
 						  {
@@ -3718,6 +4263,7 @@ void L1L2_DecodefGlobalMulti4::L1L2_GlobalMulti4_Decode_011()
 					}
 					//
 					if (candimulti_sharing[ssdindex] > 0) {
+						Sharing_Entries[ssdindex]++;
 						for (Int_t itrack=0; itrack<globalmulti; itrack++) {
 							if (L1L2_L2FTime[ssdindex][itrack]>SiTimeCut_Low[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]] && L1L2_L2FTime[ssdindex][itrack]<SiTimeCut_Up[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]])
 						  {
@@ -3731,25 +4277,47 @@ void L1L2_DecodefGlobalMulti4::L1L2_GlobalMulti4_Decode_011()
     }
   }
 
-  // 计算比例
+	//
+  TFile* fileout = new TFile(Form("/home/sea/Fission2019_Data/TrackDecoded/L1L2_g%d_0%s.root",globalmulti,mode),"RECREATE");
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    fileout->WriteTObject(&h2_L1L2_DEE[ssdindex],Form("h2_DEE_SSD%d_g%d_0%s",ssdindex+1,globalmulti,mode));
+  }
+  //
+	for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    fileout->WriteTObject(&h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex],Form("h2_GOOD_SSD%d_g%d_0%s",ssdindex+1,globalmulti,mode));
+  }
+	//
+	for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    fileout->WriteTObject(&h2_L1L2_DEE_Discard[ssdindex],Form("h2_LOST_SSD%d_g%d_0%s",ssdindex+1,globalmulti,mode));
+  }
+
+	// 计算比例
   Int_t entry_all[NUM_SSD] = {0};
   Int_t entry_discard[NUM_SSD] = {0};
   for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
     entry_all[ssdindex] = h2_L1L2_DEE[ssdindex].GetEntries();
     entry_discard[ssdindex] = h2_L1L2_DEE_Discard[ssdindex].GetEntries();
 
-    lost_ratio[ssdindex] = (Double_t) entry_discard[ssdindex]/entry_all[ssdindex] * 100;
+    lost_ratio[ssdindex]    = (Double_t) entry_discard[ssdindex]/entry_all[ssdindex] * 100;
+		MHits_Ratio[ssdindex]   = (Double_t) MHits_Entries[ssdindex] * globalmulti/entry_all[ssdindex] * 100;
+    Sharing_Ratio[ssdindex] = (Double_t) Sharing_Entries[ssdindex] * globalmulti/entry_all[ssdindex] * 100;
   }
 
-  // 定义 latex
-  Double_t x1,y1;
+	// 定义 latex
+  Double_t x1,y1,x2,y2;
   TLatex* latex_ratio[NUM_SSD];
+  TLatex* latex_decoded[NUM_SSD];
   for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
-    x1 = 0.25 * EL2Range[ssdindex];
-    y1 = 0.90 * EL1Range[ssdindex];
-    latex_ratio[ssdindex] = new TLatex(x1, y1, Form("r_{lost} = %.4f%%",lost_ratio[ssdindex]));
+    x1 = 0.4 * EL2Range[ssdindex];
+    y1 = 0.8 * EL1Range[ssdindex];
+    x2 = 0.2 * EL2Range[ssdindex];
+    y2 = 0.5 * EL1Range[ssdindex];
+    latex_ratio[ssdindex] = new TLatex(x1, y1, Form("r_{lost} = %.2f%%",lost_ratio[ssdindex]));
     latex_ratio[ssdindex]->SetTextSize(0.05);
     latex_ratio[ssdindex]->SetTextColor(kOrange);
+    latex_decoded[ssdindex] = new TLatex(x2, y2, Form("r_{sh}=%.4f%%, r_{mh}=%.4f%%",Sharing_Ratio[ssdindex],MHits_Ratio[ssdindex]));
+    latex_decoded[ssdindex]->SetTextSize(0.05);
+    latex_decoded[ssdindex]->SetTextColor(kOrange);
   }
 
 	// 定义 Legend
@@ -3787,6 +4355,7 @@ void L1L2_DecodefGlobalMulti4::L1L2_GlobalMulti4_Decode_011()
     cans.cd(3);
     h2_L1L2_DEE_Discard[ssdindex].Draw("COL");
 		latex_ratio[ssdindex]->Draw("SAME");
+		latex_decoded[ssdindex]->Draw("SAME");
 
     //
     cans.cd(4);
@@ -3842,6 +4411,11 @@ void L1L2_DecodefGlobalMulti4::L1L2_GlobalMulti4_Decode_101()
 	Double_t EL2B_Sum12;
 	Double_t EL1S_Sum01;
 
+	Double_t MHits_Ratio[NUM_SSD]   = {0};
+  Double_t Sharing_Ratio[NUM_SSD] = {0};
+  Int_t MHits_Entries[NUM_SSD]    = {0};
+  Int_t Sharing_Entries[NUM_SSD]  = {0};
+
   std::string pathPDFOut(Form("%sfigure_TrackReconstruction/L1L2_GlobalMulti%d_Decode_%s.pdf",PATHFIGURESFOLDER,globalmulti,mode));
   std::string pathPDFOutBegin(Form("%sfigure_TrackReconstruction/L1L2_GlobalMulti%d_Decode_%s.pdf[",PATHFIGURESFOLDER,globalmulti,mode));
   std::string pathPDFOutEnd(Form("%sfigure_TrackReconstruction/L1L2_GlobalMulti%d_Decode_%s.pdf]",PATHFIGURESFOLDER,globalmulti,mode));
@@ -3869,7 +4443,7 @@ void L1L2_DecodefGlobalMulti4::L1L2_GlobalMulti4_Decode_101()
   }
 
   printf("Processing mode g%d-%s ...\n", globalmulti, mode);
-  trackreconstruct->fChainTrackTree->SetEntries(10000000);
+  //trackreconstruct->fChainTrackTree->SetEntries(10000000);
   Long64_t nentries = trackreconstruct->fChainTrackTree->GetEntries();
   cout<<"Found nentries = "<<nentries<<endl;
 
@@ -3917,18 +4491,21 @@ void L1L2_DecodefGlobalMulti4::L1L2_GlobalMulti4_Decode_101()
           for (Int_t itrack=0; itrack<globalmulti; itrack++) {
 					  if (L1L2_L2FTime[ssdindex][itrack]>SiTimeCut_Low[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]] && L1L2_L2FTime[ssdindex][itrack]<SiTimeCut_Up[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]])
 					  {
-						  h2_L1L2_DEE[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+							if (!IsStripsOnCsIGap(L1L2_L2BStripNum[ssdindex][itrack], L1L2_L2FStripNum[ssdindex][itrack]))
+							{
+								h2_L1L2_DEE[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
 
-	            // 填充 mode statistic
-	            bin_index[itrack] = trackreconstruct->L1L2_GetSubModeFromEneConstraints(trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,L1L2_L2BEMeV[ssdindex][itrack],L1L2_L2FEMeV[ssdindex][itrack]),
-							                                                                        trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]));
-					    h1_modestat[ssdindex]->Fill(bin_index[itrack]);
+		            // 填充 mode statistic
+		            bin_index[itrack] = trackreconstruct->L1L2_GetSubModeFromEneConstraints(trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,L1L2_L2BEMeV[ssdindex][itrack],L1L2_L2FEMeV[ssdindex][itrack]),
+								                                                                        trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]));
+						    h1_modestat[ssdindex]->Fill(bin_index[itrack]);
 
-	            if (trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,L1L2_L2BEMeV[ssdindex][itrack],L1L2_L2FEMeV[ssdindex][itrack]) &&
-	                trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]))
-	            {
-	              candimulti[ssdindex]++;
-	            }
+		            if (trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,L1L2_L2BEMeV[ssdindex][itrack],L1L2_L2FEMeV[ssdindex][itrack]) &&
+		                trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]))
+		            {
+		              candimulti[ssdindex]++;
+		            }
+							}
 					  }
           }
           //____________________________________________________________________
@@ -3951,9 +4528,12 @@ void L1L2_DecodefGlobalMulti4::L1L2_GlobalMulti4_Decode_101()
 							if ((itrack!=1) && (itrack!=2)) {
 								if ((L1L2_L2FTime[ssdindex][itrack]>SiTimeCut_Low[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]] && L1L2_L2FTime[ssdindex][itrack]<SiTimeCut_Up[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]]))
 								{
-									candimulti_corrected[ssdindex]++;
-									candimulti_2hit[ssdindex]++;
-								  h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2BEMeV[ssdindex][itrack]*EL2B_TO_EL2F_SCALE[ssdindex],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+									if (!IsStripsOnCsIGap(L1L2_L2BStripNum[ssdindex][itrack], L1L2_L2FStripNum[ssdindex][itrack]))
+							    {
+										candimulti_corrected[ssdindex]++;
+										candimulti_2hit[ssdindex]++;
+									  h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2BEMeV[ssdindex][itrack]*EL2B_TO_EL2F_SCALE[ssdindex],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+									}
 								}
 							}
 						}
@@ -3967,9 +4547,12 @@ void L1L2_DecodefGlobalMulti4::L1L2_GlobalMulti4_Decode_101()
 							if ((itrack!=0) && (itrack!=3)) {
 								if ((L1L2_L2FTime[ssdindex][itrack]>SiTimeCut_Low[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]] && L1L2_L2FTime[ssdindex][itrack]<SiTimeCut_Up[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]]))
 								{
-									candimulti_corrected[ssdindex]++;
-									candimulti_2hit[ssdindex]++;
-								  h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2BEMeV[ssdindex][itrack]*EL2B_TO_EL2F_SCALE[ssdindex],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+									if (!IsStripsOnCsIGap(L1L2_L2BStripNum[ssdindex][itrack], L1L2_L2FStripNum[ssdindex][itrack]))
+							    {
+										candimulti_corrected[ssdindex]++;
+										candimulti_2hit[ssdindex]++;
+									  h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2BEMeV[ssdindex][itrack]*EL2B_TO_EL2F_SCALE[ssdindex],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+									}
 								}
 							}
 						}
@@ -3981,9 +4564,12 @@ void L1L2_DecodefGlobalMulti4::L1L2_GlobalMulti4_Decode_101()
 					{
 						if ((L1L2_L2FTime[ssdindex][0]>SiTimeCut_Low[ssdindex][L1L2_L2FStripNum[ssdindex][0]] && L1L2_L2FTime[ssdindex][0]<SiTimeCut_Up[ssdindex][L1L2_L2FStripNum[ssdindex][0]]))
 						{
-							candimulti_corrected[ssdindex]++;
-							candimulti_sharing[ssdindex]++;
-							h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][0],L1L2_L1SEMeV_Corrected[ssdindex][0]);
+							if (!IsStripsOnCsIGap(L1L2_L2BStripNum[ssdindex][0], L1L2_L2FStripNum[ssdindex][0]))
+							{
+								candimulti_corrected[ssdindex]++;
+								candimulti_sharing[ssdindex]++;
+								h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][0],L1L2_L1SEMeV_Corrected[ssdindex][0]);
+							}
 						}
 					}
 					// 考虑 L2B sharing
@@ -3993,9 +4579,12 @@ void L1L2_DecodefGlobalMulti4::L1L2_GlobalMulti4_Decode_101()
 					{
 						if ((L1L2_L2FTime[ssdindex][3]>SiTimeCut_Low[ssdindex][L1L2_L2FStripNum[ssdindex][3]] && L1L2_L2FTime[ssdindex][3]<SiTimeCut_Up[ssdindex][L1L2_L2FStripNum[ssdindex][3]]))
 						{
-							candimulti_corrected[ssdindex]++;
-							candimulti_sharing[ssdindex]++;
-							h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][3],L1L2_L1SEMeV_Corrected[ssdindex][3]);
+							if (!IsStripsOnCsIGap(L1L2_L2BStripNum[ssdindex][3], L1L2_L2FStripNum[ssdindex][3]))
+							{
+								candimulti_corrected[ssdindex]++;
+								candimulti_sharing[ssdindex]++;
+								h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][3],L1L2_L1SEMeV_Corrected[ssdindex][3]);
+							}
 						}
 					}
 					// 考虑 L1S sharing
@@ -4005,9 +4594,12 @@ void L1L2_DecodefGlobalMulti4::L1L2_GlobalMulti4_Decode_101()
 					{
 						if ((L1L2_L2FTime[ssdindex][0]>SiTimeCut_Low[ssdindex][L1L2_L2FStripNum[ssdindex][0]] && L1L2_L2FTime[ssdindex][0]<SiTimeCut_Up[ssdindex][L1L2_L2FStripNum[ssdindex][0]]))
 						{
-							candimulti_corrected[ssdindex]++;
-							candimulti_sharing[ssdindex]++;
-							h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][0],EL1S_Sum01);
+							if (!IsStripsOnCsIGap(L1L2_L2BStripNum[ssdindex][0], L1L2_L2FStripNum[ssdindex][0]))
+							{
+								candimulti_corrected[ssdindex]++;
+								candimulti_sharing[ssdindex]++;
+								h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][0],EL1S_Sum01);
+							}
 						}
 					}
 					// 考虑 L1S sharing
@@ -4017,9 +4609,12 @@ void L1L2_DecodefGlobalMulti4::L1L2_GlobalMulti4_Decode_101()
 					{
 						if ((L1L2_L2FTime[ssdindex][3]>SiTimeCut_Low[ssdindex][L1L2_L2FStripNum[ssdindex][3]] && L1L2_L2FTime[ssdindex][3]<SiTimeCut_Up[ssdindex][L1L2_L2FStripNum[ssdindex][3]]))
 						{
-							candimulti_corrected[ssdindex]++;
-							candimulti_sharing[ssdindex]++;
-							h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][3],EL1S_Sum01);
+							if (!IsStripsOnCsIGap(L1L2_L2BStripNum[ssdindex][3], L1L2_L2FStripNum[ssdindex][3]))
+							{
+								candimulti_corrected[ssdindex]++;
+								candimulti_sharing[ssdindex]++;
+								h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][3],EL1S_Sum01);
+							}
 						}
 					}
 					// 考虑只有一个粒子的情况
@@ -4030,9 +4625,12 @@ void L1L2_DecodefGlobalMulti4::L1L2_GlobalMulti4_Decode_101()
 							  if (trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,L1L2_L2BEMeV[ssdindex][itrack],L1L2_L2FEMeV[ssdindex][itrack]) &&
 						        trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]))
 							  {
-								  candimulti_corrected[ssdindex]++;
-								  h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
-									break;
+									if (!IsStripsOnCsIGap(L1L2_L2BStripNum[ssdindex][itrack], L1L2_L2FStripNum[ssdindex][itrack]))
+							    {
+										candimulti_corrected[ssdindex]++;
+									  h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+										break;
+									}
 							  }
 							}
 						}
@@ -4054,7 +4652,10 @@ void L1L2_DecodefGlobalMulti4::L1L2_GlobalMulti4_Decode_101()
 						for (Int_t itrack=0; itrack<globalmulti; itrack++) {
 							if (L1L2_L2FTime[ssdindex][itrack]>SiTimeCut_Low[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]] && L1L2_L2FTime[ssdindex][itrack]<SiTimeCut_Up[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]])
 						  {
-							  h2_L1L2_DEE_Discard[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+								if (!IsStripsOnCsIGap(L1L2_L2BStripNum[ssdindex][itrack], L1L2_L2FStripNum[ssdindex][itrack]))
+							  {
+									h2_L1L2_DEE_Discard[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+								}
                 /*
 								cout<<"ientry="<<ientry<<setw(12)<<"itrack="<<itrack<<setw(12)<<"StripL2B="<<L1L2_L2BStripNum[ssdindex][itrack]<<setw(12)<<"StripL2F="<<L1L2_L2FStripNum[ssdindex][itrack]<<setw(12)
 										<<"StripL1S="<<L1L2_L1SStripNum[ssdindex][itrack]<<setw(12)<<"EL2B="<<L1L2_L2BEMeV[ssdindex][itrack]<<setw(12)<<"EL2F="<<L1L2_L2FEMeV[ssdindex][itrack]<<setw(12)
@@ -4069,6 +4670,7 @@ void L1L2_DecodefGlobalMulti4::L1L2_GlobalMulti4_Decode_101()
 					}
 					//
 					if (candimulti_2hit[ssdindex] > 0) {
+						MHits_Entries[ssdindex]++;
 						for (Int_t itrack=0; itrack<globalmulti; itrack++) {
 							if (L1L2_L2FTime[ssdindex][itrack]>SiTimeCut_Low[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]] && L1L2_L2FTime[ssdindex][itrack]<SiTimeCut_Up[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]])
 						  {
@@ -4078,6 +4680,7 @@ void L1L2_DecodefGlobalMulti4::L1L2_GlobalMulti4_Decode_101()
 					}
 					//
 					if (candimulti_sharing[ssdindex] > 0) {
+						Sharing_Entries[ssdindex]++;
 						for (Int_t itrack=0; itrack<globalmulti; itrack++) {
 							if (L1L2_L2FTime[ssdindex][itrack]>SiTimeCut_Low[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]] && L1L2_L2FTime[ssdindex][itrack]<SiTimeCut_Up[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]])
 						  {
@@ -4091,25 +4694,47 @@ void L1L2_DecodefGlobalMulti4::L1L2_GlobalMulti4_Decode_101()
     }
   }
 
-  // 计算比例
+	//
+  TFile* fileout = new TFile(Form("/home/sea/Fission2019_Data/TrackDecoded/L1L2_g%d_0%s.root",globalmulti,mode),"RECREATE");
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    fileout->WriteTObject(&h2_L1L2_DEE[ssdindex],Form("h2_DEE_SSD%d_g%d_0%s",ssdindex+1,globalmulti,mode));
+  }
+  //
+	for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    fileout->WriteTObject(&h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex],Form("h2_GOOD_SSD%d_g%d_0%s",ssdindex+1,globalmulti,mode));
+  }
+	//
+	for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    fileout->WriteTObject(&h2_L1L2_DEE_Discard[ssdindex],Form("h2_LOST_SSD%d_g%d_0%s",ssdindex+1,globalmulti,mode));
+  }
+
+	// 计算比例
   Int_t entry_all[NUM_SSD] = {0};
   Int_t entry_discard[NUM_SSD] = {0};
   for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
     entry_all[ssdindex] = h2_L1L2_DEE[ssdindex].GetEntries();
     entry_discard[ssdindex] = h2_L1L2_DEE_Discard[ssdindex].GetEntries();
 
-    lost_ratio[ssdindex] = (Double_t) entry_discard[ssdindex]/entry_all[ssdindex] * 100;
+    lost_ratio[ssdindex]    = (Double_t) entry_discard[ssdindex]/entry_all[ssdindex] * 100;
+		MHits_Ratio[ssdindex]   = (Double_t) MHits_Entries[ssdindex] * globalmulti/entry_all[ssdindex] * 100;
+    Sharing_Ratio[ssdindex] = (Double_t) Sharing_Entries[ssdindex] * globalmulti/entry_all[ssdindex] * 100;
   }
 
-  // 定义 latex
-  Double_t x1,y1;
+	// 定义 latex
+  Double_t x1,y1,x2,y2;
   TLatex* latex_ratio[NUM_SSD];
+  TLatex* latex_decoded[NUM_SSD];
   for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
-    x1 = 0.25 * EL2Range[ssdindex];
-    y1 = 0.90 * EL1Range[ssdindex];
-    latex_ratio[ssdindex] = new TLatex(x1, y1, Form("r_{lost} = %.4f%%",lost_ratio[ssdindex]));
+    x1 = 0.4 * EL2Range[ssdindex];
+    y1 = 0.8 * EL1Range[ssdindex];
+    x2 = 0.2 * EL2Range[ssdindex];
+    y2 = 0.5 * EL1Range[ssdindex];
+    latex_ratio[ssdindex] = new TLatex(x1, y1, Form("r_{lost} = %.2f%%",lost_ratio[ssdindex]));
     latex_ratio[ssdindex]->SetTextSize(0.05);
     latex_ratio[ssdindex]->SetTextColor(kOrange);
+    latex_decoded[ssdindex] = new TLatex(x2, y2, Form("r_{sh}=%.4f%%, r_{mh}=%.4f%%",Sharing_Ratio[ssdindex],MHits_Ratio[ssdindex]));
+    latex_decoded[ssdindex]->SetTextSize(0.05);
+    latex_decoded[ssdindex]->SetTextColor(kOrange);
   }
 
 	// 定义 Legend
@@ -4147,6 +4772,7 @@ void L1L2_DecodefGlobalMulti4::L1L2_GlobalMulti4_Decode_101()
     cans.cd(3);
     h2_L1L2_DEE_Discard[ssdindex].Draw("COL");
 		latex_ratio[ssdindex]->Draw("SAME");
+		latex_decoded[ssdindex]->Draw("SAME");
 
     //
     cans.cd(4);
@@ -4201,6 +4827,11 @@ void L1L2_DecodefGlobalMulti4::L1L2_GlobalMulti4_Decode_110()
 	Double_t EL2B_Sum03;
 	Double_t EL2F_Sum03;
 
+	Double_t MHits_Ratio[NUM_SSD]   = {0};
+  Double_t Sharing_Ratio[NUM_SSD] = {0};
+  Int_t MHits_Entries[NUM_SSD]    = {0};
+  Int_t Sharing_Entries[NUM_SSD]  = {0};
+
   std::string pathPDFOut(Form("%sfigure_TrackReconstruction/L1L2_GlobalMulti%d_Decode_%s.pdf",PATHFIGURESFOLDER,globalmulti,mode));
   std::string pathPDFOutBegin(Form("%sfigure_TrackReconstruction/L1L2_GlobalMulti%d_Decode_%s.pdf[",PATHFIGURESFOLDER,globalmulti,mode));
   std::string pathPDFOutEnd(Form("%sfigure_TrackReconstruction/L1L2_GlobalMulti%d_Decode_%s.pdf]",PATHFIGURESFOLDER,globalmulti,mode));
@@ -4228,7 +4859,7 @@ void L1L2_DecodefGlobalMulti4::L1L2_GlobalMulti4_Decode_110()
   }
 
   printf("Processing mode g%d-%s ...\n", globalmulti, mode);
-  trackreconstruct->fChainTrackTree->SetEntries(10000000);
+  //trackreconstruct->fChainTrackTree->SetEntries(10000000);
   Long64_t nentries = trackreconstruct->fChainTrackTree->GetEntries();
   cout<<"Found nentries = "<<nentries<<endl;
 
@@ -4276,18 +4907,21 @@ void L1L2_DecodefGlobalMulti4::L1L2_GlobalMulti4_Decode_110()
           for (Int_t itrack=0; itrack<globalmulti; itrack++) {
 					  if (L1L2_L2FTime[ssdindex][itrack]>SiTimeCut_Low[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]] && L1L2_L2FTime[ssdindex][itrack]<SiTimeCut_Up[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]])
 					  {
-						  h2_L1L2_DEE[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+							if (!IsStripsOnCsIGap(L1L2_L2BStripNum[ssdindex][itrack], L1L2_L2FStripNum[ssdindex][itrack]))
+							{
+								h2_L1L2_DEE[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
 
-	            // 填充 mode statistic
-	            bin_index[itrack] = trackreconstruct->L1L2_GetSubModeFromEneConstraints(trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,L1L2_L2BEMeV[ssdindex][itrack],L1L2_L2FEMeV[ssdindex][itrack]),
-							                                                                        trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]));
-					    h1_modestat[ssdindex]->Fill(bin_index[itrack]);
+		            // 填充 mode statistic
+		            bin_index[itrack] = trackreconstruct->L1L2_GetSubModeFromEneConstraints(trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,L1L2_L2BEMeV[ssdindex][itrack],L1L2_L2FEMeV[ssdindex][itrack]),
+								                                                                        trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]));
+						    h1_modestat[ssdindex]->Fill(bin_index[itrack]);
 
-	            if (trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,L1L2_L2BEMeV[ssdindex][itrack],L1L2_L2FEMeV[ssdindex][itrack]) &&
-	                trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]))
-	            {
-	              candimulti[ssdindex]++;
-	            }
+		            if (trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,L1L2_L2BEMeV[ssdindex][itrack],L1L2_L2FEMeV[ssdindex][itrack]) &&
+		                trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]))
+		            {
+		              candimulti[ssdindex]++;
+		            }
+							}
 					  }
           }
           //____________________________________________________________________
@@ -4307,9 +4941,12 @@ void L1L2_DecodefGlobalMulti4::L1L2_GlobalMulti4_Decode_110()
 					{
 						if (L1L2_L2FTime[ssdindex][0]>SiTimeCut_Low[ssdindex][L1L2_L2FStripNum[ssdindex][0]] && L1L2_L2FTime[ssdindex][0]<SiTimeCut_Up[ssdindex][L1L2_L2FStripNum[ssdindex][0]])
 						{
-							candimulti_corrected[ssdindex]++;
-							candimulti_sharing[ssdindex]++;
-							h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][0],L1L2_L1SEMeV_Corrected[ssdindex][0]);
+							if (!IsStripsOnCsIGap(L1L2_L2BStripNum[ssdindex][0], L1L2_L2FStripNum[ssdindex][0]))
+							{
+								candimulti_corrected[ssdindex]++;
+								candimulti_sharing[ssdindex]++;
+								h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][0],L1L2_L1SEMeV_Corrected[ssdindex][0]);
+							}
 						}
 					}
 					// 考虑 L2B sharing
@@ -4319,9 +4956,12 @@ void L1L2_DecodefGlobalMulti4::L1L2_GlobalMulti4_Decode_110()
 					{
 						if (L1L2_L2FTime[ssdindex][3]>SiTimeCut_Low[ssdindex][L1L2_L2FStripNum[ssdindex][3]] && L1L2_L2FTime[ssdindex][3]<SiTimeCut_Up[ssdindex][L1L2_L2FStripNum[ssdindex][3]])
 						{
-							candimulti_corrected[ssdindex]++;
-							candimulti_sharing[ssdindex]++;
-							h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][3],L1L2_L1SEMeV_Corrected[ssdindex][3]);
+							if (!IsStripsOnCsIGap(L1L2_L2BStripNum[ssdindex][3], L1L2_L2FStripNum[ssdindex][3]))
+							{
+								candimulti_corrected[ssdindex]++;
+								candimulti_sharing[ssdindex]++;
+								h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][3],L1L2_L1SEMeV_Corrected[ssdindex][3]);
+							}
 						}
 					}
 					// 考虑 L2F sharing
@@ -4332,9 +4972,12 @@ void L1L2_DecodefGlobalMulti4::L1L2_GlobalMulti4_Decode_110()
 						if ( (L1L2_L2FTime[ssdindex][0]>SiTimeCut_Low[ssdindex][L1L2_L2FStripNum[ssdindex][0]] && L1L2_L2FTime[ssdindex][0]<SiTimeCut_Up[ssdindex][L1L2_L2FStripNum[ssdindex][0]]) ||
 					       (L1L2_L2FTime[ssdindex][3]>SiTimeCut_Low[ssdindex][L1L2_L2FStripNum[ssdindex][3]] && L1L2_L2FTime[ssdindex][3]<SiTimeCut_Up[ssdindex][L1L2_L2FStripNum[ssdindex][3]]) )
 						{
-							candimulti_corrected[ssdindex]++;
-							candimulti_sharing[ssdindex]++;
-							h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(EL2F_Sum03,L1L2_L1SEMeV_Corrected[ssdindex][0]);
+							if (!IsStripsOnCsIGap(L1L2_L2BStripNum[ssdindex][0], L1L2_L2FStripNum[ssdindex][0]))
+							{
+								candimulti_corrected[ssdindex]++;
+								candimulti_sharing[ssdindex]++;
+								h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(EL2F_Sum03,L1L2_L1SEMeV_Corrected[ssdindex][0]);
+							}
 						}
 					}
 					// 考虑 L2F sharing
@@ -4345,9 +4988,12 @@ void L1L2_DecodefGlobalMulti4::L1L2_GlobalMulti4_Decode_110()
 						if ( (L1L2_L2FTime[ssdindex][0]>SiTimeCut_Low[ssdindex][L1L2_L2FStripNum[ssdindex][0]] && L1L2_L2FTime[ssdindex][0]<SiTimeCut_Up[ssdindex][L1L2_L2FStripNum[ssdindex][0]]) ||
 					       (L1L2_L2FTime[ssdindex][3]>SiTimeCut_Low[ssdindex][L1L2_L2FStripNum[ssdindex][3]] && L1L2_L2FTime[ssdindex][3]<SiTimeCut_Up[ssdindex][L1L2_L2FStripNum[ssdindex][3]]) )
 						{
-							candimulti_corrected[ssdindex]++;
-							candimulti_sharing[ssdindex]++;
-							h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(EL2F_Sum03,L1L2_L1SEMeV_Corrected[ssdindex][3]);
+							if (!IsStripsOnCsIGap(L1L2_L2BStripNum[ssdindex][3], L1L2_L2FStripNum[ssdindex][3]))
+							{
+								candimulti_corrected[ssdindex]++;
+								candimulti_sharing[ssdindex]++;
+								h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(EL2F_Sum03,L1L2_L1SEMeV_Corrected[ssdindex][3]);
+							}
 						}
 					}
 					// 考虑L2B, L2F 同时 sharing
@@ -4358,9 +5004,12 @@ void L1L2_DecodefGlobalMulti4::L1L2_GlobalMulti4_Decode_110()
 						if ( (L1L2_L2FTime[ssdindex][0]>SiTimeCut_Low[ssdindex][L1L2_L2FStripNum[ssdindex][0]] && L1L2_L2FTime[ssdindex][0]<SiTimeCut_Up[ssdindex][L1L2_L2FStripNum[ssdindex][0]]) ||
 					       (L1L2_L2FTime[ssdindex][3]>SiTimeCut_Low[ssdindex][L1L2_L2FStripNum[ssdindex][3]] && L1L2_L2FTime[ssdindex][3]<SiTimeCut_Up[ssdindex][L1L2_L2FStripNum[ssdindex][3]]) )
 						{
-							candimulti_corrected[ssdindex]++;
-							candimulti_sharing[ssdindex]++;
-							h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(EL2F_Sum03,L1L2_L1SEMeV_Corrected[ssdindex][3]);
+							if (!IsStripsOnCsIGap(L1L2_L2BStripNum[ssdindex][3], L1L2_L2FStripNum[ssdindex][3]))
+							{
+								candimulti_corrected[ssdindex]++;
+								candimulti_sharing[ssdindex]++;
+								h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(EL2F_Sum03,L1L2_L1SEMeV_Corrected[ssdindex][3]);
+							}
 						}
 					}
 
@@ -4372,9 +5021,12 @@ void L1L2_DecodefGlobalMulti4::L1L2_GlobalMulti4_Decode_110()
 							  if (trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,L1L2_L2BEMeV[ssdindex][itrack],L1L2_L2FEMeV[ssdindex][itrack]) &&
 						        trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]))
 							  {
-								  candimulti_corrected[ssdindex]++;
-								  h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
-									break;
+									if (!IsStripsOnCsIGap(L1L2_L2BStripNum[ssdindex][itrack], L1L2_L2FStripNum[ssdindex][itrack]))
+							    {
+										candimulti_corrected[ssdindex]++;
+									  h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+										break;
+									}
 							  }
 							}
 						}
@@ -4396,12 +5048,16 @@ void L1L2_DecodefGlobalMulti4::L1L2_GlobalMulti4_Decode_110()
 						for (Int_t itrack=0; itrack<globalmulti; itrack++) {
 							if (L1L2_L2FTime[ssdindex][itrack]>SiTimeCut_Low[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]] && L1L2_L2FTime[ssdindex][itrack]<SiTimeCut_Up[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]])
 						  {
-							  h2_L1L2_DEE_Discard[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+								if (!IsStripsOnCsIGap(L1L2_L2BStripNum[ssdindex][itrack], L1L2_L2FStripNum[ssdindex][itrack]))
+							  {
+								  h2_L1L2_DEE_Discard[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+								}
 							}
 						}
 					}
 					//
 					if (candimulti_2hit[ssdindex] > 0) {
+						MHits_Entries[ssdindex]++;
 						for (Int_t itrack=0; itrack<globalmulti; itrack++) {
 							if (L1L2_L2FTime[ssdindex][itrack]>SiTimeCut_Low[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]] && L1L2_L2FTime[ssdindex][itrack]<SiTimeCut_Up[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]])
 						  {
@@ -4411,6 +5067,7 @@ void L1L2_DecodefGlobalMulti4::L1L2_GlobalMulti4_Decode_110()
 					}
 					//
 					if (candimulti_sharing[ssdindex] > 0) {
+						Sharing_Entries[ssdindex]++;
 						for (Int_t itrack=0; itrack<globalmulti; itrack++) {
 							if (L1L2_L2FTime[ssdindex][itrack]>SiTimeCut_Low[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]] && L1L2_L2FTime[ssdindex][itrack]<SiTimeCut_Up[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]])
 						  {
@@ -4424,25 +5081,47 @@ void L1L2_DecodefGlobalMulti4::L1L2_GlobalMulti4_Decode_110()
     }
   }
 
-  // 计算比例
+	//
+  TFile* fileout = new TFile(Form("/home/sea/Fission2019_Data/TrackDecoded/L1L2_g%d_0%s.root",globalmulti,mode),"RECREATE");
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    fileout->WriteTObject(&h2_L1L2_DEE[ssdindex],Form("h2_DEE_SSD%d_g%d_0%s",ssdindex+1,globalmulti,mode));
+  }
+  //
+	for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    fileout->WriteTObject(&h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex],Form("h2_GOOD_SSD%d_g%d_0%s",ssdindex+1,globalmulti,mode));
+  }
+	//
+	for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    fileout->WriteTObject(&h2_L1L2_DEE_Discard[ssdindex],Form("h2_LOST_SSD%d_g%d_0%s",ssdindex+1,globalmulti,mode));
+  }
+
+	// 计算比例
   Int_t entry_all[NUM_SSD] = {0};
   Int_t entry_discard[NUM_SSD] = {0};
   for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
     entry_all[ssdindex] = h2_L1L2_DEE[ssdindex].GetEntries();
     entry_discard[ssdindex] = h2_L1L2_DEE_Discard[ssdindex].GetEntries();
 
-    lost_ratio[ssdindex] = (Double_t) entry_discard[ssdindex]/entry_all[ssdindex] * 100;
+    lost_ratio[ssdindex]    = (Double_t) entry_discard[ssdindex]/entry_all[ssdindex] * 100;
+		MHits_Ratio[ssdindex]   = (Double_t) MHits_Entries[ssdindex] * globalmulti/entry_all[ssdindex] * 100;
+    Sharing_Ratio[ssdindex] = (Double_t) Sharing_Entries[ssdindex] * globalmulti/entry_all[ssdindex] * 100;
   }
 
-  // 定义 latex
-  Double_t x1,y1;
+	// 定义 latex
+  Double_t x1,y1,x2,y2;
   TLatex* latex_ratio[NUM_SSD];
+  TLatex* latex_decoded[NUM_SSD];
   for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
-    x1 = 0.25 * EL2Range[ssdindex];
-    y1 = 0.90 * EL1Range[ssdindex];
-    latex_ratio[ssdindex] = new TLatex(x1, y1, Form("r_{lost} = %.4f%%",lost_ratio[ssdindex]));
+    x1 = 0.4 * EL2Range[ssdindex];
+    y1 = 0.8 * EL1Range[ssdindex];
+    x2 = 0.2 * EL2Range[ssdindex];
+    y2 = 0.5 * EL1Range[ssdindex];
+    latex_ratio[ssdindex] = new TLatex(x1, y1, Form("r_{lost} = %.2f%%",lost_ratio[ssdindex]));
     latex_ratio[ssdindex]->SetTextSize(0.05);
     latex_ratio[ssdindex]->SetTextColor(kOrange);
+    latex_decoded[ssdindex] = new TLatex(x2, y2, Form("r_{sh}=%.4f%%, r_{mh}=%.4f%%",Sharing_Ratio[ssdindex],MHits_Ratio[ssdindex]));
+    latex_decoded[ssdindex]->SetTextSize(0.05);
+    latex_decoded[ssdindex]->SetTextColor(kOrange);
   }
 
 	// 定义 Legend
@@ -4480,6 +5159,7 @@ void L1L2_DecodefGlobalMulti4::L1L2_GlobalMulti4_Decode_110()
     cans.cd(3);
     h2_L1L2_DEE_Discard[ssdindex].Draw("COL");
 		latex_ratio[ssdindex]->Draw("SAME");
+		latex_decoded[ssdindex]->Draw("SAME");
 
     //
     cans.cd(4);
@@ -4531,6 +5211,11 @@ void L1L2_DecodefGlobalMulti4::L1L2_GlobalMulti4_Decode_111()
 
 	Int_t bin_index[globalmulti];
 
+	Double_t MHits_Ratio[NUM_SSD]   = {0};
+  Double_t Sharing_Ratio[NUM_SSD] = {0};
+  Int_t MHits_Entries[NUM_SSD]    = {0};
+  Int_t Sharing_Entries[NUM_SSD]  = {0};
+
 	Double_t EL2B_Sum03;
 	Double_t EL2F_Sum03;
   std::string pathPDFOut(Form("%sfigure_TrackReconstruction/L1L2_GlobalMulti%d_Decode_%s.pdf",PATHFIGURESFOLDER,globalmulti,mode));
@@ -4560,7 +5245,7 @@ void L1L2_DecodefGlobalMulti4::L1L2_GlobalMulti4_Decode_111()
   }
 
   printf("Processing mode g%d-%s ...\n", globalmulti, mode);
-  trackreconstruct->fChainTrackTree->SetEntries(10000000);
+  //trackreconstruct->fChainTrackTree->SetEntries(10000000);
   Long64_t nentries = trackreconstruct->fChainTrackTree->GetEntries();
   cout<<"Found nentries = "<<nentries<<endl;
 
@@ -4608,18 +5293,21 @@ void L1L2_DecodefGlobalMulti4::L1L2_GlobalMulti4_Decode_111()
           for (Int_t itrack=0; itrack<globalmulti; itrack++) {
 					  if (L1L2_L2FTime[ssdindex][itrack]>SiTimeCut_Low[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]] && L1L2_L2FTime[ssdindex][itrack]<SiTimeCut_Up[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]])
 					  {
-						  h2_L1L2_DEE[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+							if (!IsStripsOnCsIGap(L1L2_L2BStripNum[ssdindex][itrack], L1L2_L2FStripNum[ssdindex][itrack]))
+							{
+								h2_L1L2_DEE[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
 
-	            // 填充 mode statistic
-	            bin_index[itrack] = trackreconstruct->L1L2_GetSubModeFromEneConstraints(trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,L1L2_L2BEMeV[ssdindex][itrack],L1L2_L2FEMeV[ssdindex][itrack]),
-							                                                                        trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]));
-					    h1_modestat[ssdindex]->Fill(bin_index[itrack]);
+		            // 填充 mode statistic
+		            bin_index[itrack] = trackreconstruct->L1L2_GetSubModeFromEneConstraints(trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,L1L2_L2BEMeV[ssdindex][itrack],L1L2_L2FEMeV[ssdindex][itrack]),
+								                                                                        trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]));
+						    h1_modestat[ssdindex]->Fill(bin_index[itrack]);
 
-	            if (trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,L1L2_L2BEMeV[ssdindex][itrack],L1L2_L2FEMeV[ssdindex][itrack]) &&
-	                trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]))
-	            {
-	              candimulti[ssdindex]++;
-	            }
+		            if (trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,L1L2_L2BEMeV[ssdindex][itrack],L1L2_L2FEMeV[ssdindex][itrack]) &&
+		                trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]))
+		            {
+		              candimulti[ssdindex]++;
+		            }
+							}
 					  }
           }
           //____________________________________________________________________
@@ -4652,9 +5340,12 @@ void L1L2_DecodefGlobalMulti4::L1L2_GlobalMulti4_Decode_111()
 							if ((itrack!=1) && (itrack!=2)) {
 								if ((L1L2_L2FTime[ssdindex][itrack]>SiTimeCut_Low[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]] && L1L2_L2FTime[ssdindex][itrack]<SiTimeCut_Up[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]]))
 								{
-									candimulti_corrected[ssdindex]++;
-									candimulti_2hit[ssdindex]++;
-								  h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+									if (!IsStripsOnCsIGap(L1L2_L2BStripNum[ssdindex][itrack], L1L2_L2FStripNum[ssdindex][itrack]))
+							    {
+										candimulti_corrected[ssdindex]++;
+										candimulti_2hit[ssdindex]++;
+									  h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+									}
 								}
 							}
 						}
@@ -4668,9 +5359,12 @@ void L1L2_DecodefGlobalMulti4::L1L2_GlobalMulti4_Decode_111()
 							if ((itrack!=0) && (itrack!=3)) {
 								if ((L1L2_L2FTime[ssdindex][itrack]>SiTimeCut_Low[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]] && L1L2_L2FTime[ssdindex][itrack]<SiTimeCut_Up[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]]))
 								{
-									candimulti_corrected[ssdindex]++;
-									candimulti_2hit[ssdindex]++;
-								  h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+									if (!IsStripsOnCsIGap(L1L2_L2BStripNum[ssdindex][itrack], L1L2_L2FStripNum[ssdindex][itrack]))
+							    {
+										candimulti_corrected[ssdindex]++;
+										candimulti_2hit[ssdindex]++;
+									  h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+									}
 								}
 							}
 						}
@@ -4683,9 +5377,12 @@ void L1L2_DecodefGlobalMulti4::L1L2_GlobalMulti4_Decode_111()
 							  if (trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,L1L2_L2BEMeV[ssdindex][itrack],L1L2_L2FEMeV[ssdindex][itrack]) &&
 						        trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]))
 							  {
-								  candimulti_corrected[ssdindex]++;
-								  h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
-									break;
+									if (!IsStripsOnCsIGap(L1L2_L2BStripNum[ssdindex][itrack], L1L2_L2FStripNum[ssdindex][itrack]))
+							    {
+										candimulti_corrected[ssdindex]++;
+									  h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+										break;
+									}
 							  }
 							}
 						}
@@ -4708,7 +5405,10 @@ void L1L2_DecodefGlobalMulti4::L1L2_GlobalMulti4_Decode_111()
 						for (Int_t itrack=0; itrack<globalmulti; itrack++) {
 							if (L1L2_L2FTime[ssdindex][itrack]>SiTimeCut_Low[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]] && L1L2_L2FTime[ssdindex][itrack]<SiTimeCut_Up[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]])
 						  {
-							  h2_L1L2_DEE_Discard[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+								if (!IsStripsOnCsIGap(L1L2_L2BStripNum[ssdindex][itrack], L1L2_L2FStripNum[ssdindex][itrack]))
+							  {
+								  h2_L1L2_DEE_Discard[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+								}
 							}
 						}
 					}
@@ -4734,6 +5434,20 @@ void L1L2_DecodefGlobalMulti4::L1L2_GlobalMulti4_Decode_111()
 				}
       }
     }
+  }
+
+	//
+  TFile* fileout = new TFile(Form("/home/sea/Fission2019_Data/TrackDecoded/L1L2_g%d_0%s.root",globalmulti,mode),"RECREATE");
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    fileout->WriteTObject(&h2_L1L2_DEE[ssdindex],Form("h2_DEE_SSD%d_g%d_0%s",ssdindex+1,globalmulti,mode));
+  }
+  //
+	for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    fileout->WriteTObject(&h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex],Form("h2_GOOD_SSD%d_g%d_0%s",ssdindex+1,globalmulti,mode));
+  }
+	//
+	for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    fileout->WriteTObject(&h2_L1L2_DEE_Discard[ssdindex],Form("h2_LOST_SSD%d_g%d_0%s",ssdindex+1,globalmulti,mode));
   }
 
   // 计算比例
@@ -4916,7 +5630,7 @@ void L1L2_DecodefGlobalMulti6::L1L2_GlobalMulti6_Decode_111()
 	}
 
 	printf("Processing mode g%d-%s ...\n", globalmulti, mode);
-	trackreconstruct->fChainTrackTree->SetEntries(10000000);
+	//trackreconstruct->fChainTrackTree->SetEntries(10000000);
 	Long64_t nentries = trackreconstruct->fChainTrackTree->GetEntries();
 	cout<<"Found nentries = "<<nentries<<endl;
 
@@ -4964,17 +5678,20 @@ void L1L2_DecodefGlobalMulti6::L1L2_GlobalMulti6_Decode_111()
 					for (Int_t itrack=0; itrack<globalmulti; itrack++) {
 						if (L1L2_L2FTime[ssdindex][itrack]>SiTimeCut_Low[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]] && L1L2_L2FTime[ssdindex][itrack]<SiTimeCut_Up[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]])
 						{
-							h2_L1L2_DEE[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
-
-							// 填充 mode statistic
-							bin_index[itrack] = trackreconstruct->L1L2_GetSubModeFromEneConstraints(trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,L1L2_L2BEMeV[ssdindex][itrack],L1L2_L2FEMeV[ssdindex][itrack]),
-																																											trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]));
-							h1_modestat[ssdindex]->Fill(bin_index[itrack]);
-
-							if (trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,L1L2_L2BEMeV[ssdindex][itrack],L1L2_L2FEMeV[ssdindex][itrack]) &&
-									trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]))
+							if (!IsStripsOnCsIGap(L1L2_L2BStripNum[ssdindex][itrack], L1L2_L2FStripNum[ssdindex][itrack]))
 							{
-								candimulti[ssdindex]++;
+								h2_L1L2_DEE[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+
+								// 填充 mode statistic
+								bin_index[itrack] = trackreconstruct->L1L2_GetSubModeFromEneConstraints(trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,L1L2_L2BEMeV[ssdindex][itrack],L1L2_L2FEMeV[ssdindex][itrack]),
+																																												trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]));
+								h1_modestat[ssdindex]->Fill(bin_index[itrack]);
+
+								if (trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,L1L2_L2BEMeV[ssdindex][itrack],L1L2_L2FEMeV[ssdindex][itrack]) &&
+										trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]))
+								{
+									candimulti[ssdindex]++;
+								}
 							}
 						}
 					}
@@ -5000,9 +5717,12 @@ void L1L2_DecodefGlobalMulti6::L1L2_GlobalMulti6_Decode_111()
 								if ( (itrack==0 || itrack==5) &&
 							       (L1L2_L2FTime[ssdindex][itrack]>SiTimeCut_Low[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]] && L1L2_L2FTime[ssdindex][itrack]<SiTimeCut_Up[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]]) )
 						    {
-								  candimulti_corrected[ssdindex]++;
-									candimulti_2hit[ssdindex]++;
-								  h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+									if (!IsStripsOnCsIGap(L1L2_L2BStripNum[ssdindex][itrack], L1L2_L2FStripNum[ssdindex][itrack]))
+							    {
+										candimulti_corrected[ssdindex]++;
+										candimulti_2hit[ssdindex]++;
+									  h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+									}
 							  }
 							}
 						}
@@ -5015,9 +5735,12 @@ void L1L2_DecodefGlobalMulti6::L1L2_GlobalMulti6_Decode_111()
 								if ( (itrack==1 || itrack==3) &&
 							       (L1L2_L2FTime[ssdindex][itrack]>SiTimeCut_Low[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]] && L1L2_L2FTime[ssdindex][itrack]<SiTimeCut_Up[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]]) )
 						    {
-								  candimulti_corrected[ssdindex]++;
-								  candimulti_2hit[ssdindex]++;
-								  h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+									if (!IsStripsOnCsIGap(L1L2_L2BStripNum[ssdindex][itrack], L1L2_L2FStripNum[ssdindex][itrack]))
+							    {
+										candimulti_corrected[ssdindex]++;
+									  candimulti_2hit[ssdindex]++;
+									  h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+									}
 							  }
 							}
 						}
@@ -5028,9 +5751,12 @@ void L1L2_DecodefGlobalMulti6::L1L2_GlobalMulti6_Decode_111()
 							    if (trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,L1L2_L2BEMeV[ssdindex][itrack],L1L2_L2FEMeV[ssdindex][itrack]) &&
 						          trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]))
 							    {
-								    candimulti_corrected[ssdindex]++;
-								    h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
-									  break;
+										if (!IsStripsOnCsIGap(L1L2_L2BStripNum[ssdindex][itrack], L1L2_L2FStripNum[ssdindex][itrack]))
+							      {
+											candimulti_corrected[ssdindex]++;
+									    h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+										  break;
+										}
 									}
 							  }
 							}
@@ -5048,9 +5774,12 @@ void L1L2_DecodefGlobalMulti6::L1L2_GlobalMulti6_Decode_111()
 								if ( (itrack==0 || itrack==5) &&
 							       (L1L2_L2FTime[ssdindex][itrack]>SiTimeCut_Low[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]] && L1L2_L2FTime[ssdindex][itrack]<SiTimeCut_Up[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]]) )
 						    {
-								  candimulti_corrected[ssdindex]++;
-								  candimulti_2hit[ssdindex]++;
-								  h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+									if (!IsStripsOnCsIGap(L1L2_L2BStripNum[ssdindex][itrack], L1L2_L2FStripNum[ssdindex][itrack]))
+							    {
+										candimulti_corrected[ssdindex]++;
+									  candimulti_2hit[ssdindex]++;
+									  h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+									}
 							  }
 							}
 						}
@@ -5063,9 +5792,12 @@ void L1L2_DecodefGlobalMulti6::L1L2_GlobalMulti6_Decode_111()
 								if ( (itrack==2 || itrack==4) &&
 							       (L1L2_L2FTime[ssdindex][itrack]>SiTimeCut_Low[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]] && L1L2_L2FTime[ssdindex][itrack]<SiTimeCut_Up[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]]) )
 						    {
-								  candimulti_corrected[ssdindex]++;
-								  candimulti_2hit[ssdindex]++;
-								  h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+									if (!IsStripsOnCsIGap(L1L2_L2BStripNum[ssdindex][itrack], L1L2_L2FStripNum[ssdindex][itrack]))
+							    {
+										candimulti_corrected[ssdindex]++;
+									  candimulti_2hit[ssdindex]++;
+									  h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+									}
 							  }
 							}
 						}
@@ -5076,9 +5808,12 @@ void L1L2_DecodefGlobalMulti6::L1L2_GlobalMulti6_Decode_111()
 							    if (trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,L1L2_L2BEMeV[ssdindex][itrack],L1L2_L2FEMeV[ssdindex][itrack]) &&
 						          trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]))
 							    {
-								    candimulti_corrected[ssdindex]++;
-								    h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
-									  break;
+										if (!IsStripsOnCsIGap(L1L2_L2BStripNum[ssdindex][itrack], L1L2_L2FStripNum[ssdindex][itrack]))
+							      {
+											candimulti_corrected[ssdindex]++;
+									    h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+										  break;
+										}
 									}
 							  }
 							}
@@ -5101,7 +5836,11 @@ void L1L2_DecodefGlobalMulti6::L1L2_GlobalMulti6_Decode_111()
 						for (Int_t itrack=0; itrack<globalmulti; itrack++) {
 							if (L1L2_L2FTime[ssdindex][itrack]>SiTimeCut_Low[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]] && L1L2_L2FTime[ssdindex][itrack]<SiTimeCut_Up[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]])
 							{
-								h2_L1L2_DEE_Discard[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+								if (!IsStripsOnCsIGap(L1L2_L2BStripNum[ssdindex][itrack], L1L2_L2FStripNum[ssdindex][itrack]))
+							  {
+									h2_L1L2_DEE_Discard[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+								}
+
 								/*
 								cout<<"ientry="<<ientry<<setw(12)<<"itrack="<<itrack<<setw(12)<<"StripL2B="<<L1L2_L2BStripNum[ssdindex][itrack]<<setw(12)<<"StripL2F="<<L1L2_L2FStripNum[ssdindex][itrack]<<setw(12)
 										<<"StripL1S="<<L1L2_L1SStripNum[ssdindex][itrack]<<setw(12)<<"EL2B="<<L1L2_L2BEMeV[ssdindex][itrack]<<setw(12)<<"EL2F="<<L1L2_L2FEMeV[ssdindex][itrack]<<setw(12)
@@ -5137,6 +5876,20 @@ void L1L2_DecodefGlobalMulti6::L1L2_GlobalMulti6_Decode_111()
 			}
 		}
 	}
+
+	//
+  TFile* fileout = new TFile(Form("/home/sea/Fission2019_Data/TrackDecoded/L1L2_g%d_0%s.root",globalmulti,mode),"RECREATE");
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    fileout->WriteTObject(&h2_L1L2_DEE[ssdindex],Form("h2_DEE_SSD%d_g%d_0%s",ssdindex+1,globalmulti,mode));
+  }
+  //
+	for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    fileout->WriteTObject(&h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex],Form("h2_GOOD_SSD%d_g%d_0%s",ssdindex+1,globalmulti,mode));
+  }
+	//
+	for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    fileout->WriteTObject(&h2_L1L2_DEE_Discard[ssdindex],Form("h2_LOST_SSD%d_g%d_0%s",ssdindex+1,globalmulti,mode));
+  }
 
 	// 计算比例
 	Int_t entry_all[NUM_SSD] = {0};
@@ -5275,7 +6028,7 @@ void L1L2_DecodefGlobalMulti6::L1L2_GlobalMulti6_Decode_112()
 	}
 
 	printf("Processing mode g%d-%s ...\n", globalmulti, mode);
-	trackreconstruct->fChainTrackTree->SetEntries(10000000);
+	//trackreconstruct->fChainTrackTree->SetEntries(10000000);
 	Long64_t nentries = trackreconstruct->fChainTrackTree->GetEntries();
 	cout<<"Found nentries = "<<nentries<<endl;
 
@@ -5323,22 +6076,25 @@ void L1L2_DecodefGlobalMulti6::L1L2_GlobalMulti6_Decode_112()
 					for (Int_t itrack=0; itrack<globalmulti; itrack++) {
 						if (L1L2_L2FTime[ssdindex][itrack]>SiTimeCut_Low[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]] && L1L2_L2FTime[ssdindex][itrack]<SiTimeCut_Up[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]])
 						{
-							h2_L1L2_DEE[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
-
-							// 填充 mode statistic
-							bin_index[itrack] = trackreconstruct->L1L2_GetSubModeFromEneConstraints(trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,L1L2_L2BEMeV[ssdindex][itrack],L1L2_L2FEMeV[ssdindex][itrack]),
-																																											trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]));
-							h1_modestat[ssdindex]->Fill(bin_index[itrack]);
-
-							if (trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,L1L2_L2BEMeV[ssdindex][itrack],L1L2_L2FEMeV[ssdindex][itrack]) &&
-									trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]))
+							if (!IsStripsOnCsIGap(L1L2_L2BStripNum[ssdindex][itrack], L1L2_L2FStripNum[ssdindex][itrack]))
 							{
-								candimulti[ssdindex]++;
+								h2_L1L2_DEE[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+
+								// 填充 mode statistic
+								bin_index[itrack] = trackreconstruct->L1L2_GetSubModeFromEneConstraints(trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,L1L2_L2BEMeV[ssdindex][itrack],L1L2_L2FEMeV[ssdindex][itrack]),
+																																												trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]));
+								h1_modestat[ssdindex]->Fill(bin_index[itrack]);
+
+								if (trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,L1L2_L2BEMeV[ssdindex][itrack],L1L2_L2FEMeV[ssdindex][itrack]) &&
+										trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]))
+								{
+									candimulti[ssdindex]++;
+								}
 							}
 						}
 					}
 					//____________________________________________________________________
-					//           以下部分为当前 L1L2-globalomulti6-012 的径迹重建策略！！！
+					//           以下部分为当前 L1L2-globalomulti6-112 的径迹重建策略！！！
 					//          -------------------------------------------------------
 					//  0) 000            0) 000
 					//  1）010            1) 001
@@ -5362,9 +6118,12 @@ void L1L2_DecodefGlobalMulti6::L1L2_GlobalMulti6_Decode_112()
 							    if (trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,L1L2_L2BEMeV[ssdindex][itrack],L1L2_L2FEMeV[ssdindex][itrack]) &&
 						          trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]))
 							    {
-								    candimulti_corrected[ssdindex]++;
-										candimulti_2hit[ssdindex]++;
-								    h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+										if (!IsStripsOnCsIGap(L1L2_L2BStripNum[ssdindex][itrack], L1L2_L2FStripNum[ssdindex][itrack]))
+							      {
+											candimulti_corrected[ssdindex]++;
+											candimulti_2hit[ssdindex]++;
+									    h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+										}
 									}
 							  }
 							}
@@ -5382,9 +6141,12 @@ void L1L2_DecodefGlobalMulti6::L1L2_GlobalMulti6_Decode_112()
 							    if (trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,L1L2_L2BEMeV[ssdindex][itrack],L1L2_L2FEMeV[ssdindex][itrack]) &&
 						          trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]))
 							    {
-								    candimulti_corrected[ssdindex]++;
-										candimulti_2hit[ssdindex]++;
-								    h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+										if (!IsStripsOnCsIGap(L1L2_L2BStripNum[ssdindex][itrack], L1L2_L2FStripNum[ssdindex][itrack]))
+							      {
+											candimulti_corrected[ssdindex]++;
+											candimulti_2hit[ssdindex]++;
+									    h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+										}
 									}
 							  }
 							}
@@ -5402,9 +6164,12 @@ void L1L2_DecodefGlobalMulti6::L1L2_GlobalMulti6_Decode_112()
 							    if (trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,L1L2_L2BEMeV[ssdindex][itrack],L1L2_L2FEMeV[ssdindex][itrack]) &&
 						          trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]))
 							    {
-								    candimulti_corrected[ssdindex]++;
-										candimulti_2hit[ssdindex]++;
-								    h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+										if (!IsStripsOnCsIGap(L1L2_L2BStripNum[ssdindex][itrack], L1L2_L2FStripNum[ssdindex][itrack]))
+							      {
+											candimulti_corrected[ssdindex]++;
+											candimulti_2hit[ssdindex]++;
+									    h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+										}
 									}
 							  }
 							}
@@ -5423,9 +6188,12 @@ void L1L2_DecodefGlobalMulti6::L1L2_GlobalMulti6_Decode_112()
 							    if (trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,L1L2_L2BEMeV[ssdindex][itrack],L1L2_L2FEMeV[ssdindex][itrack]) &&
 						          trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]))
 							    {
-								    candimulti_corrected[ssdindex]++;
-										candimulti_2hit[ssdindex]++;
-								    h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+										if (!IsStripsOnCsIGap(L1L2_L2BStripNum[ssdindex][itrack], L1L2_L2FStripNum[ssdindex][itrack]))
+							      {
+											candimulti_corrected[ssdindex]++;
+											candimulti_2hit[ssdindex]++;
+									    h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+										}
 									}
 							  }
 							}
@@ -5437,9 +6205,12 @@ void L1L2_DecodefGlobalMulti6::L1L2_GlobalMulti6_Decode_112()
 							    if (trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,L1L2_L2BEMeV[ssdindex][itrack],L1L2_L2FEMeV[ssdindex][itrack]) &&
 						          trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]))
 							    {
-								    candimulti_corrected[ssdindex]++;
-								    h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
-									  break;
+										if (!IsStripsOnCsIGap(L1L2_L2BStripNum[ssdindex][itrack], L1L2_L2FStripNum[ssdindex][itrack]))
+							      {
+											candimulti_corrected[ssdindex]++;
+									    h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+										  break;
+										}
 									}
 							  }
 							}
@@ -5460,9 +6231,12 @@ void L1L2_DecodefGlobalMulti6::L1L2_GlobalMulti6_Decode_112()
 							    if (trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,L1L2_L2BEMeV[ssdindex][itrack],L1L2_L2FEMeV[ssdindex][itrack]) &&
 						          trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]))
 							    {
-								    candimulti_corrected[ssdindex]++;
-										candimulti_2hit[ssdindex]++;
-								    h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+										if (!IsStripsOnCsIGap(L1L2_L2BStripNum[ssdindex][itrack], L1L2_L2FStripNum[ssdindex][itrack]))
+							      {
+											candimulti_corrected[ssdindex]++;
+											candimulti_2hit[ssdindex]++;
+									    h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+										}
 									}
 							  }
 							}
@@ -5479,9 +6253,12 @@ void L1L2_DecodefGlobalMulti6::L1L2_GlobalMulti6_Decode_112()
 							    if (trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,L1L2_L2BEMeV[ssdindex][itrack],L1L2_L2FEMeV[ssdindex][itrack]) &&
 						          trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]))
 							    {
-								    candimulti_corrected[ssdindex]++;
-										candimulti_2hit[ssdindex]++;
-								    h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+										if (!IsStripsOnCsIGap(L1L2_L2BStripNum[ssdindex][itrack], L1L2_L2FStripNum[ssdindex][itrack]))
+							      {
+											candimulti_corrected[ssdindex]++;
+											candimulti_2hit[ssdindex]++;
+									    h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+										}
 									}
 							  }
 							}
@@ -5498,9 +6275,12 @@ void L1L2_DecodefGlobalMulti6::L1L2_GlobalMulti6_Decode_112()
 							    if (trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,L1L2_L2BEMeV[ssdindex][itrack],L1L2_L2FEMeV[ssdindex][itrack]) &&
 						          trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]))
 							    {
-								    candimulti_corrected[ssdindex]++;
-										candimulti_2hit[ssdindex]++;
-								    h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+										if (!IsStripsOnCsIGap(L1L2_L2BStripNum[ssdindex][itrack], L1L2_L2FStripNum[ssdindex][itrack]))
+							      {
+											candimulti_corrected[ssdindex]++;
+											candimulti_2hit[ssdindex]++;
+									    h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+										}
 									}
 							  }
 							}
@@ -5517,9 +6297,12 @@ void L1L2_DecodefGlobalMulti6::L1L2_GlobalMulti6_Decode_112()
 							    if (trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,L1L2_L2BEMeV[ssdindex][itrack],L1L2_L2FEMeV[ssdindex][itrack]) &&
 						          trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]))
 							    {
-								    candimulti_corrected[ssdindex]++;
-										candimulti_2hit[ssdindex]++;
-								    h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+										if (!IsStripsOnCsIGap(L1L2_L2BStripNum[ssdindex][itrack], L1L2_L2FStripNum[ssdindex][itrack]))
+							      {
+											candimulti_corrected[ssdindex]++;
+											candimulti_2hit[ssdindex]++;
+									    h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+										}
 									}
 							  }
 							}
@@ -5531,9 +6314,12 @@ void L1L2_DecodefGlobalMulti6::L1L2_GlobalMulti6_Decode_112()
 							    if (trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,L1L2_L2BEMeV[ssdindex][itrack],L1L2_L2FEMeV[ssdindex][itrack]) &&
 						          trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]))
 							    {
-								    candimulti_corrected[ssdindex]++;
-								    h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
-									  break;
+										if (!IsStripsOnCsIGap(L1L2_L2BStripNum[ssdindex][itrack], L1L2_L2FStripNum[ssdindex][itrack]))
+							      {
+											candimulti_corrected[ssdindex]++;
+									    h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+										  break;
+										}
 									}
 							  }
 							}
@@ -5556,7 +6342,11 @@ void L1L2_DecodefGlobalMulti6::L1L2_GlobalMulti6_Decode_112()
 						for (Int_t itrack=0; itrack<globalmulti; itrack++) {
 							if (L1L2_L2FTime[ssdindex][itrack]>SiTimeCut_Low[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]] && L1L2_L2FTime[ssdindex][itrack]<SiTimeCut_Up[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]])
 							{
-								h2_L1L2_DEE_Discard[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+								if (!IsStripsOnCsIGap(L1L2_L2BStripNum[ssdindex][itrack], L1L2_L2FStripNum[ssdindex][itrack]))
+							  {
+									h2_L1L2_DEE_Discard[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+								}
+
 								/*
 								cout<<"ientry="<<ientry<<setw(12)<<"itrack="<<itrack<<setw(12)<<"StripL2B="<<L1L2_L2BStripNum[ssdindex][itrack]<<setw(12)<<"StripL2F="<<L1L2_L2FStripNum[ssdindex][itrack]<<setw(12)
 										<<"StripL1S="<<L1L2_L1SStripNum[ssdindex][itrack]<<setw(12)<<"EL2B="<<L1L2_L2BEMeV[ssdindex][itrack]<<setw(12)<<"EL2F="<<L1L2_L2FEMeV[ssdindex][itrack]<<setw(12)
@@ -5592,6 +6382,20 @@ void L1L2_DecodefGlobalMulti6::L1L2_GlobalMulti6_Decode_112()
 			}
 		}
 	}
+
+	//
+  TFile* fileout = new TFile(Form("/home/sea/Fission2019_Data/TrackDecoded/L1L2_g%d_0%s.root",globalmulti,mode),"RECREATE");
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    fileout->WriteTObject(&h2_L1L2_DEE[ssdindex],Form("h2_DEE_SSD%d_g%d_0%s",ssdindex+1,globalmulti,mode));
+  }
+  //
+	for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    fileout->WriteTObject(&h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex],Form("h2_GOOD_SSD%d_g%d_0%s",ssdindex+1,globalmulti,mode));
+  }
+	//
+	for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    fileout->WriteTObject(&h2_L1L2_DEE_Discard[ssdindex],Form("h2_LOST_SSD%d_g%d_0%s",ssdindex+1,globalmulti,mode));
+  }
 
 	// 计算比例
 	Int_t entry_all[NUM_SSD] = {0};
@@ -5708,6 +6512,11 @@ void L1L2_DecodefGlobalMulti6::L1L2_GlobalMulti6_Decode_120()
 	Double_t EL2B_Sum04;
 	Double_t EL2B_Sum15;
 
+	Double_t MHits_Ratio[NUM_SSD]   = {0};
+  Double_t Sharing_Ratio[NUM_SSD] = {0};
+  Int_t MHits_Entries[NUM_SSD]    = {0};
+  Int_t Sharing_Entries[NUM_SSD]  = {0};
+
 	std::string pathPDFOut(Form("%sfigure_TrackReconstruction/L1L2_GlobalMulti%d_Decode_%s.pdf",PATHFIGURESFOLDER,globalmulti,mode));
 	std::string pathPDFOutBegin(Form("%sfigure_TrackReconstruction/L1L2_GlobalMulti%d_Decode_%s.pdf[",PATHFIGURESFOLDER,globalmulti,mode));
 	std::string pathPDFOutEnd(Form("%sfigure_TrackReconstruction/L1L2_GlobalMulti%d_Decode_%s.pdf]",PATHFIGURESFOLDER,globalmulti,mode));
@@ -5735,7 +6544,7 @@ void L1L2_DecodefGlobalMulti6::L1L2_GlobalMulti6_Decode_120()
 	}
 
 	printf("Processing mode g%d-%s ...\n", globalmulti, mode);
-	trackreconstruct->fChainTrackTree->SetEntries(10000000);
+	//trackreconstruct->fChainTrackTree->SetEntries(10000000);
 	Long64_t nentries = trackreconstruct->fChainTrackTree->GetEntries();
 	cout<<"Found nentries = "<<nentries<<endl;
 
@@ -5783,17 +6592,20 @@ void L1L2_DecodefGlobalMulti6::L1L2_GlobalMulti6_Decode_120()
 					for (Int_t itrack=0; itrack<globalmulti; itrack++) {
 						if (L1L2_L2FTime[ssdindex][itrack]>SiTimeCut_Low[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]] && L1L2_L2FTime[ssdindex][itrack]<SiTimeCut_Up[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]])
 						{
-							h2_L1L2_DEE[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+							if (!IsStripsOnCsIGap(L1L2_L2BStripNum[ssdindex][itrack], L1L2_L2FStripNum[ssdindex][itrack]))
+              {
+								h2_L1L2_DEE[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
 
-							// 填充 mode statistic
-							bin_index[itrack] = trackreconstruct->L1L2_GetSubModeFromEneConstraints(trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,L1L2_L2BEMeV[ssdindex][itrack],L1L2_L2FEMeV[ssdindex][itrack]),
-																																											trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]));
-							h1_modestat[ssdindex]->Fill(bin_index[itrack]);
+								// 填充 mode statistic
+								bin_index[itrack] = trackreconstruct->L1L2_GetSubModeFromEneConstraints(trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,L1L2_L2BEMeV[ssdindex][itrack],L1L2_L2FEMeV[ssdindex][itrack]),
+																																												trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]));
+								h1_modestat[ssdindex]->Fill(bin_index[itrack]);
 
-							if (trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,L1L2_L2BEMeV[ssdindex][itrack],L1L2_L2FEMeV[ssdindex][itrack]) &&
-									trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]))
-							{
-								candimulti[ssdindex]++;
+								if (trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,L1L2_L2BEMeV[ssdindex][itrack],L1L2_L2FEMeV[ssdindex][itrack]) &&
+										trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]))
+								{
+									candimulti[ssdindex]++;
+								}
 							}
 						}
 					}
@@ -5827,10 +6639,13 @@ void L1L2_DecodefGlobalMulti6::L1L2_GlobalMulti6_Decode_120()
 						    {
 							    if (trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]))
 							    {
-								    candimulti_corrected[ssdindex]++;
-										candimulti_sharing[ssdindex]++;
-								    h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
-									  break;
+										if (!IsStripsOnCsIGap(L1L2_L2BStripNum[ssdindex][itrack], L1L2_L2FStripNum[ssdindex][itrack]))
+							      {
+											candimulti_corrected[ssdindex]++;
+											candimulti_sharing[ssdindex]++;
+									    h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+										  break;
+										}
 									}
 							  }
 							}
@@ -5843,9 +6658,12 @@ void L1L2_DecodefGlobalMulti6::L1L2_GlobalMulti6_Decode_120()
 						if ( (L1L2_L2FTime[ssdindex][0]>SiTimeCut_Low[ssdindex][L1L2_L2FStripNum[ssdindex][0]] && L1L2_L2FTime[ssdindex][0]<SiTimeCut_Up[ssdindex][L1L2_L2FStripNum[ssdindex][0]]) ||
 					       (L1L2_L2FTime[ssdindex][4]>SiTimeCut_Low[ssdindex][L1L2_L2FStripNum[ssdindex][4]] && L1L2_L2FTime[ssdindex][4]<SiTimeCut_Up[ssdindex][L1L2_L2FStripNum[ssdindex][4]]) )
 						{
-							candimulti_corrected[ssdindex]++;
-							candimulti_sharing[ssdindex]++;
-							h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(EL2F_Sum04,L1L2_L1SEMeV_Corrected[ssdindex][0]);
+							if (!IsStripsOnCsIGap(L1L2_L2BStripNum[ssdindex][0], L1L2_L2FStripNum[ssdindex][0]))
+							{
+								candimulti_corrected[ssdindex]++;
+								candimulti_sharing[ssdindex]++;
+								h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(EL2F_Sum04,L1L2_L1SEMeV_Corrected[ssdindex][0]);
+							}
 						}
 					}
 					// 考虑 L2F sharing
@@ -5856,9 +6674,12 @@ void L1L2_DecodefGlobalMulti6::L1L2_GlobalMulti6_Decode_120()
 						if ( (L1L2_L2FTime[ssdindex][0]>SiTimeCut_Low[ssdindex][L1L2_L2FStripNum[ssdindex][0]] && L1L2_L2FTime[ssdindex][0]<SiTimeCut_Up[ssdindex][L1L2_L2FStripNum[ssdindex][0]]) ||
 					       (L1L2_L2FTime[ssdindex][4]>SiTimeCut_Low[ssdindex][L1L2_L2FStripNum[ssdindex][4]] && L1L2_L2FTime[ssdindex][4]<SiTimeCut_Up[ssdindex][L1L2_L2FStripNum[ssdindex][4]]) )
 						{
-							candimulti_corrected[ssdindex]++;
-							candimulti_sharing[ssdindex]++;
-							h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(EL2F_Sum04,L1L2_L1SEMeV_Corrected[ssdindex][4]);
+							if (!IsStripsOnCsIGap(L1L2_L2BStripNum[ssdindex][4], L1L2_L2FStripNum[ssdindex][4]))
+							{
+								candimulti_corrected[ssdindex]++;
+								candimulti_sharing[ssdindex]++;
+								h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(EL2F_Sum04,L1L2_L1SEMeV_Corrected[ssdindex][4]);
+							}
 						}
 					}
 					// 考虑 L2F sharing
@@ -5869,9 +6690,12 @@ void L1L2_DecodefGlobalMulti6::L1L2_GlobalMulti6_Decode_120()
 						if ( (L1L2_L2FTime[ssdindex][1]>SiTimeCut_Low[ssdindex][L1L2_L2FStripNum[ssdindex][1]] && L1L2_L2FTime[ssdindex][1]<SiTimeCut_Up[ssdindex][L1L2_L2FStripNum[ssdindex][1]]) ||
 					       (L1L2_L2FTime[ssdindex][5]>SiTimeCut_Low[ssdindex][L1L2_L2FStripNum[ssdindex][5]] && L1L2_L2FTime[ssdindex][5]<SiTimeCut_Up[ssdindex][L1L2_L2FStripNum[ssdindex][5]]) )
 						{
-							candimulti_corrected[ssdindex]++;
-							candimulti_sharing[ssdindex]++;
-							h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(EL2F_Sum15,L1L2_L1SEMeV_Corrected[ssdindex][1]);
+							if (!IsStripsOnCsIGap(L1L2_L2BStripNum[ssdindex][1], L1L2_L2FStripNum[ssdindex][1]))
+							{
+								candimulti_corrected[ssdindex]++;
+								candimulti_sharing[ssdindex]++;
+								h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(EL2F_Sum15,L1L2_L1SEMeV_Corrected[ssdindex][1]);
+							}
 						}
 					}
 					// 考虑 L2F sharing
@@ -5882,9 +6706,12 @@ void L1L2_DecodefGlobalMulti6::L1L2_GlobalMulti6_Decode_120()
 						if ( (L1L2_L2FTime[ssdindex][1]>SiTimeCut_Low[ssdindex][L1L2_L2FStripNum[ssdindex][1]] && L1L2_L2FTime[ssdindex][1]<SiTimeCut_Up[ssdindex][L1L2_L2FStripNum[ssdindex][1]]) ||
 					       (L1L2_L2FTime[ssdindex][2]>SiTimeCut_Low[ssdindex][L1L2_L2FStripNum[ssdindex][5]] && L1L2_L2FTime[ssdindex][5]<SiTimeCut_Up[ssdindex][L1L2_L2FStripNum[ssdindex][5]]) )
 						{
-							candimulti_corrected[ssdindex]++;
-							candimulti_sharing[ssdindex]++;
-							h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(EL2F_Sum12,L1L2_L1SEMeV_Corrected[ssdindex][5]);
+							if (!IsStripsOnCsIGap(L1L2_L2BStripNum[ssdindex][5], L1L2_L2FStripNum[ssdindex][5]))
+							{
+								candimulti_corrected[ssdindex]++;
+								candimulti_sharing[ssdindex]++;
+								h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(EL2F_Sum12,L1L2_L1SEMeV_Corrected[ssdindex][5]);
+							}
 						}
 					}
 					// 考虑 L2B, L2F 同时 sharing
@@ -5896,9 +6723,12 @@ void L1L2_DecodefGlobalMulti6::L1L2_GlobalMulti6_Decode_120()
 						if ( (L1L2_L2FTime[ssdindex][0]>SiTimeCut_Low[ssdindex][L1L2_L2FStripNum[ssdindex][0]] && L1L2_L2FTime[ssdindex][0]<SiTimeCut_Up[ssdindex][L1L2_L2FStripNum[ssdindex][0]]) ||
 					       (L1L2_L2FTime[ssdindex][4]>SiTimeCut_Low[ssdindex][L1L2_L2FStripNum[ssdindex][4]] && L1L2_L2FTime[ssdindex][4]<SiTimeCut_Up[ssdindex][L1L2_L2FStripNum[ssdindex][4]]) )
 						{
-							candimulti_corrected[ssdindex]++;
-							candimulti_sharing[ssdindex]++;
-							h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(EL2F_Sum04,L1L2_L1SEMeV_Corrected[ssdindex][0]);
+							if (!IsStripsOnCsIGap(L1L2_L2BStripNum[ssdindex][0], L1L2_L2FStripNum[ssdindex][0]))
+							{
+								candimulti_corrected[ssdindex]++;
+								candimulti_sharing[ssdindex]++;
+								h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(EL2F_Sum04,L1L2_L1SEMeV_Corrected[ssdindex][0]);
+							}
 						}
 					}
 					// 考虑 L2B, L2F 同时 sharing
@@ -5910,9 +6740,12 @@ void L1L2_DecodefGlobalMulti6::L1L2_GlobalMulti6_Decode_120()
 						if ( (L1L2_L2FTime[ssdindex][1]>SiTimeCut_Low[ssdindex][L1L2_L2FStripNum[ssdindex][1]] && L1L2_L2FTime[ssdindex][1]<SiTimeCut_Up[ssdindex][L1L2_L2FStripNum[ssdindex][1]]) ||
 					       (L1L2_L2FTime[ssdindex][5]>SiTimeCut_Low[ssdindex][L1L2_L2FStripNum[ssdindex][5]] && L1L2_L2FTime[ssdindex][5]<SiTimeCut_Up[ssdindex][L1L2_L2FStripNum[ssdindex][5]]) )
 						{
-							candimulti_corrected[ssdindex]++;
-							candimulti_sharing[ssdindex]++;
-							h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(EL2F_Sum15,L1L2_L1SEMeV_Corrected[ssdindex][1]);
+							if (!IsStripsOnCsIGap(L1L2_L2BStripNum[ssdindex][1], L1L2_L2FStripNum[ssdindex][1]))
+							{
+								candimulti_corrected[ssdindex]++;
+								candimulti_sharing[ssdindex]++;
+								h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(EL2F_Sum15,L1L2_L1SEMeV_Corrected[ssdindex][1]);
+							}
 						}
 					}
 					else {
@@ -5922,9 +6755,12 @@ void L1L2_DecodefGlobalMulti6::L1L2_GlobalMulti6_Decode_120()
 								if (trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,L1L2_L2BEMeV[ssdindex][itrack],L1L2_L2FEMeV[ssdindex][itrack]) &&
 							      trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]))
 								{
-									candimulti_corrected[ssdindex]++;
-									h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
-									break;
+									if (!IsStripsOnCsIGap(L1L2_L2BStripNum[ssdindex][itrack], L1L2_L2FStripNum[ssdindex][itrack]))
+							    {
+										candimulti_corrected[ssdindex]++;
+										h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+										break;
+									}
 								}
 							}
 					  }
@@ -5946,12 +6782,16 @@ void L1L2_DecodefGlobalMulti6::L1L2_GlobalMulti6_Decode_120()
 						for (Int_t itrack=0; itrack<globalmulti; itrack++) {
 							if (L1L2_L2FTime[ssdindex][itrack]>SiTimeCut_Low[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]] && L1L2_L2FTime[ssdindex][itrack]<SiTimeCut_Up[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]])
 							{
-								h2_L1L2_DEE_Discard[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+								if (!IsStripsOnCsIGap(L1L2_L2BStripNum[ssdindex][itrack], L1L2_L2FStripNum[ssdindex][itrack]))
+							  {
+									h2_L1L2_DEE_Discard[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+								}
 							}
 						}
 					}
 					//
 					if (candimulti_2hit[ssdindex] > 0) {
+						MHits_Entries[ssdindex]++;
 						for (Int_t itrack=0; itrack<globalmulti; itrack++) {
 							if (L1L2_L2FTime[ssdindex][itrack]>SiTimeCut_Low[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]] && L1L2_L2FTime[ssdindex][itrack]<SiTimeCut_Up[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]])
 							{
@@ -5961,6 +6801,7 @@ void L1L2_DecodefGlobalMulti6::L1L2_GlobalMulti6_Decode_120()
 					}
 					//
 					if (candimulti_sharing[ssdindex] > 0) {
+						Sharing_Entries[ssdindex]++;
 						for (Int_t itrack=0; itrack<globalmulti; itrack++) {
 							if (L1L2_L2FTime[ssdindex][itrack]>SiTimeCut_Low[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]] && L1L2_L2FTime[ssdindex][itrack]<SiTimeCut_Up[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]])
 							{
@@ -5974,26 +6815,48 @@ void L1L2_DecodefGlobalMulti6::L1L2_GlobalMulti6_Decode_120()
 		}
 	}
 
-	// 计算比例
-	Int_t entry_all[NUM_SSD] = {0};
-	Int_t entry_discard[NUM_SSD] = {0};
+	//
+  TFile* fileout = new TFile(Form("/home/sea/Fission2019_Data/TrackDecoded/L1L2_g%d_0%s.root",globalmulti,mode),"RECREATE");
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    fileout->WriteTObject(&h2_L1L2_DEE[ssdindex],Form("h2_DEE_SSD%d_g%d_0%s",ssdindex+1,globalmulti,mode));
+  }
+  //
 	for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
-		entry_all[ssdindex] = h2_L1L2_DEE[ssdindex].GetEntries();
-		entry_discard[ssdindex] = h2_L1L2_DEE_Discard[ssdindex].GetEntries();
+    fileout->WriteTObject(&h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex],Form("h2_GOOD_SSD%d_g%d_0%s",ssdindex+1,globalmulti,mode));
+  }
+	//
+	for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    fileout->WriteTObject(&h2_L1L2_DEE_Discard[ssdindex],Form("h2_LOST_SSD%d_g%d_0%s",ssdindex+1,globalmulti,mode));
+  }
 
-		lost_ratio[ssdindex] = (Double_t) entry_discard[ssdindex]/entry_all[ssdindex] * 100;
-	}
+	// 计算比例
+  Int_t entry_all[NUM_SSD] = {0};
+  Int_t entry_discard[NUM_SSD] = {0};
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    entry_all[ssdindex] = h2_L1L2_DEE[ssdindex].GetEntries();
+    entry_discard[ssdindex] = h2_L1L2_DEE_Discard[ssdindex].GetEntries();
+
+    lost_ratio[ssdindex]    = (Double_t) entry_discard[ssdindex]/entry_all[ssdindex] * 100;
+		MHits_Ratio[ssdindex]   = (Double_t) MHits_Entries[ssdindex] * globalmulti/entry_all[ssdindex] * 100;
+    Sharing_Ratio[ssdindex] = (Double_t) Sharing_Entries[ssdindex] * globalmulti/entry_all[ssdindex] * 100;
+  }
 
 	// 定义 latex
-	Double_t x1,y1;
-	TLatex* latex_ratio[NUM_SSD];
-	for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
-		x1 = 0.25 * EL2Range[ssdindex];
-		y1 = 0.90 * EL1Range[ssdindex];
-		latex_ratio[ssdindex] = new TLatex(x1, y1, Form("r_{lost} = %.4f%%",lost_ratio[ssdindex]));
-		latex_ratio[ssdindex]->SetTextSize(0.05);
-		latex_ratio[ssdindex]->SetTextColor(kOrange);
-	}
+  Double_t x1,y1,x2,y2;
+  TLatex* latex_ratio[NUM_SSD];
+  TLatex* latex_decoded[NUM_SSD];
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    x1 = 0.4 * EL2Range[ssdindex];
+    y1 = 0.8 * EL1Range[ssdindex];
+    x2 = 0.2 * EL2Range[ssdindex];
+    y2 = 0.5 * EL1Range[ssdindex];
+    latex_ratio[ssdindex] = new TLatex(x1, y1, Form("r_{lost} = %.2f%%",lost_ratio[ssdindex]));
+    latex_ratio[ssdindex]->SetTextSize(0.05);
+    latex_ratio[ssdindex]->SetTextColor(kOrange);
+    latex_decoded[ssdindex] = new TLatex(x2, y2, Form("r_{sh}=%.4f%%, r_{mh}=%.4f%%",Sharing_Ratio[ssdindex],MHits_Ratio[ssdindex]));
+    latex_decoded[ssdindex]->SetTextSize(0.05);
+    latex_decoded[ssdindex]->SetTextColor(kOrange);
+  }
 
 	// 定义 Legend
 	Double_t x1_legend = 0.12, y1_legend = 0.7, x2_legend = 0.35, y2_legend = 0.89;
@@ -6030,6 +6893,7 @@ void L1L2_DecodefGlobalMulti6::L1L2_GlobalMulti6_Decode_120()
 		cans.cd(3);
 		h2_L1L2_DEE_Discard[ssdindex].Draw("COL");
 		latex_ratio[ssdindex]->Draw("SAME");
+		latex_decoded[ssdindex]->Draw("SAME");
 
 		//
 		cans.cd(4);
@@ -6085,6 +6949,11 @@ void L1L2_DecodefGlobalMulti6::L1L2_GlobalMulti6_Decode_121()
 	Double_t EL2F_Sum12;
 	Double_t EL2B_Sum03;
 
+	Double_t MHits_Ratio[NUM_SSD]   = {0};
+  Double_t Sharing_Ratio[NUM_SSD] = {0};
+  Int_t MHits_Entries[NUM_SSD]    = {0};
+  Int_t Sharing_Entries[NUM_SSD]  = {0};
+
 	std::string pathPDFOut(Form("%sfigure_TrackReconstruction/L1L2_GlobalMulti%d_Decode_%s.pdf",PATHFIGURESFOLDER,globalmulti,mode));
 	std::string pathPDFOutBegin(Form("%sfigure_TrackReconstruction/L1L2_GlobalMulti%d_Decode_%s.pdf[",PATHFIGURESFOLDER,globalmulti,mode));
 	std::string pathPDFOutEnd(Form("%sfigure_TrackReconstruction/L1L2_GlobalMulti%d_Decode_%s.pdf]",PATHFIGURESFOLDER,globalmulti,mode));
@@ -6112,7 +6981,7 @@ void L1L2_DecodefGlobalMulti6::L1L2_GlobalMulti6_Decode_121()
 	}
 
 	printf("Processing mode g%d-%s ...\n", globalmulti, mode);
-	trackreconstruct->fChainTrackTree->SetEntries(10000000);
+	//trackreconstruct->fChainTrackTree->SetEntries(10000000);
 	Long64_t nentries = trackreconstruct->fChainTrackTree->GetEntries();
 	cout<<"Found nentries = "<<nentries<<endl;
 
@@ -6160,17 +7029,20 @@ void L1L2_DecodefGlobalMulti6::L1L2_GlobalMulti6_Decode_121()
 					for (Int_t itrack=0; itrack<globalmulti; itrack++) {
 						if (L1L2_L2FTime[ssdindex][itrack]>SiTimeCut_Low[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]] && L1L2_L2FTime[ssdindex][itrack]<SiTimeCut_Up[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]])
 						{
-							h2_L1L2_DEE[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
-
-							// 填充 mode statistic
-							bin_index[itrack] = trackreconstruct->L1L2_GetSubModeFromEneConstraints(trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,L1L2_L2BEMeV[ssdindex][itrack],L1L2_L2FEMeV[ssdindex][itrack]),
-																																											trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]));
-							h1_modestat[ssdindex]->Fill(bin_index[itrack]);
-
-							if (trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,L1L2_L2BEMeV[ssdindex][itrack],L1L2_L2FEMeV[ssdindex][itrack]) &&
-									trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]))
+							if (!IsStripsOnCsIGap(L1L2_L2BStripNum[ssdindex][itrack], L1L2_L2FStripNum[ssdindex][itrack]))
 							{
-								candimulti[ssdindex]++;
+								h2_L1L2_DEE[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+
+								// 填充 mode statistic
+								bin_index[itrack] = trackreconstruct->L1L2_GetSubModeFromEneConstraints(trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,L1L2_L2BEMeV[ssdindex][itrack],L1L2_L2FEMeV[ssdindex][itrack]),
+																																												trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]));
+								h1_modestat[ssdindex]->Fill(bin_index[itrack]);
+
+								if (trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,L1L2_L2BEMeV[ssdindex][itrack],L1L2_L2FEMeV[ssdindex][itrack]) &&
+										trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]))
+								{
+									candimulti[ssdindex]++;
+								}
 							}
 						}
 					}
@@ -6196,9 +7068,12 @@ void L1L2_DecodefGlobalMulti6::L1L2_GlobalMulti6_Decode_121()
 							  if (trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,L1L2_L2BEMeV[ssdindex][itrack],L1L2_L2FEMeV[ssdindex][itrack]) &&
 						      trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]))
 							  {
-								  candimulti_corrected[ssdindex]++;
-								  candimulti_2hit[ssdindex]++;
-								  h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+									if (!IsStripsOnCsIGap(L1L2_L2BStripNum[ssdindex][itrack], L1L2_L2FStripNum[ssdindex][itrack]))
+							    {
+										candimulti_corrected[ssdindex]++;
+									  candimulti_2hit[ssdindex]++;
+									  h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+									}
 								}
 							}
 					  }
@@ -6215,9 +7090,12 @@ void L1L2_DecodefGlobalMulti6::L1L2_GlobalMulti6_Decode_121()
 							  if (trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,L1L2_L2BEMeV[ssdindex][itrack],L1L2_L2FEMeV[ssdindex][itrack]) &&
 						      trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]))
 							  {
-								  candimulti_corrected[ssdindex]++;
-								  candimulti_2hit[ssdindex]++;
-								  h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+									if (!IsStripsOnCsIGap(L1L2_L2BStripNum[ssdindex][itrack], L1L2_L2FStripNum[ssdindex][itrack]))
+							    {
+										candimulti_corrected[ssdindex]++;
+									  candimulti_2hit[ssdindex]++;
+									  h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+									}
 								}
 							}
 					  }
@@ -6234,9 +7112,12 @@ void L1L2_DecodefGlobalMulti6::L1L2_GlobalMulti6_Decode_121()
 							  if (trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,L1L2_L2BEMeV[ssdindex][itrack],L1L2_L2FEMeV[ssdindex][itrack]) &&
 						      trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]))
 							  {
-								  candimulti_corrected[ssdindex]++;
-								  candimulti_2hit[ssdindex]++;
-								  h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+									if (!IsStripsOnCsIGap(L1L2_L2BStripNum[ssdindex][itrack], L1L2_L2FStripNum[ssdindex][itrack]))
+							    {
+										candimulti_corrected[ssdindex]++;
+									  candimulti_2hit[ssdindex]++;
+									  h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+									}
 								}
 							}
 					  }
@@ -6253,9 +7134,12 @@ void L1L2_DecodefGlobalMulti6::L1L2_GlobalMulti6_Decode_121()
 							  if (trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,L1L2_L2BEMeV[ssdindex][itrack],L1L2_L2FEMeV[ssdindex][itrack]) &&
 						      trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]))
 							  {
-								  candimulti_corrected[ssdindex]++;
-								  candimulti_2hit[ssdindex]++;
-								  h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+									if (!IsStripsOnCsIGap(L1L2_L2BStripNum[ssdindex][itrack], L1L2_L2FStripNum[ssdindex][itrack]))
+							    {
+										candimulti_corrected[ssdindex]++;
+									  candimulti_2hit[ssdindex]++;
+									  h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+									}
 								}
 							}
 					  }
@@ -6272,9 +7156,12 @@ void L1L2_DecodefGlobalMulti6::L1L2_GlobalMulti6_Decode_121()
 							  if (trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,L1L2_L2BEMeV[ssdindex][itrack],L1L2_L2FEMeV[ssdindex][itrack]) &&
 						      trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]))
 							  {
-								  candimulti_corrected[ssdindex]++;
-								  candimulti_2hit[ssdindex]++;
-								  h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+									if (!IsStripsOnCsIGap(L1L2_L2BStripNum[ssdindex][itrack], L1L2_L2FStripNum[ssdindex][itrack]))
+							    {
+										candimulti_corrected[ssdindex]++;
+									  candimulti_2hit[ssdindex]++;
+									  h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+									}
 								}
 							}
 					  }
@@ -6291,9 +7178,12 @@ void L1L2_DecodefGlobalMulti6::L1L2_GlobalMulti6_Decode_121()
 							  if (trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,L1L2_L2BEMeV[ssdindex][itrack],L1L2_L2FEMeV[ssdindex][itrack]) &&
 						      trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]))
 							  {
-								  candimulti_corrected[ssdindex]++;
-								  candimulti_2hit[ssdindex]++;
-								  h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+									if (!IsStripsOnCsIGap(L1L2_L2BStripNum[ssdindex][itrack], L1L2_L2FStripNum[ssdindex][itrack]))
+							    {
+										candimulti_corrected[ssdindex]++;
+									  candimulti_2hit[ssdindex]++;
+									  h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+									}
 								}
 							}
 					  }
@@ -6306,9 +7196,12 @@ void L1L2_DecodefGlobalMulti6::L1L2_GlobalMulti6_Decode_121()
 							  if (trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,L1L2_L2BEMeV[ssdindex][itrack],L1L2_L2FEMeV[ssdindex][itrack]) &&
 						      trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]))
 							  {
-								  candimulti_corrected[ssdindex]++;
-								  h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
-									break;
+									if (!IsStripsOnCsIGap(L1L2_L2BStripNum[ssdindex][itrack], L1L2_L2FStripNum[ssdindex][itrack]))
+							    {
+										candimulti_corrected[ssdindex]++;
+									  h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+										break;
+									}
 							  }
 							}
 						}
@@ -6330,7 +7223,10 @@ void L1L2_DecodefGlobalMulti6::L1L2_GlobalMulti6_Decode_121()
 						for (Int_t itrack=0; itrack<globalmulti; itrack++) {
 							if (L1L2_L2FTime[ssdindex][itrack]>SiTimeCut_Low[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]] && L1L2_L2FTime[ssdindex][itrack]<SiTimeCut_Up[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]])
 							{
-								h2_L1L2_DEE_Discard[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+								if (!IsStripsOnCsIGap(L1L2_L2BStripNum[ssdindex][itrack], L1L2_L2FStripNum[ssdindex][itrack]))
+							  {
+									h2_L1L2_DEE_Discard[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+								}
 							}
 						}
 					}
@@ -6357,6 +7253,20 @@ void L1L2_DecodefGlobalMulti6::L1L2_GlobalMulti6_Decode_121()
 			}
 		}
 	}
+
+	//
+  TFile* fileout = new TFile(Form("/home/sea/Fission2019_Data/TrackDecoded/L1L2_g%d_0%s.root",globalmulti,mode),"RECREATE");
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    fileout->WriteTObject(&h2_L1L2_DEE[ssdindex],Form("h2_DEE_SSD%d_g%d_0%s",ssdindex+1,globalmulti,mode));
+  }
+  //
+	for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    fileout->WriteTObject(&h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex],Form("h2_GOOD_SSD%d_g%d_0%s",ssdindex+1,globalmulti,mode));
+  }
+	//
+	for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    fileout->WriteTObject(&h2_L1L2_DEE_Discard[ssdindex],Form("h2_LOST_SSD%d_g%d_0%s",ssdindex+1,globalmulti,mode));
+  }
 
 	// 计算比例
 	Int_t entry_all[NUM_SSD] = {0};
@@ -6470,6 +7380,11 @@ void L1L2_DecodefGlobalMulti6::L1L2_GlobalMulti6_Decode_211()
 	Double_t EL2B_Sum02;
 	Double_t EL2B_Sum13;
 
+	Double_t MHits_Ratio[NUM_SSD]   = {0};
+  Double_t Sharing_Ratio[NUM_SSD] = {0};
+  Int_t MHits_Entries[NUM_SSD]    = {0};
+  Int_t Sharing_Entries[NUM_SSD]  = {0};
+
 	std::string pathPDFOut(Form("%sfigure_TrackReconstruction/L1L2_GlobalMulti%d_Decode_%s.pdf",PATHFIGURESFOLDER,globalmulti,mode));
 	std::string pathPDFOutBegin(Form("%sfigure_TrackReconstruction/L1L2_GlobalMulti%d_Decode_%s.pdf[",PATHFIGURESFOLDER,globalmulti,mode));
 	std::string pathPDFOutEnd(Form("%sfigure_TrackReconstruction/L1L2_GlobalMulti%d_Decode_%s.pdf]",PATHFIGURESFOLDER,globalmulti,mode));
@@ -6497,7 +7412,7 @@ void L1L2_DecodefGlobalMulti6::L1L2_GlobalMulti6_Decode_211()
 	}
 
 	printf("Processing mode g%d-%s ...\n", globalmulti, mode);
-	trackreconstruct->fChainTrackTree->SetEntries(10000000);
+	//trackreconstruct->fChainTrackTree->SetEntries(10000000);
 	Long64_t nentries = trackreconstruct->fChainTrackTree->GetEntries();
 	cout<<"Found nentries = "<<nentries<<endl;
 
@@ -6545,17 +7460,20 @@ void L1L2_DecodefGlobalMulti6::L1L2_GlobalMulti6_Decode_211()
 					for (Int_t itrack=0; itrack<globalmulti; itrack++) {
 						if (L1L2_L2FTime[ssdindex][itrack]>SiTimeCut_Low[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]] && L1L2_L2FTime[ssdindex][itrack]<SiTimeCut_Up[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]])
 						{
-							h2_L1L2_DEE[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
-
-							// 填充 mode statistic
-							bin_index[itrack] = trackreconstruct->L1L2_GetSubModeFromEneConstraints(trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,L1L2_L2BEMeV[ssdindex][itrack],L1L2_L2FEMeV[ssdindex][itrack]),
-																																											trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]));
-							h1_modestat[ssdindex]->Fill(bin_index[itrack]);
-
-							if (trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,L1L2_L2BEMeV[ssdindex][itrack],L1L2_L2FEMeV[ssdindex][itrack]) &&
-									trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]))
+							if (!IsStripsOnCsIGap(L1L2_L2BStripNum[ssdindex][itrack], L1L2_L2FStripNum[ssdindex][itrack]))
 							{
-								candimulti[ssdindex]++;
+								h2_L1L2_DEE[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+
+								// 填充 mode statistic
+								bin_index[itrack] = trackreconstruct->L1L2_GetSubModeFromEneConstraints(trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,L1L2_L2BEMeV[ssdindex][itrack],L1L2_L2FEMeV[ssdindex][itrack]),
+																																												trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]));
+								h1_modestat[ssdindex]->Fill(bin_index[itrack]);
+
+								if (trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,L1L2_L2BEMeV[ssdindex][itrack],L1L2_L2FEMeV[ssdindex][itrack]) &&
+										trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]))
+								{
+									candimulti[ssdindex]++;
+								}
 							}
 						}
 					}
@@ -6590,9 +7508,12 @@ void L1L2_DecodefGlobalMulti6::L1L2_GlobalMulti6_Decode_211()
 							    if (trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,L1L2_L2BEMeV[ssdindex][itrack],L1L2_L2FEMeV[ssdindex][itrack]) &&
 						          trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]))
 							    {
-								    candimulti_corrected[ssdindex]++;
-										candimulti_sharing[ssdindex]++;
-								    h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+										if (!IsStripsOnCsIGap(L1L2_L2BStripNum[ssdindex][itrack], L1L2_L2FStripNum[ssdindex][itrack]))
+							      {
+											candimulti_corrected[ssdindex]++;
+											candimulti_sharing[ssdindex]++;
+									    h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+										}
 									}
 							  }
 							}
@@ -6610,9 +7531,12 @@ void L1L2_DecodefGlobalMulti6::L1L2_GlobalMulti6_Decode_211()
 							    if (trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,L1L2_L2BEMeV[ssdindex][itrack],L1L2_L2FEMeV[ssdindex][itrack]) &&
 						          trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]))
 							    {
-								    candimulti_corrected[ssdindex]++;
-										candimulti_sharing[ssdindex]++;
-								    h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+										if (!IsStripsOnCsIGap(L1L2_L2BStripNum[ssdindex][itrack], L1L2_L2FStripNum[ssdindex][itrack]))
+							      {
+											candimulti_corrected[ssdindex]++;
+											candimulti_sharing[ssdindex]++;
+									    h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+										}
 									}
 							  }
 							}
@@ -6630,9 +7554,12 @@ void L1L2_DecodefGlobalMulti6::L1L2_GlobalMulti6_Decode_211()
 							    if (trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,L1L2_L2BEMeV[ssdindex][itrack],L1L2_L2FEMeV[ssdindex][itrack]) &&
 						          trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]))
 							    {
-								    candimulti_corrected[ssdindex]++;
-										candimulti_2hit[ssdindex]++;
-								    h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+										if (!IsStripsOnCsIGap(L1L2_L2BStripNum[ssdindex][itrack], L1L2_L2FStripNum[ssdindex][itrack]))
+							      {
+											candimulti_corrected[ssdindex]++;
+											candimulti_2hit[ssdindex]++;
+									    h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+										}
 									}
 							  }
 							}
@@ -6650,9 +7577,12 @@ void L1L2_DecodefGlobalMulti6::L1L2_GlobalMulti6_Decode_211()
 							    if (trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,L1L2_L2BEMeV[ssdindex][itrack],L1L2_L2FEMeV[ssdindex][itrack]) &&
 						          trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]))
 							    {
-								    candimulti_corrected[ssdindex]++;
-										candimulti_2hit[ssdindex]++;
-								    h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+										if (!IsStripsOnCsIGap(L1L2_L2BStripNum[ssdindex][itrack], L1L2_L2FStripNum[ssdindex][itrack]))
+							      {
+											candimulti_corrected[ssdindex]++;
+											candimulti_2hit[ssdindex]++;
+									    h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+										}
 									}
 							  }
 							}
@@ -6670,9 +7600,12 @@ void L1L2_DecodefGlobalMulti6::L1L2_GlobalMulti6_Decode_211()
 							    if (trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,L1L2_L2BEMeV[ssdindex][itrack],L1L2_L2FEMeV[ssdindex][itrack]) &&
 						          trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]))
 							    {
-								    candimulti_corrected[ssdindex]++;
-										candimulti_2hit[ssdindex]++;
-								    h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+										if (!IsStripsOnCsIGap(L1L2_L2BStripNum[ssdindex][itrack], L1L2_L2FStripNum[ssdindex][itrack]))
+							      {
+											candimulti_corrected[ssdindex]++;
+											candimulti_2hit[ssdindex]++;
+									    h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+										}
 									}
 							  }
 							}
@@ -6690,9 +7623,12 @@ void L1L2_DecodefGlobalMulti6::L1L2_GlobalMulti6_Decode_211()
 							    if (trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,L1L2_L2BEMeV[ssdindex][itrack],L1L2_L2FEMeV[ssdindex][itrack]) &&
 						          trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]))
 							    {
-								    candimulti_corrected[ssdindex]++;
-										candimulti_2hit[ssdindex]++;
-								    h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+										if (!IsStripsOnCsIGap(L1L2_L2BStripNum[ssdindex][itrack], L1L2_L2FStripNum[ssdindex][itrack]))
+							      {
+											candimulti_corrected[ssdindex]++;
+											candimulti_2hit[ssdindex]++;
+									    h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+										}
 									}
 							  }
 							}
@@ -6704,9 +7640,12 @@ void L1L2_DecodefGlobalMulti6::L1L2_GlobalMulti6_Decode_211()
 							    if (trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,L1L2_L2BEMeV[ssdindex][itrack],L1L2_L2FEMeV[ssdindex][itrack]) &&
 						          trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]))
 							    {
-								    candimulti_corrected[ssdindex]++;
-								    h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
-									  break;
+										if (!IsStripsOnCsIGap(L1L2_L2BStripNum[ssdindex][itrack], L1L2_L2FStripNum[ssdindex][itrack]))
+							      {
+											candimulti_corrected[ssdindex]++;
+									    h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+										  break;
+										}
 									}
 							  }
 							}
@@ -6728,9 +7667,12 @@ void L1L2_DecodefGlobalMulti6::L1L2_GlobalMulti6_Decode_211()
 							    if (trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,L1L2_L2BEMeV[ssdindex][itrack],L1L2_L2FEMeV[ssdindex][itrack]) &&
 						          trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]))
 							    {
-								    candimulti_corrected[ssdindex]++;
-										candimulti_sharing[ssdindex]++;
-								    h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+										if (!IsStripsOnCsIGap(L1L2_L2BStripNum[ssdindex][itrack], L1L2_L2FStripNum[ssdindex][itrack]))
+							      {
+											candimulti_corrected[ssdindex]++;
+											candimulti_sharing[ssdindex]++;
+									    h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+										}
 									}
 							  }
 							}
@@ -6748,9 +7690,12 @@ void L1L2_DecodefGlobalMulti6::L1L2_GlobalMulti6_Decode_211()
 							    if (trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,L1L2_L2BEMeV[ssdindex][itrack],L1L2_L2FEMeV[ssdindex][itrack]) &&
 						          trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]))
 							    {
-								    candimulti_corrected[ssdindex]++;
-										candimulti_sharing[ssdindex]++;
-								    h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+										if (!IsStripsOnCsIGap(L1L2_L2BStripNum[ssdindex][itrack], L1L2_L2FStripNum[ssdindex][itrack]))
+							      {
+											candimulti_corrected[ssdindex]++;
+											candimulti_sharing[ssdindex]++;
+									    h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+										}
 									}
 							  }
 							}
@@ -6768,9 +7713,12 @@ void L1L2_DecodefGlobalMulti6::L1L2_GlobalMulti6_Decode_211()
 							    if (trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,L1L2_L2BEMeV[ssdindex][itrack],L1L2_L2FEMeV[ssdindex][itrack]) &&
 						          trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]))
 							    {
-								    candimulti_corrected[ssdindex]++;
-										candimulti_2hit[ssdindex]++;
-								    h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+										if (!IsStripsOnCsIGap(L1L2_L2BStripNum[ssdindex][itrack], L1L2_L2FStripNum[ssdindex][itrack]))
+							      {
+											candimulti_corrected[ssdindex]++;
+											candimulti_2hit[ssdindex]++;
+									    h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+										}
 									}
 							  }
 							}
@@ -6788,9 +7736,12 @@ void L1L2_DecodefGlobalMulti6::L1L2_GlobalMulti6_Decode_211()
 							    if (trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,L1L2_L2BEMeV[ssdindex][itrack],L1L2_L2FEMeV[ssdindex][itrack]) &&
 						          trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]))
 							    {
-								    candimulti_corrected[ssdindex]++;
-										candimulti_2hit[ssdindex]++;
-								    h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+										if (!IsStripsOnCsIGap(L1L2_L2BStripNum[ssdindex][itrack], L1L2_L2FStripNum[ssdindex][itrack]))
+							      {
+											candimulti_corrected[ssdindex]++;
+											candimulti_2hit[ssdindex]++;
+									    h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+										}
 									}
 							  }
 							}
@@ -6808,9 +7759,12 @@ void L1L2_DecodefGlobalMulti6::L1L2_GlobalMulti6_Decode_211()
 							    if (trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,L1L2_L2BEMeV[ssdindex][itrack],L1L2_L2FEMeV[ssdindex][itrack]) &&
 						          trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]))
 							    {
-								    candimulti_corrected[ssdindex]++;
-										candimulti_2hit[ssdindex]++;
-								    h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+										if (!IsStripsOnCsIGap(L1L2_L2BStripNum[ssdindex][itrack], L1L2_L2FStripNum[ssdindex][itrack]))
+							      {
+											candimulti_corrected[ssdindex]++;
+											candimulti_2hit[ssdindex]++;
+									    h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+										}
 									}
 							  }
 							}
@@ -6828,9 +7782,12 @@ void L1L2_DecodefGlobalMulti6::L1L2_GlobalMulti6_Decode_211()
 							    if (trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,L1L2_L2BEMeV[ssdindex][itrack],L1L2_L2FEMeV[ssdindex][itrack]) &&
 						          trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]))
 							    {
-								    candimulti_corrected[ssdindex]++;
-										candimulti_2hit[ssdindex]++;
-								    h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+										if (!IsStripsOnCsIGap(L1L2_L2BStripNum[ssdindex][itrack], L1L2_L2FStripNum[ssdindex][itrack]))
+							      {
+											candimulti_corrected[ssdindex]++;
+											candimulti_2hit[ssdindex]++;
+									    h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+										}
 									}
 							  }
 							}
@@ -6843,9 +7800,12 @@ void L1L2_DecodefGlobalMulti6::L1L2_GlobalMulti6_Decode_211()
 							    if (trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,L1L2_L2BEMeV[ssdindex][itrack],L1L2_L2FEMeV[ssdindex][itrack]) &&
 						          trackreconstruct->IsInsideABananaCut(bananacut[ssdindex],L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]))
 							    {
-								    candimulti_corrected[ssdindex]++;
-								    h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
-									  break;
+										if (!IsStripsOnCsIGap(L1L2_L2BStripNum[ssdindex][itrack], L1L2_L2FStripNum[ssdindex][itrack]))
+							      {
+											candimulti_corrected[ssdindex]++;
+									    h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+										  break;
+										}
 									}
 							  }
 							}
@@ -6868,7 +7828,10 @@ void L1L2_DecodefGlobalMulti6::L1L2_GlobalMulti6_Decode_211()
 						for (Int_t itrack=0; itrack<globalmulti; itrack++) {
 							if (L1L2_L2FTime[ssdindex][itrack]>SiTimeCut_Low[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]] && L1L2_L2FTime[ssdindex][itrack]<SiTimeCut_Up[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]])
 							{
-								h2_L1L2_DEE_Discard[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
+								if (!IsStripsOnCsIGap(L1L2_L2BStripNum[ssdindex][itrack], L1L2_L2FStripNum[ssdindex][itrack]))
+							  {
+                  h2_L1L2_DEE_Discard[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);  
+								}
 							}
 						}
 					}
@@ -6883,6 +7846,7 @@ void L1L2_DecodefGlobalMulti6::L1L2_GlobalMulti6_Decode_211()
 					}
 					//
 					if (candimulti_sharing[ssdindex] > 0) {
+						Sharing_Entries[ssdindex]++;
 						for (Int_t itrack=0; itrack<globalmulti; itrack++) {
 							if (L1L2_L2FTime[ssdindex][itrack]>SiTimeCut_Low[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]] && L1L2_L2FTime[ssdindex][itrack]<SiTimeCut_Up[ssdindex][L1L2_L2FStripNum[ssdindex][itrack]])
 							{
@@ -6896,26 +7860,48 @@ void L1L2_DecodefGlobalMulti6::L1L2_GlobalMulti6_Decode_211()
 		}
 	}
 
-	// 计算比例
-	Int_t entry_all[NUM_SSD] = {0};
-	Int_t entry_discard[NUM_SSD] = {0};
+	//
+  TFile* fileout = new TFile(Form("/home/sea/Fission2019_Data/TrackDecoded/L1L2_g%d_0%s.root",globalmulti,mode),"RECREATE");
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    fileout->WriteTObject(&h2_L1L2_DEE[ssdindex],Form("h2_DEE_SSD%d_g%d_0%s",ssdindex+1,globalmulti,mode));
+  }
+  //
 	for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
-		entry_all[ssdindex] = h2_L1L2_DEE[ssdindex].GetEntries();
-		entry_discard[ssdindex] = h2_L1L2_DEE_Discard[ssdindex].GetEntries();
+    fileout->WriteTObject(&h2_L1L2_DEE_EneL2BL2F_EneL1SL2F[ssdindex],Form("h2_GOOD_SSD%d_g%d_0%s",ssdindex+1,globalmulti,mode));
+  }
+	//
+	for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    fileout->WriteTObject(&h2_L1L2_DEE_Discard[ssdindex],Form("h2_LOST_SSD%d_g%d_0%s",ssdindex+1,globalmulti,mode));
+  }
 
-		lost_ratio[ssdindex] = (Double_t) entry_discard[ssdindex]/entry_all[ssdindex] * 100;
-	}
+	// 计算比例
+  Int_t entry_all[NUM_SSD] = {0};
+  Int_t entry_discard[NUM_SSD] = {0};
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    entry_all[ssdindex] = h2_L1L2_DEE[ssdindex].GetEntries();
+    entry_discard[ssdindex] = h2_L1L2_DEE_Discard[ssdindex].GetEntries();
+
+    lost_ratio[ssdindex]    = (Double_t) entry_discard[ssdindex]/entry_all[ssdindex] * 100;
+		MHits_Ratio[ssdindex]   = (Double_t) MHits_Entries[ssdindex] * globalmulti/entry_all[ssdindex] * 100;
+    Sharing_Ratio[ssdindex] = (Double_t) Sharing_Entries[ssdindex] * globalmulti/entry_all[ssdindex] * 100;
+  }
 
 	// 定义 latex
-	Double_t x1,y1;
-	TLatex* latex_ratio[NUM_SSD];
-	for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
-		x1 = 0.25 * EL2Range[ssdindex];
-		y1 = 0.90 * EL1Range[ssdindex];
-		latex_ratio[ssdindex] = new TLatex(x1, y1, Form("r_{lost} = %.4f%%",lost_ratio[ssdindex]));
-		latex_ratio[ssdindex]->SetTextSize(0.05);
-		latex_ratio[ssdindex]->SetTextColor(kOrange);
-	}
+  Double_t x1,y1,x2,y2;
+  TLatex* latex_ratio[NUM_SSD];
+  TLatex* latex_decoded[NUM_SSD];
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    x1 = 0.4 * EL2Range[ssdindex];
+    y1 = 0.8 * EL1Range[ssdindex];
+    x2 = 0.2 * EL2Range[ssdindex];
+    y2 = 0.5 * EL1Range[ssdindex];
+    latex_ratio[ssdindex] = new TLatex(x1, y1, Form("r_{lost} = %.2f%%",lost_ratio[ssdindex]));
+    latex_ratio[ssdindex]->SetTextSize(0.05);
+    latex_ratio[ssdindex]->SetTextColor(kOrange);
+    latex_decoded[ssdindex] = new TLatex(x2, y2, Form("r_{sh}=%.4f%%, r_{mh}=%.4f%%",Sharing_Ratio[ssdindex],MHits_Ratio[ssdindex]));
+    latex_decoded[ssdindex]->SetTextSize(0.05);
+    latex_decoded[ssdindex]->SetTextColor(kOrange);
+  }
 
 	// 定义 Legend
 	Double_t x1_legend = 0.12, y1_legend = 0.7, x2_legend = 0.35, y2_legend = 0.89;
@@ -6952,6 +7938,7 @@ void L1L2_DecodefGlobalMulti6::L1L2_GlobalMulti6_Decode_211()
 		cans.cd(3);
 		h2_L1L2_DEE_Discard[ssdindex].Draw("COL");
 		latex_ratio[ssdindex]->Draw("SAME");
+		latex_decoded[ssdindex]->Draw("SAME");
 
 		//
 		cans.cd(4);

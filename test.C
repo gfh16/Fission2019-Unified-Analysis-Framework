@@ -24,7 +24,7 @@ void test()
 
   //_______________________________________________
   //  径迹重建前的一些测试与检查
-  CSHINETrackReconstruction test(150, 250);
+  CSHINETrackReconstruction test(150, 160);
 //  test.PrintUsage();
 
 //  test.CheckL2BL2FEnergyCorrelation(0);
@@ -63,6 +63,10 @@ void test()
 //  for (Int_t i=1; i<=6; i++)  test.GlobalMulti_ExtractData("L2L3",i);
 //  test.L2L3_Mode_DrawClassification(2);
 //  test.L2L3_Mode_CalcRatio(2);
+//  test.L2L3_Mode_CalcRatio(3);
+//  test.L2L3_Mode_CalcRatio(4);
+//  test.L2L3_Mode_CalcRatio(6);
+
 //  test.L2L3_Mode_ExtractData(2);
 
 
@@ -70,11 +74,11 @@ void test()
 //       -------------------
 // test.L1L2_TrackReconstructionAlgorithm();
 //  test.CheckGlobalMultiRatio("L1L2",6);
-  for (Int_t i=2; i<=2; i++)
+  for (Int_t i=2; i<=6; i++)
   {
     // test.GlobalMulti_ExtractData("L1L2",i);
     // test.L1L2_Mode_DrawClassification(i);
-    //test.L1L2_Mode_CalcRatio(i);
+    // test.L1L2_Mode_CalcRatio(i);
     // test.L1L2_Mode_ExtractData(i);
   }
 
@@ -83,14 +87,16 @@ void test()
 //                           径迹重建结果检查
 //
 // 模式识别
-  DecodefGlobalMulti1 decode1(150, 250);
+  DecodefGlobalMulti1 decode1(150, 160);
 //  decode1.GlobalMulti1_Checks();
-//  decode1.GlobalMulti1_L2L3_Decode();
 //  decode1.GlobalMulti_L2L3_Discard();
 //  decode1.GlobalMulti_L2L3_EneL2BL2F_Discard();
  // decode1.GlobalMulti_L2L3_EneL1SL2F_Discard();
 
-//  DecodefGlobalMulti2 decode2(150, 250);
+//  decode1.GlobalMulti1_L2L3_Decode();
+
+
+  DecodefGlobalMulti2 decode2(150, 160);
 //  decode2.GlobalMulti2_Checks("L2L3");
 //  decode2.GlobalMulti2_CalcModeRatio();
 
@@ -105,8 +111,9 @@ void test()
 
 //                           globalmulti = 3
 //                         -------------------
-  DecodefGlobalMulti3 trackg3(150, 250);
-//  trackg3.GlobalMulti3_Checks();
+  DecodefGlobalMulti3 trackg3(150, 160);
+  //trackg3.GlobalMulti3_Checks();
+
 //  trackg3.GlobalMulti3_Decode_2222();
 //  trackg3.GlobalMulti3_Decode_2111();
 //  trackg3.GlobalMulti3_Decode_1211();
@@ -120,11 +127,12 @@ void test()
 //  trackg3.GlobalMulti3_Decode_0102();
 //  trackg3.GlobalMulti3_Decode_0101();
 //  trackg3.GlobalMulti3_Decode_0020();
-//    trackg3.GlobalMulti3_Decode_0002();
+//  trackg3.GlobalMulti3_Decode_0002();
 
 
-  DecodefGlobalMulti4 trackg4(150, 250);
-//  trackg4.GlobalMulti4_Checks();
+  DecodefGlobalMulti4 trackg4(150, 160);
+  //trackg4.GlobalMulti4_Checks();
+
 //  trackg4.GlobalMulti4_Decode_2222();
 //  trackg4.GlobalMulti4_Decode_1111();
 //  trackg4.GlobalMulti4_Decode_1110();
@@ -135,8 +143,9 @@ void test()
 //  trackg4.GlobalMulti4_Decode_0011();
 
 
-  DecodefGlobalMulti6 trackg6(150, 250);
+  DecodefGlobalMulti6 trackg6(150, 160);
 //  trackg6.GlobalMulti6_Checks();
+
 //  trackg6.GlobalMulti6_Decode_2222();
 //  trackg6.GlobalMulti6_Decode_1211();
 //  trackg6.GlobalMulti6_Decode_1121();
@@ -157,39 +166,39 @@ void test()
 //******************************************************************************
 //                        L1L2 径迹重建
 //                      ----------------
-  L1L2_DecodefGlobalMulti1 l1l2track1(150, 250);
+  L1L2_DecodefGlobalMulti1 l1l2track1(150, 160);
 //  l1l2track1.L1L2_GlobalMulti1_Decode();
 
 
-  L1L2_DecodefGlobalMulti2 l1l2track2(150, 250);
-//  l1l2track2.L1L2_GlobalMulti2_Decode_001();
-//  l1l2track2.L1L2_GlobalMulti2_Decode_010();
-//  l1l2track2.L1L2_GlobalMulti2_Decode_100();
-//  l1l2track2.L1L2_GlobalMulti2_Decode_101();
+  L1L2_DecodefGlobalMulti2 l1l2track2(150, 160);
+  l1l2track2.L1L2_GlobalMulti2_Decode_001();
+  l1l2track2.L1L2_GlobalMulti2_Decode_010();
+  l1l2track2.L1L2_GlobalMulti2_Decode_100();
+  l1l2track2.L1L2_GlobalMulti2_Decode_101();
 
 
-  L1L2_DecodefGlobalMulti3 l1l2track3(150, 250);
-//  l1l2track3.L1L2_GlobalMulti3_Decode_002();
-//  l1l2track3.L1L2_GlobalMulti3_Decode_020();
-//  l1l2track3.L1L2_GlobalMulti3_Decode_101();
-//  l1l2track3.L1L2_GlobalMulti3_Decode_102();
-//  l1l2track3.L1L2_GlobalMulti3_Decode_200();
-//  l1l2track3.L1L2_GlobalMulti3_Decode_201();
-//  l1l2track3.L1L2_GlobalMulti3_Decode_202();
+  L1L2_DecodefGlobalMulti3 l1l2track3(150, 160);
+  l1l2track3.L1L2_GlobalMulti3_Decode_002();
+  l1l2track3.L1L2_GlobalMulti3_Decode_020();
+  l1l2track3.L1L2_GlobalMulti3_Decode_101();
+  l1l2track3.L1L2_GlobalMulti3_Decode_102();
+  l1l2track3.L1L2_GlobalMulti3_Decode_200();
+  l1l2track3.L1L2_GlobalMulti3_Decode_201();
+  l1l2track3.L1L2_GlobalMulti3_Decode_202();
 
 
-  L1L2_DecodefGlobalMulti4 l1l2track4(150, 250);
-//  l1l2track4.L1L2_GlobalMulti4_Decode_011();
-//  l1l2track4.L1L2_GlobalMulti4_Decode_101();
-//  l1l2track4.L1L2_GlobalMulti4_Decode_110();
-//  l1l2track4.L1L2_GlobalMulti4_Decode_111();
+  L1L2_DecodefGlobalMulti4 l1l2track4(150, 160);
+  l1l2track4.L1L2_GlobalMulti4_Decode_011();
+  l1l2track4.L1L2_GlobalMulti4_Decode_101();
+  l1l2track4.L1L2_GlobalMulti4_Decode_110();
+  l1l2track4.L1L2_GlobalMulti4_Decode_111();
 
 
-  L1L2_DecodefGlobalMulti6 l1l2track6(150, 250);
-//  l1l2track6.L1L2_GlobalMulti6_Decode_111();
-//  l1l2track6.L1L2_GlobalMulti6_Decode_112();
-//  l1l2track6.L1L2_GlobalMulti6_Decode_120();
-//  l1l2track6.L1L2_GlobalMulti6_Decode_121();
+  L1L2_DecodefGlobalMulti6 l1l2track6(150, 160);
+  l1l2track6.L1L2_GlobalMulti6_Decode_111();
+  l1l2track6.L1L2_GlobalMulti6_Decode_112();
+  l1l2track6.L1L2_GlobalMulti6_Decode_120();
+  l1l2track6.L1L2_GlobalMulti6_Decode_121();
   l1l2track6.L1L2_GlobalMulti6_Decode_211();
 
 
@@ -228,6 +237,8 @@ void test()
 //   deefitcheck.CheckPolyFitResults();
 //   deefitcheck.L1S_FindThicknessUniformity();
 //   deefitcheck.L1S_DetermineThicknessUniformity();
+
+///  deefitcheck.L2L3DrawPIDECsIMap();
 
 //__________________________________________________________________
 //                        CsI 能量刻度

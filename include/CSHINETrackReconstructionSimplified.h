@@ -106,6 +106,7 @@ private:
 private:
   Double_t          fL1SELoss;
   Double_t          fL2Einc;
+  Double_t          fL2EPunchThrough;
   Double_t          fGetEL1S;
   Double_t          fEL2F;
   Double_t          fECsI;
@@ -117,9 +118,9 @@ private:
   Double_t          fVelocity;
 
   const Int_t       fLISEModel = 1;
-  const Double_t    fCondition_L2FElossCut = 0.01; // MeV
-  const Double_t    fCondition_L2FEincCut  = 0.01; // MeV
-  const Double_t    fLISE_Presision        = 0.1; // MeV
+  const Double_t    fCondition_L2FElossCut = 0.1; // MeV
+  const Double_t    fCondition_L2FEincCut  = 0.1; // MeV
+  const Double_t    fLISE_Presision        = 0.2; // MeV
 
 private:
   EnergyLossModule                        ELossModule;
@@ -171,7 +172,7 @@ private:
   const Int_t    MODEINDEX_G3_1110 = 2221;   const char* MODE_G3_1110 = "1110";   Bool_t SWITCH_MODE_G3_1110 = kTRUE;
   const Int_t    MODEINDEX_G3_1111 = 2222;   const char* MODE_G3_1111 = "1111";   Bool_t SWITCH_MODE_G3_1111 = kTRUE;
   const Int_t    MODEINDEX_G3_1112 = 2223;   const char* MODE_G3_1112 = "1112";   Bool_t SWITCH_MODE_G3_1112 = kTRUE;
-  const Int_t    MODEINDEX_G3_1121 = 1113;   const char* MODE_G3_1121 = "1121";   Bool_t SWITCH_MODE_G3_1121 = kTRUE;
+  const Int_t    MODEINDEX_G3_1121 = 2232;   const char* MODE_G3_1121 = "1121";   Bool_t SWITCH_MODE_G3_1121 = kTRUE;
   const Int_t    MODEINDEX_G3_1211 = 2322;   const char* MODE_G3_1211 = "1211";   Bool_t SWITCH_MODE_G3_1211 = kTRUE;
   const Int_t    MODEINDEX_G3_2111 = 3222;   const char* MODE_G3_2111 = "2111";   Bool_t SWITCH_MODE_G3_2111 = kTRUE;
   const Int_t    MODEINDEX_G3_2222 = 3333;   const char* MODE_G3_2222 = "2222";   Bool_t SWITCH_MODE_G3_2222 = kTRUE;

@@ -11,7 +11,7 @@ void BuildTreeFromFile(Int_t runnumber);
 
 void BuildTree()
 {
-  for (Int_t irun=210; irun<=210; irun++) {
+  for (Int_t irun=300; irun<=303; irun++) {
 		BuildTreeFromFile(irun);
 	}
 }
@@ -20,7 +20,7 @@ void BuildTree()
 //oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 void BuildTreeFromFile(Int_t runnumber)
 {
-	std::string pathrootout = Form("%sTest/Cali_Run%04d.root",PATHROOTFILESFOLDER,runnumber);
+	std::string pathrootout = Form("%sCali_Run%04d.root",PATHROOTFILESFOLDER,runnumber);
   std::string pathrootin  = Form("%sMapRoot/MapFission2019_Kr_Pb%04d.root",PATHROOTFILESFOLDER,runnumber);
 
   CSHINEPPACEvent      *ppacevent   = new CSHINEPPACEvent();
@@ -51,7 +51,7 @@ void BuildTreeFromFile(Int_t runnumber)
 	newtree->Branch("RF.",   "CSHINERFSignal",     &rfsignal,    32000, 2);
 
   //mychain->SetEntries(10000);
-	Long64_t nentries = mychain->GetEntriesFast();
+	Long64_t nentries = mychain->GetEntries();
 	cout<<Form("Building GlobalEvent File %s ......\n",fileout->GetName());
 	cout<<"nentries = "<<nentries<<endl;
 
@@ -60,18 +60,29 @@ void BuildTreeFromFile(Int_t runnumber)
     mychain->GetEntry(ientry);
     timer->PrintPercentageAndRemainingTime(ientry, nentries);
 
-		// for SSD
-	  buildssdevent->FillLayerEvent(layerevent);
-	  buildssdevent->FillTrackEvent_L2L3(trackevent,layerevent);
-    buildssdevent->FillTrackEvent_L1L2(trackevent,layerevent);
-	  //l2l3track->L2L3_g1_TrackDecoded(globalevent,trackevent,kTRUE);
-		l2l3track->L2L3_g2_TrackDecoded(globalevent,trackevent,kTRUE);
-		//l2l3track->L2L3_g3_TrackDecoded(globalevent,trackevent,kTRUE);
-    //l2l3track->L2L3_g4_TrackDecoded(globalevent,trackevent,kTRUE);
-    //l2l3track->L2L3_g6_TrackDecoded(globalevent,trackevent,kTRUE);
+		//__________________________________________________________________
+    //                           for SSD
+    //                         -----------
+    buildssdevent->FillLayerEvent(layerevent);
 
-    //l1l2track->L1L2_g1_TrackDecoded(globalevent,trackevent,kTRUE);
-    //l1l2track->L1L2_g2_TrackDecoded(globalevent,trackevent,kTRUE);
+    // for L2-L3
+	  buildssdevent->FillTrackEvent_L2L3(trackevent,layerevent);
+
+    l2l3track->L2L3_g1_TrackDecoded(globalevent,trackevent,kTRUE);
+		l2l3track->L2L3_g2_TrackDecoded(globalevent,trackevent,kTRUE);
+		l2l3track->L2L3_g3_TrackDecoded(globalevent,trackevent,kTRUE);
+    l2l3track->L2L3_g4_TrackDecoded(globalevent,trackevent,kTRUE);
+    l2l3track->L2L3_g6_TrackDecoded(globalevent,trackevent,kTRUE);
+
+
+    // for L1-L2
+    buildssdevent->FillTrackEvent_L1L2(trackevent,layerevent);
+    l1l2track->L1L2_g1_TrackDecoded(globalevent,trackevent,kTRUE);
+    l1l2track->L1L2_g2_TrackDecoded(globalevent,trackevent,kTRUE);
+    l1l2track->L1L2_g3_TrackDecoded(globalevent,trackevent,kTRUE);
+    l1l2track->L1L2_g4_TrackDecoded(globalevent,trackevent,kTRUE);
+    l1l2track->L1L2_g6_TrackDecoded(globalevent,trackevent,kTRUE);
+   
 
 		// for PPAC
 		//buildppacevent->FillPPACEvent(ppacevent);

@@ -1293,6 +1293,8 @@ void CSHINETrackReconstruction::CheckL2BL2FEnergyCorrelation(Int_t ssdindex)
   std::string pathL2BL2FEneCorr_EnEratioMeV(Form("%sfigure_TrackReconstruction/SSD%d_L2BL2F_EneCorrEnEratioMeV_Run%04d-Run%04d.png", PATHFIGURESFOLDER,ssdindex+1,fFirstRun,fLastRun));
   std::string pathL2BL2FEneCorr_EnEratioPer(Form("%sfigure_TrackReconstruction/SSD%d_L2BL2F_EneCorrEnEratioPer_Run%04d-Run%04d.png", PATHFIGURESFOLDER,ssdindex+1,fFirstRun,fLastRun));
 
+  TFile* file = new TFile(Form("/home/sea/Fission2019_Data/SSD%d_EL2B_EL2F_Correlation.root",ssdindex+1), "RECREATE");
+
   Double_t L2FL2B_EnergyDiff_MeV;
   Double_t L2FL2B_EnergyDiff_Per;
 
@@ -1302,10 +1304,10 @@ void CSHINETrackReconstruction::CheckL2BL2FEnergyCorrelation(Int_t ssdindex)
     hist_L2B_L2F[i] = new TH2D(Form("hist_L2B_L2F_Cut%.2lf",EnergyCut[i]),Form("hist_L2B_L2F_Cut%.2lf",EnergyCut[i]),3000,0.,300.,3000,0.,300.);
   }
 
-  TH2D* hist2_EnergyDifference_MeV = new TH2D("hist2_L2FL2B_EnEratio_MeV","",3000,0.,300.,1000,-50.,50.);
-  TH2D* hist2_EnergyDifference_Per = new TH2D("hist2_L2FL2B_EnEratio_Per","",3000,0.,300.,600, -30., 30.);
+  TH2D* hist2_EnergyDifference_MeV = new TH2D("hist2_L2FL2B_EnEratio_MeV","",3000,0.,300.,2000,-100.,100.);
+  TH2D* hist2_EnergyDifference_Per = new TH2D("hist2_L2FL2B_EnEratio_Per","",3000,0.,300.,2000, -100., 100.);
 
-  Long64_t nentries = fChainLayerTree->GetEntriesFast();
+  Long64_t nentries = fChainLayerTree->GetEntries();
   cout<<"nentries = "<<nentries<<endl;
 
   for (Long64_t ientry=0; ientry<nentries; ientry++) {
@@ -1323,8 +1325,8 @@ void CSHINETrackReconstruction::CheckL2BL2FEnergyCorrelation(Int_t ssdindex)
         for (Int_t l2f=0; l2f<fLayerEvent.fL2FMulti; l2f++) {
           if (IsGeoConstraint_L3A_L2B(ssdindex, fLayerEvent.fCsIMulti, fLayerEvent.fCsINum.data(), fLayerEvent.fCsISSDNum.data(),fLayerEvent.fL2BNumStrip[l2b], fLayerEvent.fL2BSSDNum[l2b]) &&
               IsGeoConstraint_L3A_L2F(ssdindex, fLayerEvent.fCsIMulti, fLayerEvent.fCsINum.data(), fLayerEvent.fCsISSDNum.data(),fLayerEvent.fL2FNumStrip[l2f], fLayerEvent.fL2FSSDNum[l2f]) &&
-              IsGeoConstraint_L2B_L1S(ssdindex, fLayerEvent.fL2BNumStrip[l2b], fLayerEvent.fL2BSSDNum[l2b],fLayerEvent.fL1SMulti, fLayerEvent.fL1SNumStrip.data(), fLayerEvent.fL1SSSDNum.data()) &&
-              IsEneConstraint_L2B_L2F(fLayerEvent.fL2BEMeV[l2b], fLayerEvent.fL2FEMeV[l2f], EnergyCut[i]))
+              IsGeoConstraint_L2B_L1S(ssdindex, fLayerEvent.fL2BNumStrip[l2b], fLayerEvent.fL2BSSDNum[l2b],fLayerEvent.fL1SMulti, fLayerEvent.fL1SNumStrip.data(), fLayerEvent.fL1SSSDNum.data()))
+              //IsEneConstraint_L2B_L2F(fLayerEvent.fL2BEMeV[l2b], fLayerEvent.fL2FEMeV[l2f], EnergyCut[i]))
           {
             hist_L2B_L2F[i]->Fill(fLayerEvent.fL2FEMeV[l2f], fLayerEvent.fL2BEMeV[l2b]);
 
@@ -1338,6 +1340,12 @@ void CSHINETrackReconstruction::CheckL2BL2FEnergyCorrelation(Int_t ssdindex)
       }
     }
   }
+  file->WriteTObject(hist_L2B_L2F[0],hist_L2B_L2F[0]->GetName());
+  file->WriteTObject(hist_L2B_L2F[1],hist_L2B_L2F[1]->GetName());
+  file->WriteTObject(hist_L2B_L2F[2],hist_L2B_L2F[2]->GetName());
+  file->WriteTObject(hist_L2B_L2F[3],hist_L2B_L2F[3]->GetName());
+  file->WriteTObject(hist2_EnergyDifference_MeV,hist2_EnergyDifference_MeV->GetName());
+  file->WriteTObject(hist2_EnergyDifference_Per,hist2_EnergyDifference_Per->GetName());
 
   TF1* func_L2B_eq_L2F = new TF1("func", "x", 0, 300);
   func_L2B_eq_L2F->SetLineColor(kRed);
@@ -1496,7 +1504,7 @@ void CSHINETrackReconstruction::DetermineL2BL2FEnergyErrRatio()
     hist_L2B_L2F[i] = new TH2D(Form("SSD%d_L2BL2F_EnergyCut",i+1),Form("SSD%d_L2BL2F_EnergyCut",i+1),3000,0.,300.,3000,0.,300.);
   }
 
-  Long64_t nentries = fChainLayerTree->GetEntriesFast();
+  Long64_t nentries = fChainLayerTree->GetEntries();
   cout<<"nentries = "<<nentries<<endl;
 
   for (Long64_t ientry=0; ientry<nentries;ientry++) {
@@ -1610,6 +1618,8 @@ void CSHINETrackReconstruction::CheckEnergyLossL1L2_Relationship(Bool_t punchthr
   if (punchthrough) pathE1E2Correlation = Form("%sfigure_TrackReconstruction/SSD_E1E2Correlation_punchthrough.png",PATHFIGURESFOLDER);
   else pathE1E2Correlation = Form("%sfigure_TrackReconstruction/SSD_E1E2Correlation.png",PATHFIGURESFOLDER);
 
+  TFile* file = new TFile("/home/sea/Fission2019_Data/SSD_E1E2Correlation.root","RECREATE");
+
   std::vector<Double_t> dE1_SSD1;
   std::vector<Double_t> dE2_SSD1;
   std::vector<Double_t> dE1_SSD2;
@@ -1683,6 +1693,15 @@ void CSHINETrackReconstruction::CheckEnergyLossL1L2_Relationship(Bool_t punchthr
     hist1_SSD_Eratio[3]->Fill(EL1EL2Ratio_SSD4[i]);
   }
 
+  file->WriteTObject(hist2_SSD_dEE[0],hist2_SSD_dEE[0]->GetName());
+  file->WriteTObject(hist2_SSD_dEE[1],hist2_SSD_dEE[1]->GetName());
+  file->WriteTObject(hist2_SSD_dEE[2],hist2_SSD_dEE[2]->GetName());
+  file->WriteTObject(hist2_SSD_dEE[3],hist2_SSD_dEE[3]->GetName());
+  file->WriteTObject(hist1_SSD_Eratio[0],hist1_SSD_Eratio[0]->GetName());
+  file->WriteTObject(hist1_SSD_Eratio[1],hist1_SSD_Eratio[1]->GetName());
+  file->WriteTObject(hist1_SSD_Eratio[2],hist1_SSD_Eratio[2]->GetName());
+  file->WriteTObject(hist1_SSD_Eratio[3],hist1_SSD_Eratio[3]->GetName());
+
   TF1* func_L2B_eq_L2F = new TF1("func", "x", 0, 300);
   func_L2B_eq_L2F->SetLineColor(kRed);
   func_L2B_eq_L2F->SetLineStyle(7);
@@ -1748,7 +1767,7 @@ void CSHINETrackReconstruction::CheckEnergyLossL1L2_Expdata()
     hist[i] = new TH1D(Form("hist_SSD%d",i+1),"",100,0.,100.);
   }
 
-  Long64_t nentries = fChainLayerTree->GetEntriesFast();
+  Long64_t nentries = fChainLayerTree->GetEntries();
   cout<<"nentries = "<<nentries<<endl;
   for (Long64_t ientry=0; ientry<nentries;ientry++) {
 
@@ -1863,7 +1882,7 @@ void CSHINETrackReconstruction::CheckLayerMultiPercentage()
     Sum_L3A[i] = 0.;
   }
 
-  Long64_t nentries = fChainLayerTree->GetEntriesFast();
+  Long64_t nentries = fChainLayerTree->GetEntries();
   cout<<"nentries = "<<nentries<<endl;
   for (Long64_t ientry=0; ientry<nentries;ientry++) {
 
@@ -2199,7 +2218,7 @@ void CSHINETrackReconstruction::CheckClusterSize_Si()
     hist_ClusterSize_L2B[ssdindex] = new TH1I(HistName_L2B[ssdindex].c_str(), HistName_L2B[ssdindex].c_str(), NBins, 0, NBins);
   }
 
-  Long64_t nentries = fChainLayerTree->GetEntriesFast();
+  Long64_t nentries = fChainLayerTree->GetEntries();
   cout<<"nentries = "<<nentries<<endl;
   for (Long64_t ientry=0; ientry<nentries;ientry++) {
 
@@ -2484,7 +2503,7 @@ void CSHINETrackReconstruction::CalcClusterSize_Equal2_ERatio()
     hist_ECorr_L1S [ssdindex] = new TH2D(L1S_ECorr[ssdindex].c_str(), L1S_ECorr[ssdindex].c_str(),3000,0,300,3000,0,300);
   }
 
-  Long64_t nentries = fChainLayerTree->GetEntriesFast();
+  Long64_t nentries = fChainLayerTree->GetEntries();
   cout<<"nentries = "<<nentries<<endl;
   for (Long64_t ientry=0; ientry<nentries;ientry++) {
 
@@ -2692,7 +2711,7 @@ void CSHINETrackReconstruction::ClusterSize_Equal2_CsI()
     }
   }
 
-  Long64_t nentries = fChainLayerTree->GetEntriesFast();
+  Long64_t nentries = fChainLayerTree->GetEntries();
   cout<<"nentries = "<<nentries<<endl;
   for (Long64_t ientry=0; ientry<nentries;ientry++) {
 
@@ -2968,7 +2987,7 @@ void CSHINETrackReconstruction::L2L3_TrackReconstructionAlgorithm()
   TTree* mytree = new TTree("TrackEvent","TrackEvent Tree");
   mytree->Branch("TrackEvent.", "CSHINETrackEvent", &fTrackEvent, 32000, 2);
 
-  Long64_t nentries = fChainLayerTree->GetEntriesFast();
+  Long64_t nentries = fChainLayerTree->GetEntries();
   cout<<"nentries = "<<nentries<<endl;
   cout<<Form("Building TrackEvent for %s: Run%04d-Run%04d ......\n",LayerTag.c_str(),fFirstRun,fLastRun);
 
@@ -3089,7 +3108,7 @@ void CSHINETrackReconstruction::L1L2_TrackReconstructionAlgorithm()
   TTree* mytree = new TTree("TrackEvent","TrackEvent Tree");
   mytree->Branch("TrackEvent.", "CSHINETrackEvent", &fTrackEvent, 32000, 2);
 
-  Long64_t nentries = fChainLayerTree->GetEntriesFast();
+  Long64_t nentries = fChainLayerTree->GetEntries();
   cout<<"nentries = "<<nentries<<endl;
   cout<<Form("Building TrackEvent for %s: Run%04d-Run%04d ......\n",LayerTag.c_str(),fFirstRun,fLastRun);
 
@@ -3181,6 +3200,7 @@ void CSHINETrackReconstruction::CheckGlobalMultiRatio(const char* pidtag, Int_t 
 {
   // 定义变量， 以用于计算不同 fGlobalMulti 的比例
   Int_t    globalmulti[NUM_SSD][multicut+1];
+  Int_t    multisum[NUM_SSD] = {0};
   Double_t multiratio_from0[NUM_SSD][multicut+1];
   Double_t multiratio_from1[NUM_SSD][multicut+1];
   Double_t ratiosum_from0[NUM_SSD];
@@ -3200,6 +3220,7 @@ void CSHINETrackReconstruction::CheckGlobalMultiRatio(const char* pidtag, Int_t 
   std::string pathMultiRatioOut(Form("%sfigure_TrackReconstruction/%s_MultiRatio_Run%04d-Run%04d.png",PATHFIGURESFOLDER,pidtag,fFirstRun,fLastRun));
 
   ofstream FileOut(pathDataGlobalMultiRatio.c_str());
+  FileOut<<Form("For Run%04d - Run%04d",fFirstRun,fLastRun)<<endl;
 
   TFile* myfile = new TFile(pathTrackEventRoot.c_str(), "READONLY");
   if (!myfile || !myfile->IsOpen()) {
@@ -3216,6 +3237,7 @@ void CSHINETrackReconstruction::CheckGlobalMultiRatio(const char* pidtag, Int_t 
 
   for (Long64_t ientry=0; ientry<nentries; ientry++) {
     mytree->GetEntry(ientry);
+    timeper.PrintPercentageAndRemainingTime(ientry, nentries);
 
     for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
       for (Int_t i=0; i<=multicut; i++) {
@@ -3227,6 +3249,12 @@ void CSHINETrackReconstruction::CheckGlobalMultiRatio(const char* pidtag, Int_t 
   for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
     FileOut<<"------------------"<<endl;
     FileOut<<Form("For SSD%d :\n",ssdindex+1)<<endl;
+    //
+    for (Int_t i=0; i<=multicut; i++) {
+      multisum[ssdindex] += globalmulti[ssdindex][i];
+      FileOut<<Form("multi%d = ", i)<<globalmulti[ssdindex][i]<<setw(12);
+    }
+    FileOut<<setw(20)<<"(multi>=1) = "<<(nentries-globalmulti[ssdindex][0])<<setw(20)<<"TotEntries = "<<nentries<<endl;
 
     // 计算比例，从 globalmulti = 0 算起
     for (Int_t i=0; i<=multicut; i++) {
@@ -3645,6 +3673,7 @@ void CSHINETrackReconstruction::L2L3_Mode_CalcRatio(Int_t globalmulti)
   std::string pidtag("L2L3");
   std::string pathModeRatioOut(Form("%sdata_Test_Multi/%s_Test_Multi_fGlobalMulti%d_ModeRatio.dat",PATHDATAFOLDER,pidtag.c_str(),globalmulti));
   ofstream FileOut(pathModeRatioOut.c_str());
+  FileOut<<Form("* Use data from Run%04d - Run%04d\n", fFirstRun, fLastRun);
   FileOut<<"* Ratio of different modes of events with globalmulti=2"<<endl;
 
 //  fChainTrackTree->SetEntries(10000);
@@ -3959,9 +3988,10 @@ void CSHINETrackReconstruction::L1L2_Mode_CalcRatio(Int_t globalmulti)
   std::string pidtag("L1L2");
   std::string pathModeRatioOut(Form("%sdata_Test_Multi/%s_Test_Multi_fGlobalMulti%d_ModeRatio.dat",PATHDATAFOLDER,pidtag.c_str(),globalmulti));
   ofstream FileOut(pathModeRatioOut.c_str());
+  FileOut<<Form("For Run%04d - Run%04d",fFirstRun,fLastRun)<<endl;
   FileOut<<"* Ratio of different modes of events with globalmulti=2"<<endl;
 
-  fChainTrackTree->SetEntries(50000000);
+  //fChainTrackTree->SetEntries(50000000);
   Long64_t nentries = fChainTrackTree->GetEntries();
   cout<<"Found nentries = "<<nentries<<endl;
   cout<<Form("Processing CaliRatio globalmulti = %d ......", globalmulti)<<endl;

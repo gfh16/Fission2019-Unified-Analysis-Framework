@@ -63,6 +63,7 @@ void DecodefGlobalMulti1::GlobalMulti1_Checks()
 void DecodefGlobalMulti1::GlobalMulti1_L2L3_Decode()
 {
   Int_t globalmulti = 1;
+  const char* mode = "1111";
 
   Double_t Condition_L2FElossCut = 0.0; // MeV
   Double_t Condition_L2FEincCut  = 0.0; // MeV
@@ -121,7 +122,7 @@ void DecodefGlobalMulti1::GlobalMulti1_L2L3_Decode()
     }
   }
 
-  trackreconstruct->fChainTrackTree->SetEntries(500000);
+  //trackreconstruct->fChainTrackTree->SetEntries(10000000);
   Long64_t nentries = trackreconstruct->fChainTrackTree->GetEntries();
   cout<<"Found nentries = "<<nentries<<endl;
 
@@ -215,6 +216,25 @@ void DecodefGlobalMulti1::GlobalMulti1_L2L3_Decode()
       }
     }
   }
+  //
+  TFile* fileout = new TFile(Form("/home/sea/Fission2019_Data/TrackDecoded/L2L3_g%d_%s.root",globalmulti,mode),"RECREATE");
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
+      fileout->WriteTObject(&h2_L2L3_DEE[ssdindex][csiindex],Form("h2_DEE_SSD%d_CsI%d_g%d-%s",ssdindex+1,csiindex,globalmulti,mode));
+    }
+  }
+  //
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
+      fileout->WriteTObject(&h2_L2L3_DEE_EneL2BL2F_EneL1SL2F_PID[ssdindex][csiindex],Form("h2_GOOD_SSD%d_CsI%d_g%d-%s",ssdindex+1,csiindex,globalmulti,mode));
+    }
+  }
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
+      fileout->WriteTObject(&h2_L2L3_DEE_Discard[ssdindex][csiindex],Form("h2_LOST_SSD%d_CsI%d_g%d-%s",ssdindex+1,csiindex,globalmulti,mode));
+    }
+  }
+
   // 计算比例
   Int_t entry_all[NUM_SSD] = {0};
   Int_t entry_discard[NUM_SSD] = {0};
@@ -347,7 +367,7 @@ void DecodefGlobalMulti1::GlobalMulti_L2L3_Discard()
     h2_L1L2_Discard[ssdindex] = TH2F(Form("SSD%d_Discard",ssdindex+1),Form("SSD%d_Discard",ssdindex+1),NBinsL2[ssdindex],0,EL2Range[ssdindex],NBinsL1[ssdindex],0,EL1Range[ssdindex]);
   }
 
-  //trackreconstruct->fChainTrackTree->SetEntries(1000000);
+  //trackreconstruct->fChainTrackTree->SetEntries(10000000);
   Long64_t nentries = trackreconstruct->fChainTrackTree->GetEntries();
   cout<<"Found nentries = "<<nentries<<endl;
 
@@ -536,7 +556,7 @@ void DecodefGlobalMulti1::GlobalMulti_L2L3_EneL2BL2F_Discard()
     }
   }
 
-  // trackreconstruct->fChainTrackTree->SetEntries(1000000);
+  //trackreconstruct->fChainTrackTree->SetEntries(10000000);
   Long64_t nentries = trackreconstruct->fChainTrackTree->GetEntries();
   cout<<"Found nentries = "<<nentries<<endl;
 
@@ -713,7 +733,7 @@ void DecodefGlobalMulti1::GlobalMulti_L2L3_EneL1SL2F_Discard()
     }
   }
 
-//  trackreconstruct->fChainTrackTree->SetEntries(1000000);
+  //trackreconstruct->fChainTrackTree->SetEntries(10000000);
   Long64_t nentries = trackreconstruct->fChainTrackTree->GetEntries();
   cout<<"Found nentries = "<<nentries<<endl;
 
@@ -974,7 +994,7 @@ void DecodefGlobalMulti2::GlobalMulti2_Decode_1111()
     }
   }
 
-  trackreconstruct->fChainTrackTree->SetEntries(5000000);
+  //trackreconstruct->fChainTrackTree->SetEntries(10000000);
   Long64_t nentries = trackreconstruct->fChainTrackTree->GetEntries();
   cout<<"Found nentries = "<<nentries<<endl;
   cout<<Form("Processing mode%s ......",mode)<<endl;
@@ -1083,6 +1103,26 @@ void DecodefGlobalMulti2::GlobalMulti2_Decode_1111()
       }
     }
   }
+
+  //
+  TFile* fileout = new TFile(Form("/home/sea/Fission2019_Data/TrackDecoded/L2L3_g%d_%s.root",globalmulti,mode),"RECREATE");
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
+      fileout->WriteTObject(&h2_L2L3_DEE[ssdindex][csiindex],Form("h2_DEE_SSD%d_CsI%d_g%d-%s",ssdindex+1,csiindex,globalmulti,mode));
+    }
+  }
+  //
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
+      fileout->WriteTObject(&h2_L2L3_DEE_EneL2BL2F_EneL1SL2F_PID[ssdindex][csiindex],Form("h2_GOOD_SSD%d_CsI%d_g%d-%s",ssdindex+1,csiindex,globalmulti,mode));
+    }
+  }
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
+      fileout->WriteTObject(&h2_L2L3_DEE_Discard[ssdindex][csiindex],Form("h2_LOST_SSD%d_CsI%d_g%d-%s",ssdindex+1,csiindex,globalmulti,mode));
+    }
+  }
+
   // 计算比例
   Int_t entry_all[NUM_SSD] = {0};
   Int_t entry_discard[NUM_SSD] = {0};
@@ -1225,6 +1265,11 @@ void DecodefGlobalMulti2::GlobalMulti2_Decode_1101()
 
   Double_t EL2B_Sum;
 
+  Double_t MHits_Ratio[NUM_SSD]   = {0};
+  Double_t Sharing_Ratio[NUM_SSD] = {0};
+  Int_t MHits_Entries[NUM_SSD]    = {0};
+  Int_t Sharing_Entries[NUM_SSD]  = {0};
+
   Int_t charge, mass;
   std::string cutname;
 
@@ -1268,7 +1313,7 @@ void DecodefGlobalMulti2::GlobalMulti2_Decode_1101()
     }
   }
 
-  trackreconstruct->fChainTrackTree->SetEntries(5000000);
+  //trackreconstruct->fChainTrackTree->SetEntries(10000000);
   Long64_t nentries = trackreconstruct->fChainTrackTree->GetEntries();
   cout<<"Found nentries = "<<nentries<<endl;
   cout<<Form("Processing mode%s ......",mode)<<endl;
@@ -1430,12 +1475,32 @@ void DecodefGlobalMulti2::GlobalMulti2_Decode_1101()
           }
           //
           if (candimulti_corrected[ssdindex] == 2) {
+            MHits_Entries[ssdindex]++;
             for (Int_t itrack=0; itrack<globalmulti; itrack++) {
               h1_L2FDoubleHit[ssdindex][L2L3_CsINum[ssdindex][itrack]]->Fill(bin_index[itrack]);
             }
           }
         }
       }
+    }
+  }
+
+  //
+  TFile* fileout = new TFile(Form("/home/sea/Fission2019_Data/TrackDecoded/L2L3_g%d_%s.root",globalmulti,mode),"RECREATE");
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
+      fileout->WriteTObject(&h2_L2L3_DEE[ssdindex][csiindex],Form("h2_DEE_SSD%d_CsI%d_g%d-%s",ssdindex+1,csiindex,globalmulti,mode));
+    }
+  }
+  //
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
+      fileout->WriteTObject(&h2_L2L3_DEE_EneL2BL2F_EneL1SL2F_PID[ssdindex][csiindex],Form("h2_GOOD_SSD%d_CsI%d_g%d-%s",ssdindex+1,csiindex,globalmulti,mode));
+    }
+  }
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
+      fileout->WriteTObject(&h2_L2L3_DEE_Discard[ssdindex][csiindex],Form("h2_LOST_SSD%d_CsI%d_g%d-%s",ssdindex+1,csiindex,globalmulti,mode));
     }
   }
 
@@ -1450,18 +1515,26 @@ void DecodefGlobalMulti2::GlobalMulti2_Decode_1101()
         entry_discard[ssdindex] += h2_L2L3_DEE_Discard[ssdindex][csiindex].GetEntries();
       }
     }
-    lost_ratio[ssdindex] = (Double_t) entry_discard[ssdindex]/entry_all[ssdindex] * 100;
+    lost_ratio[ssdindex]    = (Double_t) entry_discard[ssdindex]/entry_all[ssdindex] * 100;
+    MHits_Ratio[ssdindex]   = (Double_t) MHits_Entries[ssdindex] * globalmulti/entry_all[ssdindex] * 100;
+    Sharing_Ratio[ssdindex] = (Double_t) Sharing_Entries[ssdindex] * globalmulti/entry_all[ssdindex] * 100;
   }
 
   // 定义 latex
-  Double_t x1,y1;
+  Double_t x1,y1,x2,y2;
   TLatex* latex_ratio[NUM_SSD];
+  TLatex* latex_decoded[NUM_SSD];
   for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
     x1 = 0.3 * globalmulti;
-    y1 = 0.9 * h1_candimulti_merged[ssdindex]->GetMaximum();
-    latex_ratio[ssdindex] = new TLatex(x1, y1, Form("r_{lost} = %.4f%%",lost_ratio[ssdindex]));
+    y1 = 0.8 * h1_candimulti_merged[ssdindex]->GetMaximum();
+    x2 = 0.1 * globalmulti;
+    y2 = 0.5 * h1_candimulti_merged[ssdindex]->GetMaximum();
+    latex_ratio[ssdindex] = new TLatex(x1, y1, Form("r_{lost} = %.2f%%",lost_ratio[ssdindex]));
     latex_ratio[ssdindex]->SetTextSize(0.05);
     latex_ratio[ssdindex]->SetTextColor(kOrange);
+    latex_decoded[ssdindex] = new TLatex(x2, y2, Form("r_{sh}=%.4f%%, r_{mh}=%.4f%%",Sharing_Ratio[ssdindex],MHits_Ratio[ssdindex]));
+    latex_decoded[ssdindex]->SetTextSize(0.05);
+    latex_decoded[ssdindex]->SetTextColor(kOrange);
   }
 
   // 定义 Legend
@@ -1546,6 +1619,7 @@ void DecodefGlobalMulti2::GlobalMulti2_Decode_1101()
       h1_candimulti[ssdindex][csiindex]->SetLineWidth(2);
       // latex_ratio
       latex_ratio[ssdindex]->Draw();
+      latex_decoded[ssdindex]->Draw();
       //
       legend_CandiMulti[ssdindex][csiindex]->Draw("SAME");
 
@@ -1586,6 +1660,11 @@ void DecodefGlobalMulti2::GlobalMulti2_Decode_1010()
   Int_t candimulti_corected[NUM_SSD];
 
   Double_t EL2F_Sum;
+
+  Double_t MHits_Ratio[NUM_SSD]   = {0};
+  Double_t Sharing_Ratio[NUM_SSD] = {0};
+  Int_t MHits_Entries[NUM_SSD]    = {0};
+  Int_t Sharing_Entries[NUM_SSD]  = {0};
 
   std::string cutname;
   Int_t charge, mass;
@@ -1630,7 +1709,7 @@ void DecodefGlobalMulti2::GlobalMulti2_Decode_1010()
     }
   }
 
-  trackreconstruct->fChainTrackTree->SetEntries(5000000);
+  //trackreconstruct->fChainTrackTree->SetEntries(10000000);
   Long64_t nentries = trackreconstruct->fChainTrackTree->GetEntries();
   cout<<"Found nentries = "<<nentries<<endl;
   cout<<Form("Processing mode%s ......",mode)<<endl;
@@ -1786,12 +1865,32 @@ void DecodefGlobalMulti2::GlobalMulti2_Decode_1010()
           }
           // 填充满足 2hit 的 submode
           if (candimulti_corected[ssdindex] == 2) {
+            MHits_Entries[ssdindex]++;
             for (Int_t itrack=0; itrack<globalmulti; itrack++) {
               h1_L2FSharing[ssdindex][L2L3_CsINum[ssdindex][itrack]]->Fill(bin_index[itrack]);
             }
           }
         }
       }
+    }
+  }
+
+  //
+  TFile* fileout = new TFile(Form("/home/sea/Fission2019_Data/TrackDecoded/L2L3_g%d_%s.root",globalmulti,mode),"RECREATE");
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
+      fileout->WriteTObject(&h2_L2L3_DEE[ssdindex][csiindex],Form("h2_DEE_SSD%d_CsI%d_g%d-%s",ssdindex+1,csiindex,globalmulti,mode));
+    }
+  }
+  //
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
+      fileout->WriteTObject(&h2_L2L3_DEE_EneL2BL2F_EneL1SL2F_PID[ssdindex][csiindex],Form("h2_GOOD_SSD%d_CsI%d_g%d-%s",ssdindex+1,csiindex,globalmulti,mode));
+    }
+  }
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
+      fileout->WriteTObject(&h2_L2L3_DEE_Discard[ssdindex][csiindex],Form("h2_LOST_SSD%d_CsI%d_g%d-%s",ssdindex+1,csiindex,globalmulti,mode));
     }
   }
 
@@ -1806,18 +1905,26 @@ void DecodefGlobalMulti2::GlobalMulti2_Decode_1010()
         entry_discard[ssdindex] += h2_L2L3_DEE_Discard[ssdindex][csiindex].GetEntries();
       }
     }
-    lost_ratio[ssdindex] = (Double_t) entry_discard[ssdindex]/entry_all[ssdindex] * 100;
+    lost_ratio[ssdindex]    = (Double_t) entry_discard[ssdindex]/entry_all[ssdindex] * 100;
+    MHits_Ratio[ssdindex]   = (Double_t) MHits_Entries[ssdindex] * globalmulti/entry_all[ssdindex] * 100;
+    Sharing_Ratio[ssdindex] = (Double_t) Sharing_Entries[ssdindex] * globalmulti/entry_all[ssdindex] * 100;
   }
 
   // 定义 latex
-  Double_t x1,y1;
+  Double_t x1,y1,x2,y2;
   TLatex* latex_ratio[NUM_SSD];
+  TLatex* latex_decoded[NUM_SSD];
   for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
     x1 = 0.3 * globalmulti;
-    y1 = 0.9 * h1_candimulti_merged[ssdindex]->GetMaximum();
-    latex_ratio[ssdindex] = new TLatex(x1, y1, Form("r_{lost} = %.4f%%",lost_ratio[ssdindex]));
+    y1 = 0.8 * h1_candimulti_merged[ssdindex]->GetMaximum();
+    x2 = 0.1 * globalmulti;
+    y2 = 0.5 * h1_candimulti_merged[ssdindex]->GetMaximum();
+    latex_ratio[ssdindex] = new TLatex(x1, y1, Form("r_{lost} = %.2f%%",lost_ratio[ssdindex]));
     latex_ratio[ssdindex]->SetTextSize(0.05);
     latex_ratio[ssdindex]->SetTextColor(kOrange);
+    latex_decoded[ssdindex] = new TLatex(x2, y2, Form("r_{sh}=%.4f%%, r_{mh}=%.4f%%",Sharing_Ratio[ssdindex],MHits_Ratio[ssdindex]));
+    latex_decoded[ssdindex]->SetTextSize(0.05);
+    latex_decoded[ssdindex]->SetTextColor(kOrange);
   }
 
   // 定义 Legend
@@ -1900,6 +2007,7 @@ void DecodefGlobalMulti2::GlobalMulti2_Decode_1010()
       h1_candimulti[ssdindex][csiindex]->SetLineWidth(2);
       // latex_ratio
       latex_ratio[ssdindex]->Draw();
+      latex_decoded[ssdindex]->Draw();
       //
       legend_CandiMulti[ssdindex][csiindex]->Draw("SAME");
 
@@ -1980,7 +2088,7 @@ void DecodefGlobalMulti2::GlobalMulti2_Decode_1000()
     }
   }
 
-  trackreconstruct->fChainTrackTree->SetEntries(5000000);
+  //trackreconstruct->fChainTrackTree->SetEntries(10000000);
   Long64_t nentries = trackreconstruct->fChainTrackTree->GetEntries();
   cout<<"Found nentries = "<<nentries<<endl;
   cout<<Form("Processing mode%s ......",mode)<<endl;
@@ -2115,6 +2223,25 @@ void DecodefGlobalMulti2::GlobalMulti2_Decode_1000()
           h1_candimulti_sum[ssdindex]->Fill(candimulti_sum[ssdindex]);
         }
       }
+    }
+  }
+
+  //
+  TFile* fileout = new TFile(Form("/home/sea/Fission2019_Data/TrackDecoded/L2L3_g%d_%s.root",globalmulti,mode),"RECREATE");
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
+      fileout->WriteTObject(&h2_L2L3_DEE[ssdindex][csiindex],Form("h2_DEE_SSD%d_CsI%d_g%d-%s",ssdindex+1,csiindex,globalmulti,mode));
+    }
+  }
+  //
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
+      fileout->WriteTObject(&h2_L2L3_DEE_EneL2BL2F_EneL1SL2F_PID[ssdindex][csiindex],Form("h2_GOOD_SSD%d_CsI%d_g%d-%s",ssdindex+1,csiindex,globalmulti,mode));
+    }
+  }
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
+      fileout->WriteTObject(&h2_L2L3_DEE_Discard[ssdindex][csiindex],Form("h2_LOST_SSD%d_CsI%d_g%d-%s",ssdindex+1,csiindex,globalmulti,mode));
     }
   }
 
@@ -2260,6 +2387,11 @@ void DecodefGlobalMulti2::GlobalMulti2_Decode_0101()
 
   Double_t EL2B_Sum;
 
+  Double_t MHits_Ratio[NUM_SSD]   = {0};
+  Double_t Sharing_Ratio[NUM_SSD] = {0};
+  Int_t MHits_Entries[NUM_SSD]    = {0};
+  Int_t Sharing_Entries[NUM_SSD]  = {0};
+
   Int_t charge, mass;
   std::string cutname;
 
@@ -2303,7 +2435,7 @@ void DecodefGlobalMulti2::GlobalMulti2_Decode_0101()
     }
   }
 
-  trackreconstruct->fChainTrackTree->SetEntries(5000000);
+  //trackreconstruct->fChainTrackTree->SetEntries(10000000);
   Long64_t nentries = trackreconstruct->fChainTrackTree->GetEntries();
   cout<<"Found nentries = "<<nentries<<endl;
   cout<<Form("Processing mode%s ......",mode)<<endl;
@@ -2379,6 +2511,7 @@ void DecodefGlobalMulti2::GlobalMulti2_Decode_0101()
                  trackreconstruct->IsInsideABananaCut(bananacut[BananaCut_TelNum[ssdindex][0]],cutname,L2L3_CSIECh[ssdindex][0],L2L3_L2FEMeV[ssdindex][0]))
             {
               for (Int_t itrack=0; itrack<globalmulti; itrack++) {
+                candimulti_corrected[ssdindex]++;
                 h1_SubmodeCorrected[ssdindex][L2L3_CsINum[ssdindex][itrack]]->Fill(bin_index[itrack]);
                 h1_L2BSharing[ssdindex][L2L3_CsINum[ssdindex][itrack]]->Fill(bin_index[itrack]);
               }
@@ -2405,6 +2538,7 @@ void DecodefGlobalMulti2::GlobalMulti2_Decode_0101()
             else if (trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,L2L3_L2BEMeV[ssdindex][0],L2L3_L2FEMeV[ssdindex][0]) &&
                      trackreconstruct->IsInsideABananaCut(bananacut[BananaCut_TelNum[ssdindex][0]],cutname,L2L3_CSIECh[ssdindex][0],L2L3_L2FEMeV[ssdindex][0]))
             {
+              candimulti_corrected[ssdindex]++;
               //
               for (Int_t itrack=0; itrack<globalmulti; itrack++) {
                 h1_SubmodeCorrected[ssdindex][L2L3_CsINum[ssdindex][itrack]]->Fill(bin_index[itrack]);
@@ -2429,6 +2563,7 @@ void DecodefGlobalMulti2::GlobalMulti2_Decode_0101()
             else if (trackreconstruct->IsInsideABananaCut(bananacut[BananaCut_TelNum[ssdindex][1]],cutname,L2L3_CSIECh[ssdindex][1],L2L3_L2FEMeV[ssdindex][1]) &&
                      trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,L2L3_L2BEMeV[ssdindex][1],L2L3_L2FEMeV[ssdindex][1]))
             {
+              candimulti_corrected[ssdindex]++;
               //
               for (Int_t itrack=0; itrack<globalmulti; itrack++) {
                 h1_SubmodeCorrected[ssdindex][L2L3_CsINum[ssdindex][itrack]]->Fill(bin_index[itrack]);
@@ -2465,10 +2600,34 @@ void DecodefGlobalMulti2::GlobalMulti2_Decode_0101()
           }
           // 填充每一个 SSD 的 candidate multi
           h1_candimulti_sum[ssdindex]->Fill(candimulti_sum[ssdindex]);
+          //
+          if (candimulti_corrected[ssdindex]==2) {
+            Sharing_Entries[ssdindex]++;
+          }
         }
       }
     }
   }
+
+  //
+  TFile* fileout = new TFile(Form("/home/sea/Fission2019_Data/TrackDecoded/L2L3_g%d_%s.root",globalmulti,mode),"RECREATE");
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
+      fileout->WriteTObject(&h2_L2L3_DEE[ssdindex][csiindex],Form("h2_DEE_SSD%d_CsI%d_g%d-%s",ssdindex+1,csiindex,globalmulti,mode));
+    }
+  }
+  //
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
+      fileout->WriteTObject(&h2_L2L3_DEE_EneL2BL2F_EneL1SL2F_PID[ssdindex][csiindex],Form("h2_GOOD_SSD%d_CsI%d_g%d-%s",ssdindex+1,csiindex,globalmulti,mode));
+    }
+  }
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
+      fileout->WriteTObject(&h2_L2L3_DEE_Discard[ssdindex][csiindex],Form("h2_LOST_SSD%d_CsI%d_g%d-%s",ssdindex+1,csiindex,globalmulti,mode));
+    }
+  }
+
   // 计算比例
   Int_t entry_all[NUM_SSD] = {0};
   Int_t entry_discard[NUM_SSD] = {0};
@@ -2476,22 +2635,30 @@ void DecodefGlobalMulti2::GlobalMulti2_Decode_0101()
     for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
       if ((ssdindex==3 && csiindex==4) || (ssdindex==3 && csiindex==5)) continue;
       else {
-        entry_all[ssdindex] += h2_L2L3_DEE[ssdindex][csiindex].GetEntries()/2;
-        entry_discard[ssdindex] += h2_L2L3_DEE_Discard[ssdindex][csiindex].GetEntries()/2;
+        entry_all[ssdindex] += h2_L2L3_DEE[ssdindex][csiindex].GetEntries();
+        entry_discard[ssdindex] += h2_L2L3_DEE_Discard[ssdindex][csiindex].GetEntries();
       }
     }
-    lost_ratio[ssdindex] = (Double_t) entry_discard[ssdindex]/entry_all[ssdindex] * 100;
+    lost_ratio[ssdindex]    = (Double_t) entry_discard[ssdindex]/entry_all[ssdindex] * 100;
+    MHits_Ratio[ssdindex]   = (Double_t) MHits_Entries[ssdindex] * globalmulti/entry_all[ssdindex] * 100;
+    Sharing_Ratio[ssdindex] = (Double_t) Sharing_Entries[ssdindex] * globalmulti/entry_all[ssdindex] * 100;
   }
 
   // 定义 latex
-  Double_t x1,y1;
+  Double_t x1,y1,x2,y2;
   TLatex* latex_ratio[NUM_SSD];
+  TLatex* latex_decoded[NUM_SSD];
   for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
     x1 = 0.3 * globalmulti;
-    y1 = 0.9 * h1_candimulti_merged[ssdindex]->GetMaximum();
-    latex_ratio[ssdindex] = new TLatex(x1, y1, Form("r_{lost} = %.4f%%",lost_ratio[ssdindex]));
+    y1 = 0.8 * h1_candimulti_merged[ssdindex]->GetMaximum();
+    x2 = 0.1 * globalmulti;
+    y2 = 0.5 * h1_candimulti_merged[ssdindex]->GetMaximum();
+    latex_ratio[ssdindex] = new TLatex(x1, y1, Form("r_{lost} = %.2f%%",lost_ratio[ssdindex]));
     latex_ratio[ssdindex]->SetTextSize(0.05);
     latex_ratio[ssdindex]->SetTextColor(kOrange);
+    latex_decoded[ssdindex] = new TLatex(x2, y2, Form("r_{sh}=%.4f%%, r_{mh}=%.4f%%",Sharing_Ratio[ssdindex],MHits_Ratio[ssdindex]));
+    latex_decoded[ssdindex]->SetTextSize(0.05);
+    latex_decoded[ssdindex]->SetTextColor(kOrange);
   }
 
   // 定义 Legend
@@ -2575,6 +2742,7 @@ void DecodefGlobalMulti2::GlobalMulti2_Decode_0101()
       h1_candimulti[ssdindex][csiindex]->SetLineWidth(2);
       // latex_ratio
       latex_ratio[ssdindex]->Draw();
+      latex_decoded[ssdindex]->Draw();
       //
       legend_CandiMulti[ssdindex][csiindex]->Draw("SAME");
 
@@ -2614,8 +2782,14 @@ void DecodefGlobalMulti2::GlobalMulti2_Decode_0100()
   Int_t candmulti_csi[NUM_SSD][NUM_CSI];
   Int_t candimulti_sum[NUM_SSD];
   Int_t candimulti_merged[NUM_SSD];
+  Int_t candimulti_corrected[NUM_SSD];
 
   Double_t EL2B_sharing;
+
+  Double_t MHits_Ratio[NUM_SSD]   = {0};
+  Double_t Sharing_Ratio[NUM_SSD] = {0};
+  Int_t MHits_Entries[NUM_SSD]    = {0};
+  Int_t Sharing_Entries[NUM_SSD]  = {0};
 
   Int_t charge, mass;
   std::string cutname;
@@ -2660,7 +2834,7 @@ void DecodefGlobalMulti2::GlobalMulti2_Decode_0100()
     }
   }
 
-  trackreconstruct->fChainTrackTree->SetEntries(5000000);
+  //trackreconstruct->fChainTrackTree->SetEntries(10000000);
   Long64_t nentries = trackreconstruct->fChainTrackTree->GetEntries();
   cout<<"Found nentries = "<<nentries<<endl;
   cout<<Form("Processing mode%s ......",mode)<<endl;
@@ -2684,6 +2858,7 @@ void DecodefGlobalMulti2::GlobalMulti2_Decode_0100()
       BananaCut_TelNum[ssdindex].clear();
 
       candimulti_sum[ssdindex] = 0;
+      candimulti_corrected[ssdindex] = 0;
       for(Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) { candmulti_csi[ssdindex][csiindex] = 0; }
       for (Int_t imulti=0; imulti<globalmulti; imulti++) { bin_index[imulti] = -1; }
 
@@ -2736,6 +2911,7 @@ void DecodefGlobalMulti2::GlobalMulti2_Decode_0100()
                  trackreconstruct->IsInsideABananaCut(bananacut[BananaCut_TelNum[ssdindex][0]], cutname, L2L3_CSIECh[ssdindex][0], L2L3_L2FEMeV[ssdindex][0]))
             {
               for (Int_t itrack=0; itrack<globalmulti; itrack++) {
+                candimulti_corrected[ssdindex]++;
                 h1_SubmodeCorrected[ssdindex][L2L3_CsINum[ssdindex][itrack]]->Fill(bin_index[itrack]);
                 h1_L2BSharing[ssdindex][L2L3_CsINum[ssdindex][itrack]]->Fill(bin_index[itrack]);
               }
@@ -2823,10 +2999,34 @@ void DecodefGlobalMulti2::GlobalMulti2_Decode_0100()
           }
           // 填充每一个 SSD 的 candidate multi
           h1_candimulti_sum[ssdindex]->Fill(candimulti_sum[ssdindex]);
+          //
+          if (candimulti_corrected[ssdindex]==2) {
+            Sharing_Entries[ssdindex]++;
+          }
         }
       }
     }
   }
+
+  //
+  TFile* fileout = new TFile(Form("/home/sea/Fission2019_Data/TrackDecoded/L2L3_g%d_%s.root",globalmulti,mode),"RECREATE");
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
+      fileout->WriteTObject(&h2_L2L3_DEE[ssdindex][csiindex],Form("h2_DEE_SSD%d_CsI%d_g%d-%s",ssdindex+1,csiindex,globalmulti,mode));
+    }
+  }
+  //
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
+      fileout->WriteTObject(&h2_L2L3_DEE_EneL2BL2F_EneL1SL2F_PID[ssdindex][csiindex],Form("h2_GOOD_SSD%d_CsI%d_g%d-%s",ssdindex+1,csiindex,globalmulti,mode));
+    }
+  }
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
+      fileout->WriteTObject(&h2_L2L3_DEE_Discard[ssdindex][csiindex],Form("h2_LOST_SSD%d_CsI%d_g%d-%s",ssdindex+1,csiindex,globalmulti,mode));
+    }
+  }
+
   // 计算比例
   Int_t entry_all[NUM_SSD] = {0};
   Int_t entry_discard[NUM_SSD] = {0};
@@ -2834,22 +3034,30 @@ void DecodefGlobalMulti2::GlobalMulti2_Decode_0100()
     for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
       if ((ssdindex==3 && csiindex==4) || (ssdindex==3 && csiindex==5)) continue;
       else {
-        entry_all[ssdindex] += h2_L2L3_DEE[ssdindex][csiindex].GetEntries()/2;
-        entry_discard[ssdindex] += h2_L2L3_DEE_Discard[ssdindex][csiindex].GetEntries()/2;
+        entry_all[ssdindex] += h2_L2L3_DEE[ssdindex][csiindex].GetEntries();
+        entry_discard[ssdindex] += h2_L2L3_DEE_Discard[ssdindex][csiindex].GetEntries();
       }
     }
-    lost_ratio[ssdindex] = (Double_t) entry_discard[ssdindex]/entry_all[ssdindex] * 100;
+    lost_ratio[ssdindex]    = (Double_t) entry_discard[ssdindex]/entry_all[ssdindex] * 100;
+    MHits_Ratio[ssdindex]   = (Double_t) MHits_Entries[ssdindex] * globalmulti/entry_all[ssdindex] * 100;
+    Sharing_Ratio[ssdindex] = (Double_t) Sharing_Entries[ssdindex] * globalmulti/entry_all[ssdindex] * 100;
   }
 
   // 定义 latex
-  Double_t x1,y1;
+  Double_t x1,y1,x2,y2;
   TLatex* latex_ratio[NUM_SSD];
+  TLatex* latex_decoded[NUM_SSD];
   for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
     x1 = 0.3 * globalmulti;
-    y1 = 0.9 * h1_candimulti_merged[ssdindex]->GetMaximum();
-    latex_ratio[ssdindex] = new TLatex(x1, y1, Form("r_{lost} = %.4f%%",lost_ratio[ssdindex]));
+    y1 = 0.8 * h1_candimulti_merged[ssdindex]->GetMaximum();
+    x2 = 0.1 * globalmulti;
+    y2 = 0.5 * h1_candimulti_merged[ssdindex]->GetMaximum();
+    latex_ratio[ssdindex] = new TLatex(x1, y1, Form("r_{lost} = %.2f%%",lost_ratio[ssdindex]));
     latex_ratio[ssdindex]->SetTextSize(0.05);
     latex_ratio[ssdindex]->SetTextColor(kOrange);
+    latex_decoded[ssdindex] = new TLatex(x2, y2, Form("r_{sh}=%.4f%%, r_{mh}=%.4f%%",Sharing_Ratio[ssdindex],MHits_Ratio[ssdindex]));
+    latex_decoded[ssdindex]->SetTextSize(0.05);
+    latex_decoded[ssdindex]->SetTextColor(kOrange);
   }
 
   // 定义 Legend
@@ -2933,6 +3141,7 @@ void DecodefGlobalMulti2::GlobalMulti2_Decode_0100()
       h1_candimulti[ssdindex][csiindex]->SetLineWidth(2);
       // latex_ratio
       latex_ratio[ssdindex]->Draw();
+      latex_decoded[ssdindex]->Draw();
       //
       legend_CandiMulti[ssdindex][csiindex]->Draw("SAME");
 
@@ -2970,8 +3179,14 @@ void DecodefGlobalMulti2::GlobalMulti2_Decode_0010()
   Int_t candmulti_csi[NUM_SSD][NUM_CSI];
   Int_t candimulti_sum[NUM_SSD];
   Int_t candimulti_merged[NUM_SSD];
+  Int_t candimulti_corrected[NUM_SSD];
 
   Double_t EL2F_sharing;
+
+  Double_t MHits_Ratio[NUM_SSD]   = {0};
+  Double_t Sharing_Ratio[NUM_SSD] = {0};
+  Int_t MHits_Entries[NUM_SSD]    = {0};
+  Int_t Sharing_Entries[NUM_SSD]  = {0};
 
   Int_t charge, mass;
   std::string cutname;
@@ -3016,7 +3231,7 @@ void DecodefGlobalMulti2::GlobalMulti2_Decode_0010()
     }
   }
 
-  trackreconstruct->fChainTrackTree->SetEntries(5000000);
+  //trackreconstruct->fChainTrackTree->SetEntries(10000000);
   Long64_t nentries = trackreconstruct->fChainTrackTree->GetEntries();
   cout<<"Found nentries = "<<nentries<<endl;
   cout<<Form("Processing mode%s ......",mode)<<endl;
@@ -3040,6 +3255,7 @@ void DecodefGlobalMulti2::GlobalMulti2_Decode_0010()
       BananaCut_TelNum[ssdindex].clear();
 
       candimulti_sum[ssdindex] = 0;
+      candimulti_corrected[ssdindex] = 0;
       for(Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) { candmulti_csi[ssdindex][csiindex] = 0; }
       for (Int_t imulti=0; imulti<globalmulti; imulti++) { bin_index[imulti] = -1; }
 
@@ -3091,6 +3307,7 @@ void DecodefGlobalMulti2::GlobalMulti2_Decode_0010()
                 trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex, L2L3_L2BEMeV[ssdindex][0], EL2F_sharing)) {
               //
               for (Int_t itrack=0; itrack<globalmulti; itrack++) {
+                candimulti_corrected[ssdindex]++;
                 h1_SubmodeCorrected[ssdindex][L2L3_CsINum[ssdindex][itrack]]->Fill(bin_index[itrack]);
                 h1_L2FSharing[ssdindex][L2L3_CsINum[ssdindex][itrack]]->Fill(bin_index[itrack]);
               }
@@ -3176,10 +3393,34 @@ void DecodefGlobalMulti2::GlobalMulti2_Decode_0010()
           }
           // 填充每一个 SSD 的 candidate multi
           h1_candimulti_sum[ssdindex]->Fill(candimulti_sum[ssdindex]);
+          //
+          if (candimulti_corrected[ssdindex]==2) {
+            Sharing_Entries[ssdindex]++;
+          }
         }
       }
     }
   }
+
+  //
+  TFile* fileout = new TFile(Form("/home/sea/Fission2019_Data/TrackDecoded/L2L3_g%d_%s.root",globalmulti,mode),"RECREATE");
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
+      fileout->WriteTObject(&h2_L2L3_DEE[ssdindex][csiindex],Form("h2_DEE_SSD%d_CsI%d_g%d-%s",ssdindex+1,csiindex,globalmulti,mode));
+    }
+  }
+  //
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
+      fileout->WriteTObject(&h2_L2L3_DEE_EneL2BL2F_EneL1SL2F_PID[ssdindex][csiindex],Form("h2_GOOD_SSD%d_CsI%d_g%d-%s",ssdindex+1,csiindex,globalmulti,mode));
+    }
+  }
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
+      fileout->WriteTObject(&h2_L2L3_DEE_Discard[ssdindex][csiindex],Form("h2_LOST_SSD%d_CsI%d_g%d-%s",ssdindex+1,csiindex,globalmulti,mode));
+    }
+  }
+
   // 计算比例
   Int_t entry_all[NUM_SSD] = {0};
   Int_t entry_discard[NUM_SSD] = {0};
@@ -3187,22 +3428,30 @@ void DecodefGlobalMulti2::GlobalMulti2_Decode_0010()
     for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
       if ((ssdindex==3 && csiindex==4) || (ssdindex==3 && csiindex==5)) continue;
       else {
-        entry_all[ssdindex] += h2_L2L3_DEE[ssdindex][csiindex].GetEntries()/2;
-        entry_discard[ssdindex] += h2_L2L3_DEE_Discard[ssdindex][csiindex].GetEntries()/2;
+        entry_all[ssdindex] += h2_L2L3_DEE[ssdindex][csiindex].GetEntries();
+        entry_discard[ssdindex] += h2_L2L3_DEE_Discard[ssdindex][csiindex].GetEntries();
       }
     }
-    lost_ratio[ssdindex] = (Double_t) entry_discard[ssdindex]/entry_all[ssdindex] * 100;
+    lost_ratio[ssdindex]    = (Double_t) entry_discard[ssdindex]/entry_all[ssdindex] * 100;
+    MHits_Ratio[ssdindex]   = (Double_t) MHits_Entries[ssdindex] * globalmulti/entry_all[ssdindex] * 100;
+    Sharing_Ratio[ssdindex] = (Double_t) Sharing_Entries[ssdindex] * globalmulti/entry_all[ssdindex] * 100;
   }
 
   // 定义 latex
-  Double_t x1,y1;
+  Double_t x1,y1,x2,y2;
   TLatex* latex_ratio[NUM_SSD];
+  TLatex* latex_decoded[NUM_SSD];
   for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
     x1 = 0.3 * globalmulti;
-    y1 = 0.9 * h1_candimulti_merged[ssdindex]->GetMaximum();
-    latex_ratio[ssdindex] = new TLatex(x1, y1, Form("r_{lost} = %.4f%%",lost_ratio[ssdindex]));
+    y1 = 0.8 * h1_candimulti_merged[ssdindex]->GetMaximum();
+    x2 = 0.1 * globalmulti;
+    y2 = 0.5 * h1_candimulti_merged[ssdindex]->GetMaximum();
+    latex_ratio[ssdindex] = new TLatex(x1, y1, Form("r_{lost} = %.2f%%",lost_ratio[ssdindex]));
     latex_ratio[ssdindex]->SetTextSize(0.05);
     latex_ratio[ssdindex]->SetTextColor(kOrange);
+    latex_decoded[ssdindex] = new TLatex(x2, y2, Form("r_{sh}=%.4f%%, r_{mh}=%.4f%%",Sharing_Ratio[ssdindex],MHits_Ratio[ssdindex]));
+    latex_decoded[ssdindex]->SetTextSize(0.05);
+    latex_decoded[ssdindex]->SetTextColor(kOrange);
   }
 
   // 定义 Legend
@@ -3285,6 +3534,7 @@ void DecodefGlobalMulti2::GlobalMulti2_Decode_0010()
       h1_candimulti[ssdindex][csiindex]->SetLineWidth(2);
       // latex_ratio
       latex_ratio[ssdindex]->Draw();
+      latex_decoded[ssdindex]->Draw();
       //
       legend_CandiMulti[ssdindex][csiindex]->Draw("SAME");
 
@@ -3324,8 +3574,14 @@ void DecodefGlobalMulti2::GlobalMulti2_Decode_0001()
   Int_t candmulti_csi[NUM_SSD][NUM_CSI];
   Int_t candimulti_sum[NUM_SSD];
   Int_t candimulti_merged[NUM_SSD];
+  Int_t candimulti_corrected[NUM_SSD];
 
   Double_t EL1S_sharing;
+
+  Double_t MHits_Ratio[NUM_SSD]   = {0};
+  Double_t Sharing_Ratio[NUM_SSD] = {0};
+  Int_t MHits_Entries[NUM_SSD]    = {0};
+  Int_t Sharing_Entries[NUM_SSD]  = {0};
 
   Int_t charge, mass;
   std::string cutname;
@@ -3370,7 +3626,7 @@ void DecodefGlobalMulti2::GlobalMulti2_Decode_0001()
     }
   }
 
-  trackreconstruct->fChainTrackTree->SetEntries(5000000);
+  //trackreconstruct->fChainTrackTree->SetEntries(10000000);
   Long64_t nentries = trackreconstruct->fChainTrackTree->GetEntries();
   cout<<"Found nentries = "<<nentries<<endl;
   cout<<Form("Processing mode%s ......",mode)<<endl;
@@ -3394,6 +3650,7 @@ void DecodefGlobalMulti2::GlobalMulti2_Decode_0001()
       BananaCut_TelNum[ssdindex].clear();
 
       candimulti_sum[ssdindex] = 0;
+      candimulti_corrected[ssdindex] = 0;
       for(Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) { candmulti_csi[ssdindex][csiindex] = 0; }
       for (Int_t imulti=0; imulti<globalmulti; imulti++) { bin_index[imulti] = -1; }
 
@@ -3457,6 +3714,7 @@ void DecodefGlobalMulti2::GlobalMulti2_Decode_0001()
                 h2_L1L2_DEE_EneL2BL2F_EneL1SL2F_PID[ssdindex][L2L3_CsINum[ssdindex][0]].Fill(L2L3_L2FEMeV[ssdindex][0],EL1S_sharing);
                 //
                 for (Int_t itrack=0; itrack<globalmulti; itrack++) {
+                  candimulti_corrected[ssdindex]++;
                   h1_L1SSharing[ssdindex][L2L3_CsINum[ssdindex][itrack]]->Fill(bin_index[itrack]);
                 }
               }
@@ -3492,8 +3750,31 @@ void DecodefGlobalMulti2::GlobalMulti2_Decode_0001()
           }
           // 填充每一个 SSD 的 candidate multi
           h1_candimulti_sum[ssdindex]->Fill(candimulti_sum[ssdindex]);
+          //
+          if (candimulti_corrected[ssdindex]==2) {
+            Sharing_Entries[ssdindex]++;
+          }
         }
       }
+    }
+  }
+
+  //
+  TFile* fileout = new TFile(Form("/home/sea/Fission2019_Data/TrackDecoded/L2L3_g%d_%s.root",globalmulti,mode),"RECREATE");
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
+      fileout->WriteTObject(&h2_L2L3_DEE[ssdindex][csiindex],Form("h2_DEE_SSD%d_CsI%d_g%d-%s",ssdindex+1,csiindex,globalmulti,mode));
+    }
+  }
+  //
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
+      fileout->WriteTObject(&h2_L2L3_DEE_EneL2BL2F_EneL1SL2F_PID[ssdindex][csiindex],Form("h2_GOOD_SSD%d_CsI%d_g%d-%s",ssdindex+1,csiindex,globalmulti,mode));
+    }
+  }
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
+      fileout->WriteTObject(&h2_L2L3_DEE_Discard[ssdindex][csiindex],Form("h2_LOST_SSD%d_CsI%d_g%d-%s",ssdindex+1,csiindex,globalmulti,mode));
     }
   }
 
@@ -3504,22 +3785,30 @@ void DecodefGlobalMulti2::GlobalMulti2_Decode_0001()
     for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
       if ((ssdindex==3 && csiindex==4) || (ssdindex==3 && csiindex==5)) continue;
       else {
-        entry_all[ssdindex] += h2_L2L3_DEE[ssdindex][csiindex].GetEntries()/2;
-        entry_discard[ssdindex] += h2_L2L3_DEE_Discard[ssdindex][csiindex].GetEntries()/2;
+        entry_all[ssdindex] += h2_L2L3_DEE[ssdindex][csiindex].GetEntries();
+        entry_discard[ssdindex] += h2_L2L3_DEE_Discard[ssdindex][csiindex].GetEntries();
       }
     }
-    lost_ratio[ssdindex] = (Double_t) entry_discard[ssdindex]/entry_all[ssdindex] * 100;
+    lost_ratio[ssdindex]    = (Double_t) entry_discard[ssdindex]/entry_all[ssdindex] * 100;
+    MHits_Ratio[ssdindex]   = (Double_t) MHits_Entries[ssdindex] * globalmulti/entry_all[ssdindex] * 100;
+    Sharing_Ratio[ssdindex] = (Double_t) Sharing_Entries[ssdindex] * globalmulti/entry_all[ssdindex] * 100;
   }
 
   // 定义 latex
-  Double_t x1,y1;
+  Double_t x1,y1,x2,y2;
   TLatex* latex_ratio[NUM_SSD];
+  TLatex* latex_decoded[NUM_SSD];
   for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
     x1 = 0.3 * globalmulti;
-    y1 = 0.9 * h1_candimulti_merged[ssdindex]->GetMaximum();
-    latex_ratio[ssdindex] = new TLatex(x1, y1, Form("r_{lost} = %.4f%%",lost_ratio[ssdindex]));
+    y1 = 0.8 * h1_candimulti_merged[ssdindex]->GetMaximum();
+    x2 = 0.1 * globalmulti;
+    y2 = 0.5 * h1_candimulti_merged[ssdindex]->GetMaximum();
+    latex_ratio[ssdindex] = new TLatex(x1, y1, Form("r_{lost} = %.2f%%",lost_ratio[ssdindex]));
     latex_ratio[ssdindex]->SetTextSize(0.05);
     latex_ratio[ssdindex]->SetTextColor(kOrange);
+    latex_decoded[ssdindex] = new TLatex(x2, y2, Form("r_{sh}=%.4f%%, r_{mh}=%.4f%%",Sharing_Ratio[ssdindex],MHits_Ratio[ssdindex]));
+    latex_decoded[ssdindex]->SetTextSize(0.05);
+    latex_decoded[ssdindex]->SetTextColor(kOrange);
   }
 
   // 定义 Legend
@@ -3602,6 +3891,7 @@ void DecodefGlobalMulti2::GlobalMulti2_Decode_0001()
       h1_candimulti[ssdindex][csiindex]->SetLineWidth(2);
       // latex_ratio
       latex_ratio[ssdindex]->Draw();
+      latex_decoded[ssdindex]->Draw();
       //
       legend_CandiMulti[ssdindex][csiindex]->Draw("SAME");
 
@@ -3734,7 +4024,7 @@ void DecodefGlobalMulti3::GlobalMulti3_Decode_2222()
     }
   }
 
-  //trackreconstruct->fChainTrackTree->SetEntries(5000000);
+  //trackreconstruct->fChainTrackTree->SetEntries(10000000);
   Long64_t nentries = trackreconstruct->fChainTrackTree->GetEntries();
   cout<<"Found nentries = "<<nentries<<endl;
   cout<<Form("Processing mode%s ......",mode)<<endl;
@@ -3845,6 +4135,26 @@ void DecodefGlobalMulti3::GlobalMulti3_Decode_2222()
       }
     }
   }
+
+  //
+  TFile* fileout = new TFile(Form("/home/sea/Fission2019_Data/TrackDecoded/L2L3_g%d_%s.root",globalmulti,mode),"RECREATE");
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
+      fileout->WriteTObject(&h2_L2L3_DEE[ssdindex][csiindex],Form("h2_DEE_SSD%d_CsI%d_g%d-%s",ssdindex+1,csiindex,globalmulti,mode));
+    }
+  }
+  //
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
+      fileout->WriteTObject(&h2_L2L3_DEE_EneL2BL2F_EneL1SL2F_PID[ssdindex][csiindex],Form("h2_GOOD_SSD%d_CsI%d_g%d-%s",ssdindex+1,csiindex,globalmulti,mode));
+    }
+  }
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
+      fileout->WriteTObject(&h2_L2L3_DEE_Discard[ssdindex][csiindex],Form("h2_LOST_SSD%d_CsI%d_g%d-%s",ssdindex+1,csiindex,globalmulti,mode));
+    }
+  }
+
   // 计算比例
   Int_t entry_all[NUM_SSD] = {0};
   Int_t entry_discard[NUM_SSD] = {0};
@@ -4024,7 +4334,7 @@ void DecodefGlobalMulti3::GlobalMulti3_Decode_2111()
     }
   }
 
-  // trackreconstruct->fChainTrackTree->SetEntries(1000000);
+  //trackreconstruct->fChainTrackTree->SetEntries(10000000);
   Long64_t nentries = trackreconstruct->fChainTrackTree->GetEntries();
   cout<<"Found nentries = "<<nentries<<endl;
   cout<<Form("Processing mode%s ......",mode)<<endl;
@@ -4231,6 +4541,25 @@ void DecodefGlobalMulti3::GlobalMulti3_Decode_2111()
     }
   }
 
+  //
+  TFile* fileout = new TFile(Form("/home/sea/Fission2019_Data/TrackDecoded/L2L3_g%d_%s.root",globalmulti,mode),"RECREATE");
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
+      fileout->WriteTObject(&h2_L2L3_DEE[ssdindex][csiindex],Form("h2_DEE_SSD%d_CsI%d_g%d-%s",ssdindex+1,csiindex,globalmulti,mode));
+    }
+  }
+  //
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
+      fileout->WriteTObject(&h2_L2L3_DEE_EneL2BL2F_EneL1SL2F_PID[ssdindex][csiindex],Form("h2_GOOD_SSD%d_CsI%d_g%d-%s",ssdindex+1,csiindex,globalmulti,mode));
+    }
+  }
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
+      fileout->WriteTObject(&h2_L2L3_DEE_Discard[ssdindex][csiindex],Form("h2_LOST_SSD%d_CsI%d_g%d-%s",ssdindex+1,csiindex,globalmulti,mode));
+    }
+  }
+
   // 计算比例
   Int_t entry_all[NUM_SSD] = {0};
   Int_t entry_discard[NUM_SSD] = {0};
@@ -4374,6 +4703,11 @@ void DecodefGlobalMulti3::GlobalMulti3_Decode_1211()
   Int_t candimulti_corrected[NUM_SSD];
 	Int_t candimulti_sharing[NUM_SSD];
 
+  Double_t MHits_Ratio[NUM_SSD]   = {0};
+  Double_t Sharing_Ratio[NUM_SSD] = {0};
+  Int_t MHits_Entries[NUM_SSD]    = {0};
+  Int_t Sharing_Entries[NUM_SSD]  = {0};
+
   std::string pathPDFOut(Form("%sfigure_TrackReconstruction/L2L3_GlobalMulti%d_Decode_%s.pdf",PATHFIGURESFOLDER,globalmulti,mode));
   std::string pathPDFOutBegin(Form("%sfigure_TrackReconstruction/L2L3_GlobalMulti%d_Decode_%s.pdf[",PATHFIGURESFOLDER,globalmulti,mode));
   std::string pathPDFOutEnd(Form("%sfigure_TrackReconstruction/L2L3_GlobalMulti%d_Decode_%s.pdf]",PATHFIGURESFOLDER,globalmulti,mode));
@@ -4414,7 +4748,7 @@ void DecodefGlobalMulti3::GlobalMulti3_Decode_1211()
     }
   }
 
-  trackreconstruct->fChainTrackTree->SetEntries(5000000);
+  //trackreconstruct->fChainTrackTree->SetEntries(10000000);
   Long64_t nentries = trackreconstruct->fChainTrackTree->GetEntries();
   cout<<"Found nentries = "<<nentries<<endl;
   cout<<Form("Processing mode%s ......",mode)<<endl;
@@ -4491,9 +4825,9 @@ void DecodefGlobalMulti3::GlobalMulti3_Decode_1211()
 						  (trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,L2L3_L2BEMeV[ssdindex][2],L2L3_L2FEMeV[ssdindex][2]) &&
 							 trackreconstruct->IsInsideABananaCut(bananacut[BananaCut_TelNum[ssdindex][2]],cutname[2],L2L3_CSIECh[ssdindex][2],L2L3_L2FEMeV[ssdindex][2])))
 					{
-						candimulti_sharing[ssdindex]++;
 						for (Int_t itrack=0; itrack<globalmulti; itrack++) {
 							if (itrack!=1) {
+                candimulti_sharing[ssdindex]++;
 								candimulti_corrected[ssdindex]++;
 								// L2L3_DEE 直接填充
 				        h2_L2L3_DEE_EneL2BL2F_EneL1SL2F_PID[ssdindex][L2L3_CsINum[ssdindex][itrack]].Fill(L2L3_CSIECh[ssdindex][itrack],L2L3_L2FEMeV[ssdindex][itrack]);
@@ -4523,6 +4857,7 @@ void DecodefGlobalMulti3::GlobalMulti3_Decode_1211()
 					{
 						for (Int_t itrack=0; itrack<globalmulti; itrack++) {
 							if (itrack!=2) {
+                candimulti_sharing[ssdindex]++;
 								candimulti_corrected[ssdindex]++;
 								// L2L3_DEE 直接填充
 				        h2_L2L3_DEE_EneL2BL2F_EneL1SL2F_PID[ssdindex][L2L3_CsINum[ssdindex][itrack]].Fill(L2L3_CSIECh[ssdindex][itrack],L2L3_L2FEMeV[ssdindex][itrack]);
@@ -4680,10 +5015,33 @@ void DecodefGlobalMulti3::GlobalMulti3_Decode_1211()
 							h1_SubmodeSharing[ssdindex][L2L3_CsINum[ssdindex][itrack]]->Fill(bin_index[itrack]);
 						}
 					}
+          //
+          if (candimulti_sharing[ssdindex] == 2) {
+            Sharing_Entries[ssdindex]++;
+          }
           // 填充每一个 SSD 的 candidate multi
           h1_candimulti_sum[ssdindex]->Fill(candimulti_sum[ssdindex]);
         }
       }
+    }
+  }
+
+  //
+  TFile* fileout = new TFile(Form("/home/sea/Fission2019_Data/TrackDecoded/L2L3_g%d_%s.root",globalmulti,mode),"RECREATE");
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
+      fileout->WriteTObject(&h2_L2L3_DEE[ssdindex][csiindex],Form("h2_DEE_SSD%d_CsI%d_g%d-%s",ssdindex+1,csiindex,globalmulti,mode));
+    }
+  }
+  //
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
+      fileout->WriteTObject(&h2_L2L3_DEE_EneL2BL2F_EneL1SL2F_PID[ssdindex][csiindex],Form("h2_GOOD_SSD%d_CsI%d_g%d-%s",ssdindex+1,csiindex,globalmulti,mode));
+    }
+  }
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
+      fileout->WriteTObject(&h2_L2L3_DEE_Discard[ssdindex][csiindex],Form("h2_LOST_SSD%d_CsI%d_g%d-%s",ssdindex+1,csiindex,globalmulti,mode));
     }
   }
 
@@ -4698,18 +5056,26 @@ void DecodefGlobalMulti3::GlobalMulti3_Decode_1211()
         entry_discard[ssdindex] += h2_L2L3_DEE_Discard[ssdindex][csiindex].GetEntries();
       }
     }
-    lost_ratio[ssdindex] = (Double_t) entry_discard[ssdindex]/entry_all[ssdindex] * 100;
+    lost_ratio[ssdindex]    = (Double_t) entry_discard[ssdindex]/entry_all[ssdindex] * 100;
+    MHits_Ratio[ssdindex]   = (Double_t) MHits_Entries[ssdindex] * globalmulti/entry_all[ssdindex] * 100;
+    Sharing_Ratio[ssdindex] = (Double_t) Sharing_Entries[ssdindex] * globalmulti/entry_all[ssdindex] * 100;
   }
 
   // 定义 latex
-  Double_t x1,y1;
+  Double_t x1,y1,x2,y2;
   TLatex* latex_ratio[NUM_SSD];
+  TLatex* latex_decoded[NUM_SSD];
   for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
-    x1 = 0.4 * globalmulti;
-    y1 = 0.9 * h1_candimulti_merged[ssdindex]->GetMaximum();
-    latex_ratio[ssdindex] = new TLatex(x1, y1, Form("r_{lost} = %.4f%%",lost_ratio[ssdindex]));
+    x1 = 0.3 * globalmulti;
+    y1 = 0.8 * h1_candimulti_merged[ssdindex]->GetMaximum();
+    x2 = 0.1 * globalmulti;
+    y2 = 0.5 * h1_candimulti_merged[ssdindex]->GetMaximum();
+    latex_ratio[ssdindex] = new TLatex(x1, y1, Form("r_{lost} = %.2f%%",lost_ratio[ssdindex]));
     latex_ratio[ssdindex]->SetTextSize(0.05);
     latex_ratio[ssdindex]->SetTextColor(kOrange);
+    latex_decoded[ssdindex] = new TLatex(x2, y2, Form("r_{sh}=%.4f%%, r_{mh}=%.4f%%",Sharing_Ratio[ssdindex],MHits_Ratio[ssdindex]));
+    latex_decoded[ssdindex]->SetTextSize(0.05);
+    latex_decoded[ssdindex]->SetTextColor(kOrange);
   }
 
   // 定义 Legend
@@ -4793,6 +5159,7 @@ void DecodefGlobalMulti3::GlobalMulti3_Decode_1211()
       h1_candimulti[ssdindex][csiindex]->SetLineWidth(2);
       // latex_ratio
       latex_ratio[ssdindex]->Draw();
+      latex_decoded[ssdindex]->Draw();
       //
       legend_CandiMulti[ssdindex][csiindex]->Draw("SAME");
 
@@ -4835,6 +5202,11 @@ void DecodefGlobalMulti3::GlobalMulti3_Decode_1121()
   Int_t candimulti_corrected[NUM_SSD];
 	Int_t candimulti_sharing[NUM_SSD];
 
+  Double_t MHits_Ratio[NUM_SSD]   = {0};
+  Double_t Sharing_Ratio[NUM_SSD] = {0};
+  Int_t MHits_Entries[NUM_SSD]    = {0};
+  Int_t Sharing_Entries[NUM_SSD]  = {0};
+
   std::string pathPDFOut(Form("%sfigure_TrackReconstruction/L2L3_GlobalMulti%d_Decode_%s.pdf",PATHFIGURESFOLDER,globalmulti,mode));
   std::string pathPDFOutBegin(Form("%sfigure_TrackReconstruction/L2L3_GlobalMulti%d_Decode_%s.pdf[",PATHFIGURESFOLDER,globalmulti,mode));
   std::string pathPDFOutEnd(Form("%sfigure_TrackReconstruction/L2L3_GlobalMulti%d_Decode_%s.pdf]",PATHFIGURESFOLDER,globalmulti,mode));
@@ -4875,7 +5247,7 @@ void DecodefGlobalMulti3::GlobalMulti3_Decode_1121()
     }
   }
 
-  trackreconstruct->fChainTrackTree->SetEntries(5000000);
+  //trackreconstruct->fChainTrackTree->SetEntries(10000000);
   Long64_t nentries = trackreconstruct->fChainTrackTree->GetEntries();
   cout<<"Found nentries = "<<nentries<<endl;
   cout<<Form("Processing mode%s ......",mode)<<endl;
@@ -4952,9 +5324,9 @@ void DecodefGlobalMulti3::GlobalMulti3_Decode_1121()
 						  (trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,L2L3_L2BEMeV[ssdindex][2],L2L3_L2FEMeV[ssdindex][2]) &&
 							 trackreconstruct->IsInsideABananaCut(bananacut[BananaCut_TelNum[ssdindex][2]],cutname[2],L2L3_CSIECh[ssdindex][2],L2L3_L2BEMeV[ssdindex][2])))
 					{
-						candimulti_sharing[ssdindex]++;
 						for (Int_t itrack=0; itrack<globalmulti; itrack++) {
 							if (itrack!=1) {
+                candimulti_sharing[ssdindex]++;
 								candimulti_corrected[ssdindex]++;
 								// 对 EL2B 进行修正
 								L2L3_L2BEMeV[ssdindex][itrack] = L2L3_L2BEMeV[ssdindex][itrack]*EL2B_TO_EL2F_SCALE[ssdindex];
@@ -4984,9 +5356,9 @@ void DecodefGlobalMulti3::GlobalMulti3_Decode_1121()
 									 (trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,L2L3_L2BEMeV[ssdindex][0],L2L3_L2FEMeV[ssdindex][0]) &&
 		 							  trackreconstruct->IsInsideABananaCut(bananacut[BananaCut_TelNum[ssdindex][0]],cutname[0],L2L3_CSIECh[ssdindex][0],L2L3_L2BEMeV[ssdindex][0])))
 					{
-						candimulti_sharing[ssdindex]++;
 						for (Int_t itrack=0; itrack<globalmulti; itrack++) {
 							if (itrack!=2) {
+                candimulti_sharing[ssdindex]++;
 								candimulti_corrected[ssdindex]++;
 								// 对 EL2B 进行修正
 								L2L3_L2BEMeV[ssdindex][itrack] = L2L3_L2BEMeV[ssdindex][itrack]*EL2B_TO_EL2F_SCALE[ssdindex];
@@ -5141,6 +5513,7 @@ void DecodefGlobalMulti3::GlobalMulti3_Decode_1121()
           }
 					//
 					if (candimulti_sharing[ssdindex] > 0) {
+            Sharing_Entries[ssdindex]++;
 						for (Int_t itrack=0; itrack<globalmulti; itrack++) {
 							h1_SubmodeSharing[ssdindex][L2L3_CsINum[ssdindex][itrack]]->Fill(bin_index[itrack]);
 						}
@@ -5149,6 +5522,25 @@ void DecodefGlobalMulti3::GlobalMulti3_Decode_1121()
           h1_candimulti_sum[ssdindex]->Fill(candimulti_sum[ssdindex]);
         }
       }
+    }
+  }
+
+  //
+  TFile* fileout = new TFile(Form("/home/sea/Fission2019_Data/TrackDecoded/L2L3_g%d_%s.root",globalmulti,mode),"RECREATE");
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
+      fileout->WriteTObject(&h2_L2L3_DEE[ssdindex][csiindex],Form("h2_DEE_SSD%d_CsI%d_g%d-%s",ssdindex+1,csiindex,globalmulti,mode));
+    }
+  }
+  //
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
+      fileout->WriteTObject(&h2_L2L3_DEE_EneL2BL2F_EneL1SL2F_PID[ssdindex][csiindex],Form("h2_GOOD_SSD%d_CsI%d_g%d-%s",ssdindex+1,csiindex,globalmulti,mode));
+    }
+  }
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
+      fileout->WriteTObject(&h2_L2L3_DEE_Discard[ssdindex][csiindex],Form("h2_LOST_SSD%d_CsI%d_g%d-%s",ssdindex+1,csiindex,globalmulti,mode));
     }
   }
 
@@ -5163,18 +5555,26 @@ void DecodefGlobalMulti3::GlobalMulti3_Decode_1121()
         entry_discard[ssdindex] += h2_L2L3_DEE_Discard[ssdindex][csiindex].GetEntries();
       }
     }
-    lost_ratio[ssdindex] = (Double_t) entry_discard[ssdindex]/entry_all[ssdindex] * 100;
+    lost_ratio[ssdindex]    = (Double_t) entry_discard[ssdindex]/entry_all[ssdindex] * 100;
+    MHits_Ratio[ssdindex]   = (Double_t) MHits_Entries[ssdindex] * globalmulti/entry_all[ssdindex] * 100;
+    Sharing_Ratio[ssdindex] = (Double_t) Sharing_Entries[ssdindex] * globalmulti/entry_all[ssdindex] * 100;
   }
 
   // 定义 latex
-  Double_t x1,y1;
+  Double_t x1,y1,x2,y2;
   TLatex* latex_ratio[NUM_SSD];
+  TLatex* latex_decoded[NUM_SSD];
   for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
-    x1 = 0.4 * globalmulti;
-    y1 = 0.9 * h1_candimulti_merged[ssdindex]->GetMaximum();
-    latex_ratio[ssdindex] = new TLatex(x1, y1, Form("r_{lost} = %.4f%%",lost_ratio[ssdindex]));
+    x1 = 0.3 * globalmulti;
+    y1 = 0.8 * h1_candimulti_merged[ssdindex]->GetMaximum();
+    x2 = 0.1 * globalmulti;
+    y2 = 0.5 * h1_candimulti_merged[ssdindex]->GetMaximum();
+    latex_ratio[ssdindex] = new TLatex(x1, y1, Form("r_{lost} = %.2f%%",lost_ratio[ssdindex]));
     latex_ratio[ssdindex]->SetTextSize(0.05);
     latex_ratio[ssdindex]->SetTextColor(kOrange);
+    latex_decoded[ssdindex] = new TLatex(x2, y2, Form("r_{sh}=%.4f%%, r_{mh}=%.4f%%",Sharing_Ratio[ssdindex],MHits_Ratio[ssdindex]));
+    latex_decoded[ssdindex]->SetTextSize(0.05);
+    latex_decoded[ssdindex]->SetTextColor(kOrange);
   }
 
   // 定义 Legend
@@ -5258,6 +5658,7 @@ void DecodefGlobalMulti3::GlobalMulti3_Decode_1121()
       h1_candimulti[ssdindex][csiindex]->SetLineWidth(2);
       // latex_ratio
       latex_ratio[ssdindex]->Draw();
+      latex_decoded[ssdindex]->Draw();
       //
       legend_CandiMulti[ssdindex][csiindex]->Draw("SAME");
 
@@ -5339,7 +5740,7 @@ void DecodefGlobalMulti3::GlobalMulti3_Decode_1112()
     }
   }
 
-  trackreconstruct->fChainTrackTree->SetEntries(5000000);
+  //trackreconstruct->fChainTrackTree->SetEntries(10000000);
   Long64_t nentries = trackreconstruct->fChainTrackTree->GetEntries();
   cout<<"Found nentries = "<<nentries<<endl;
   cout<<Form("Processing mode%s ......",mode)<<endl;
@@ -5522,6 +5923,25 @@ void DecodefGlobalMulti3::GlobalMulti3_Decode_1112()
           h1_candimulti_sum[ssdindex]->Fill(candimulti_sum[ssdindex]);
         }
       }
+    }
+  }
+
+  //
+  TFile* fileout = new TFile(Form("/home/sea/Fission2019_Data/TrackDecoded/L2L3_g%d_%s.root",globalmulti,mode),"RECREATE");
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
+      fileout->WriteTObject(&h2_L2L3_DEE[ssdindex][csiindex],Form("h2_DEE_SSD%d_CsI%d_g%d-%s",ssdindex+1,csiindex,globalmulti,mode));
+    }
+  }
+  //
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
+      fileout->WriteTObject(&h2_L2L3_DEE_EneL2BL2F_EneL1SL2F_PID[ssdindex][csiindex],Form("h2_GOOD_SSD%d_CsI%d_g%d-%s",ssdindex+1,csiindex,globalmulti,mode));
+    }
+  }
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
+      fileout->WriteTObject(&h2_L2L3_DEE_Discard[ssdindex][csiindex],Form("h2_LOST_SSD%d_CsI%d_g%d-%s",ssdindex+1,csiindex,globalmulti,mode));
     }
   }
 
@@ -5712,7 +6132,7 @@ void DecodefGlobalMulti3::GlobalMulti3_Decode_1111()
     }
   }
 
-  trackreconstruct->fChainTrackTree->SetEntries(5000000);
+  //trackreconstruct->fChainTrackTree->SetEntries(10000000);
   Long64_t nentries = trackreconstruct->fChainTrackTree->GetEntries();
   cout<<"Found nentries = "<<nentries<<endl;
   cout<<Form("Processing mode%s ......",mode)<<endl;
@@ -5926,6 +6346,25 @@ void DecodefGlobalMulti3::GlobalMulti3_Decode_1111()
     }
   }
 
+  //
+  TFile* fileout = new TFile(Form("/home/sea/Fission2019_Data/TrackDecoded/L2L3_g%d_%s.root",globalmulti,mode),"RECREATE");
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
+      fileout->WriteTObject(&h2_L2L3_DEE[ssdindex][csiindex],Form("h2_DEE_SSD%d_CsI%d_g%d-%s",ssdindex+1,csiindex,globalmulti,mode));
+    }
+  }
+  //
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
+      fileout->WriteTObject(&h2_L2L3_DEE_EneL2BL2F_EneL1SL2F_PID[ssdindex][csiindex],Form("h2_GOOD_SSD%d_CsI%d_g%d-%s",ssdindex+1,csiindex,globalmulti,mode));
+    }
+  }
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
+      fileout->WriteTObject(&h2_L2L3_DEE_Discard[ssdindex][csiindex],Form("h2_LOST_SSD%d_CsI%d_g%d-%s",ssdindex+1,csiindex,globalmulti,mode));
+    }
+  }
+
   // 计算比例
   Int_t entry_all[NUM_SSD] = {0};
   Int_t entry_discard[NUM_SSD] = {0};
@@ -6109,7 +6548,7 @@ void DecodefGlobalMulti3::GlobalMulti3_Decode_1110()
     }
   }
 
-  trackreconstruct->fChainTrackTree->SetEntries(5000000);
+  //trackreconstruct->fChainTrackTree->SetEntries(10000000);
   Long64_t nentries = trackreconstruct->fChainTrackTree->GetEntries();
   cout<<"Found nentries = "<<nentries<<endl;
   cout<<Form("Processing mode%s ......",mode)<<endl;
@@ -6308,6 +6747,25 @@ void DecodefGlobalMulti3::GlobalMulti3_Decode_1110()
     }
   }
 
+  //
+  TFile* fileout = new TFile(Form("/home/sea/Fission2019_Data/TrackDecoded/L2L3_g%d_%s.root",globalmulti,mode),"RECREATE");
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
+      fileout->WriteTObject(&h2_L2L3_DEE[ssdindex][csiindex],Form("h2_DEE_SSD%d_CsI%d_g%d-%s",ssdindex+1,csiindex,globalmulti,mode));
+    }
+  }
+  //
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
+      fileout->WriteTObject(&h2_L2L3_DEE_EneL2BL2F_EneL1SL2F_PID[ssdindex][csiindex],Form("h2_GOOD_SSD%d_CsI%d_g%d-%s",ssdindex+1,csiindex,globalmulti,mode));
+    }
+  }
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
+      fileout->WriteTObject(&h2_L2L3_DEE_Discard[ssdindex][csiindex],Form("h2_LOST_SSD%d_CsI%d_g%d-%s",ssdindex+1,csiindex,globalmulti,mode));
+    }
+  }
+
   // 计算比例
   Int_t entry_all[NUM_SSD] = {0};
   Int_t entry_discard[NUM_SSD] = {0};
@@ -6452,6 +6910,11 @@ void DecodefGlobalMulti3::GlobalMulti3_Decode_1020()
   Int_t candimulti_corrected[NUM_SSD];
 	Int_t candimulti_2hit[NUM_SSD];
 
+  Double_t MHits_Ratio[NUM_SSD]   = {0};
+  Double_t Sharing_Ratio[NUM_SSD] = {0};
+  Int_t MHits_Entries[NUM_SSD]    = {0};
+  Int_t Sharing_Entries[NUM_SSD]  = {0};
+
   std::string pathPDFOut(Form("%sfigure_TrackReconstruction/L2L3_GlobalMulti%d_Decode_%s.pdf",PATHFIGURESFOLDER,globalmulti,mode));
   std::string pathPDFOutBegin(Form("%sfigure_TrackReconstruction/L2L3_GlobalMulti%d_Decode_%s.pdf[",PATHFIGURESFOLDER,globalmulti,mode));
   std::string pathPDFOutEnd(Form("%sfigure_TrackReconstruction/L2L3_GlobalMulti%d_Decode_%s.pdf]",PATHFIGURESFOLDER,globalmulti,mode));
@@ -6492,7 +6955,7 @@ void DecodefGlobalMulti3::GlobalMulti3_Decode_1020()
     }
   }
 
-  trackreconstruct->fChainTrackTree->SetEntries(5000000);
+  //trackreconstruct->fChainTrackTree->SetEntries(10000000);
   Long64_t nentries = trackreconstruct->fChainTrackTree->GetEntries();
   cout<<"Found nentries = "<<nentries<<endl;
   cout<<Form("Processing mode%s ......",mode)<<endl;
@@ -6694,6 +7157,7 @@ void DecodefGlobalMulti3::GlobalMulti3_Decode_1020()
           }
 					//
 					if (candimulti_2hit[ssdindex] > 0) {
+            MHits_Entries[ssdindex]++;
 						for (Int_t itrack=0; itrack<globalmulti; itrack++) {
 							h1_Submode2Hit[ssdindex][L2L3_CsINum[ssdindex][itrack]]->Fill(bin_index[itrack]);
 						}
@@ -6702,6 +7166,25 @@ void DecodefGlobalMulti3::GlobalMulti3_Decode_1020()
           h1_candimulti_sum[ssdindex]->Fill(candimulti_sum[ssdindex]);
         }
       }
+    }
+  }
+
+  //
+  TFile* fileout = new TFile(Form("/home/sea/Fission2019_Data/TrackDecoded/L2L3_g%d_%s.root",globalmulti,mode),"RECREATE");
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
+      fileout->WriteTObject(&h2_L2L3_DEE[ssdindex][csiindex],Form("h2_DEE_SSD%d_CsI%d_g%d-%s",ssdindex+1,csiindex,globalmulti,mode));
+    }
+  }
+  //
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
+      fileout->WriteTObject(&h2_L2L3_DEE_EneL2BL2F_EneL1SL2F_PID[ssdindex][csiindex],Form("h2_GOOD_SSD%d_CsI%d_g%d-%s",ssdindex+1,csiindex,globalmulti,mode));
+    }
+  }
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
+      fileout->WriteTObject(&h2_L2L3_DEE_Discard[ssdindex][csiindex],Form("h2_LOST_SSD%d_CsI%d_g%d-%s",ssdindex+1,csiindex,globalmulti,mode));
     }
   }
 
@@ -6716,18 +7199,26 @@ void DecodefGlobalMulti3::GlobalMulti3_Decode_1020()
         entry_discard[ssdindex] += h2_L2L3_DEE_Discard[ssdindex][csiindex].GetEntries();
       }
     }
-    lost_ratio[ssdindex] = (Double_t) entry_discard[ssdindex]/entry_all[ssdindex] * 100;
+    lost_ratio[ssdindex]    = (Double_t) entry_discard[ssdindex]/entry_all[ssdindex] * 100;
+    MHits_Ratio[ssdindex]   = (Double_t) MHits_Entries[ssdindex] * globalmulti/entry_all[ssdindex] * 100;
+    Sharing_Ratio[ssdindex] = (Double_t) Sharing_Entries[ssdindex] * globalmulti/entry_all[ssdindex] * 100;
   }
 
   // 定义 latex
-  Double_t x1,y1;
+  Double_t x1,y1,x2,y2;
   TLatex* latex_ratio[NUM_SSD];
+  TLatex* latex_decoded[NUM_SSD];
   for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
-    x1 = 0.4 * globalmulti;
-    y1 = 0.9 * h1_candimulti_merged[ssdindex]->GetMaximum();
-    latex_ratio[ssdindex] = new TLatex(x1, y1, Form("r_{lost} = %.4f%%",lost_ratio[ssdindex]));
+    x1 = 0.3 * globalmulti;
+    y1 = 0.8 * h1_candimulti_merged[ssdindex]->GetMaximum();
+    x2 = 0.1 * globalmulti;
+    y2 = 0.5 * h1_candimulti_merged[ssdindex]->GetMaximum();
+    latex_ratio[ssdindex] = new TLatex(x1, y1, Form("r_{lost} = %.2f%%",lost_ratio[ssdindex]));
     latex_ratio[ssdindex]->SetTextSize(0.05);
     latex_ratio[ssdindex]->SetTextColor(kOrange);
+    latex_decoded[ssdindex] = new TLatex(x2, y2, Form("r_{sh}=%.4f%%, r_{mh}=%.4f%%",Sharing_Ratio[ssdindex],MHits_Ratio[ssdindex]));
+    latex_decoded[ssdindex]->SetTextSize(0.05);
+    latex_decoded[ssdindex]->SetTextColor(kOrange);
   }
 
   // 定义 Legend
@@ -6811,6 +7302,7 @@ void DecodefGlobalMulti3::GlobalMulti3_Decode_1020()
       h1_candimulti[ssdindex][csiindex]->SetLineWidth(2);
       // latex_ratio
       latex_ratio[ssdindex]->Draw();
+      latex_decoded[ssdindex]->Draw();
       //
       legend_CandiMulti[ssdindex][csiindex]->Draw("SAME");
 
@@ -6852,6 +7344,11 @@ void DecodefGlobalMulti3::GlobalMulti3_Decode_1010()
   Int_t candimulti_corrected[NUM_SSD];
 	Int_t candimulti_2hit[NUM_SSD];
 
+  Double_t MHits_Ratio[NUM_SSD]   = {0};
+  Double_t Sharing_Ratio[NUM_SSD] = {0};
+  Int_t MHits_Entries[NUM_SSD]    = {0};
+  Int_t Sharing_Entries[NUM_SSD]  = {0};
+
   std::string pathPDFOut(Form("%sfigure_TrackReconstruction/L2L3_GlobalMulti%d_Decode_%s.pdf",PATHFIGURESFOLDER,globalmulti,mode));
   std::string pathPDFOutBegin(Form("%sfigure_TrackReconstruction/L2L3_GlobalMulti%d_Decode_%s.pdf[",PATHFIGURESFOLDER,globalmulti,mode));
   std::string pathPDFOutEnd(Form("%sfigure_TrackReconstruction/L2L3_GlobalMulti%d_Decode_%s.pdf]",PATHFIGURESFOLDER,globalmulti,mode));
@@ -6892,7 +7389,7 @@ void DecodefGlobalMulti3::GlobalMulti3_Decode_1010()
     }
   }
 
-  trackreconstruct->fChainTrackTree->SetEntries(5000000);
+  //trackreconstruct->fChainTrackTree->SetEntries(10000000);
   Long64_t nentries = trackreconstruct->fChainTrackTree->GetEntries();
   cout<<"Found nentries = "<<nentries<<endl;
   cout<<Form("Processing mode%s ......",mode)<<endl;
@@ -7081,6 +7578,7 @@ void DecodefGlobalMulti3::GlobalMulti3_Decode_1010()
           }
 					//
 					if (candimulti_2hit[ssdindex] > 0) {
+            MHits_Entries[ssdindex]++;
 						for (Int_t itrack=0; itrack<globalmulti; itrack++) {
 							h1_Submode2Hit[ssdindex][L2L3_CsINum[ssdindex][itrack]]->Fill(bin_index[itrack]);
 						}
@@ -7089,6 +7587,25 @@ void DecodefGlobalMulti3::GlobalMulti3_Decode_1010()
           h1_candimulti_sum[ssdindex]->Fill(candimulti_sum[ssdindex]);
         }
       }
+    }
+  }
+
+  //
+  TFile* fileout = new TFile(Form("/home/sea/Fission2019_Data/TrackDecoded/L2L3_g%d_%s.root",globalmulti,mode),"RECREATE");
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
+      fileout->WriteTObject(&h2_L2L3_DEE[ssdindex][csiindex],Form("h2_DEE_SSD%d_CsI%d_g%d-%s",ssdindex+1,csiindex,globalmulti,mode));
+    }
+  }
+  //
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
+      fileout->WriteTObject(&h2_L2L3_DEE_EneL2BL2F_EneL1SL2F_PID[ssdindex][csiindex],Form("h2_GOOD_SSD%d_CsI%d_g%d-%s",ssdindex+1,csiindex,globalmulti,mode));
+    }
+  }
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
+      fileout->WriteTObject(&h2_L2L3_DEE_Discard[ssdindex][csiindex],Form("h2_LOST_SSD%d_CsI%d_g%d-%s",ssdindex+1,csiindex,globalmulti,mode));
     }
   }
 
@@ -7103,18 +7620,26 @@ void DecodefGlobalMulti3::GlobalMulti3_Decode_1010()
         entry_discard[ssdindex] += h2_L2L3_DEE_Discard[ssdindex][csiindex].GetEntries();
       }
     }
-    lost_ratio[ssdindex] = (Double_t) entry_discard[ssdindex]/entry_all[ssdindex] * 100;
+    lost_ratio[ssdindex]    = (Double_t) entry_discard[ssdindex]/entry_all[ssdindex] * 100;
+    MHits_Ratio[ssdindex]   = (Double_t) MHits_Entries[ssdindex] * globalmulti/entry_all[ssdindex] * 100;
+    Sharing_Ratio[ssdindex] = (Double_t) Sharing_Entries[ssdindex] * globalmulti/entry_all[ssdindex] * 100;
   }
 
   // 定义 latex
-  Double_t x1,y1;
+  Double_t x1,y1,x2,y2;
   TLatex* latex_ratio[NUM_SSD];
+  TLatex* latex_decoded[NUM_SSD];
   for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
-    x1 = 0.4 * globalmulti;
-    y1 = 0.9 * h1_candimulti_merged[ssdindex]->GetMaximum();
-    latex_ratio[ssdindex] = new TLatex(x1, y1, Form("r_{lost} = %.4f%%",lost_ratio[ssdindex]));
+    x1 = 0.3 * globalmulti;
+    y1 = 0.8 * h1_candimulti_merged[ssdindex]->GetMaximum();
+    x2 = 0.1 * globalmulti;
+    y2 = 0.5 * h1_candimulti_merged[ssdindex]->GetMaximum();
+    latex_ratio[ssdindex] = new TLatex(x1, y1, Form("r_{lost} = %.2f%%",lost_ratio[ssdindex]));
     latex_ratio[ssdindex]->SetTextSize(0.05);
     latex_ratio[ssdindex]->SetTextColor(kOrange);
+    latex_decoded[ssdindex] = new TLatex(x2, y2, Form("r_{sh}=%.4f%%, r_{mh}=%.4f%%",Sharing_Ratio[ssdindex],MHits_Ratio[ssdindex]));
+    latex_decoded[ssdindex]->SetTextSize(0.05);
+    latex_decoded[ssdindex]->SetTextColor(kOrange);
   }
 
   // 定义 Legend
@@ -7198,6 +7723,7 @@ void DecodefGlobalMulti3::GlobalMulti3_Decode_1010()
       h1_candimulti[ssdindex][csiindex]->SetLineWidth(2);
       // latex_ratio
       latex_ratio[ssdindex]->Draw();
+      latex_decoded[ssdindex]->Draw();
       //
       legend_CandiMulti[ssdindex][csiindex]->Draw("SAME");
 
@@ -7237,7 +7763,12 @@ void DecodefGlobalMulti3::GlobalMulti3_Decode_0201()
   Int_t candimulti_sum[NUM_SSD];
   Int_t candimulti_merged[NUM_SSD];
   Int_t candimulti_corrected[NUM_SSD];
-	Int_t candimulti_2hit[NUM_SSD];
+	Int_t candimulti_sharing[NUM_SSD];
+
+  Double_t MHits_Ratio[NUM_SSD]   = {0};
+  Double_t Sharing_Ratio[NUM_SSD] = {0};
+  Int_t MHits_Entries[NUM_SSD]    = {0};
+  Int_t Sharing_Entries[NUM_SSD]  = {0};
 
   std::string pathPDFOut(Form("%sfigure_TrackReconstruction/L2L3_GlobalMulti%d_Decode_%s.pdf",PATHFIGURESFOLDER,globalmulti,mode));
   std::string pathPDFOutBegin(Form("%sfigure_TrackReconstruction/L2L3_GlobalMulti%d_Decode_%s.pdf[",PATHFIGURESFOLDER,globalmulti,mode));
@@ -7279,7 +7810,7 @@ void DecodefGlobalMulti3::GlobalMulti3_Decode_0201()
     }
   }
 
-  // trackreconstruct->fChainTrackTree->SetEntries(5000000);
+  //trackreconstruct->fChainTrackTree->SetEntries(10000000);
   Long64_t nentries = trackreconstruct->fChainTrackTree->GetEntries();
   cout<<"Found nentries = "<<nentries<<endl;
   cout<<Form("Processing mode%s ......",mode)<<endl;
@@ -7305,7 +7836,7 @@ void DecodefGlobalMulti3::GlobalMulti3_Decode_0201()
       // 初始化
       candimulti_sum[ssdindex] = 0;
       candimulti_corrected[ssdindex] = 0;
-			candimulti_2hit[ssdindex] = 0;
+			candimulti_sharing[ssdindex] = 0;
       for(Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) { candmulti_csi[ssdindex][csiindex] = 0; }
 
       if (trackreconstruct->fTrackEvent.fSSDGlobalMulti[ssdindex] == globalmulti) {
@@ -7352,7 +7883,7 @@ void DecodefGlobalMulti3::GlobalMulti3_Decode_0201()
 					    ((trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,L2L3_L2BEMeV[ssdindex][0]+L2L3_L2BEMeV[ssdindex][1],L2L3_L2FEMeV[ssdindex][0]) && (TMath::Abs(L2L3_L2BStripNum[ssdindex][0]-L2L3_L2BStripNum[ssdindex][1])==1)) ||
 							 (trackreconstruct->IsEneConstraint_L2B_L2F(ssdindex,L2L3_L2BEMeV[ssdindex][1]+L2L3_L2BEMeV[ssdindex][2],L2L3_L2FEMeV[ssdindex][0]) && (TMath::Abs(L2L3_L2BStripNum[ssdindex][1]-L2L3_L2BStripNum[ssdindex][2])==1))))
 					{
-						candimulti_2hit[ssdindex]++;
+						candimulti_sharing[ssdindex]++;
 						candimulti_corrected[ssdindex]++;
 						// L2L3_DEE 直接填充
 						h2_L2L3_DEE_EneL2BL2F_EneL1SL2F_PID[ssdindex][L2L3_CsINum[ssdindex][0]].Fill(L2L3_CSIECh[ssdindex][0],L2L3_L2FEMeV[ssdindex][0]);
@@ -7453,7 +7984,8 @@ void DecodefGlobalMulti3::GlobalMulti3_Decode_0201()
             }
           }
 					//
-					if (candimulti_2hit[ssdindex] > 0) {
+					if (candimulti_sharing[ssdindex] > 0) {
+            Sharing_Entries[ssdindex]++;
 						for (Int_t itrack=0; itrack<globalmulti; itrack++) {
 							h1_Submode2Hit[ssdindex][L2L3_CsINum[ssdindex][itrack]]->Fill(bin_index[itrack]);
 						}
@@ -7462,6 +7994,25 @@ void DecodefGlobalMulti3::GlobalMulti3_Decode_0201()
           h1_candimulti_sum[ssdindex]->Fill(candimulti_sum[ssdindex]);
         }
       }
+    }
+  }
+
+  //
+  TFile* fileout = new TFile(Form("/home/sea/Fission2019_Data/TrackDecoded/L2L3_g%d_%s.root",globalmulti,mode),"RECREATE");
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
+      fileout->WriteTObject(&h2_L2L3_DEE[ssdindex][csiindex],Form("h2_DEE_SSD%d_CsI%d_g%d-%s",ssdindex+1,csiindex,globalmulti,mode));
+    }
+  }
+  //
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
+      fileout->WriteTObject(&h2_L2L3_DEE_EneL2BL2F_EneL1SL2F_PID[ssdindex][csiindex],Form("h2_GOOD_SSD%d_CsI%d_g%d-%s",ssdindex+1,csiindex,globalmulti,mode));
+    }
+  }
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
+      fileout->WriteTObject(&h2_L2L3_DEE_Discard[ssdindex][csiindex],Form("h2_LOST_SSD%d_CsI%d_g%d-%s",ssdindex+1,csiindex,globalmulti,mode));
     }
   }
 
@@ -7476,18 +8027,26 @@ void DecodefGlobalMulti3::GlobalMulti3_Decode_0201()
         entry_discard[ssdindex] += h2_L2L3_DEE_Discard[ssdindex][csiindex].GetEntries();
       }
     }
-    lost_ratio[ssdindex] = (Double_t) entry_discard[ssdindex]/entry_all[ssdindex] * 100;
+    lost_ratio[ssdindex]    = (Double_t) entry_discard[ssdindex]/entry_all[ssdindex] * 100;
+    MHits_Ratio[ssdindex]   = (Double_t) MHits_Entries[ssdindex] * globalmulti/entry_all[ssdindex] * 100;
+    Sharing_Ratio[ssdindex] = (Double_t) Sharing_Entries[ssdindex] * globalmulti/entry_all[ssdindex] * 100;
   }
 
   // 定义 latex
-  Double_t x1,y1;
+  Double_t x1,y1,x2,y2;
   TLatex* latex_ratio[NUM_SSD];
+  TLatex* latex_decoded[NUM_SSD];
   for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
-    x1 = 0.4 * globalmulti;
-    y1 = 0.9 * h1_candimulti_merged[ssdindex]->GetMaximum();
-    latex_ratio[ssdindex] = new TLatex(x1, y1, Form("r_{lost} = %.4f%%",lost_ratio[ssdindex]));
+    x1 = 0.3 * globalmulti;
+    y1 = 0.8 * h1_candimulti_merged[ssdindex]->GetMaximum();
+    x2 = 0.1 * globalmulti;
+    y2 = 0.5 * h1_candimulti_merged[ssdindex]->GetMaximum();
+    latex_ratio[ssdindex] = new TLatex(x1, y1, Form("r_{lost} = %.2f%%",lost_ratio[ssdindex]));
     latex_ratio[ssdindex]->SetTextSize(0.05);
     latex_ratio[ssdindex]->SetTextColor(kOrange);
+    latex_decoded[ssdindex] = new TLatex(x2, y2, Form("r_{sh}=%.4f%%, r_{mh}=%.4f%%",Sharing_Ratio[ssdindex],MHits_Ratio[ssdindex]));
+    latex_decoded[ssdindex]->SetTextSize(0.05);
+    latex_decoded[ssdindex]->SetTextColor(kOrange);
   }
 
   // 定义 Legend
@@ -7571,6 +8130,7 @@ void DecodefGlobalMulti3::GlobalMulti3_Decode_0201()
       h1_candimulti[ssdindex][csiindex]->SetLineWidth(2);
       // latex_ratio
       latex_ratio[ssdindex]->Draw();
+      latex_decoded[ssdindex]->Draw();
       //
       legend_CandiMulti[ssdindex][csiindex]->Draw("SAME");
 
@@ -7612,6 +8172,11 @@ void DecodefGlobalMulti3::GlobalMulti3_Decode_0102()
   Int_t candimulti_corrected[NUM_SSD];
 	Int_t candimulti_sharing[NUM_SSD];
 
+  Double_t MHits_Ratio[NUM_SSD]   = {0};
+  Double_t Sharing_Ratio[NUM_SSD] = {0};
+  Int_t MHits_Entries[NUM_SSD]    = {0};
+  Int_t Sharing_Entries[NUM_SSD]  = {0};
+
   std::string pathPDFOut(Form("%sfigure_TrackReconstruction/L2L3_GlobalMulti%d_Decode_%s.pdf",PATHFIGURESFOLDER,globalmulti,mode));
   std::string pathPDFOutBegin(Form("%sfigure_TrackReconstruction/L2L3_GlobalMulti%d_Decode_%s.pdf[",PATHFIGURESFOLDER,globalmulti,mode));
   std::string pathPDFOutEnd(Form("%sfigure_TrackReconstruction/L2L3_GlobalMulti%d_Decode_%s.pdf]",PATHFIGURESFOLDER,globalmulti,mode));
@@ -7652,7 +8217,7 @@ void DecodefGlobalMulti3::GlobalMulti3_Decode_0102()
     }
   }
 
-  //trackreconstruct->fChainTrackTree->SetEntries(5000000);
+  //trackreconstruct->fChainTrackTree->SetEntries(10000000);
   Long64_t nentries = trackreconstruct->fChainTrackTree->GetEntries();
   cout<<"Found nentries = "<<nentries<<endl;
   cout<<Form("Processing mode%s ......",mode)<<endl;
@@ -7815,6 +8380,25 @@ void DecodefGlobalMulti3::GlobalMulti3_Decode_0102()
     }
   }
 
+  //
+  TFile* fileout = new TFile(Form("/home/sea/Fission2019_Data/TrackDecoded/L2L3_g%d_%s.root",globalmulti,mode),"RECREATE");
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
+      fileout->WriteTObject(&h2_L2L3_DEE[ssdindex][csiindex],Form("h2_DEE_SSD%d_CsI%d_g%d-%s",ssdindex+1,csiindex,globalmulti,mode));
+    }
+  }
+  //
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
+      fileout->WriteTObject(&h2_L2L3_DEE_EneL2BL2F_EneL1SL2F_PID[ssdindex][csiindex],Form("h2_GOOD_SSD%d_CsI%d_g%d-%s",ssdindex+1,csiindex,globalmulti,mode));
+    }
+  }
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
+      fileout->WriteTObject(&h2_L2L3_DEE_Discard[ssdindex][csiindex],Form("h2_LOST_SSD%d_CsI%d_g%d-%s",ssdindex+1,csiindex,globalmulti,mode));
+    }
+  }
+
   // 计算比例
   Int_t entry_all[NUM_SSD] = {0};
   Int_t entry_discard[NUM_SSD] = {0};
@@ -7958,6 +8542,11 @@ void DecodefGlobalMulti3::GlobalMulti3_Decode_0101()
   Int_t candimulti_corrected[NUM_SSD];
 	Int_t candimulti_sharing[NUM_SSD];
 
+  Double_t MHits_Ratio[NUM_SSD]   = {0};
+  Double_t Sharing_Ratio[NUM_SSD] = {0};
+  Int_t MHits_Entries[NUM_SSD]    = {0};
+  Int_t Sharing_Entries[NUM_SSD]  = {0};
+
   std::string pathPDFOut(Form("%sfigure_TrackReconstruction/L2L3_GlobalMulti%d_Decode_%s.pdf",PATHFIGURESFOLDER,globalmulti,mode));
   std::string pathPDFOutBegin(Form("%sfigure_TrackReconstruction/L2L3_GlobalMulti%d_Decode_%s.pdf[",PATHFIGURESFOLDER,globalmulti,mode));
   std::string pathPDFOutEnd(Form("%sfigure_TrackReconstruction/L2L3_GlobalMulti%d_Decode_%s.pdf]",PATHFIGURESFOLDER,globalmulti,mode));
@@ -7998,7 +8587,7 @@ void DecodefGlobalMulti3::GlobalMulti3_Decode_0101()
     }
   }
 
-  trackreconstruct->fChainTrackTree->SetEntries(5000000);
+  //trackreconstruct->fChainTrackTree->SetEntries(10000000);
   Long64_t nentries = trackreconstruct->fChainTrackTree->GetEntries();
   cout<<"Found nentries = "<<nentries<<endl;
   cout<<Form("Processing mode%s ......",mode)<<endl;
@@ -8196,6 +8785,7 @@ void DecodefGlobalMulti3::GlobalMulti3_Decode_0101()
           }
 					//
 					if (candimulti_sharing[ssdindex] > 0) {
+            Sharing_Entries[ssdindex]++;
 						for (Int_t itrack=0; itrack<globalmulti; itrack++) {
 							h1_SubmodeSharing[ssdindex][L2L3_CsINum[ssdindex][itrack]]->Fill(bin_index[itrack]);
 						}
@@ -8204,6 +8794,25 @@ void DecodefGlobalMulti3::GlobalMulti3_Decode_0101()
           h1_candimulti_sum[ssdindex]->Fill(candimulti_sum[ssdindex]);
         }
       }
+    }
+  }
+
+  //
+  TFile* fileout = new TFile(Form("/home/sea/Fission2019_Data/TrackDecoded/L2L3_g%d_%s.root",globalmulti,mode),"RECREATE");
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
+      fileout->WriteTObject(&h2_L2L3_DEE[ssdindex][csiindex],Form("h2_DEE_SSD%d_CsI%d_g%d-%s",ssdindex+1,csiindex,globalmulti,mode));
+    }
+  }
+  //
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
+      fileout->WriteTObject(&h2_L2L3_DEE_EneL2BL2F_EneL1SL2F_PID[ssdindex][csiindex],Form("h2_GOOD_SSD%d_CsI%d_g%d-%s",ssdindex+1,csiindex,globalmulti,mode));
+    }
+  }
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
+      fileout->WriteTObject(&h2_L2L3_DEE_Discard[ssdindex][csiindex],Form("h2_LOST_SSD%d_CsI%d_g%d-%s",ssdindex+1,csiindex,globalmulti,mode));
     }
   }
 
@@ -8218,18 +8827,26 @@ void DecodefGlobalMulti3::GlobalMulti3_Decode_0101()
         entry_discard[ssdindex] += h2_L2L3_DEE_Discard[ssdindex][csiindex].GetEntries();
       }
     }
-    lost_ratio[ssdindex] = (Double_t) entry_discard[ssdindex]/entry_all[ssdindex] * 100;
+    lost_ratio[ssdindex]    = (Double_t) entry_discard[ssdindex]/entry_all[ssdindex] * 100;
+    MHits_Ratio[ssdindex]   = (Double_t) MHits_Entries[ssdindex] * globalmulti/entry_all[ssdindex] * 100;
+    Sharing_Ratio[ssdindex] = (Double_t) Sharing_Entries[ssdindex] * globalmulti/entry_all[ssdindex] * 100;
   }
 
   // 定义 latex
-  Double_t x1,y1;
+  Double_t x1,y1,x2,y2;
   TLatex* latex_ratio[NUM_SSD];
+  TLatex* latex_decoded[NUM_SSD];
   for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
-    x1 = 0.4 * globalmulti;
-    y1 = 0.9 * h1_candimulti_merged[ssdindex]->GetMaximum();
-    latex_ratio[ssdindex] = new TLatex(x1, y1, Form("r_{lost} = %.4f%%",lost_ratio[ssdindex]));
+    x1 = 0.3 * globalmulti;
+    y1 = 0.8 * h1_candimulti_merged[ssdindex]->GetMaximum();
+    x2 = 0.1 * globalmulti;
+    y2 = 0.5 * h1_candimulti_merged[ssdindex]->GetMaximum();
+    latex_ratio[ssdindex] = new TLatex(x1, y1, Form("r_{lost} = %.2f%%",lost_ratio[ssdindex]));
     latex_ratio[ssdindex]->SetTextSize(0.05);
     latex_ratio[ssdindex]->SetTextColor(kOrange);
+    latex_decoded[ssdindex] = new TLatex(x2, y2, Form("r_{sh}=%.4f%%, r_{mh}=%.4f%%",Sharing_Ratio[ssdindex],MHits_Ratio[ssdindex]));
+    latex_decoded[ssdindex]->SetTextSize(0.05);
+    latex_decoded[ssdindex]->SetTextColor(kOrange);
   }
 
   // 定义 Legend
@@ -8313,6 +8930,7 @@ void DecodefGlobalMulti3::GlobalMulti3_Decode_0101()
       h1_candimulti[ssdindex][csiindex]->SetLineWidth(2);
       // latex_ratio
       latex_ratio[ssdindex]->Draw();
+      latex_decoded[ssdindex]->Draw();
       //
       legend_CandiMulti[ssdindex][csiindex]->Draw("SAME");
 
@@ -8355,6 +8973,11 @@ void DecodefGlobalMulti3::GlobalMulti3_Decode_0020()
   Int_t candimulti_corrected[NUM_SSD];
 	Int_t candimulti_sharing[NUM_SSD];
 
+  Double_t MHits_Ratio[NUM_SSD]   = {0};
+  Double_t Sharing_Ratio[NUM_SSD] = {0};
+  Int_t MHits_Entries[NUM_SSD]    = {0};
+  Int_t Sharing_Entries[NUM_SSD]  = {0};
+
   std::string pathPDFOut(Form("%sfigure_TrackReconstruction/L2L3_GlobalMulti%d_Decode_%s.pdf",PATHFIGURESFOLDER,globalmulti,mode));
   std::string pathPDFOutBegin(Form("%sfigure_TrackReconstruction/L2L3_GlobalMulti%d_Decode_%s.pdf[",PATHFIGURESFOLDER,globalmulti,mode));
   std::string pathPDFOutEnd(Form("%sfigure_TrackReconstruction/L2L3_GlobalMulti%d_Decode_%s.pdf]",PATHFIGURESFOLDER,globalmulti,mode));
@@ -8395,7 +9018,7 @@ void DecodefGlobalMulti3::GlobalMulti3_Decode_0020()
     }
   }
 
-  trackreconstruct->fChainTrackTree->SetEntries(5000000);
+  //trackreconstruct->fChainTrackTree->SetEntries(10000000);
   Long64_t nentries = trackreconstruct->fChainTrackTree->GetEntries();
   cout<<"Found nentries = "<<nentries<<endl;
   cout<<Form("Processing mode%s ......",mode)<<endl;
@@ -8598,6 +9221,7 @@ void DecodefGlobalMulti3::GlobalMulti3_Decode_0020()
           }
 					//
 					if (candimulti_sharing[ssdindex] > 0) {
+            Sharing_Entries[ssdindex]++;
 						for (Int_t itrack=0; itrack<globalmulti; itrack++) {
 							h1_SubmodeSharing[ssdindex][L2L3_CsINum[ssdindex][itrack]]->Fill(bin_index[itrack]);
 						}
@@ -8606,6 +9230,25 @@ void DecodefGlobalMulti3::GlobalMulti3_Decode_0020()
           h1_candimulti_sum[ssdindex]->Fill(candimulti_sum[ssdindex]);
         }
       }
+    }
+  }
+
+  //
+  TFile* fileout = new TFile(Form("/home/sea/Fission2019_Data/TrackDecoded/L2L3_g%d_%s.root",globalmulti,mode),"RECREATE");
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
+      fileout->WriteTObject(&h2_L2L3_DEE[ssdindex][csiindex],Form("h2_DEE_SSD%d_CsI%d_g%d-%s",ssdindex+1,csiindex,globalmulti,mode));
+    }
+  }
+  //
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
+      fileout->WriteTObject(&h2_L2L3_DEE_EneL2BL2F_EneL1SL2F_PID[ssdindex][csiindex],Form("h2_GOOD_SSD%d_CsI%d_g%d-%s",ssdindex+1,csiindex,globalmulti,mode));
+    }
+  }
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
+      fileout->WriteTObject(&h2_L2L3_DEE_Discard[ssdindex][csiindex],Form("h2_LOST_SSD%d_CsI%d_g%d-%s",ssdindex+1,csiindex,globalmulti,mode));
     }
   }
 
@@ -8620,18 +9263,26 @@ void DecodefGlobalMulti3::GlobalMulti3_Decode_0020()
         entry_discard[ssdindex] += h2_L2L3_DEE_Discard[ssdindex][csiindex].GetEntries();
       }
     }
-    lost_ratio[ssdindex] = (Double_t) entry_discard[ssdindex]/entry_all[ssdindex] * 100;
+    lost_ratio[ssdindex]    = (Double_t) entry_discard[ssdindex]/entry_all[ssdindex] * 100;
+    MHits_Ratio[ssdindex]   = (Double_t) MHits_Entries[ssdindex] * globalmulti/entry_all[ssdindex] * 100;
+    Sharing_Ratio[ssdindex] = (Double_t) Sharing_Entries[ssdindex] * globalmulti/entry_all[ssdindex] * 100;
   }
 
   // 定义 latex
-  Double_t x1,y1;
+  Double_t x1,y1,x2,y2;
   TLatex* latex_ratio[NUM_SSD];
+  TLatex* latex_decoded[NUM_SSD];
   for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
-    x1 = 0.4 * globalmulti;
-    y1 = 0.9 * h1_candimulti_merged[ssdindex]->GetMaximum();
-    latex_ratio[ssdindex] = new TLatex(x1, y1, Form("r_{lost} = %.4f%%",lost_ratio[ssdindex]));
+    x1 = 0.3 * globalmulti;
+    y1 = 0.8 * h1_candimulti_merged[ssdindex]->GetMaximum();
+    x2 = 0.1 * globalmulti;
+    y2 = 0.5 * h1_candimulti_merged[ssdindex]->GetMaximum();
+    latex_ratio[ssdindex] = new TLatex(x1, y1, Form("r_{lost} = %.2f%%",lost_ratio[ssdindex]));
     latex_ratio[ssdindex]->SetTextSize(0.05);
     latex_ratio[ssdindex]->SetTextColor(kOrange);
+    latex_decoded[ssdindex] = new TLatex(x2, y2, Form("r_{sh}=%.4f%%, r_{mh}=%.4f%%",Sharing_Ratio[ssdindex],MHits_Ratio[ssdindex]));
+    latex_decoded[ssdindex]->SetTextSize(0.05);
+    latex_decoded[ssdindex]->SetTextColor(kOrange);
   }
 
   // 定义 Legend
@@ -8715,6 +9366,7 @@ void DecodefGlobalMulti3::GlobalMulti3_Decode_0020()
       h1_candimulti[ssdindex][csiindex]->SetLineWidth(2);
       // latex_ratio
       latex_ratio[ssdindex]->Draw();
+      latex_decoded[ssdindex]->Draw();
       //
       legend_CandiMulti[ssdindex][csiindex]->Draw("SAME");
 
@@ -8796,7 +9448,7 @@ void DecodefGlobalMulti3::GlobalMulti3_Decode_0002()
     }
   }
 
-  trackreconstruct->fChainTrackTree->SetEntries(5000000);
+  //trackreconstruct->fChainTrackTree->SetEntries(10000000);
   Long64_t nentries = trackreconstruct->fChainTrackTree->GetEntries();
   cout<<"Found nentries = "<<nentries<<endl;
   cout<<Form("Processing mode%s ......",mode)<<endl;
@@ -8920,6 +9572,25 @@ void DecodefGlobalMulti3::GlobalMulti3_Decode_0002()
           h1_candimulti_sum[ssdindex]->Fill(candimulti_sum[ssdindex]);
         }
       }
+    }
+  }
+
+  //
+  TFile* fileout = new TFile(Form("/home/sea/Fission2019_Data/TrackDecoded/L2L3_g%d_%s.root",globalmulti,mode),"RECREATE");
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
+      fileout->WriteTObject(&h2_L2L3_DEE[ssdindex][csiindex],Form("h2_DEE_SSD%d_CsI%d_g%d-%s",ssdindex+1,csiindex,globalmulti,mode));
+    }
+  }
+  //
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
+      fileout->WriteTObject(&h2_L2L3_DEE_EneL2BL2F_EneL1SL2F_PID[ssdindex][csiindex],Form("h2_GOOD_SSD%d_CsI%d_g%d-%s",ssdindex+1,csiindex,globalmulti,mode));
+    }
+  }
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
+      fileout->WriteTObject(&h2_L2L3_DEE_Discard[ssdindex][csiindex],Form("h2_LOST_SSD%d_CsI%d_g%d-%s",ssdindex+1,csiindex,globalmulti,mode));
     }
   }
 
@@ -9447,6 +10118,25 @@ void DecodefGlobalMulti4::GlobalMulti4_Decode_2222()
 	  }
   }
 
+  //
+  TFile* fileout = new TFile(Form("/home/sea/Fission2019_Data/TrackDecoded/L2L3_g%d_%s.root",globalmulti,mode),"RECREATE");
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
+      fileout->WriteTObject(&h2_L2L3_DEE[ssdindex][csiindex],Form("h2_DEE_SSD%d_CsI%d_g%d-%s",ssdindex+1,csiindex,globalmulti,mode));
+    }
+  }
+  //
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
+      fileout->WriteTObject(&h2_L2L3_DEE_EneL2BL2F_EneL1SL2F_PID[ssdindex][csiindex],Form("h2_GOOD_SSD%d_CsI%d_g%d-%s",ssdindex+1,csiindex,globalmulti,mode));
+    }
+  }
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
+      fileout->WriteTObject(&h2_L2L3_DEE_Discard[ssdindex][csiindex],Form("h2_LOST_SSD%d_CsI%d_g%d-%s",ssdindex+1,csiindex,globalmulti,mode));
+    }
+  }
+
   // 计算比例
   Int_t entry_all[NUM_SSD] = {0};
   Int_t entry_discard[NUM_SSD] = {0};
@@ -9635,7 +10325,7 @@ void DecodefGlobalMulti4::GlobalMulti4_Decode_1111()
 	  }
   }
 
-  trackreconstruct->fChainTrackTree->SetEntries(5000000);
+  //trackreconstruct->fChainTrackTree->SetEntries(10000000);
   Long64_t nentries = trackreconstruct->fChainTrackTree->GetEntries();
   cout<<"Found nentries = "<<nentries<<endl;
   cout<<Form("Processing mode%s ......",mode)<<endl;
@@ -9879,6 +10569,25 @@ void DecodefGlobalMulti4::GlobalMulti4_Decode_1111()
 	  }
   }
 
+  //
+  TFile* fileout = new TFile(Form("/home/sea/Fission2019_Data/TrackDecoded/L2L3_g%d_%s.root",globalmulti,mode),"RECREATE");
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
+      fileout->WriteTObject(&h2_L2L3_DEE[ssdindex][csiindex],Form("h2_DEE_SSD%d_CsI%d_g%d-%s",ssdindex+1,csiindex,globalmulti,mode));
+    }
+  }
+  //
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
+      fileout->WriteTObject(&h2_L2L3_DEE_EneL2BL2F_EneL1SL2F_PID[ssdindex][csiindex],Form("h2_GOOD_SSD%d_CsI%d_g%d-%s",ssdindex+1,csiindex,globalmulti,mode));
+    }
+  }
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
+      fileout->WriteTObject(&h2_L2L3_DEE_Discard[ssdindex][csiindex],Form("h2_LOST_SSD%d_CsI%d_g%d-%s",ssdindex+1,csiindex,globalmulti,mode));
+    }
+  }
+
   // 计算比例
   Int_t entry_all[NUM_SSD] = {0};
   Int_t entry_discard[NUM_SSD] = {0};
@@ -10067,7 +10776,7 @@ void DecodefGlobalMulti4::GlobalMulti4_Decode_1110()
 	  }
   }
 
-  trackreconstruct->fChainTrackTree->SetEntries(5000000);
+  //trackreconstruct->fChainTrackTree->SetEntries(10000000);
   Long64_t nentries = trackreconstruct->fChainTrackTree->GetEntries();
   cout<<"Found nentries = "<<nentries<<endl;
   cout<<Form("Processing mode%s ......",mode)<<endl;
@@ -10292,6 +11001,25 @@ void DecodefGlobalMulti4::GlobalMulti4_Decode_1110()
 	  }
   }
 
+  //
+  TFile* fileout = new TFile(Form("/home/sea/Fission2019_Data/TrackDecoded/L2L3_g%d_%s.root",globalmulti,mode),"RECREATE");
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
+      fileout->WriteTObject(&h2_L2L3_DEE[ssdindex][csiindex],Form("h2_DEE_SSD%d_CsI%d_g%d-%s",ssdindex+1,csiindex,globalmulti,mode));
+    }
+  }
+  //
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
+      fileout->WriteTObject(&h2_L2L3_DEE_EneL2BL2F_EneL1SL2F_PID[ssdindex][csiindex],Form("h2_GOOD_SSD%d_CsI%d_g%d-%s",ssdindex+1,csiindex,globalmulti,mode));
+    }
+  }
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
+      fileout->WriteTObject(&h2_L2L3_DEE_Discard[ssdindex][csiindex],Form("h2_LOST_SSD%d_CsI%d_g%d-%s",ssdindex+1,csiindex,globalmulti,mode));
+    }
+  }
+
   // 计算比例
   Int_t entry_all[NUM_SSD] = {0};
   Int_t entry_discard[NUM_SSD] = {0};
@@ -10440,6 +11168,11 @@ void DecodefGlobalMulti4::GlobalMulti4_Decode_1011()
   Int_t candimulti_corrected[NUM_SSD];
   Int_t candimulti_2hit[NUM_SSD];
 
+  Double_t MHits_Ratio[NUM_SSD]   = {0};
+  Double_t Sharing_Ratio[NUM_SSD] = {0};
+  Int_t MHits_Entries[NUM_SSD]    = {0};
+  Int_t Sharing_Entries[NUM_SSD]  = {0};
+
   std::string pathPDFOut(Form("%sfigure_TrackReconstruction/L2L3_GlobalMulti%d_Decode_%s.pdf",PATHFIGURESFOLDER,globalmulti,mode));
   std::string pathPDFOutBegin(Form("%sfigure_TrackReconstruction/L2L3_GlobalMulti%d_Decode_%s.pdf[",PATHFIGURESFOLDER,globalmulti,mode));
   std::string pathPDFOutEnd(Form("%sfigure_TrackReconstruction/L2L3_GlobalMulti%d_Decode_%s.pdf]",PATHFIGURESFOLDER,globalmulti,mode));
@@ -10480,7 +11213,7 @@ void DecodefGlobalMulti4::GlobalMulti4_Decode_1011()
 	  }
   }
 
-  trackreconstruct->fChainTrackTree->SetEntries(10000000);
+  //trackreconstruct->fChainTrackTree->SetEntries(10000000);
   Long64_t nentries = trackreconstruct->fChainTrackTree->GetEntries();
   cout<<"Found nentries = "<<nentries<<endl;
   cout<<Form("Processing mode%s ......",mode)<<endl;
@@ -10656,6 +11389,7 @@ void DecodefGlobalMulti4::GlobalMulti4_Decode_1011()
 				  }
 				  //
 				  if (candimulti_2hit[ssdindex] == 2) {
+            MHits_Entries[ssdindex]++;
 					  for (Int_t itrack=0; itrack<globalmulti; itrack++) {
 					  	h1_Submode2Hit[ssdindex][L2L3_CsINum[ssdindex][itrack]]->Fill(bin_index[itrack]);
 					  }
@@ -10667,29 +11401,56 @@ void DecodefGlobalMulti4::GlobalMulti4_Decode_1011()
 	  }
   }
 
+  //
+  TFile* fileout = new TFile(Form("/home/sea/Fission2019_Data/TrackDecoded/L2L3_g%d_%s.root",globalmulti,mode),"RECREATE");
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
+      fileout->WriteTObject(&h2_L2L3_DEE[ssdindex][csiindex],Form("h2_DEE_SSD%d_CsI%d_g%d-%s",ssdindex+1,csiindex,globalmulti,mode));
+    }
+  }
+  //
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
+      fileout->WriteTObject(&h2_L2L3_DEE_EneL2BL2F_EneL1SL2F_PID[ssdindex][csiindex],Form("h2_GOOD_SSD%d_CsI%d_g%d-%s",ssdindex+1,csiindex,globalmulti,mode));
+    }
+  }
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
+      fileout->WriteTObject(&h2_L2L3_DEE_Discard[ssdindex][csiindex],Form("h2_LOST_SSD%d_CsI%d_g%d-%s",ssdindex+1,csiindex,globalmulti,mode));
+    }
+  }
+
   // 计算比例
   Int_t entry_all[NUM_SSD] = {0};
   Int_t entry_discard[NUM_SSD] = {0};
   for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
-	  for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
-		  if ((ssdindex==3 && csiindex==4) || (ssdindex==3 && csiindex==5) || ((ssdindex==3 && csiindex==3))) continue;
-		  else {
-			  entry_all[ssdindex] += h2_L2L3_DEE[ssdindex][csiindex].GetEntries();
-			  entry_discard[ssdindex] += h2_L2L3_DEE_Discard[ssdindex][csiindex].GetEntries();
-		  }
-	  }
-	  lost_ratio[ssdindex] = (Double_t) entry_discard[ssdindex]/entry_all[ssdindex] * 100;
+    for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
+      if ((ssdindex==3 && csiindex==4) || (ssdindex==3 && csiindex==5)) continue;
+      else {
+        entry_all[ssdindex] += h2_L2L3_DEE[ssdindex][csiindex].GetEntries();
+        entry_discard[ssdindex] += h2_L2L3_DEE_Discard[ssdindex][csiindex].GetEntries();
+      }
+    }
+    lost_ratio[ssdindex]    = (Double_t) entry_discard[ssdindex]/entry_all[ssdindex] * 100;
+    MHits_Ratio[ssdindex]   = (Double_t) MHits_Entries[ssdindex] * globalmulti/entry_all[ssdindex] * 100;
+    Sharing_Ratio[ssdindex] = (Double_t) Sharing_Entries[ssdindex] * globalmulti/entry_all[ssdindex] * 100;
   }
 
   // 定义 latex
-  Double_t x1,y1;
+  Double_t x1,y1,x2,y2;
   TLatex* latex_ratio[NUM_SSD];
+  TLatex* latex_decoded[NUM_SSD];
   for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
-	  x1 = 0.4 * globalmulti;
-	  y1 = 0.9 * h1_candimulti_merged[ssdindex]->GetMaximum();
-	  latex_ratio[ssdindex] = new TLatex(x1, y1, Form("r_{lost} = %.4f%%",lost_ratio[ssdindex]));
-	  latex_ratio[ssdindex]->SetTextSize(0.05);
-	  latex_ratio[ssdindex]->SetTextColor(kOrange);
+    x1 = 0.3 * globalmulti;
+    y1 = 0.8 * h1_candimulti_merged[ssdindex]->GetMaximum();
+    x2 = 0.1 * globalmulti;
+    y2 = 0.5 * h1_candimulti_merged[ssdindex]->GetMaximum();
+    latex_ratio[ssdindex] = new TLatex(x1, y1, Form("r_{lost} = %.2f%%",lost_ratio[ssdindex]));
+    latex_ratio[ssdindex]->SetTextSize(0.05);
+    latex_ratio[ssdindex]->SetTextColor(kOrange);
+    latex_decoded[ssdindex] = new TLatex(x2, y2, Form("r_{sh}=%.4f%%, r_{mh}=%.4f%%",Sharing_Ratio[ssdindex],MHits_Ratio[ssdindex]));
+    latex_decoded[ssdindex]->SetTextSize(0.05);
+    latex_decoded[ssdindex]->SetTextColor(kOrange);
   }
 
   // 定义 Legend
@@ -10773,6 +11534,7 @@ void DecodefGlobalMulti4::GlobalMulti4_Decode_1011()
 		  h1_candimulti[ssdindex][csiindex]->SetLineWidth(2);
 		  // latex_ratio
 		  latex_ratio[ssdindex]->Draw();
+      latex_decoded[ssdindex]->Draw();
 		  //
 		  legend_CandiMulti[ssdindex][csiindex]->Draw("SAME");
 
@@ -10855,7 +11617,7 @@ void DecodefGlobalMulti4::GlobalMulti4_Decode_0111()
 	  }
   }
 
-  trackreconstruct->fChainTrackTree->SetEntries(5000000);
+  //trackreconstruct->fChainTrackTree->SetEntries(10000000);
   Long64_t nentries = trackreconstruct->fChainTrackTree->GetEntries();
   cout<<"Found nentries = "<<nentries<<endl;
   cout<<Form("Processing mode%s ......",mode)<<endl;
@@ -10978,6 +11740,25 @@ void DecodefGlobalMulti4::GlobalMulti4_Decode_0111()
 			  }
 		  }
 	  }
+  }
+
+  //
+  TFile* fileout = new TFile(Form("/home/sea/Fission2019_Data/TrackDecoded/L2L3_g%d_%s.root",globalmulti,mode),"RECREATE");
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
+      fileout->WriteTObject(&h2_L2L3_DEE[ssdindex][csiindex],Form("h2_DEE_SSD%d_CsI%d_g%d-%s",ssdindex+1,csiindex,globalmulti,mode));
+    }
+  }
+  //
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
+      fileout->WriteTObject(&h2_L2L3_DEE_EneL2BL2F_EneL1SL2F_PID[ssdindex][csiindex],Form("h2_GOOD_SSD%d_CsI%d_g%d-%s",ssdindex+1,csiindex,globalmulti,mode));
+    }
+  }
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
+      fileout->WriteTObject(&h2_L2L3_DEE_Discard[ssdindex][csiindex],Form("h2_LOST_SSD%d_CsI%d_g%d-%s",ssdindex+1,csiindex,globalmulti,mode));
+    }
   }
 
   // 计算比例
@@ -11130,6 +11911,11 @@ void DecodefGlobalMulti4::GlobalMulti4_Decode_0110()
   Int_t candimulti_corrected[NUM_SSD];
   Int_t candimulti_sharing[NUM_SSD];
 
+  Double_t MHits_Ratio[NUM_SSD]   = {0};
+  Double_t Sharing_Ratio[NUM_SSD] = {0};
+  Int_t MHits_Entries[NUM_SSD]    = {0};
+  Int_t Sharing_Entries[NUM_SSD]  = {0};
+
   std::string pathPDFOut(Form("%sfigure_TrackReconstruction/L2L3_GlobalMulti%d_Decode_%s.pdf",PATHFIGURESFOLDER,globalmulti,mode));
   std::string pathPDFOutBegin(Form("%sfigure_TrackReconstruction/L2L3_GlobalMulti%d_Decode_%s.pdf[",PATHFIGURESFOLDER,globalmulti,mode));
   std::string pathPDFOutEnd(Form("%sfigure_TrackReconstruction/L2L3_GlobalMulti%d_Decode_%s.pdf]",PATHFIGURESFOLDER,globalmulti,mode));
@@ -11170,7 +11956,7 @@ void DecodefGlobalMulti4::GlobalMulti4_Decode_0110()
 	  }
   }
 
-  trackreconstruct->fChainTrackTree->SetEntries(5000000);
+  //trackreconstruct->fChainTrackTree->SetEntries(10000000);
   Long64_t nentries = trackreconstruct->fChainTrackTree->GetEntries();
   cout<<"Found nentries = "<<nentries<<endl;
   cout<<Form("Processing mode%s ......",mode)<<endl;
@@ -11420,6 +12206,7 @@ void DecodefGlobalMulti4::GlobalMulti4_Decode_0110()
 				  }
 				  //
 				  if (candimulti_sharing[ssdindex] > 0) {
+            Sharing_Entries[ssdindex]++;
 					  for (Int_t itrack=0; itrack<globalmulti; itrack++) {
 					  	h1_SubmodeSharing[ssdindex][L2L3_CsINum[ssdindex][itrack]]->Fill(bin_index[itrack]);
 					  }
@@ -11431,29 +12218,56 @@ void DecodefGlobalMulti4::GlobalMulti4_Decode_0110()
 	  }
   }
 
+  //
+  TFile* fileout = new TFile(Form("/home/sea/Fission2019_Data/TrackDecoded/L2L3_g%d_%s.root",globalmulti,mode),"RECREATE");
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
+      fileout->WriteTObject(&h2_L2L3_DEE[ssdindex][csiindex],Form("h2_DEE_SSD%d_CsI%d_g%d-%s",ssdindex+1,csiindex,globalmulti,mode));
+    }
+  }
+  //
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
+      fileout->WriteTObject(&h2_L2L3_DEE_EneL2BL2F_EneL1SL2F_PID[ssdindex][csiindex],Form("h2_GOOD_SSD%d_CsI%d_g%d-%s",ssdindex+1,csiindex,globalmulti,mode));
+    }
+  }
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
+      fileout->WriteTObject(&h2_L2L3_DEE_Discard[ssdindex][csiindex],Form("h2_LOST_SSD%d_CsI%d_g%d-%s",ssdindex+1,csiindex,globalmulti,mode));
+    }
+  }
+
   // 计算比例
   Int_t entry_all[NUM_SSD] = {0};
   Int_t entry_discard[NUM_SSD] = {0};
   for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
-	  for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
-		  if ((ssdindex==3 && csiindex==4) || (ssdindex==3 && csiindex==5)) continue;
-		  else {
-			  entry_all[ssdindex] += h2_L2L3_DEE[ssdindex][csiindex].GetEntries();
-			  entry_discard[ssdindex] += h2_L2L3_DEE_Discard[ssdindex][csiindex].GetEntries();
-		  }
-	  }
-	  lost_ratio[ssdindex] = (Double_t) entry_discard[ssdindex]/entry_all[ssdindex] * 100;
+    for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
+      if ((ssdindex==3 && csiindex==4) || (ssdindex==3 && csiindex==5)) continue;
+      else {
+        entry_all[ssdindex] += h2_L2L3_DEE[ssdindex][csiindex].GetEntries();
+        entry_discard[ssdindex] += h2_L2L3_DEE_Discard[ssdindex][csiindex].GetEntries();
+      }
+    }
+    lost_ratio[ssdindex]    = (Double_t) entry_discard[ssdindex]/entry_all[ssdindex] * 100;
+    MHits_Ratio[ssdindex]   = (Double_t) MHits_Entries[ssdindex] * globalmulti/entry_all[ssdindex] * 100;
+    Sharing_Ratio[ssdindex] = (Double_t) Sharing_Entries[ssdindex] * globalmulti/entry_all[ssdindex] * 100;
   }
 
   // 定义 latex
-  Double_t x1,y1;
+  Double_t x1,y1,x2,y2;
   TLatex* latex_ratio[NUM_SSD];
+  TLatex* latex_decoded[NUM_SSD];
   for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
-	  x1 = 0.4 * globalmulti;
-	  y1 = 0.9 * h1_candimulti_merged[ssdindex]->GetMaximum();
-	  latex_ratio[ssdindex] = new TLatex(x1, y1, Form("r_{lost} = %.4f%%",lost_ratio[ssdindex]));
-	  latex_ratio[ssdindex]->SetTextSize(0.05);
-	  latex_ratio[ssdindex]->SetTextColor(kOrange);
+    x1 = 0.3 * globalmulti;
+    y1 = 0.8 * h1_candimulti_merged[ssdindex]->GetMaximum();
+    x2 = 0.1 * globalmulti;
+    y2 = 0.5 * h1_candimulti_merged[ssdindex]->GetMaximum();
+    latex_ratio[ssdindex] = new TLatex(x1, y1, Form("r_{lost} = %.2f%%",lost_ratio[ssdindex]));
+    latex_ratio[ssdindex]->SetTextSize(0.05);
+    latex_ratio[ssdindex]->SetTextColor(kOrange);
+    latex_decoded[ssdindex] = new TLatex(x2, y2, Form("r_{sh}=%.4f%%, r_{mh}=%.4f%%",Sharing_Ratio[ssdindex],MHits_Ratio[ssdindex]));
+    latex_decoded[ssdindex]->SetTextSize(0.05);
+    latex_decoded[ssdindex]->SetTextColor(kOrange);
   }
 
   // 定义 Legend
@@ -11537,6 +12351,7 @@ void DecodefGlobalMulti4::GlobalMulti4_Decode_0110()
 		  h1_candimulti[ssdindex][csiindex]->SetLineWidth(2);
 		  // latex_ratio
 		  latex_ratio[ssdindex]->Draw();
+      latex_decoded[ssdindex]->Draw();
 		  //
 		  legend_CandiMulti[ssdindex][csiindex]->Draw("SAME");
 
@@ -11579,6 +12394,11 @@ void DecodefGlobalMulti4::GlobalMulti4_Decode_0101()
   Int_t candimulti_corrected[NUM_SSD];
   Int_t candimulti_sharing[NUM_SSD];
 
+  Double_t MHits_Ratio[NUM_SSD]   = {0};
+  Double_t Sharing_Ratio[NUM_SSD] = {0};
+  Int_t MHits_Entries[NUM_SSD]    = {0};
+  Int_t Sharing_Entries[NUM_SSD]  = {0};
+
   std::string pathPDFOut(Form("%sfigure_TrackReconstruction/L2L3_GlobalMulti%d_Decode_%s.pdf",PATHFIGURESFOLDER,globalmulti,mode));
   std::string pathPDFOutBegin(Form("%sfigure_TrackReconstruction/L2L3_GlobalMulti%d_Decode_%s.pdf[",PATHFIGURESFOLDER,globalmulti,mode));
   std::string pathPDFOutEnd(Form("%sfigure_TrackReconstruction/L2L3_GlobalMulti%d_Decode_%s.pdf]",PATHFIGURESFOLDER,globalmulti,mode));
@@ -11619,7 +12439,7 @@ void DecodefGlobalMulti4::GlobalMulti4_Decode_0101()
 	  }
   }
 
-  trackreconstruct->fChainTrackTree->SetEntries(5000000);
+  //trackreconstruct->fChainTrackTree->SetEntries(10000000);
   Long64_t nentries = trackreconstruct->fChainTrackTree->GetEntries();
   cout<<"Found nentries = "<<nentries<<endl;
   cout<<Form("Processing mode%s ......",mode)<<endl;
@@ -11772,6 +12592,7 @@ void DecodefGlobalMulti4::GlobalMulti4_Decode_0101()
 				  }
 				  //
 				  if (candimulti_sharing[ssdindex] > 0) {
+            Sharing_Entries[ssdindex]++;
 					  for (Int_t itrack=0; itrack<globalmulti; itrack++) {
 					  	h1_SubmodeSharing[ssdindex][L2L3_CsINum[ssdindex][itrack]]->Fill(bin_index[itrack]);
 					  }
@@ -11783,29 +12604,56 @@ void DecodefGlobalMulti4::GlobalMulti4_Decode_0101()
 	  }
   }
 
+  //
+  TFile* fileout = new TFile(Form("/home/sea/Fission2019_Data/TrackDecoded/L2L3_g%d_%s.root",globalmulti,mode),"RECREATE");
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
+      fileout->WriteTObject(&h2_L2L3_DEE[ssdindex][csiindex],Form("h2_DEE_SSD%d_CsI%d_g%d-%s",ssdindex+1,csiindex,globalmulti,mode));
+    }
+  }
+  //
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
+      fileout->WriteTObject(&h2_L2L3_DEE_EneL2BL2F_EneL1SL2F_PID[ssdindex][csiindex],Form("h2_GOOD_SSD%d_CsI%d_g%d-%s",ssdindex+1,csiindex,globalmulti,mode));
+    }
+  }
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
+      fileout->WriteTObject(&h2_L2L3_DEE_Discard[ssdindex][csiindex],Form("h2_LOST_SSD%d_CsI%d_g%d-%s",ssdindex+1,csiindex,globalmulti,mode));
+    }
+  }
+
   // 计算比例
   Int_t entry_all[NUM_SSD] = {0};
   Int_t entry_discard[NUM_SSD] = {0};
   for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
-	  for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
-		  if ((ssdindex==3 && csiindex==4) || (ssdindex==3 && csiindex==5)) continue;
-		  else {
-			  entry_all[ssdindex] += h2_L2L3_DEE[ssdindex][csiindex].GetEntries();
-			  entry_discard[ssdindex] += h2_L2L3_DEE_Discard[ssdindex][csiindex].GetEntries();
-		  }
-	  }
-	  lost_ratio[ssdindex] = (Double_t) entry_discard[ssdindex]/entry_all[ssdindex] * 100;
+    for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
+      if ((ssdindex==3 && csiindex==4) || (ssdindex==3 && csiindex==5)) continue;
+      else {
+        entry_all[ssdindex] += h2_L2L3_DEE[ssdindex][csiindex].GetEntries();
+        entry_discard[ssdindex] += h2_L2L3_DEE_Discard[ssdindex][csiindex].GetEntries();
+      }
+    }
+    lost_ratio[ssdindex]    = (Double_t) entry_discard[ssdindex]/entry_all[ssdindex] * 100;
+    MHits_Ratio[ssdindex]   = (Double_t) MHits_Entries[ssdindex] * globalmulti/entry_all[ssdindex] * 100;
+    Sharing_Ratio[ssdindex] = (Double_t) Sharing_Entries[ssdindex] * globalmulti/entry_all[ssdindex] * 100;
   }
 
   // 定义 latex
-  Double_t x1,y1;
+  Double_t x1,y1,x2,y2;
   TLatex* latex_ratio[NUM_SSD];
+  TLatex* latex_decoded[NUM_SSD];
   for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
-	  x1 = 0.4 * globalmulti;
-	  y1 = 0.9 * h1_candimulti_merged[ssdindex]->GetMaximum();
-	  latex_ratio[ssdindex] = new TLatex(x1, y1, Form("r_{lost} = %.4f%%",lost_ratio[ssdindex]));
-	  latex_ratio[ssdindex]->SetTextSize(0.05);
-	  latex_ratio[ssdindex]->SetTextColor(kOrange);
+    x1 = 0.3 * globalmulti;
+    y1 = 0.8 * h1_candimulti_merged[ssdindex]->GetMaximum();
+    x2 = 0.1 * globalmulti;
+    y2 = 0.5 * h1_candimulti_merged[ssdindex]->GetMaximum();
+    latex_ratio[ssdindex] = new TLatex(x1, y1, Form("r_{lost} = %.2f%%",lost_ratio[ssdindex]));
+    latex_ratio[ssdindex]->SetTextSize(0.05);
+    latex_ratio[ssdindex]->SetTextColor(kOrange);
+    latex_decoded[ssdindex] = new TLatex(x2, y2, Form("r_{sh}=%.4f%%, r_{mh}=%.4f%%",Sharing_Ratio[ssdindex],MHits_Ratio[ssdindex]));
+    latex_decoded[ssdindex]->SetTextSize(0.05);
+    latex_decoded[ssdindex]->SetTextColor(kOrange);
   }
 
   // 定义 Legend
@@ -11889,6 +12737,7 @@ void DecodefGlobalMulti4::GlobalMulti4_Decode_0101()
 		  h1_candimulti[ssdindex][csiindex]->SetLineWidth(2);
 		  // latex_ratio
 		  latex_ratio[ssdindex]->Draw();
+      latex_decoded[ssdindex]->Draw();
 		  //
 		  legend_CandiMulti[ssdindex][csiindex]->Draw("SAME");
 
@@ -11931,6 +12780,11 @@ void DecodefGlobalMulti4::GlobalMulti4_Decode_0011()
   Int_t candimulti_corrected[NUM_SSD];
   Int_t candimulti_sharing[NUM_SSD];
 
+  Double_t MHits_Ratio[NUM_SSD]   = {0};
+  Double_t Sharing_Ratio[NUM_SSD] = {0};
+  Int_t MHits_Entries[NUM_SSD]    = {0};
+  Int_t Sharing_Entries[NUM_SSD]  = {0};
+
   std::string pathPDFOut(Form("%sfigure_TrackReconstruction/L2L3_GlobalMulti%d_Decode_%s.pdf",PATHFIGURESFOLDER,globalmulti,mode));
   std::string pathPDFOutBegin(Form("%sfigure_TrackReconstruction/L2L3_GlobalMulti%d_Decode_%s.pdf[",PATHFIGURESFOLDER,globalmulti,mode));
   std::string pathPDFOutEnd(Form("%sfigure_TrackReconstruction/L2L3_GlobalMulti%d_Decode_%s.pdf]",PATHFIGURESFOLDER,globalmulti,mode));
@@ -11971,7 +12825,7 @@ void DecodefGlobalMulti4::GlobalMulti4_Decode_0011()
 	  }
   }
 
-  trackreconstruct->fChainTrackTree->SetEntries(5000000);
+  //trackreconstruct->fChainTrackTree->SetEntries(10000000);
   Long64_t nentries = trackreconstruct->fChainTrackTree->GetEntries();
   cout<<"Found nentries = "<<nentries<<endl;
   cout<<Form("Processing mode%s ......",mode)<<endl;
@@ -12117,6 +12971,7 @@ void DecodefGlobalMulti4::GlobalMulti4_Decode_0011()
 				  }
 				  //
 				  if (candimulti_sharing[ssdindex] > 0) {
+            Sharing_Entries[ssdindex]++;
 					  for (Int_t itrack=0; itrack<globalmulti; itrack++) {
 					  	h1_SubmodeSharing[ssdindex][L2L3_CsINum[ssdindex][itrack]]->Fill(bin_index[itrack]);
 					  }
@@ -12128,29 +12983,56 @@ void DecodefGlobalMulti4::GlobalMulti4_Decode_0011()
 	  }
   }
 
+  //
+  TFile* fileout = new TFile(Form("/home/sea/Fission2019_Data/TrackDecoded/L2L3_g%d_%s.root",globalmulti,mode),"RECREATE");
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
+      fileout->WriteTObject(&h2_L2L3_DEE[ssdindex][csiindex],Form("h2_DEE_SSD%d_CsI%d_g%d-%s",ssdindex+1,csiindex,globalmulti,mode));
+    }
+  }
+  //
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
+      fileout->WriteTObject(&h2_L2L3_DEE_EneL2BL2F_EneL1SL2F_PID[ssdindex][csiindex],Form("h2_GOOD_SSD%d_CsI%d_g%d-%s",ssdindex+1,csiindex,globalmulti,mode));
+    }
+  }
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
+      fileout->WriteTObject(&h2_L2L3_DEE_Discard[ssdindex][csiindex],Form("h2_LOST_SSD%d_CsI%d_g%d-%s",ssdindex+1,csiindex,globalmulti,mode));
+    }
+  }
+
   // 计算比例
   Int_t entry_all[NUM_SSD] = {0};
   Int_t entry_discard[NUM_SSD] = {0};
   for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
-	  for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
-		  if ((ssdindex==3 && csiindex==4) || (ssdindex==3 && csiindex==5)) continue;
-		  else {
-			  entry_all[ssdindex] += h2_L2L3_DEE[ssdindex][csiindex].GetEntries();
-			  entry_discard[ssdindex] += h2_L2L3_DEE_Discard[ssdindex][csiindex].GetEntries();
-		  }
-	  }
-	  lost_ratio[ssdindex] = (Double_t) entry_discard[ssdindex]/entry_all[ssdindex] * 100;
+    for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
+      if ((ssdindex==3 && csiindex==4) || (ssdindex==3 && csiindex==5)) continue;
+      else {
+        entry_all[ssdindex] += h2_L2L3_DEE[ssdindex][csiindex].GetEntries();
+        entry_discard[ssdindex] += h2_L2L3_DEE_Discard[ssdindex][csiindex].GetEntries();
+      }
+    }
+    lost_ratio[ssdindex]    = (Double_t) entry_discard[ssdindex]/entry_all[ssdindex] * 100;
+    MHits_Ratio[ssdindex]   = (Double_t) MHits_Entries[ssdindex] * globalmulti/entry_all[ssdindex] * 100;
+    Sharing_Ratio[ssdindex] = (Double_t) Sharing_Entries[ssdindex] * globalmulti/entry_all[ssdindex] * 100;
   }
 
   // 定义 latex
-  Double_t x1,y1;
+  Double_t x1,y1,x2,y2;
   TLatex* latex_ratio[NUM_SSD];
+  TLatex* latex_decoded[NUM_SSD];
   for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
-	  x1 = 0.4 * globalmulti;
-	  y1 = 0.9 * h1_candimulti_merged[ssdindex]->GetMaximum();
-	  latex_ratio[ssdindex] = new TLatex(x1, y1, Form("r_{lost} = %.4f%%",lost_ratio[ssdindex]));
-	  latex_ratio[ssdindex]->SetTextSize(0.05);
-	  latex_ratio[ssdindex]->SetTextColor(kOrange);
+    x1 = 0.3 * globalmulti;
+    y1 = 0.8 * h1_candimulti_merged[ssdindex]->GetMaximum();
+    x2 = 0.1 * globalmulti;
+    y2 = 0.5 * h1_candimulti_merged[ssdindex]->GetMaximum();
+    latex_ratio[ssdindex] = new TLatex(x1, y1, Form("r_{lost} = %.2f%%",lost_ratio[ssdindex]));
+    latex_ratio[ssdindex]->SetTextSize(0.05);
+    latex_ratio[ssdindex]->SetTextColor(kOrange);
+    latex_decoded[ssdindex] = new TLatex(x2, y2, Form("r_{sh}=%.4f%%, r_{mh}=%.4f%%",Sharing_Ratio[ssdindex],MHits_Ratio[ssdindex]));
+    latex_decoded[ssdindex]->SetTextSize(0.05);
+    latex_decoded[ssdindex]->SetTextColor(kOrange);
   }
 
   // 定义 Legend
@@ -12234,6 +13116,7 @@ void DecodefGlobalMulti4::GlobalMulti4_Decode_0011()
 		  h1_candimulti[ssdindex][csiindex]->SetLineWidth(2);
 		  // latex_ratio
 		  latex_ratio[ssdindex]->Draw();
+      latex_decoded[ssdindex]->Draw();
 		  //
 		  legend_CandiMulti[ssdindex][csiindex]->Draw("SAME");
 
@@ -12249,7 +13132,6 @@ void DecodefGlobalMulti4::GlobalMulti4_Decode_0011()
 
 
 
-//______________________________________________________________________________
 //______________________________________________________________________________
 // 解码 fGlobalMulit = 6的事件
 DecodefGlobalMulti6::DecodefGlobalMulti6()
@@ -12372,7 +13254,7 @@ void DecodefGlobalMulti6::GlobalMulti6_Decode_2222()
 	  }
   }
 
-  trackreconstruct->fChainTrackTree->SetEntries(10000000);
+  //trackreconstruct->fChainTrackTree->SetEntries(10000000);
   Long64_t nentries = trackreconstruct->fChainTrackTree->GetEntries();
   cout<<"Found nentries = "<<nentries<<endl;
   cout<<Form("Processing mode%s ......",mode)<<endl;
@@ -12559,6 +13441,25 @@ void DecodefGlobalMulti6::GlobalMulti6_Decode_2222()
 			  }
 		  }
 	  }
+  }
+
+  //
+  TFile* fileout = new TFile(Form("/home/sea/Fission2019_Data/TrackDecoded/L2L3_g%d_%s.root",globalmulti,mode),"RECREATE");
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
+      fileout->WriteTObject(&h2_L2L3_DEE[ssdindex][csiindex],Form("h2_DEE_SSD%d_CsI%d_g%d-%s",ssdindex+1,csiindex,globalmulti,mode));
+    }
+  }
+  //
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
+      fileout->WriteTObject(&h2_L2L3_DEE_EneL2BL2F_EneL1SL2F_PID[ssdindex][csiindex],Form("h2_GOOD_SSD%d_CsI%d_g%d-%s",ssdindex+1,csiindex,globalmulti,mode));
+    }
+  }
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
+      fileout->WriteTObject(&h2_L2L3_DEE_Discard[ssdindex][csiindex],Form("h2_LOST_SSD%d_CsI%d_g%d-%s",ssdindex+1,csiindex,globalmulti,mode));
+    }
   }
 
   // 计算比例
@@ -12749,7 +13650,7 @@ void DecodefGlobalMulti6::GlobalMulti6_Decode_1211()
 	  }
   }
 
-  trackreconstruct->fChainTrackTree->SetEntries(10000000);
+  //trackreconstruct->fChainTrackTree->SetEntries(10000000);
   Long64_t nentries = trackreconstruct->fChainTrackTree->GetEntries();
   cout<<"Found nentries = "<<nentries<<endl;
   cout<<Form("Processing mode%s ......",mode)<<endl;
@@ -13130,6 +14031,25 @@ void DecodefGlobalMulti6::GlobalMulti6_Decode_1211()
 	  }
   }
 
+  //
+  TFile* fileout = new TFile(Form("/home/sea/Fission2019_Data/TrackDecoded/L2L3_g%d_%s.root",globalmulti,mode),"RECREATE");
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
+      fileout->WriteTObject(&h2_L2L3_DEE[ssdindex][csiindex],Form("h2_DEE_SSD%d_CsI%d_g%d-%s",ssdindex+1,csiindex,globalmulti,mode));
+    }
+  }
+  //
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
+      fileout->WriteTObject(&h2_L2L3_DEE_EneL2BL2F_EneL1SL2F_PID[ssdindex][csiindex],Form("h2_GOOD_SSD%d_CsI%d_g%d-%s",ssdindex+1,csiindex,globalmulti,mode));
+    }
+  }
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
+      fileout->WriteTObject(&h2_L2L3_DEE_Discard[ssdindex][csiindex],Form("h2_LOST_SSD%d_CsI%d_g%d-%s",ssdindex+1,csiindex,globalmulti,mode));
+    }
+  }
+
   // 计算比例
   Int_t entry_all[NUM_SSD] = {0};
   Int_t entry_discard[NUM_SSD] = {0};
@@ -13318,7 +14238,7 @@ void DecodefGlobalMulti6::GlobalMulti6_Decode_1121()
 	  }
   }
 
-  trackreconstruct->fChainTrackTree->SetEntries(10000000);
+  //trackreconstruct->fChainTrackTree->SetEntries(10000000);
   Long64_t nentries = trackreconstruct->fChainTrackTree->GetEntries();
   cout<<"Found nentries = "<<nentries<<endl;
   cout<<Form("Processing mode%s ......",mode)<<endl;
@@ -13699,6 +14619,25 @@ void DecodefGlobalMulti6::GlobalMulti6_Decode_1121()
 	  }
   }
 
+  //
+  TFile* fileout = new TFile(Form("/home/sea/Fission2019_Data/TrackDecoded/L2L3_g%d_%s.root",globalmulti,mode),"RECREATE");
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
+      fileout->WriteTObject(&h2_L2L3_DEE[ssdindex][csiindex],Form("h2_DEE_SSD%d_CsI%d_g%d-%s",ssdindex+1,csiindex,globalmulti,mode));
+    }
+  }
+  //
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
+      fileout->WriteTObject(&h2_L2L3_DEE_EneL2BL2F_EneL1SL2F_PID[ssdindex][csiindex],Form("h2_GOOD_SSD%d_CsI%d_g%d-%s",ssdindex+1,csiindex,globalmulti,mode));
+    }
+  }
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
+      fileout->WriteTObject(&h2_L2L3_DEE_Discard[ssdindex][csiindex],Form("h2_LOST_SSD%d_CsI%d_g%d-%s",ssdindex+1,csiindex,globalmulti,mode));
+    }
+  }
+
   // 计算比例
   Int_t entry_all[NUM_SSD] = {0};
   Int_t entry_discard[NUM_SSD] = {0};
@@ -13887,7 +14826,7 @@ void DecodefGlobalMulti6::GlobalMulti6_Decode_1112()
 	  }
   }
 
-  trackreconstruct->fChainTrackTree->SetEntries(10000000);
+  //trackreconstruct->fChainTrackTree->SetEntries(10000000);
   Long64_t nentries = trackreconstruct->fChainTrackTree->GetEntries();
   cout<<"Found nentries = "<<nentries<<endl;
   cout<<Form("Processing mode%s ......",mode)<<endl;
@@ -14268,6 +15207,25 @@ void DecodefGlobalMulti6::GlobalMulti6_Decode_1112()
 	  }
   }
 
+  //
+  TFile* fileout = new TFile(Form("/home/sea/Fission2019_Data/TrackDecoded/L2L3_g%d_%s.root",globalmulti,mode),"RECREATE");
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
+      fileout->WriteTObject(&h2_L2L3_DEE[ssdindex][csiindex],Form("h2_DEE_SSD%d_CsI%d_g%d-%s",ssdindex+1,csiindex,globalmulti,mode));
+    }
+  }
+  //
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
+      fileout->WriteTObject(&h2_L2L3_DEE_EneL2BL2F_EneL1SL2F_PID[ssdindex][csiindex],Form("h2_GOOD_SSD%d_CsI%d_g%d-%s",ssdindex+1,csiindex,globalmulti,mode));
+    }
+  }
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
+      fileout->WriteTObject(&h2_L2L3_DEE_Discard[ssdindex][csiindex],Form("h2_LOST_SSD%d_CsI%d_g%d-%s",ssdindex+1,csiindex,globalmulti,mode));
+    }
+  }
+
   // 计算比例
   Int_t entry_all[NUM_SSD] = {0};
   Int_t entry_discard[NUM_SSD] = {0};
@@ -14456,7 +15414,7 @@ void DecodefGlobalMulti6::GlobalMulti6_Decode_1111()
 	  }
   }
 
-  trackreconstruct->fChainTrackTree->SetEntries(10000000);
+  //trackreconstruct->fChainTrackTree->SetEntries(10000000);
   Long64_t nentries = trackreconstruct->fChainTrackTree->GetEntries();
   cout<<"Found nentries = "<<nentries<<endl;
   cout<<Form("Processing mode%s ......",mode)<<endl;
@@ -14837,6 +15795,25 @@ void DecodefGlobalMulti6::GlobalMulti6_Decode_1111()
 	  }
   }
 
+  //
+  TFile* fileout = new TFile(Form("/home/sea/Fission2019_Data/TrackDecoded/L2L3_g%d_%s.root",globalmulti,mode),"RECREATE");
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
+      fileout->WriteTObject(&h2_L2L3_DEE[ssdindex][csiindex],Form("h2_DEE_SSD%d_CsI%d_g%d-%s",ssdindex+1,csiindex,globalmulti,mode));
+    }
+  }
+  //
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
+      fileout->WriteTObject(&h2_L2L3_DEE_EneL2BL2F_EneL1SL2F_PID[ssdindex][csiindex],Form("h2_GOOD_SSD%d_CsI%d_g%d-%s",ssdindex+1,csiindex,globalmulti,mode));
+    }
+  }
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
+      fileout->WriteTObject(&h2_L2L3_DEE_Discard[ssdindex][csiindex],Form("h2_LOST_SSD%d_CsI%d_g%d-%s",ssdindex+1,csiindex,globalmulti,mode));
+    }
+  }
+
   // 计算比例
   Int_t entry_all[NUM_SSD] = {0};
   Int_t entry_discard[NUM_SSD] = {0};
@@ -15025,7 +16002,7 @@ void DecodefGlobalMulti6::GlobalMulti6_Decode_1110()
 	  }
   }
 
-  trackreconstruct->fChainTrackTree->SetEntries(10000000);
+  //trackreconstruct->fChainTrackTree->SetEntries(10000000);
   Long64_t nentries = trackreconstruct->fChainTrackTree->GetEntries();
   cout<<"Found nentries = "<<nentries<<endl;
   cout<<Form("Processing mode%s ......",mode)<<endl;
@@ -15356,6 +16333,25 @@ void DecodefGlobalMulti6::GlobalMulti6_Decode_1110()
 	  }
   }
 
+  //
+  TFile* fileout = new TFile(Form("/home/sea/Fission2019_Data/TrackDecoded/L2L3_g%d_%s.root",globalmulti,mode),"RECREATE");
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
+      fileout->WriteTObject(&h2_L2L3_DEE[ssdindex][csiindex],Form("h2_DEE_SSD%d_CsI%d_g%d-%s",ssdindex+1,csiindex,globalmulti,mode));
+    }
+  }
+  //
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
+      fileout->WriteTObject(&h2_L2L3_DEE_EneL2BL2F_EneL1SL2F_PID[ssdindex][csiindex],Form("h2_GOOD_SSD%d_CsI%d_g%d-%s",ssdindex+1,csiindex,globalmulti,mode));
+    }
+  }
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
+      fileout->WriteTObject(&h2_L2L3_DEE_Discard[ssdindex][csiindex],Form("h2_LOST_SSD%d_CsI%d_g%d-%s",ssdindex+1,csiindex,globalmulti,mode));
+    }
+  }
+
   // 计算比例
   Int_t entry_all[NUM_SSD] = {0};
   Int_t entry_discard[NUM_SSD] = {0};
@@ -15501,7 +16497,12 @@ void DecodefGlobalMulti6::GlobalMulti6_Decode_1011()
   Int_t candimulti_sum[NUM_SSD];
   Int_t candimulti_merged[NUM_SSD];
   Int_t candimulti_corrected[NUM_SSD];
-  Int_t candimulti_sharing[NUM_SSD];
+  Int_t candimulti_2hit[NUM_SSD];
+
+  Double_t MHits_Ratio[NUM_SSD]   = {0};
+  Double_t Sharing_Ratio[NUM_SSD] = {0};
+  Int_t MHits_Entries[NUM_SSD]    = {0};
+  Int_t Sharing_Entries[NUM_SSD]  = {0};
 
   std::string pathPDFOut(Form("%sfigure_TrackReconstruction/L2L3_GlobalMulti%d_Decode_%s.pdf",PATHFIGURESFOLDER,globalmulti,mode));
   std::string pathPDFOutBegin(Form("%sfigure_TrackReconstruction/L2L3_GlobalMulti%d_Decode_%s.pdf[",PATHFIGURESFOLDER,globalmulti,mode));
@@ -15543,7 +16544,7 @@ void DecodefGlobalMulti6::GlobalMulti6_Decode_1011()
 	  }
   }
 
-  trackreconstruct->fChainTrackTree->SetEntries(10000000);
+  //trackreconstruct->fChainTrackTree->SetEntries(10000000);
   Long64_t nentries = trackreconstruct->fChainTrackTree->GetEntries();
   cout<<"Found nentries = "<<nentries<<endl;
   cout<<Form("Processing mode%s ......",mode)<<endl;
@@ -15569,7 +16570,7 @@ void DecodefGlobalMulti6::GlobalMulti6_Decode_1011()
 	  	// 初始化
 		  candimulti_sum[ssdindex] = 0;
 		  candimulti_corrected[ssdindex] = 0;
-		  candimulti_sharing[ssdindex] = 0;
+		  candimulti_2hit[ssdindex] = 0;
 		  for(Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) { candmulti_csi[ssdindex][csiindex] = 0; }
 
 		  if (trackreconstruct->fTrackEvent.fSSDGlobalMulti[ssdindex] == globalmulti) {
@@ -15626,6 +16627,7 @@ void DecodefGlobalMulti6::GlobalMulti6_Decode_1011()
               if (itrack==3 || itrack==4) {
                 if (trackreconstruct->IsInsideABananaCut(bananacut[BananaCut_TelNum[ssdindex][itrack]],cutname[itrack],L2L3_CSIECh[ssdindex][itrack],L2L3_L2FEMeV[ssdindex][itrack]))
                 {
+                  candimulti_2hit[ssdindex]++;
                   candimulti_corrected[ssdindex]++;
     							// L2L3_DEE 直接填充
     							h2_L2L3_DEE_EneL2BL2F_EneL1SL2F_PID[ssdindex][L2L3_CsINum[ssdindex][itrack]].Fill(L2L3_CSIECh[ssdindex][itrack],L2L3_L2FEMeV[ssdindex][itrack]);
@@ -15649,6 +16651,7 @@ void DecodefGlobalMulti6::GlobalMulti6_Decode_1011()
               if (itrack==1 || itrack==4) {
                 if (trackreconstruct->IsInsideABananaCut(bananacut[BananaCut_TelNum[ssdindex][itrack]],cutname[itrack],L2L3_CSIECh[ssdindex][itrack],L2L3_L2FEMeV[ssdindex][itrack]))
                 {
+                  candimulti_2hit[ssdindex]++;
                   candimulti_corrected[ssdindex]++;
     							// L2L3_DEE 直接填充
     							h2_L2L3_DEE_EneL2BL2F_EneL1SL2F_PID[ssdindex][L2L3_CsINum[ssdindex][itrack]].Fill(L2L3_CSIECh[ssdindex][itrack],L2L3_L2FEMeV[ssdindex][itrack]);
@@ -15672,6 +16675,7 @@ void DecodefGlobalMulti6::GlobalMulti6_Decode_1011()
               if (itrack==1 || itrack==2) {
                 if (trackreconstruct->IsInsideABananaCut(bananacut[BananaCut_TelNum[ssdindex][itrack]],cutname[itrack],L2L3_CSIECh[ssdindex][itrack],L2L3_L2FEMeV[ssdindex][itrack]))
                 {
+                  candimulti_2hit[ssdindex]++;
                   candimulti_corrected[ssdindex]++;
     							// L2L3_DEE 直接填充
     							h2_L2L3_DEE_EneL2BL2F_EneL1SL2F_PID[ssdindex][L2L3_CsINum[ssdindex][itrack]].Fill(L2L3_CSIECh[ssdindex][itrack],L2L3_L2FEMeV[ssdindex][itrack]);
@@ -15695,6 +16699,7 @@ void DecodefGlobalMulti6::GlobalMulti6_Decode_1011()
               if (itrack==1 || itrack==4) {
                 if (trackreconstruct->IsInsideABananaCut(bananacut[BananaCut_TelNum[ssdindex][itrack]],cutname[itrack],L2L3_CSIECh[ssdindex][itrack],L2L3_L2FEMeV[ssdindex][itrack]))
                 {
+                  candimulti_2hit[ssdindex]++;
                   candimulti_corrected[ssdindex]++;
     							// L2L3_DEE 直接填充
     							h2_L2L3_DEE_EneL2BL2F_EneL1SL2F_PID[ssdindex][L2L3_CsINum[ssdindex][itrack]].Fill(L2L3_CSIECh[ssdindex][itrack],L2L3_L2FEMeV[ssdindex][itrack]);
@@ -15759,7 +16764,8 @@ void DecodefGlobalMulti6::GlobalMulti6_Decode_1011()
             }
 					}
 				  //
-				  if (candimulti_corrected[ssdindex]==2) {
+				  if (candimulti_2hit[ssdindex]==2) {
+            MHits_Entries[ssdindex]++;
 					  for (Int_t itrack=0; itrack<globalmulti; itrack++) {
 					  	h1_Submode2Hit[ssdindex][L2L3_CsINum[ssdindex][itrack]]->Fill(bin_index[itrack]);
 					  }
@@ -15771,29 +16777,56 @@ void DecodefGlobalMulti6::GlobalMulti6_Decode_1011()
 	  }
   }
 
+  //
+  TFile* fileout = new TFile(Form("/home/sea/Fission2019_Data/TrackDecoded/L2L3_g%d_%s.root",globalmulti,mode),"RECREATE");
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
+      fileout->WriteTObject(&h2_L2L3_DEE[ssdindex][csiindex],Form("h2_DEE_SSD%d_CsI%d_g%d-%s",ssdindex+1,csiindex,globalmulti,mode));
+    }
+  }
+  //
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
+      fileout->WriteTObject(&h2_L2L3_DEE_EneL2BL2F_EneL1SL2F_PID[ssdindex][csiindex],Form("h2_GOOD_SSD%d_CsI%d_g%d-%s",ssdindex+1,csiindex,globalmulti,mode));
+    }
+  }
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
+      fileout->WriteTObject(&h2_L2L3_DEE_Discard[ssdindex][csiindex],Form("h2_LOST_SSD%d_CsI%d_g%d-%s",ssdindex+1,csiindex,globalmulti,mode));
+    }
+  }
+
   // 计算比例
   Int_t entry_all[NUM_SSD] = {0};
   Int_t entry_discard[NUM_SSD] = {0};
   for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
-	  for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
-		  if ((ssdindex==3 && csiindex==4) || (ssdindex==3 && csiindex==5)) continue;
-		  else {
-			  entry_all[ssdindex] += h2_L2L3_DEE[ssdindex][csiindex].GetEntries();
-			  entry_discard[ssdindex] += h2_L2L3_DEE_Discard[ssdindex][csiindex].GetEntries();
-		  }
-	  }
-	  lost_ratio[ssdindex] = (Double_t) entry_discard[ssdindex]/entry_all[ssdindex] * 100;
+    for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
+      if ((ssdindex==3 && csiindex==4) || (ssdindex==3 && csiindex==5)) continue;
+      else {
+        entry_all[ssdindex] += h2_L2L3_DEE[ssdindex][csiindex].GetEntries();
+        entry_discard[ssdindex] += h2_L2L3_DEE_Discard[ssdindex][csiindex].GetEntries();
+      }
+    }
+    lost_ratio[ssdindex]    = (Double_t) entry_discard[ssdindex]/entry_all[ssdindex] * 100;
+    MHits_Ratio[ssdindex]   = (Double_t) MHits_Entries[ssdindex] * globalmulti/entry_all[ssdindex] * 100;
+    Sharing_Ratio[ssdindex] = (Double_t) Sharing_Entries[ssdindex] * globalmulti/entry_all[ssdindex] * 100;
   }
 
   // 定义 latex
-  Double_t x1,y1;
+  Double_t x1,y1,x2,y2;
   TLatex* latex_ratio[NUM_SSD];
+  TLatex* latex_decoded[NUM_SSD];
   for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
-	  x1 = 0.4 * globalmulti;
-	  y1 = 0.9 * h1_candimulti_merged[ssdindex]->GetMaximum();
-	  latex_ratio[ssdindex] = new TLatex(x1, y1, Form("r_{lost} = %.4f%%",lost_ratio[ssdindex]));
-	  latex_ratio[ssdindex]->SetTextSize(0.05);
-	  latex_ratio[ssdindex]->SetTextColor(kOrange);
+    x1 = 0.3 * globalmulti;
+    y1 = 0.8 * h1_candimulti_merged[ssdindex]->GetMaximum();
+    x2 = 0.1 * globalmulti;
+    y2 = 0.5 * h1_candimulti_merged[ssdindex]->GetMaximum();
+    latex_ratio[ssdindex] = new TLatex(x1, y1, Form("r_{lost} = %.2f%%",lost_ratio[ssdindex]));
+    latex_ratio[ssdindex]->SetTextSize(0.05);
+    latex_ratio[ssdindex]->SetTextColor(kOrange);
+    latex_decoded[ssdindex] = new TLatex(x2, y2, Form("r_{sh}=%.4f%%, r_{mh}=%.4f%%",Sharing_Ratio[ssdindex],MHits_Ratio[ssdindex]));
+    latex_decoded[ssdindex]->SetTextSize(0.05);
+    latex_decoded[ssdindex]->SetTextColor(kOrange);
   }
 
   // 定义 Legend
@@ -15877,6 +16910,7 @@ void DecodefGlobalMulti6::GlobalMulti6_Decode_1011()
 		  h1_candimulti[ssdindex][csiindex]->SetLineWidth(2);
 		  // latex_ratio
 		  latex_ratio[ssdindex]->Draw();
+      latex_decoded[ssdindex]->Draw();
 		  //
 		  legend_CandiMulti[ssdindex][csiindex]->Draw("SAME");
 
@@ -15959,7 +16993,7 @@ void DecodefGlobalMulti6::GlobalMulti6_Decode_0211()
 	  }
   }
 
-  trackreconstruct->fChainTrackTree->SetEntries(10000000);
+  //trackreconstruct->fChainTrackTree->SetEntries(10000000);
   Long64_t nentries = trackreconstruct->fChainTrackTree->GetEntries();
   cout<<"Found nentries = "<<nentries<<endl;
   cout<<Form("Processing mode%s ......",mode)<<endl;
@@ -16083,6 +17117,25 @@ void DecodefGlobalMulti6::GlobalMulti6_Decode_0211()
 			  }
 		  }
 	  }
+  }
+
+  //
+  TFile* fileout = new TFile(Form("/home/sea/Fission2019_Data/TrackDecoded/L2L3_g%d_%s.root",globalmulti,mode),"RECREATE");
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
+      fileout->WriteTObject(&h2_L2L3_DEE[ssdindex][csiindex],Form("h2_DEE_SSD%d_CsI%d_g%d-%s",ssdindex+1,csiindex,globalmulti,mode));
+    }
+  }
+  //
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
+      fileout->WriteTObject(&h2_L2L3_DEE_EneL2BL2F_EneL1SL2F_PID[ssdindex][csiindex],Form("h2_GOOD_SSD%d_CsI%d_g%d-%s",ssdindex+1,csiindex,globalmulti,mode));
+    }
+  }
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
+      fileout->WriteTObject(&h2_L2L3_DEE_Discard[ssdindex][csiindex],Form("h2_LOST_SSD%d_CsI%d_g%d-%s",ssdindex+1,csiindex,globalmulti,mode));
+    }
   }
 
   // 计算比例
@@ -16273,7 +17326,7 @@ void DecodefGlobalMulti6::GlobalMulti6_Decode_0121()
 	  }
   }
 
-  trackreconstruct->fChainTrackTree->SetEntries(10000000);
+  //trackreconstruct->fChainTrackTree->SetEntries(10000000);
   Long64_t nentries = trackreconstruct->fChainTrackTree->GetEntries();
   cout<<"Found nentries = "<<nentries<<endl;
   cout<<Form("Processing mode%s ......",mode)<<endl;
@@ -16397,6 +17450,25 @@ void DecodefGlobalMulti6::GlobalMulti6_Decode_0121()
 			  }
 		  }
 	  }
+  }
+
+  //
+  TFile* fileout = new TFile(Form("/home/sea/Fission2019_Data/TrackDecoded/L2L3_g%d_%s.root",globalmulti,mode),"RECREATE");
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
+      fileout->WriteTObject(&h2_L2L3_DEE[ssdindex][csiindex],Form("h2_DEE_SSD%d_CsI%d_g%d-%s",ssdindex+1,csiindex,globalmulti,mode));
+    }
+  }
+  //
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
+      fileout->WriteTObject(&h2_L2L3_DEE_EneL2BL2F_EneL1SL2F_PID[ssdindex][csiindex],Form("h2_GOOD_SSD%d_CsI%d_g%d-%s",ssdindex+1,csiindex,globalmulti,mode));
+    }
+  }
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
+      fileout->WriteTObject(&h2_L2L3_DEE_Discard[ssdindex][csiindex],Form("h2_LOST_SSD%d_CsI%d_g%d-%s",ssdindex+1,csiindex,globalmulti,mode));
+    }
   }
 
   // 计算比例
@@ -16587,7 +17659,7 @@ void DecodefGlobalMulti6::GlobalMulti6_Decode_0120()
 	  }
   }
 
-  trackreconstruct->fChainTrackTree->SetEntries(10000000);
+  //trackreconstruct->fChainTrackTree->SetEntries(10000000);
   Long64_t nentries = trackreconstruct->fChainTrackTree->GetEntries();
   cout<<"Found nentries = "<<nentries<<endl;
   cout<<Form("Processing mode%s ......",mode)<<endl;
@@ -16711,6 +17783,25 @@ void DecodefGlobalMulti6::GlobalMulti6_Decode_0120()
 			  }
 		  }
 	  }
+  }
+
+  //
+  TFile* fileout = new TFile(Form("/home/sea/Fission2019_Data/TrackDecoded/L2L3_g%d_%s.root",globalmulti,mode),"RECREATE");
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
+      fileout->WriteTObject(&h2_L2L3_DEE[ssdindex][csiindex],Form("h2_DEE_SSD%d_CsI%d_g%d-%s",ssdindex+1,csiindex,globalmulti,mode));
+    }
+  }
+  //
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
+      fileout->WriteTObject(&h2_L2L3_DEE_EneL2BL2F_EneL1SL2F_PID[ssdindex][csiindex],Form("h2_GOOD_SSD%d_CsI%d_g%d-%s",ssdindex+1,csiindex,globalmulti,mode));
+    }
+  }
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
+      fileout->WriteTObject(&h2_L2L3_DEE_Discard[ssdindex][csiindex],Form("h2_LOST_SSD%d_CsI%d_g%d-%s",ssdindex+1,csiindex,globalmulti,mode));
+    }
   }
 
   // 计算比例
@@ -16901,7 +17992,7 @@ void DecodefGlobalMulti6::GlobalMulti6_Decode_0112()
 	  }
   }
 
-  trackreconstruct->fChainTrackTree->SetEntries(10000000);
+  //trackreconstruct->fChainTrackTree->SetEntries(10000000);
   Long64_t nentries = trackreconstruct->fChainTrackTree->GetEntries();
   cout<<"Found nentries = "<<nentries<<endl;
   cout<<Form("Processing mode%s ......",mode)<<endl;
@@ -17025,6 +18116,25 @@ void DecodefGlobalMulti6::GlobalMulti6_Decode_0112()
 			  }
 		  }
 	  }
+  }
+
+  //
+  TFile* fileout = new TFile(Form("/home/sea/Fission2019_Data/TrackDecoded/L2L3_g%d_%s.root",globalmulti,mode),"RECREATE");
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
+      fileout->WriteTObject(&h2_L2L3_DEE[ssdindex][csiindex],Form("h2_DEE_SSD%d_CsI%d_g%d-%s",ssdindex+1,csiindex,globalmulti,mode));
+    }
+  }
+  //
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
+      fileout->WriteTObject(&h2_L2L3_DEE_EneL2BL2F_EneL1SL2F_PID[ssdindex][csiindex],Form("h2_GOOD_SSD%d_CsI%d_g%d-%s",ssdindex+1,csiindex,globalmulti,mode));
+    }
+  }
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
+      fileout->WriteTObject(&h2_L2L3_DEE_Discard[ssdindex][csiindex],Form("h2_LOST_SSD%d_CsI%d_g%d-%s",ssdindex+1,csiindex,globalmulti,mode));
+    }
   }
 
   // 计算比例
@@ -17215,7 +18325,7 @@ void DecodefGlobalMulti6::GlobalMulti6_Decode_0111()
 	  }
   }
 
-  trackreconstruct->fChainTrackTree->SetEntries(10000000);
+  //trackreconstruct->fChainTrackTree->SetEntries(10000000);
   Long64_t nentries = trackreconstruct->fChainTrackTree->GetEntries();
   cout<<"Found nentries = "<<nentries<<endl;
   cout<<Form("Processing mode%s ......",mode)<<endl;
@@ -17339,6 +18449,25 @@ void DecodefGlobalMulti6::GlobalMulti6_Decode_0111()
 			  }
 		  }
 	  }
+  }
+
+  //
+  TFile* fileout = new TFile(Form("/home/sea/Fission2019_Data/TrackDecoded/L2L3_g%d_%s.root",globalmulti,mode),"RECREATE");
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
+      fileout->WriteTObject(&h2_L2L3_DEE[ssdindex][csiindex],Form("h2_DEE_SSD%d_CsI%d_g%d-%s",ssdindex+1,csiindex,globalmulti,mode));
+    }
+  }
+  //
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
+      fileout->WriteTObject(&h2_L2L3_DEE_EneL2BL2F_EneL1SL2F_PID[ssdindex][csiindex],Form("h2_GOOD_SSD%d_CsI%d_g%d-%s",ssdindex+1,csiindex,globalmulti,mode));
+    }
+  }
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
+      fileout->WriteTObject(&h2_L2L3_DEE_Discard[ssdindex][csiindex],Form("h2_LOST_SSD%d_CsI%d_g%d-%s",ssdindex+1,csiindex,globalmulti,mode));
+    }
   }
 
   // 计算比例
@@ -17529,7 +18658,7 @@ void DecodefGlobalMulti6::GlobalMulti6_Decode_0021()
 	  }
   }
 
-  trackreconstruct->fChainTrackTree->SetEntries(10000000);
+  //trackreconstruct->fChainTrackTree->SetEntries(10000000);
   Long64_t nentries = trackreconstruct->fChainTrackTree->GetEntries();
   cout<<"Found nentries = "<<nentries<<endl;
   cout<<Form("Processing mode%s ......",mode)<<endl;
@@ -17653,6 +18782,25 @@ void DecodefGlobalMulti6::GlobalMulti6_Decode_0021()
 			  }
 		  }
 	  }
+  }
+
+  //
+  TFile* fileout = new TFile(Form("/home/sea/Fission2019_Data/TrackDecoded/L2L3_g%d_%s.root",globalmulti,mode),"RECREATE");
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
+      fileout->WriteTObject(&h2_L2L3_DEE[ssdindex][csiindex],Form("h2_DEE_SSD%d_CsI%d_g%d-%s",ssdindex+1,csiindex,globalmulti,mode));
+    }
+  }
+  //
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
+      fileout->WriteTObject(&h2_L2L3_DEE_EneL2BL2F_EneL1SL2F_PID[ssdindex][csiindex],Form("h2_GOOD_SSD%d_CsI%d_g%d-%s",ssdindex+1,csiindex,globalmulti,mode));
+    }
+  }
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
+      fileout->WriteTObject(&h2_L2L3_DEE_Discard[ssdindex][csiindex],Form("h2_LOST_SSD%d_CsI%d_g%d-%s",ssdindex+1,csiindex,globalmulti,mode));
+    }
   }
 
   // 计算比例
@@ -17843,7 +18991,7 @@ void DecodefGlobalMulti6::GlobalMulti6_Decode_0012()
 	  }
   }
 
-  trackreconstruct->fChainTrackTree->SetEntries(10000000);
+  //trackreconstruct->fChainTrackTree->SetEntries(10000000);
   Long64_t nentries = trackreconstruct->fChainTrackTree->GetEntries();
   cout<<"Found nentries = "<<nentries<<endl;
   cout<<Form("Processing mode%s ......",mode)<<endl;
@@ -17967,6 +19115,25 @@ void DecodefGlobalMulti6::GlobalMulti6_Decode_0012()
 			  }
 		  }
 	  }
+  }
+
+  //
+  TFile* fileout = new TFile(Form("/home/sea/Fission2019_Data/TrackDecoded/L2L3_g%d_%s.root",globalmulti,mode),"RECREATE");
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
+      fileout->WriteTObject(&h2_L2L3_DEE[ssdindex][csiindex],Form("h2_DEE_SSD%d_CsI%d_g%d-%s",ssdindex+1,csiindex,globalmulti,mode));
+    }
+  }
+  //
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
+      fileout->WriteTObject(&h2_L2L3_DEE_EneL2BL2F_EneL1SL2F_PID[ssdindex][csiindex],Form("h2_GOOD_SSD%d_CsI%d_g%d-%s",ssdindex+1,csiindex,globalmulti,mode));
+    }
+  }
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t csiindex=0; csiindex<NUM_CSI; csiindex++) {
+      fileout->WriteTObject(&h2_L2L3_DEE_Discard[ssdindex][csiindex],Form("h2_LOST_SSD%d_CsI%d_g%d-%s",ssdindex+1,csiindex,globalmulti,mode));
+    }
   }
 
   // 计算比例

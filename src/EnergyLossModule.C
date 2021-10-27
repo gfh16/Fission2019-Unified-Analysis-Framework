@@ -226,12 +226,12 @@ Double_t EnergyLossModule::GetIncidentEnergy(Int_t Z, Int_t A, Double_t Eloss,
 {
   Double_t  EincStep = Eloss;
   Double_t  ElossStep;
-  Double_t  dE = 10.;
+  Double_t  dE = 20.;
   Double_t  precision = 1E-4;;
 
-  ElossStep = GetEnergyLoss(Z,A,EincStep,material,thickness_um, model);
+  ElossStep = GetEnergyLoss(Z,A,EincStep,material,thickness_um,model);
 
-  if(ElossStep < Eloss) return -1; //the particle cannot lose this energy (energy greater than punch through energy)
+  if(ElossStep<Eloss) return -1; //the particle cannot lose this energy (energy greater than punch through energy)
 
   for(;;EincStep+=dE)
   {
@@ -254,11 +254,15 @@ Double_t EnergyLossModule::GetIncidentEnergy(Int_t Z, Int_t A, Double_t Eloss,
 {
   Double_t  EincStep = Eloss;
   Double_t  ElossStep;
-  Double_t  dE = 10.;
+  Double_t  dE = 20.;
+  Double_t  PunchDepth=0, EPunchThrough=0;
 
+  PunchDepth = GetRangeFromEnergy(1,1,10.,"Si",1); // 用于加载 Input 文件
+  EPunchThrough = GetEnergyFromRange(Z,A,thickness_um,material,model);
   ElossStep = GetEnergyLoss(Z,A,EincStep,material,thickness_um,precision_MeV,model);
 
-  if(ElossStep < Eloss) return -1; //the particle cannot lose this energy (energy greater than punch through energy)
+  if((ElossStep<Eloss) || (Eloss>EPunchThrough)) return -1; //不考虑粒子穿透本层探测器的情况
+  //cout<<Eloss<<setw(20)<<EPunchThrough<<endl;
 
   for(;;EincStep+=dE)
   {
@@ -282,7 +286,7 @@ Double_t EnergyLossModule::GetEnergyLossFromResidualEnergy(Int_t Z, Int_t A, Dou
   const char* material, Double_t thickness_um, Double_t precision_MeV, Int_t model)
 {
   Double_t Eloss, Eres_calc;
-  Double_t Einc = 0.01;
+  Double_t Einc = 0.1;
   Double_t EincStep = 10.;
 
   for (;;Einc+=EincStep) {
@@ -297,8 +301,7 @@ Double_t EnergyLossModule::GetEnergyLossFromResidualEnergy(Int_t Z, Int_t A, Dou
       EincStep = -std::abs(EincStep)/2;
       Einc += EincStep;
     }
-
-    if (std::abs(Eres_calc-Eres)<precision_MeV) break;
+    if (std::abs(EincStep)<precision_MeV) break;
   }
   return Eloss;
 }

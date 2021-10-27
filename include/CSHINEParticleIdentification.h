@@ -119,6 +119,7 @@ public:
   // straigtening results
   void    CheckPolyFitResults();
   void    CheckL2L3StraighteningPIDResults();
+  void    L2L3DrawPIDECsIMap();
 
   void    CheckL1L2DEE();
   void    CheckL1L2DEE_Uncalibrated();
