@@ -114,6 +114,7 @@ void CSHINEUnCaliDataToPhysicsEvent_SSD::FillLayerEvent(CSHINELayerEvent2* layer
 	      SSDL1SMulti[ssdindex]++;
 	      layerevent->fL1SNumStrip[ssdindex].push_back(strip);
 	      layerevent->fL1SEMeV[ssdindex].push_back(fSlopel1s[ssdindex*NUM_STRIP+strip]*SSD_L1S_E[ssdindex][strip]+fInterceptl1s[ssdindex*NUM_STRIP+strip]);
+				layerevent->fL1SECh[ssdindex].push_back(SSD_L1S_E[ssdindex][strip]);
 	    }
 	    // for L2F
 	    if (SSD_L2F_E[ssdindex][strip]>fSiEChcutl2f[ssdindex*NUM_STRIP+strip]) {
@@ -121,6 +122,7 @@ void CSHINEUnCaliDataToPhysicsEvent_SSD::FillLayerEvent(CSHINELayerEvent2* layer
 	        SSDL2FMulti[ssdindex]++;
 	        layerevent->fL2FNumStrip[ssdindex].push_back(strip);
 	        layerevent->fL2FEMeV[ssdindex].push_back(fSlopel2f[ssdindex*NUM_STRIP+strip]*SSD_L2F_E[ssdindex][strip]+fInterceptl2f[ssdindex*NUM_STRIP+strip]);
+					layerevent->fL2FECh[ssdindex].push_back(SSD_L2F_E[ssdindex][strip]);
 	        layerevent->fL2FTime[ssdindex].push_back(SSD_L2F_T[ssdindex][strip]);
 	      }
 	      if (ssdindex==1) {
@@ -128,6 +130,7 @@ void CSHINEUnCaliDataToPhysicsEvent_SSD::FillLayerEvent(CSHINELayerEvent2* layer
 	          SSDL2FMulti[ssdindex]++;
 	          layerevent->fL2FNumStrip[ssdindex].push_back(strip);
 	          layerevent->fL2FEMeV[ssdindex].push_back(fSlopel2f[ssdindex*NUM_STRIP+strip]*SSD_L2F_E[ssdindex][strip]+fInterceptl2f[ssdindex*NUM_STRIP+strip]);
+						layerevent->fL2FECh[ssdindex].push_back(SSD_L2F_E[ssdindex][strip]);
 	          layerevent->fL2FTime[ssdindex].push_back(SSD_L2F_T[ssdindex][strip]);
 	        }
 	      }
@@ -136,6 +139,7 @@ void CSHINEUnCaliDataToPhysicsEvent_SSD::FillLayerEvent(CSHINELayerEvent2* layer
 	          SSDL2FMulti[ssdindex]++;
 	          layerevent->fL2FNumStrip[ssdindex].push_back(strip);
 	          layerevent->fL2FEMeV[ssdindex].push_back(fSlopel2f[ssdindex*NUM_STRIP+strip]*SSD_L2F_E[ssdindex][strip]+fInterceptl2f[ssdindex*NUM_STRIP+strip]);
+						layerevent->fL2FECh[ssdindex].push_back(SSD_L2F_E[ssdindex][strip]);
 	          layerevent->fL2FTime[ssdindex].push_back(SSD_L2F_T[ssdindex][strip]);
 	        }
 	      }
@@ -145,6 +149,7 @@ void CSHINEUnCaliDataToPhysicsEvent_SSD::FillLayerEvent(CSHINELayerEvent2* layer
 	      SSDL2BMulti[ssdindex]++;
 	      layerevent->fL2BNumStrip[ssdindex].push_back(strip);
 	      layerevent->fL2BEMeV[ssdindex].push_back(fSlopel2b[ssdindex*NUM_STRIP+strip]*SSD_L2B_E[ssdindex][strip]+fInterceptl2b[ssdindex*NUM_STRIP+strip]);
+				layerevent->fL2BECh[ssdindex].push_back(SSD_L2B_E[ssdindex][strip]);
 	    }
 	  }
 	  // for L3A
@@ -163,6 +168,85 @@ void CSHINEUnCaliDataToPhysicsEvent_SSD::FillLayerEvent(CSHINELayerEvent2* layer
 	  layerevent->fCsIMulti[ssdindex] = SSDCsIMulti[ssdindex];
 	}
 }
+
+
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
+void CSHINEUnCaliDataToPhysicsEvent_SSD::FillTrackEvent(CSHINETrackEvent2* trackevent, CSHINELayerEvent2* layerevent)
+{
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++)
+	{
+		// for L2L3
+    if ((layerevent->fCsIMulti[ssdindex]>0 && layerevent->fCsIMulti[ssdindex]<=MULTICUT_L3A) &&
+        (layerevent->fL2BMulti[ssdindex]>0 && layerevent->fL2BMulti[ssdindex]<=MULTICUT_L2B) &&
+        (layerevent->fL2FMulti[ssdindex]>0 && layerevent->fL2FMulti[ssdindex]<=MULTICUT_L2F) &&
+        (layerevent->fL1SMulti[ssdindex]>0 && layerevent->fL1SMulti[ssdindex]<=MULTICUT_L1S)) // 给定初步的 multi cut
+    {
+      for (Int_t csimulti=0; csimulti<layerevent->fCsIMulti[ssdindex]; csimulti++) {
+        for (Int_t l2bmulti=0; l2bmulti<layerevent->fL2BMulti[ssdindex]; l2bmulti++) {
+          for (Int_t l2fmulti=0; l2fmulti<layerevent->fL2FMulti[ssdindex]; l2fmulti++) {
+            for (Int_t l1smulti=0; l1smulti<layerevent->fL1SMulti[ssdindex]; l1smulti++) { // 逐层循环,遍历所有可能的组合
+
+              if (trackresconstruct.IsGeoConstraint_L3A_L2B(layerevent->fCsINum[ssdindex][csimulti], layerevent->fL2BNumStrip[ssdindex][l2bmulti]) &&
+                  trackresconstruct.IsGeoConstraint_L3A_L2F(layerevent->fCsINum[ssdindex][csimulti], layerevent->fL2FNumStrip[ssdindex][l2fmulti]) &&
+                  trackresconstruct.IsGeoConstraint_L2B_L1S(layerevent->fL2BNumStrip[ssdindex][l2bmulti], layerevent->fL1SNumStrip[ssdindex][l1smulti]))
+              {
+								TelNum_BananaCut = ssdindex*NUM_CSI + layerevent->fCsINum[ssdindex][csimulti];
+
+                trackevent->fCsINum[ssdindex].push_back(layerevent->fCsINum[ssdindex][csimulti]);
+                trackevent->fCsIECh[ssdindex].push_back(layerevent->fCsIECh[ssdindex][csimulti]);
+                trackevent->fL2BNumStrip[ssdindex].push_back(layerevent->fL2BNumStrip[ssdindex][l2bmulti]);
+                trackevent->fL2BEMeV[ssdindex].push_back(layerevent->fL2BEMeV[ssdindex][l2bmulti]);
+								trackevent->fL2BECh[ssdindex].push_back(layerevent->fL2BECh[ssdindex][l2bmulti]);
+                trackevent->fL2FNumStrip[ssdindex].push_back(layerevent->fL2FNumStrip[ssdindex][l2fmulti]);
+                trackevent->fL2FEMeV[ssdindex].push_back(layerevent->fL2FEMeV[ssdindex][l2fmulti]);
+                trackevent->fL2FECh[ssdindex].push_back(layerevent->fL2FECh[ssdindex][l2fmulti]);
+                trackevent->fL1SNumStrip[ssdindex].push_back(layerevent->fL1SNumStrip[ssdindex][l1smulti]);
+                trackevent->fL1SEMeV[ssdindex].push_back(layerevent->fL1SEMeV[ssdindex][l1smulti]);
+                trackevent->fL1SECh[ssdindex].push_back(layerevent->fL1SECh[ssdindex][l1smulti]);
+
+                trackevent->fL2FTime[ssdindex].push_back(layerevent->fL2FTime[ssdindex][l2fmulti]);
+								trackevent->fCutTelNum[ssdindex].push_back(TelNum_BananaCut);
+              }
+            }
+          }
+        }
+      }
+    }
+		// for L1L2
+		if ((layerevent->fCsIMulti[ssdindex]==0) &&
+        (layerevent->fL2BMulti[ssdindex]>0 && layerevent->fL2BMulti[ssdindex]<=MULTICUT_L2B) &&
+        (layerevent->fL2FMulti[ssdindex]>0 && layerevent->fL2FMulti[ssdindex]<=MULTICUT_L2F) &&
+        (layerevent->fL1SMulti[ssdindex]>0 && layerevent->fL1SMulti[ssdindex]<=MULTICUT_L1S)) // 给定初步的 multi cut
+    {
+      for (Int_t l2bmulti=0; l2bmulti<layerevent->fL2BMulti[ssdindex]; l2bmulti++) {
+        for (Int_t l2fmulti=0; l2fmulti<layerevent->fL2FMulti[ssdindex]; l2fmulti++) {
+          for (Int_t l1smulti=0; l1smulti<layerevent->fL1SMulti[ssdindex]; l1smulti++) { // 逐层循环,遍历所有可能的组合
+
+            if (trackresconstruct.IsGeoConstraint_L2B_L1S(layerevent->fL2BNumStrip[ssdindex][l2bmulti], layerevent->fL1SNumStrip[ssdindex][l1smulti]))
+            {
+              trackevent->fL2BNumStrip[ssdindex].push_back(layerevent->fL2BNumStrip[ssdindex][l2bmulti]);
+              trackevent->fL2BEMeV[ssdindex].push_back(layerevent->fL2BEMeV[ssdindex][l2bmulti]);
+							trackevent->fL2BECh[ssdindex].push_back(layerevent->fL2BECh[ssdindex][l2bmulti]);
+              trackevent->fL2FNumStrip[ssdindex].push_back(layerevent->fL2FNumStrip[ssdindex][l2fmulti]);
+              trackevent->fL2FEMeV[ssdindex].push_back(layerevent->fL2FEMeV[ssdindex][l2fmulti]);
+              trackevent->fL2FECh[ssdindex].push_back(layerevent->fL2FECh[ssdindex][l2fmulti]);
+              trackevent->fL1SNumStrip[ssdindex].push_back(layerevent->fL1SNumStrip[ssdindex][l1smulti]);
+              trackevent->fL1SEMeV[ssdindex].push_back(layerevent->fL1SEMeV[ssdindex][l1smulti]);
+							trackevent->fL1SECh[ssdindex].push_back(layerevent->fL1SECh[ssdindex][l1smulti]);
+
+              trackevent->fL2FTime[ssdindex].push_back(layerevent->fL2FTime[ssdindex][l2fmulti]);
+
+							fZone_index_L1L2 = particleidentification.GetZoneOfPixel(layerevent->fL2BNumStrip[ssdindex][l2bmulti], layerevent->fL2FNumStrip[ssdindex][l2fmulti], ZONE_LENGTH_L1L2);
+							trackevent->fL1SEMeV_Corrected[ssdindex].push_back(layerevent->fL1SEMeV[ssdindex][l1smulti]*(1+L1S_SITHICKNESSCORRECTION[ssdindex][fZone_index_L1L2]));
+            }
+          }
+        }
+      }
+    }
+		//
+  }
+}
+
 
 
 //oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
@@ -190,10 +274,13 @@ void CSHINEUnCaliDataToPhysicsEvent_SSD::FillTrackEvent_L2L3(CSHINETrackEvent2* 
                 trackevent->fCsIECh[ssdindex].push_back(layerevent->fCsIECh[ssdindex][csimulti]);
                 trackevent->fL2BNumStrip[ssdindex].push_back(layerevent->fL2BNumStrip[ssdindex][l2bmulti]);
                 trackevent->fL2BEMeV[ssdindex].push_back(layerevent->fL2BEMeV[ssdindex][l2bmulti]);
+								trackevent->fL2BECh[ssdindex].push_back(layerevent->fL2BECh[ssdindex][l2bmulti]);
                 trackevent->fL2FNumStrip[ssdindex].push_back(layerevent->fL2FNumStrip[ssdindex][l2fmulti]);
                 trackevent->fL2FEMeV[ssdindex].push_back(layerevent->fL2FEMeV[ssdindex][l2fmulti]);
+								trackevent->fL2FECh[ssdindex].push_back(layerevent->fL2FECh[ssdindex][l2fmulti]);
                 trackevent->fL1SNumStrip[ssdindex].push_back(layerevent->fL1SNumStrip[ssdindex][l1smulti]);
                 trackevent->fL1SEMeV[ssdindex].push_back(layerevent->fL1SEMeV[ssdindex][l1smulti]);
+								trackevent->fL1SECh[ssdindex].push_back(layerevent->fL1SECh[ssdindex][l1smulti]);
                 trackevent->fL2FTime[ssdindex].push_back(layerevent->fL2FTime[ssdindex][l2fmulti]);
 								trackevent->fCutTelNum[ssdindex].push_back(TelNum_BananaCut);
               }
@@ -224,10 +311,13 @@ void CSHINEUnCaliDataToPhysicsEvent_SSD::FillTrackEvent_L1L2(CSHINETrackEvent2* 
             {
               trackevent->fL2BNumStrip[ssdindex].push_back(layerevent->fL2BNumStrip[ssdindex][l2bmulti]);
               trackevent->fL2BEMeV[ssdindex].push_back(layerevent->fL2BEMeV[ssdindex][l2bmulti]);
+              trackevent->fL2BECh[ssdindex].push_back(layerevent->fL2BECh[ssdindex][l2bmulti]);
               trackevent->fL2FNumStrip[ssdindex].push_back(layerevent->fL2FNumStrip[ssdindex][l2fmulti]);
               trackevent->fL2FEMeV[ssdindex].push_back(layerevent->fL2FEMeV[ssdindex][l2fmulti]);
+							trackevent->fL2FECh[ssdindex].push_back(layerevent->fL2FECh[ssdindex][l2fmulti]);
               trackevent->fL1SNumStrip[ssdindex].push_back(layerevent->fL1SNumStrip[ssdindex][l1smulti]);
               trackevent->fL1SEMeV[ssdindex].push_back(layerevent->fL1SEMeV[ssdindex][l1smulti]);
+							trackevent->fL1SECh[ssdindex].push_back(layerevent->fL1SECh[ssdindex][l1smulti]);
 
               trackevent->fL2FTime[ssdindex].push_back(layerevent->fL2FTime[ssdindex][l2fmulti]);
 
@@ -287,6 +377,8 @@ void CSHINEUnCaliDataToPhysicsEvent_PPAC::Init_MapRootTree_PPAC()
 	fChain_MapRoot->SetBranchStatus(b_PPAC3_Y1, true);
 	fChain_MapRoot->SetBranchStatus(b_PPAC3_Y2, true);
 	fChain_MapRoot->SetBranchStatus(b_PPAC3_T_Energy, true);
+	fChain_MapRoot->SetBranchStatus(b_RF1,     true);
+
 	// finally, set branch address
 	fChain_MapRoot->SetBranchAddress(b_PPAC1_T,  &PPAC_T [0]);
 	fChain_MapRoot->SetBranchAddress(b_PPAC1_X1, &PPAC_X1[0]);
@@ -306,6 +398,7 @@ void CSHINEUnCaliDataToPhysicsEvent_PPAC::Init_MapRootTree_PPAC()
 	fChain_MapRoot->SetBranchAddress(b_PPAC3_Y1, &PPAC_Y1[2]);
 	fChain_MapRoot->SetBranchAddress(b_PPAC3_Y2, &PPAC_Y2[2]);
 	fChain_MapRoot->SetBranchAddress(b_PPAC3_T_Energy, &PPAC_TE[2]);
+	fChain_MapRoot->SetBranchAddress(b_RF1,      &RF1);
 }
 
 //______________________________________________________________________________
@@ -321,9 +414,11 @@ void CSHINEUnCaliDataToPhysicsEvent_PPAC::FillPPACEvent(CSHINEPPACEvent* ppaceve
 		PPAC_Y1_GOOG[ippac] = PPAC_Y1[ippac]>PPAC_TDC_CUT ? true : false;
 		PPAC_Y2_GOOG[ippac] = PPAC_Y2[ippac]>PPAC_TDC_CUT ? true : false;
 
-		if ((PPAC_X1_GOOG[ippac]+PPAC_X2_GOOG[ippac]) && (PPAC_Y1_GOOG[ippac]+PPAC_Y2_GOOG[ippac]))
+		if ((PPAC_X1_GOOG[ippac]&&PPAC_X2_GOOG[ippac]) && (PPAC_Y1_GOOG[ippac]&&PPAC_Y2_GOOG[ippac]))
 		{
 			gMulti++;
+
+			// 填充原始数据
 			ppacevent->fPPACFiredNum.push_back(ippac);
 			ppacevent->fT.push_back(PPAC_T[ippac]);
 			ppacevent->fX1.push_back(PPAC_X1[ippac]);
@@ -332,8 +427,14 @@ void CSHINEUnCaliDataToPhysicsEvent_PPAC::FillPPACEvent(CSHINEPPACEvent* ppaceve
 			ppacevent->fY2.push_back(PPAC_Y2[ippac]);
 			ppacevent->fTE.push_back(PPAC_TE[ippac]);
 
-			PPACModeID[ippac] = (ippac+1)*10000 + PPAC_X1_GOOG[ippac]*1000 + PPAC_X2_GOOG[ippac]*100 + PPAC_Y1_GOOG[ippac]*10 + PPAC_Y2_GOOG[ippac];
-			ppacevent->fModeID.push_back(PPACModeID[ippac]);
+			// 基于原始数据，根据刻度结果，进行计算:
+			fVec3InPPACFrame = fPPACCali.XYSignalToCoordinateInPPACFrame(ippac,PPAC_X1[ippac],PPAC_X2[ippac],PPAC_Y1[ippac],PPAC_Y2[ippac]);
+			fVec3InLabFrame  = fPPACCali.CoordinatePPACFrameToLabFrame(ippac, fVec3InPPACFrame);
+
+			// 填充根据刻度结果计算得到的物理量
+			ppacevent->fDist.push_back(fVec3InLabFrame.Mag());
+			ppacevent->fTheta.push_back(fVec3InLabFrame.Theta()*TMath::RadToDeg());
+			ppacevent->fPhi.push_back(fVec3InLabFrame.Phi()*TMath::RadToDeg());
 		}
 	}
 	ppacevent->fFFMulti = gMulti;
@@ -442,7 +543,11 @@ void CSHINEUnCaliDataToPhysicsEvent_RF::Init_MapRootTree_RF()
 //______________________________________________________________________________
 void CSHINEUnCaliDataToPhysicsEvent_RF::FillRFSignal(CSHINERFSignal* rfsignal)
 {
+	// 填充原始数据
   rfsignal->fRF1 = RF1;
 	rfsignal->fRF2 = RF2;
+
+	// 将 RF1 平移到同一个周期内
+	rfsignal->fRF1Shifted = fPPACCali.ShiftRF1IntoOnePeriod(RF1);
 }
 //oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo

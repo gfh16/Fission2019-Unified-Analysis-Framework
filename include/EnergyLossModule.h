@@ -64,7 +64,7 @@ private:
   Nuclear_masses *NucData;
 
   std::string LastFileLoaded;
-  std::string pathLISEInput = "/home/sea/Fission2019-Unified-Analysis-Framework/LISEInput/";
+  std::string pathLISEInput = Form("%sLISEInput/", PATHHOMEFOLDER);
 };
 
 #endif

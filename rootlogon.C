@@ -34,5 +34,7 @@
 
   gROOT->ProcessLine(".L src/PhysicalCalculator.C");
 
+  gROOT->ProcessLine(".L src/CSHINEPPACCalibration.C");
+
   printf("Welcome to Fission2019-Unified-Analysis-Framework/\n");
 }

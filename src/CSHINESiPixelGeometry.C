@@ -369,6 +369,8 @@ void CSHINESiPixelGeometry::SiPixellation()
   std::string pathPNGCheckDirection(Form("%sfigure_Pixellation/CSHINE2019_CheckStripDirection.png", PATHFIGURESFOLDER));
   std::string pathDataOutput(Form("%sdata_Pixellation/CSHINE2019_SiPixelAngles.dat", PATHDATAFOLDER));
 
+  TFile* fout = new TFile(Form("%sdata_Pixellation/SSDThetaPhi.root", PATHDATAFOLDER),"RECREATE");
+
   ofstream SiPixelAngles(pathDataOutput.c_str());
   SiPixelAngles<<"* ssdnum"<<setw(7)<<"stripb"<<setw(7)<<"stripf"
                <<setw(8)<<"theta"     <<setw(11)<<"phi"
@@ -465,6 +467,8 @@ void CSHINESiPixelGeometry::SiPixellation()
       }
     }
   }
+  fout->WriteTObject(h2d_phi_theta,h2d_phi_theta->GetName());
+  //fout->Close();
 
   TCanvas* cans_check = new TCanvas("cans_check","cans_check", 1200, 800);
   cans_check->Divide(2,1);

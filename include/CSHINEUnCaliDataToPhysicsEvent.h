@@ -5,6 +5,7 @@
 #include "CSHINESSDCalibratedData.h"
 #include "CSHINETrackReconstructionSimplified.h"
 #include "CSHINEParticleIdentificationSimplified.h"
+#include "CSHINEPPACCalibration.h"
 #include "shared.h"
 
 #include "TTree.h"
@@ -38,6 +39,7 @@ private:
 // 功能实现
 public:
   virtual void    FillLayerEvent(CSHINELayerEvent2*  layerevent);
+	virtual void    FillTrackEvent(CSHINETrackEvent2* trackevent, CSHINELayerEvent2* layerevent);
 	virtual void    FillTrackEvent_L2L3(CSHINETrackEvent2* trackevent, CSHINELayerEvent2* layerevent);
 	virtual void    FillTrackEvent_L1L2(CSHINETrackEvent2* trackevent, CSHINELayerEvent2* layerevent);
 
@@ -127,6 +129,16 @@ public:
 public:
 	virtual void   FillPPACEvent(CSHINEPPACEvent* ppacevent);
 
+
+private:
+	CSHINEPPACCalibration fPPACCali;
+
+private:
+	TVector3              fVec3InPPACFrame;
+	TVector3              fVec3InLabFrame;
+	Double_t              fTOFWithRF1;
+	Double_t              fVelocity_cm_per_ns;
+
 private:
 	// 初始化
   TChain*         fChain_MapRoot;
@@ -153,6 +165,8 @@ private:
 	const char* b_PPAC3_Y1        = "PPAC3_Y1";
 	const char* b_PPAC3_Y2        = "PPAC3_Y2";
 	const char* b_PPAC3_T_Energy  = "PPAC3_T_Energy";
+	//
+	const char* b_RF1             = "RF1";
 
 private:
 	Int_t PPAC_T [NUM_PPAC];
@@ -161,10 +175,10 @@ private:
 	Int_t PPAC_Y1[NUM_PPAC];
 	Int_t PPAC_Y2[NUM_PPAC];
 	Int_t PPAC_TE[NUM_PPAC];
+	Int_t RF1;
 
 private:
 	Int_t   gMulti;
-	Int_t   PPACModeID[NUM_PPAC];
 	Bool_t  PPAC_X1_GOOG[NUM_PPAC];
 	Bool_t  PPAC_X2_GOOG[NUM_PPAC];
 	Bool_t  PPAC_Y1_GOOG[NUM_PPAC];
@@ -221,6 +235,9 @@ public:
 
 public:
 	virtual void   FillRFSignal(CSHINERFSignal* rfsignal);
+
+private:
+	CSHINEPPACCalibration fPPACCali;
 
 private:
 	// 初始化

@@ -275,8 +275,8 @@ Double_t L2L3_TrackDecoded::GetEL1S(Int_t ssdindex, Double_t el2, Int_t charge, 
 
 //______________________________________________________________________________
 void  L2L3_TrackDecoded::FillGlobalEvent_L2L3(CSHINESSDEvent* globalevent, Int_t gmulti, Int_t mode_index,
-  Int_t ssdindex, Int_t& ssdmulti, Int_t charge, Int_t mass, Double_t Stripl1s, Double_t El1s,
-  Double_t Stripl2f, Double_t El2f, Double_t Stripl2b, Double_t El2b, Double_t csiindex, Double_t Ecsi, Int_t Timel2f)
+  Int_t ssdindex, Int_t& ssdmulti, Int_t charge, Int_t mass, Double_t Stripl1s, Double_t El1s, Double_t El1s_Ch,
+  Double_t Stripl2f, Double_t El2f, Double_t El2f_Ch, Double_t Stripl2b, Double_t El2b, Double_t El2b_Ch, Double_t csiindex, Double_t Ecsi, Int_t Timel2f)
 {
   fGetEL1S    = GetEL1S(ssdindex,El1s,El2f,charge,mass);
   fEL2F       = El2f;
@@ -294,12 +294,16 @@ void  L2L3_TrackDecoded::FillGlobalEvent_L2L3(CSHINESSDEvent* globalevent, Int_t
   globalevent->fGL1SNumStrip.push_back(Stripl1s);
   globalevent->fGL1SEMeV.push_back(fGetEL1S);
   globalevent->fGL1SEMeVCorrected.push_back(fGetEL1S);
+  globalevent->fGL1SECh.push_back(El1s_Ch);
   globalevent->fGL2FNumStrip.push_back(Stripl2f);
   globalevent->fGL2FEMeV.push_back(El2f);
+  globalevent->fGL2FECh.push_back(El2f_Ch);
   globalevent->fGL2BNumStrip.push_back(Stripl2b);
   globalevent->fGL2BEMeV.push_back(El2b);
+  globalevent->fGL2BECh.push_back(El2b_Ch);
   globalevent->fGCsINum.push_back(csiindex);
   globalevent->fGCsIEMeV.push_back(fECsI);
+  globalevent->fGCsIECh.push_back(Ecsi);
   globalevent->fGL2FTime.push_back(Timel2f);
   globalevent->fDist.push_back(vechitpoint.R());
 	globalevent->fTheta.push_back(vechitpoint.ThetaDeg());
@@ -317,201 +321,141 @@ void  L2L3_TrackDecoded::FillGlobalEvent_L2L3(CSHINESSDEvent* globalevent, Int_t
 
 
 //______________________________________________________________________________
-void L2L3_TrackDecoded::L2L3_AllModes_TrackDecoded(CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
+void L2L3_TrackDecoded::L2L3_AllModes_TrackDecoded(Int_t ssdindex, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
 {
   // 关闭 L2L3_TrackDecoded 通道
   if (switchsetting == kFALSE) return;
-
-  L2L3_g1_TrackDecoded(globalevent, trackevent, SWITCH_L2L3_G1);
-  L2L3_g2_TrackDecoded(globalevent, trackevent, SWITCH_L2L3_G2);
-  L2L3_g3_TrackDecoded(globalevent, trackevent, SWITCH_L2L3_G3);
-  L2L3_g4_TrackDecoded(globalevent, trackevent, SWITCH_L2L3_G4);
-  L2L3_g6_TrackDecoded(globalevent, trackevent, SWITCH_L2L3_G6);
+  //
+  if (trackevent->fCsINum[ssdindex].size()==GMULTI_1) L2L3_g1_TrackDecoded(ssdindex, ssdmulti, globalevent, trackevent, SWITCH_L2L3_G1);
+  if (trackevent->fCsINum[ssdindex].size()==GMULTI_2) L2L3_g2_TrackDecoded(ssdindex, ssdmulti, globalevent, trackevent, SWITCH_L2L3_G2);
+  if (trackevent->fCsINum[ssdindex].size()==GMULTI_3) L2L3_g3_TrackDecoded(ssdindex, ssdmulti, globalevent, trackevent, SWITCH_L2L3_G3);
+  if (trackevent->fCsINum[ssdindex].size()==GMULTI_4) L2L3_g4_TrackDecoded(ssdindex, ssdmulti, globalevent, trackevent, SWITCH_L2L3_G4);
+  if (trackevent->fCsINum[ssdindex].size()==GMULTI_6) L2L3_g6_TrackDecoded(ssdindex, ssdmulti, globalevent, trackevent, SWITCH_L2L3_G6);
 }
 
 
 //______________________________________________________________________________
-void L2L3_TrackDecoded::L2L3_g1_TrackDecoded(CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
+void L2L3_TrackDecoded::L2L3_g1_TrackDecoded(Int_t ssdindex, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
 {
   // 关闭 L2L3_g1_TrackDecoded 通道
   if (switchsetting == kFALSE) return;
-
-  fgMulti = 0;
-  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++)
+  //
+  if (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][0],trackevent->fL2FEMeV[ssdindex][0]) &&
+      IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][0]],fMCut[0],trackevent->fCsIECh[ssdindex][0],trackevent->fL2FEMeV[ssdindex][0]))
   {
-    if (trackevent->fCsINum[ssdindex].size() == GMULTI_1)
+    for (Int_t itrack=0; itrack<GMULTI_1; itrack++)
     {
-      fSSDgMulti[ssdindex] = 0;
-
-      if (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][0],trackevent->fL2FEMeV[ssdindex][0]) &&
-          IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][0]],fMCut[0],trackevent->fCsIECh[ssdindex][0],trackevent->fL2FEMeV[ssdindex][0]))
-      {
-        FillGlobalEvent_L2L3(globalevent, GMULTI_1, MODEINDEX_G1, ssdindex, fSSDgMulti[ssdindex], fMCut[0].Cut_Z, fMCut[0].Cut_A,
-                             trackevent->fL1SNumStrip[ssdindex][0], trackevent->fL1SEMeV[ssdindex][0],
-                             trackevent->fL2FNumStrip[ssdindex][0], trackevent->fL2FEMeV[ssdindex][0],
-                             trackevent->fL2BNumStrip[ssdindex][0], trackevent->fL2BEMeV[ssdindex][0],
-                             trackevent->fCsINum[ssdindex][0],      trackevent->fCsIECh[ssdindex][0],
-                             trackevent->fL2FTime[ssdindex][0]);
-      }
-      //
-  		fgMulti += fSSDgMulti[ssdindex];
-  		globalevent->fSSDGlobalMulti.push_back(fSSDgMulti[ssdindex]);
+      FillGlobalEvent_L2L3(globalevent, GMULTI_1, MODEINDEX_G1, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                           trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                           trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                           trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
+                           trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
+                           trackevent->fL2FTime[ssdindex][itrack]);
     }
   }
-  //
- 	globalevent->fGlobalMulti = fgMulti;
 }
 
+
 //______________________________________________________________________________
-void L2L3_TrackDecoded::L2L3_g2_TrackDecoded(CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
+void L2L3_TrackDecoded::L2L3_g2_TrackDecoded(Int_t ssdindex, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
 {
   // 关闭 L2L3_g2_TrackDecoded 通道
   if (switchsetting == kFALSE) return;
-
-  fgMulti = 0;
-  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++)
-  {
-    fSSDgMulti[ssdindex] = 0;
-    //
-    if (trackevent->fCsINum[ssdindex].size() == GMULTI_2)
-    {
-      MODE_EXP[ssdindex] = L2L3_CalcModeFromExpData(GMULTI_2,trackevent->fCsINum[ssdindex],trackevent->fL2BNumStrip[ssdindex],trackevent->fL2FNumStrip[ssdindex],trackevent->fL1SNumStrip[ssdindex]);
-      L2L3_g2_0001_TrackDecoded(ssdindex, MODE_EXP[ssdindex].c_str(), globalevent, trackevent, SWITCH_MODE_G2_0001);
-      L2L3_g2_0010_TrackDecoded(ssdindex, MODE_EXP[ssdindex].c_str(), globalevent, trackevent, SWITCH_MODE_G2_0010);
-      L2L3_g2_0100_TrackDecoded(ssdindex, MODE_EXP[ssdindex].c_str(), globalevent, trackevent, SWITCH_MODE_G2_0100);
-      L2L3_g2_0101_TrackDecoded(ssdindex, MODE_EXP[ssdindex].c_str(), globalevent, trackevent, SWITCH_MODE_G2_0101);
-      L2L3_g2_1000_TrackDecoded(ssdindex, MODE_EXP[ssdindex].c_str(), globalevent, trackevent, SWITCH_MODE_G2_1000);
-      L2L3_g2_1010_TrackDecoded(ssdindex, MODE_EXP[ssdindex].c_str(), globalevent, trackevent, SWITCH_MODE_G2_1010);
-      L2L3_g2_1101_TrackDecoded(ssdindex, MODE_EXP[ssdindex].c_str(), globalevent, trackevent, SWITCH_MODE_G2_1101);
-      L2L3_g2_1111_TrackDecoded(ssdindex, MODE_EXP[ssdindex].c_str(), globalevent, trackevent, SWITCH_MODE_G2_1111);
-    }
-    //
-    fgMulti += fSSDgMulti[ssdindex];
-    globalevent->fSSDGlobalMulti.push_back(fSSDgMulti[ssdindex]);
-  }
   //
- 	globalevent->fGlobalMulti = fgMulti;
+  MODE_EXP[ssdindex] = L2L3_CalcModeFromExpData(GMULTI_2,trackevent->fCsINum[ssdindex],trackevent->fL2BNumStrip[ssdindex],trackevent->fL2FNumStrip[ssdindex],trackevent->fL1SNumStrip[ssdindex]);
+  //
+  L2L3_g2_0001_TrackDecoded(ssdindex, MODE_EXP[ssdindex].c_str(), ssdmulti, globalevent, trackevent, SWITCH_MODE_G2_0001);
+  L2L3_g2_0010_TrackDecoded(ssdindex, MODE_EXP[ssdindex].c_str(), ssdmulti, globalevent, trackevent, SWITCH_MODE_G2_0010);
+  L2L3_g2_0100_TrackDecoded(ssdindex, MODE_EXP[ssdindex].c_str(), ssdmulti, globalevent, trackevent, SWITCH_MODE_G2_0100);
+  L2L3_g2_0101_TrackDecoded(ssdindex, MODE_EXP[ssdindex].c_str(), ssdmulti, globalevent, trackevent, SWITCH_MODE_G2_0101);
+  L2L3_g2_1000_TrackDecoded(ssdindex, MODE_EXP[ssdindex].c_str(), ssdmulti, globalevent, trackevent, SWITCH_MODE_G2_1000);
+  L2L3_g2_1010_TrackDecoded(ssdindex, MODE_EXP[ssdindex].c_str(), ssdmulti, globalevent, trackevent, SWITCH_MODE_G2_1010);
+  L2L3_g2_1101_TrackDecoded(ssdindex, MODE_EXP[ssdindex].c_str(), ssdmulti, globalevent, trackevent, SWITCH_MODE_G2_1101);
+  L2L3_g2_1111_TrackDecoded(ssdindex, MODE_EXP[ssdindex].c_str(), ssdmulti, globalevent, trackevent, SWITCH_MODE_G2_1111);
 }
 
+
 //______________________________________________________________________________
-void L2L3_TrackDecoded::L2L3_g3_TrackDecoded(CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
+void L2L3_TrackDecoded::L2L3_g3_TrackDecoded(Int_t ssdindex, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
 {
   // 关闭 L2L3_g3_TrackDecoded 通道
   if (switchsetting == kFALSE) return;
-
-  fgMulti = 0;
-  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++)
-  {
-    fSSDgMulti[ssdindex] = 0;
-    //
-    if (trackevent->fCsINum[ssdindex].size() == GMULTI_3)
-    {
-      MODE_EXP[ssdindex] = L2L3_CalcModeFromExpData(GMULTI_3,trackevent->fCsINum[ssdindex],trackevent->fL2BNumStrip[ssdindex],trackevent->fL2FNumStrip[ssdindex],trackevent->fL1SNumStrip[ssdindex]);
-      L2L3_g3_0002_TrackDecoded(ssdindex, MODE_EXP[ssdindex].c_str(), globalevent, trackevent, SWITCH_MODE_G3_0002);
-      L2L3_g3_0020_TrackDecoded(ssdindex, MODE_EXP[ssdindex].c_str(), globalevent, trackevent, SWITCH_MODE_G3_0020);
-      L2L3_g3_0101_TrackDecoded(ssdindex, MODE_EXP[ssdindex].c_str(), globalevent, trackevent, SWITCH_MODE_G3_0101);
-      L2L3_g3_0102_TrackDecoded(ssdindex, MODE_EXP[ssdindex].c_str(), globalevent, trackevent, SWITCH_MODE_G3_0102);
-      L2L3_g3_0201_TrackDecoded(ssdindex, MODE_EXP[ssdindex].c_str(), globalevent, trackevent, SWITCH_MODE_G3_0201);
-      L2L3_g3_1010_TrackDecoded(ssdindex, MODE_EXP[ssdindex].c_str(), globalevent, trackevent, SWITCH_MODE_G3_1010);
-      L2L3_g3_1020_TrackDecoded(ssdindex, MODE_EXP[ssdindex].c_str(), globalevent, trackevent, SWITCH_MODE_G3_1020);
-      L2L3_g3_1110_TrackDecoded(ssdindex, MODE_EXP[ssdindex].c_str(), globalevent, trackevent, SWITCH_MODE_G3_1110);
-      L2L3_g3_1111_TrackDecoded(ssdindex, MODE_EXP[ssdindex].c_str(), globalevent, trackevent, SWITCH_MODE_G3_1111);
-      L2L3_g3_1112_TrackDecoded(ssdindex, MODE_EXP[ssdindex].c_str(), globalevent, trackevent, SWITCH_MODE_G3_1112);
-      L2L3_g3_1121_TrackDecoded(ssdindex, MODE_EXP[ssdindex].c_str(), globalevent, trackevent, SWITCH_MODE_G3_1121);
-      L2L3_g3_1211_TrackDecoded(ssdindex, MODE_EXP[ssdindex].c_str(), globalevent, trackevent, SWITCH_MODE_G3_1211);
-      L2L3_g3_2111_TrackDecoded(ssdindex, MODE_EXP[ssdindex].c_str(), globalevent, trackevent, SWITCH_MODE_G3_2111);
-      L2L3_g3_2222_TrackDecoded(ssdindex, MODE_EXP[ssdindex].c_str(), globalevent, trackevent, SWITCH_MODE_G3_2222);
-    }
-    //
-    fgMulti += fSSDgMulti[ssdindex];
-    globalevent->fSSDGlobalMulti.push_back(fSSDgMulti[ssdindex]);
-  }
   //
- 	globalevent->fGlobalMulti = fgMulti;
+  MODE_EXP[ssdindex] = L2L3_CalcModeFromExpData(GMULTI_3,trackevent->fCsINum[ssdindex],trackevent->fL2BNumStrip[ssdindex],trackevent->fL2FNumStrip[ssdindex],trackevent->fL1SNumStrip[ssdindex]);
+  //
+  L2L3_g3_0002_TrackDecoded(ssdindex, MODE_EXP[ssdindex].c_str(), ssdmulti, globalevent, trackevent, SWITCH_MODE_G3_0002);
+  L2L3_g3_0020_TrackDecoded(ssdindex, MODE_EXP[ssdindex].c_str(), ssdmulti, globalevent, trackevent, SWITCH_MODE_G3_0020);
+  L2L3_g3_0101_TrackDecoded(ssdindex, MODE_EXP[ssdindex].c_str(), ssdmulti, globalevent, trackevent, SWITCH_MODE_G3_0101);
+  L2L3_g3_0102_TrackDecoded(ssdindex, MODE_EXP[ssdindex].c_str(), ssdmulti, globalevent, trackevent, SWITCH_MODE_G3_0102);
+  L2L3_g3_0201_TrackDecoded(ssdindex, MODE_EXP[ssdindex].c_str(), ssdmulti, globalevent, trackevent, SWITCH_MODE_G3_0201);
+  L2L3_g3_1010_TrackDecoded(ssdindex, MODE_EXP[ssdindex].c_str(), ssdmulti, globalevent, trackevent, SWITCH_MODE_G3_1010);
+  L2L3_g3_1020_TrackDecoded(ssdindex, MODE_EXP[ssdindex].c_str(), ssdmulti, globalevent, trackevent, SWITCH_MODE_G3_1020);
+  L2L3_g3_1110_TrackDecoded(ssdindex, MODE_EXP[ssdindex].c_str(), ssdmulti, globalevent, trackevent, SWITCH_MODE_G3_1110);
+  L2L3_g3_1111_TrackDecoded(ssdindex, MODE_EXP[ssdindex].c_str(), ssdmulti, globalevent, trackevent, SWITCH_MODE_G3_1111);
+  L2L3_g3_1112_TrackDecoded(ssdindex, MODE_EXP[ssdindex].c_str(), ssdmulti, globalevent, trackevent, SWITCH_MODE_G3_1112);
+  L2L3_g3_1121_TrackDecoded(ssdindex, MODE_EXP[ssdindex].c_str(), ssdmulti, globalevent, trackevent, SWITCH_MODE_G3_1121);
+  L2L3_g3_1211_TrackDecoded(ssdindex, MODE_EXP[ssdindex].c_str(), ssdmulti, globalevent, trackevent, SWITCH_MODE_G3_1211);
+  L2L3_g3_2111_TrackDecoded(ssdindex, MODE_EXP[ssdindex].c_str(), ssdmulti, globalevent, trackevent, SWITCH_MODE_G3_2111);
+  L2L3_g3_2222_TrackDecoded(ssdindex, MODE_EXP[ssdindex].c_str(), ssdmulti, globalevent, trackevent, SWITCH_MODE_G3_2222);
 }
 
 
 //______________________________________________________________________________
-void L2L3_TrackDecoded::L2L3_g4_TrackDecoded(CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
+void L2L3_TrackDecoded::L2L3_g4_TrackDecoded(Int_t ssdindex, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
 {
   // 关闭 L2L3_g2_TrackDecoded 通道
   if (switchsetting == kFALSE) return;
-
-  fgMulti = 0;
-  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++)
-  {
-    fSSDgMulti[ssdindex] = 0;
-    //
-    if (trackevent->fCsINum[ssdindex].size() == GMULTI_4)
-    {
-      MODE_EXP[ssdindex] = L2L3_CalcModeFromExpData(GMULTI_4,trackevent->fCsINum[ssdindex],trackevent->fL2BNumStrip[ssdindex],trackevent->fL2FNumStrip[ssdindex],trackevent->fL1SNumStrip[ssdindex]);
-      L2L3_g4_0011_TrackDecoded(ssdindex, MODE_EXP[ssdindex].c_str(), globalevent, trackevent, SWITCH_MODE_G4_0011);
-      L2L3_g4_0101_TrackDecoded(ssdindex, MODE_EXP[ssdindex].c_str(), globalevent, trackevent, SWITCH_MODE_G4_0101);
-      L2L3_g4_0110_TrackDecoded(ssdindex, MODE_EXP[ssdindex].c_str(), globalevent, trackevent, SWITCH_MODE_G4_0110);
-      L2L3_g4_0111_TrackDecoded(ssdindex, MODE_EXP[ssdindex].c_str(), globalevent, trackevent, SWITCH_MODE_G4_0111);
-      L2L3_g4_1011_TrackDecoded(ssdindex, MODE_EXP[ssdindex].c_str(), globalevent, trackevent, SWITCH_MODE_G4_1011);
-      L2L3_g4_1110_TrackDecoded(ssdindex, MODE_EXP[ssdindex].c_str(), globalevent, trackevent, SWITCH_MODE_G4_1110);
-      L2L3_g4_1111_TrackDecoded(ssdindex, MODE_EXP[ssdindex].c_str(), globalevent, trackevent, SWITCH_MODE_G4_1111);
-      L2L3_g4_2222_TrackDecoded(ssdindex, MODE_EXP[ssdindex].c_str(), globalevent, trackevent, SWITCH_MODE_G4_2222);
-    }
-    //
-    fgMulti += fSSDgMulti[ssdindex];
-    globalevent->fSSDGlobalMulti.push_back(fSSDgMulti[ssdindex]);
-  }
   //
- 	globalevent->fGlobalMulti = fgMulti;
+  MODE_EXP[ssdindex] = L2L3_CalcModeFromExpData(GMULTI_4,trackevent->fCsINum[ssdindex],trackevent->fL2BNumStrip[ssdindex],trackevent->fL2FNumStrip[ssdindex],trackevent->fL1SNumStrip[ssdindex]);
+  //
+  L2L3_g4_0011_TrackDecoded(ssdindex, MODE_EXP[ssdindex].c_str(), ssdmulti, globalevent, trackevent, SWITCH_MODE_G4_0011);
+  L2L3_g4_0101_TrackDecoded(ssdindex, MODE_EXP[ssdindex].c_str(), ssdmulti, globalevent, trackevent, SWITCH_MODE_G4_0101);
+  L2L3_g4_0110_TrackDecoded(ssdindex, MODE_EXP[ssdindex].c_str(), ssdmulti, globalevent, trackevent, SWITCH_MODE_G4_0110);
+  L2L3_g4_0111_TrackDecoded(ssdindex, MODE_EXP[ssdindex].c_str(), ssdmulti, globalevent, trackevent, SWITCH_MODE_G4_0111);
+  L2L3_g4_1011_TrackDecoded(ssdindex, MODE_EXP[ssdindex].c_str(), ssdmulti, globalevent, trackevent, SWITCH_MODE_G4_1011);
+  L2L3_g4_1110_TrackDecoded(ssdindex, MODE_EXP[ssdindex].c_str(), ssdmulti, globalevent, trackevent, SWITCH_MODE_G4_1110);
+  L2L3_g4_1111_TrackDecoded(ssdindex, MODE_EXP[ssdindex].c_str(), ssdmulti, globalevent, trackevent, SWITCH_MODE_G4_1111);
+  L2L3_g4_2222_TrackDecoded(ssdindex, MODE_EXP[ssdindex].c_str(), ssdmulti, globalevent, trackevent, SWITCH_MODE_G4_2222);
 }
 
 
 //______________________________________________________________________________
-void L2L3_TrackDecoded::L2L3_g6_TrackDecoded(CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
+void L2L3_TrackDecoded::L2L3_g6_TrackDecoded(Int_t ssdindex, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
 {
   // 关闭 L2L3_g2_TrackDecoded 通道
   if (switchsetting == kFALSE) return;
-
-  fgMulti = 0;
-  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++)
-  {
-    fSSDgMulti[ssdindex] = 0;
-    //
-    if (trackevent->fCsINum[ssdindex].size() == GMULTI_6)
-    {
-      MODE_EXP[ssdindex] = L2L3_CalcModeFromExpData(GMULTI_6,trackevent->fCsINum[ssdindex],trackevent->fL2BNumStrip[ssdindex],trackevent->fL2FNumStrip[ssdindex],trackevent->fL1SNumStrip[ssdindex]);
-      L2L3_g6_0012_TrackDecoded(ssdindex, MODE_EXP[ssdindex].c_str(), globalevent, trackevent, SWITCH_MODE_G6_0012);
-      L2L3_g6_0021_TrackDecoded(ssdindex, MODE_EXP[ssdindex].c_str(), globalevent, trackevent, SWITCH_MODE_G6_0021);
-      L2L3_g6_0111_TrackDecoded(ssdindex, MODE_EXP[ssdindex].c_str(), globalevent, trackevent, SWITCH_MODE_G6_0111);
-      L2L3_g6_0112_TrackDecoded(ssdindex, MODE_EXP[ssdindex].c_str(), globalevent, trackevent, SWITCH_MODE_G6_0112);
-      L2L3_g6_0120_TrackDecoded(ssdindex, MODE_EXP[ssdindex].c_str(), globalevent, trackevent, SWITCH_MODE_G6_0120);
-      L2L3_g6_0121_TrackDecoded(ssdindex, MODE_EXP[ssdindex].c_str(), globalevent, trackevent, SWITCH_MODE_G6_0121);
-      L2L3_g6_0211_TrackDecoded(ssdindex, MODE_EXP[ssdindex].c_str(), globalevent, trackevent, SWITCH_MODE_G6_0211);
-      L2L3_g6_1011_TrackDecoded(ssdindex, MODE_EXP[ssdindex].c_str(), globalevent, trackevent, SWITCH_MODE_G6_1011);
-      L2L3_g6_1110_TrackDecoded(ssdindex, MODE_EXP[ssdindex].c_str(), globalevent, trackevent, SWITCH_MODE_G6_1110);
-      L2L3_g6_1111_TrackDecoded(ssdindex, MODE_EXP[ssdindex].c_str(), globalevent, trackevent, SWITCH_MODE_G6_1111);
-      L2L3_g6_1112_TrackDecoded(ssdindex, MODE_EXP[ssdindex].c_str(), globalevent, trackevent, SWITCH_MODE_G6_1112);
-      L2L3_g6_1121_TrackDecoded(ssdindex, MODE_EXP[ssdindex].c_str(), globalevent, trackevent, SWITCH_MODE_G6_1121);
-      L2L3_g6_1211_TrackDecoded(ssdindex, MODE_EXP[ssdindex].c_str(), globalevent, trackevent, SWITCH_MODE_G6_1211);
-      L2L3_g6_2222_TrackDecoded(ssdindex, MODE_EXP[ssdindex].c_str(), globalevent, trackevent, SWITCH_MODE_G6_2222);
-    }
-    //
-    fgMulti += fSSDgMulti[ssdindex];
-    globalevent->fSSDGlobalMulti.push_back(fSSDgMulti[ssdindex]);
-  }
   //
- 	globalevent->fGlobalMulti = fgMulti;
+  MODE_EXP[ssdindex] = L2L3_CalcModeFromExpData(GMULTI_6,trackevent->fCsINum[ssdindex],trackevent->fL2BNumStrip[ssdindex],trackevent->fL2FNumStrip[ssdindex],trackevent->fL1SNumStrip[ssdindex]);
+  //
+  L2L3_g6_0012_TrackDecoded(ssdindex, MODE_EXP[ssdindex].c_str(), ssdmulti, globalevent, trackevent, SWITCH_MODE_G6_0012);
+  L2L3_g6_0021_TrackDecoded(ssdindex, MODE_EXP[ssdindex].c_str(), ssdmulti, globalevent, trackevent, SWITCH_MODE_G6_0021);
+  L2L3_g6_0111_TrackDecoded(ssdindex, MODE_EXP[ssdindex].c_str(), ssdmulti, globalevent, trackevent, SWITCH_MODE_G6_0111);
+  L2L3_g6_0112_TrackDecoded(ssdindex, MODE_EXP[ssdindex].c_str(), ssdmulti, globalevent, trackevent, SWITCH_MODE_G6_0112);
+  L2L3_g6_0120_TrackDecoded(ssdindex, MODE_EXP[ssdindex].c_str(), ssdmulti, globalevent, trackevent, SWITCH_MODE_G6_0120);
+  L2L3_g6_0121_TrackDecoded(ssdindex, MODE_EXP[ssdindex].c_str(), ssdmulti, globalevent, trackevent, SWITCH_MODE_G6_0121);
+  L2L3_g6_0211_TrackDecoded(ssdindex, MODE_EXP[ssdindex].c_str(), ssdmulti, globalevent, trackevent, SWITCH_MODE_G6_0211);
+  L2L3_g6_1011_TrackDecoded(ssdindex, MODE_EXP[ssdindex].c_str(), ssdmulti, globalevent, trackevent, SWITCH_MODE_G6_1011);
+  L2L3_g6_1110_TrackDecoded(ssdindex, MODE_EXP[ssdindex].c_str(), ssdmulti, globalevent, trackevent, SWITCH_MODE_G6_1110);
+  L2L3_g6_1111_TrackDecoded(ssdindex, MODE_EXP[ssdindex].c_str(), ssdmulti, globalevent, trackevent, SWITCH_MODE_G6_1111);
+  L2L3_g6_1112_TrackDecoded(ssdindex, MODE_EXP[ssdindex].c_str(), ssdmulti, globalevent, trackevent, SWITCH_MODE_G6_1112);
+  L2L3_g6_1121_TrackDecoded(ssdindex, MODE_EXP[ssdindex].c_str(), ssdmulti, globalevent, trackevent, SWITCH_MODE_G6_1121);
+  L2L3_g6_1211_TrackDecoded(ssdindex, MODE_EXP[ssdindex].c_str(), ssdmulti, globalevent, trackevent, SWITCH_MODE_G6_1211);
+  L2L3_g6_2222_TrackDecoded(ssdindex, MODE_EXP[ssdindex].c_str(), ssdmulti, globalevent, trackevent, SWITCH_MODE_G6_2222);
 }
 
 
 //______________________________________________________________________________
 //            L2L3_g2_TrackDecoded
 //          ------------------------
-void L2L3_TrackDecoded::L2L3_g2_0001_TrackDecoded(Int_t ssdindex, const char* mode, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
+void L2L3_TrackDecoded::L2L3_g2_0001_TrackDecoded(Int_t ssdindex, const char* mode, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
 {
   // 关闭当前通道
   if (switchsetting == kFALSE) return;
 
-  if ((trackevent->fCsINum[ssdindex].size()==GMULTI_2) && (strcmp(mode,MODE_G2_0001)==0))
+  if (strcmp(mode,MODE_G2_0001)==0)
   {
     g2_EL1S_Sum = trackevent->fL1SEMeV[ssdindex][0] + trackevent->fL1SEMeV[ssdindex][1];
+    g2_EL1S_Ch_Sum = trackevent->fL1SECh[ssdindex][0] + trackevent->fL1SECh[ssdindex][1];
     //
     if (IsEneConstraint_L2B_L2F(ssdindex, trackevent->fL2BEMeV[ssdindex][0], trackevent->fL2FEMeV[ssdindex][0]) &&
         IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][0]],fMCut[0],trackevent->fCsIECh[ssdindex][0],trackevent->fL2FEMeV[ssdindex][0]))
@@ -521,47 +465,68 @@ void L2L3_TrackDecoded::L2L3_g2_0001_TrackDecoded(Int_t ssdindex, const char* mo
           IsEneConstraint_L1S_L2F(ssdindex, g2_EL1S_Sum, trackevent->fL2FEMeV[ssdindex][0]))
       {
         g2_ChargeCenter = GetChargeCenter(trackevent->fL1SNumStrip[ssdindex][0],trackevent->fL1SNumStrip[ssdindex][1],trackevent->fL1SEMeV[ssdindex][0],trackevent->fL1SEMeV[ssdindex][1]);
-        FillGlobalEvent_L2L3(globalevent, GMULTI_2, MODEINDEX_G2_0001, ssdindex, fSSDgMulti[ssdindex], fMCut[0].Cut_Z, fMCut[0].Cut_A,
-                             g2_ChargeCenter,                       g2_EL1S_Sum,
-                             trackevent->fL2FNumStrip[ssdindex][0], trackevent->fL2FEMeV[ssdindex][0],
-                             trackevent->fL2BNumStrip[ssdindex][0], trackevent->fL2BEMeV[ssdindex][0],
-                             trackevent->fCsINum[ssdindex][0],      trackevent->fCsIECh[ssdindex][0],
-                             trackevent->fL2FTime[ssdindex][0]);
+        //
+        for (Int_t itrack=0; itrack<GMULTI_2; itrack++)
+        {
+          if (itrack==0)
+          {
+            FillGlobalEvent_L2L3(globalevent, GMULTI_2, MODEINDEX_G2_0001, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                                 g2_ChargeCenter,                            g2_EL1S_Sum,                            g2_EL1S_Ch_Sum,
+                                 trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                                 trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
+                                 trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
+                                 trackevent->fL2FTime[ssdindex][itrack]);
+          }
+        }
       }
       else // 0)1)为同一条径迹,只考虑第0)条候选径迹
       {
-        FillGlobalEvent_L2L3(globalevent, GMULTI_2, MODEINDEX_G2_0001, ssdindex, fSSDgMulti[ssdindex], fMCut[0].Cut_Z, fMCut[0].Cut_A,
-                             trackevent->fL1SNumStrip[ssdindex][0], trackevent->fL1SEMeV[ssdindex][0],
-                             trackevent->fL2FNumStrip[ssdindex][0], trackevent->fL2FEMeV[ssdindex][0],
-                             trackevent->fL2BNumStrip[ssdindex][0], trackevent->fL2BEMeV[ssdindex][0],
-                             trackevent->fCsINum[ssdindex][0],      trackevent->fCsIECh[ssdindex][0],
-                             trackevent->fL2FTime[ssdindex][0]);
+        for (Int_t itrack=0; itrack<GMULTI_2; itrack++)
+        {
+          if (itrack==0)
+          {
+            FillGlobalEvent_L2L3(globalevent, GMULTI_2, MODEINDEX_G2_0001, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                                 trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                                 trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                                 trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
+                                 trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
+                                 trackevent->fL2FTime[ssdindex][itrack]);
+          }
+        }
       }
     }
   }
 }
 
 //______________________________________________________________________________
-void L2L3_TrackDecoded::L2L3_g2_0010_TrackDecoded(Int_t ssdindex, const char* mode, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
+void L2L3_TrackDecoded::L2L3_g2_0010_TrackDecoded(Int_t ssdindex, const char* mode, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
 {
   // 关闭当前通道
   if (switchsetting == kFALSE) return;
 
-  if ((trackevent->fCsINum[ssdindex].size()==GMULTI_2) && (strcmp(mode,MODE_G2_0010)==0))
+  if (strcmp(mode,MODE_G2_0010)==0)
   {
     g2_EL2F_Sum = trackevent->fL2FEMeV[ssdindex][0] + trackevent->fL2FEMeV[ssdindex][1];
+    g2_EL2F_Ch_Sum = trackevent->fL2FECh[ssdindex][0] + trackevent->fL2FECh[ssdindex][1];
     // 考虑 L2F sharing, 电荷重心法计算击中位置
     if ((TMath::Abs(trackevent->fL2FNumStrip[ssdindex][0]-trackevent->fL2FNumStrip[ssdindex][1])==1) &&
          IsEneConstraint_L2B_L2F(ssdindex, trackevent->fL2BEMeV[ssdindex][0], g2_EL2F_Sum) &&
          IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][0]],fMCut[0],trackevent->fCsIECh[ssdindex][0],g2_EL2F_Sum))
     {
       g2_ChargeCenter = GetChargeCenter(trackevent->fL2FNumStrip[ssdindex][0],trackevent->fL2FNumStrip[ssdindex][1],trackevent->fL2FEMeV[ssdindex][0],trackevent->fL2FEMeV[ssdindex][1]);
-      FillGlobalEvent_L2L3(globalevent, GMULTI_2, MODEINDEX_G2_0010, ssdindex, fSSDgMulti[ssdindex], fMCut[0].Cut_Z, fMCut[0].Cut_A,
-                      trackevent->fL1SNumStrip[ssdindex][0], trackevent->fL1SEMeV[ssdindex][0],
-                      g2_ChargeCenter,                       g2_EL2F_Sum,
-                      trackevent->fL2BNumStrip[ssdindex][0], trackevent->fL2BEMeV[ssdindex][0],
-                      trackevent->fCsINum[ssdindex][0],      trackevent->fCsIECh[ssdindex][0],
-                      trackevent->fL2FTime[ssdindex][0]);
+      //
+      for (Int_t itrack=0; itrack<GMULTI_2; itrack++)
+      {
+        if (itrack==0)
+        {
+          FillGlobalEvent_L2L3(globalevent, GMULTI_2, MODEINDEX_G2_0010, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                          trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                          g2_ChargeCenter,                            g2_EL2F_Sum,                            g2_EL2F_Ch_Sum,
+                          trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
+                          trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
+                          trackevent->fL2FTime[ssdindex][itrack]);
+        }
+      }
     }
     else // 考虑第 0）条或第 1）条候选径迹为有效径迹
     {
@@ -570,10 +535,10 @@ void L2L3_TrackDecoded::L2L3_g2_0010_TrackDecoded(Int_t ssdindex, const char* mo
         if (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]) &&
             IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][itrack]],fMCut[itrack],trackevent->fCsIECh[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]))
         {
-          FillGlobalEvent_L2L3(globalevent, GMULTI_2, MODEINDEX_G2_0010, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                          trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack],
-                          trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                          trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+          FillGlobalEvent_L2L3(globalevent, GMULTI_2, MODEINDEX_G2_0010, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                          trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                          trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                          trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                           trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
                           trackevent->fL2FTime[ssdindex][itrack]);
           break;
@@ -584,26 +549,34 @@ void L2L3_TrackDecoded::L2L3_g2_0010_TrackDecoded(Int_t ssdindex, const char* mo
 }
 
 //______________________________________________________________________________
-void L2L3_TrackDecoded::L2L3_g2_0100_TrackDecoded(Int_t ssdindex, const char* mode, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
+void L2L3_TrackDecoded::L2L3_g2_0100_TrackDecoded(Int_t ssdindex, const char* mode, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
 {
   // 关闭当前通道
   if (switchsetting == kFALSE) return;
 
-  if ((trackevent->fCsINum[ssdindex].size()==GMULTI_2) && (strcmp(mode,MODE_G2_0100)==0))
+  if (strcmp(mode,MODE_G2_0100)==0)
   {
     g2_EL2B_Sum = trackevent->fL2BEMeV[ssdindex][0] + trackevent->fL2BEMeV[ssdindex][1];
+    g2_EL2B_Ch_Sum = trackevent->fL2BECh[ssdindex][0] + trackevent->fL2BECh[ssdindex][1];
     // 考虑 L2B sharing, 电荷重心法计算击中位置
     if ((TMath::Abs(trackevent->fL2BNumStrip[ssdindex][0]-trackevent->fL2BNumStrip[ssdindex][1])==1) &&
          IsEneConstraint_L2B_L2F(ssdindex, g2_EL2B_Sum, trackevent->fL2FEMeV[ssdindex][0]) &&
          IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][0]],fMCut[0],trackevent->fCsIECh[ssdindex][0],trackevent->fL2FEMeV[ssdindex][0]))
     {
       g2_ChargeCenter = GetChargeCenter(trackevent->fL2BNumStrip[ssdindex][0],trackevent->fL2BNumStrip[ssdindex][1],trackevent->fL2BEMeV[ssdindex][0],trackevent->fL2BEMeV[ssdindex][1]);
-      FillGlobalEvent_L2L3(globalevent, GMULTI_2, MODEINDEX_G2_0100, ssdindex, fSSDgMulti[ssdindex], fMCut[0].Cut_Z, fMCut[0].Cut_A,
-                           trackevent->fL1SNumStrip[ssdindex][0], trackevent->fL1SEMeV[ssdindex][0],
-                           trackevent->fL2FNumStrip[ssdindex][0], trackevent->fL2FEMeV[ssdindex][0],
-                           g2_ChargeCenter,                       g2_EL2B_Sum,
-                           trackevent->fCsINum[ssdindex][0],      trackevent->fCsIECh[ssdindex][0],
-                           trackevent->fL2FTime[ssdindex][0]);
+      //
+      for (Int_t itrack=0; itrack<GMULTI_2; itrack++)
+      {
+        if (itrack==0)
+        {
+          FillGlobalEvent_L2L3(globalevent, GMULTI_2, MODEINDEX_G2_0100, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                               trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                               trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                               g2_ChargeCenter,                            g2_EL2B_Sum,                            g2_EL2B_Ch_Sum,
+                               trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
+                               trackevent->fL2FTime[ssdindex][itrack]);
+        }
+      }
     }
     else // 考虑第 0）条或第 1）条候选径迹为有效径迹
     {
@@ -612,10 +585,10 @@ void L2L3_TrackDecoded::L2L3_g2_0100_TrackDecoded(Int_t ssdindex, const char* mo
         if (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]) &&
             IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][itrack]],fMCut[itrack],trackevent->fCsIECh[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]))
         {
-          FillGlobalEvent_L2L3(globalevent, GMULTI_2, MODEINDEX_G2_0100, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                          trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack],
-                          trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                          trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+          FillGlobalEvent_L2L3(globalevent, GMULTI_2, MODEINDEX_G2_0100, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                          trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                          trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                          trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                           trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
                           trackevent->fL2FTime[ssdindex][itrack]);
           break;
@@ -626,26 +599,34 @@ void L2L3_TrackDecoded::L2L3_g2_0100_TrackDecoded(Int_t ssdindex, const char* mo
 }
 
 //______________________________________________________________________________
-void L2L3_TrackDecoded::L2L3_g2_0101_TrackDecoded(Int_t ssdindex, const char* mode, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
+void L2L3_TrackDecoded::L2L3_g2_0101_TrackDecoded(Int_t ssdindex, const char* mode, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
 {
   // 关闭当前通道
   if (switchsetting == kFALSE) return;
 
-  if ((trackevent->fCsINum[ssdindex].size()==GMULTI_2) && (strcmp(mode,MODE_G2_0101)==0))
+  if (strcmp(mode,MODE_G2_0101)==0)
   {
     g2_EL2B_Sum = trackevent->fL2BEMeV[ssdindex][0] + trackevent->fL2BEMeV[ssdindex][1];
+    g2_EL2B_Ch_Sum = trackevent->fL2BECh[ssdindex][0] + trackevent->fL2BECh[ssdindex][1];
     // 考虑 L2B sharing, 电荷重心法计算击中位置
     if ((TMath::Abs(trackevent->fL2BNumStrip[ssdindex][0]-trackevent->fL2BNumStrip[ssdindex][1])==1) &&
          IsEneConstraint_L2B_L2F(ssdindex, g2_EL2B_Sum, trackevent->fL2FEMeV[ssdindex][0]) &&
          IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][0]],fMCut[0],trackevent->fCsIECh[ssdindex][0],trackevent->fL2FEMeV[ssdindex][0]))
     {
       g2_ChargeCenter = GetChargeCenter(trackevent->fL2BNumStrip[ssdindex][0],trackevent->fL2BNumStrip[ssdindex][1],trackevent->fL2BEMeV[ssdindex][0],trackevent->fL2BEMeV[ssdindex][1]);
-      FillGlobalEvent_L2L3(globalevent, GMULTI_2, MODEINDEX_G2_0101, ssdindex, fSSDgMulti[ssdindex], fMCut[0].Cut_Z, fMCut[0].Cut_A,
-                           trackevent->fL1SNumStrip[ssdindex][0], trackevent->fL1SEMeV[ssdindex][0],
-                           trackevent->fL2FNumStrip[ssdindex][0], trackevent->fL2FEMeV[ssdindex][0],
-                           g2_ChargeCenter,                       g2_EL2B_Sum,
-                           trackevent->fCsINum[ssdindex][0],      trackevent->fCsIECh[ssdindex][0],
-                           trackevent->fL2FTime[ssdindex][0]);
+      //
+      for (Int_t itrack=0; itrack<GMULTI_2; itrack++)
+      {
+        if (itrack==0)
+        {
+          FillGlobalEvent_L2L3(globalevent, GMULTI_2, MODEINDEX_G2_0101, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                               trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                               trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                               g2_ChargeCenter,                            g2_EL2B_Sum,                            g2_EL2B_Ch_Sum,
+                               trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
+                               trackevent->fL2FTime[ssdindex][itrack]);
+        }
+      }
     }
     else // 考虑第 0）条或第 1）条候选径迹为有效径迹
     {
@@ -654,10 +635,10 @@ void L2L3_TrackDecoded::L2L3_g2_0101_TrackDecoded(Int_t ssdindex, const char* mo
         if (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]) &&
             IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][itrack]],fMCut[itrack],trackevent->fCsIECh[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]))
         {
-          FillGlobalEvent_L2L3(globalevent, GMULTI_2, MODEINDEX_G2_0101, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                          trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack],
-                          trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                          trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+          FillGlobalEvent_L2L3(globalevent, GMULTI_2, MODEINDEX_G2_0101, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                          trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                          trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                          trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                           trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
                           trackevent->fL2FTime[ssdindex][itrack]);
           break;
@@ -668,22 +649,22 @@ void L2L3_TrackDecoded::L2L3_g2_0101_TrackDecoded(Int_t ssdindex, const char* mo
 }
 
 //______________________________________________________________________________
-void L2L3_TrackDecoded::L2L3_g2_1000_TrackDecoded(Int_t ssdindex, const char* mode, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
+void L2L3_TrackDecoded::L2L3_g2_1000_TrackDecoded(Int_t ssdindex, const char* mode, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
 {
   // 关闭当前通道
   if (switchsetting == kFALSE) return;
 
-  if ((trackevent->fCsINum[ssdindex].size()==GMULTI_2) && (strcmp(mode,MODE_G2_1000)==0))
+  if (strcmp(mode,MODE_G2_1000)==0)
   { // 考虑第 0）条或第 1）条候选径迹为有效径迹
     for (Int_t itrack=0; itrack<GMULTI_2; itrack++)
     {
       if (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]) &&
           IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][itrack]],fMCut[itrack],trackevent->fCsIECh[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]))
       {
-        FillGlobalEvent_L2L3(globalevent, GMULTI_2, MODEINDEX_G2_1000, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                        trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack],
-                        trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                        trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+        FillGlobalEvent_L2L3(globalevent, GMULTI_2, MODEINDEX_G2_1000, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                        trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                        trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                        trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                         trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
                         trackevent->fL2FTime[ssdindex][itrack]);
         break;
@@ -693,14 +674,15 @@ void L2L3_TrackDecoded::L2L3_g2_1000_TrackDecoded(Int_t ssdindex, const char* mo
 }
 
 //______________________________________________________________________________
-void L2L3_TrackDecoded::L2L3_g2_1010_TrackDecoded(Int_t ssdindex, const char* mode, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
+void L2L3_TrackDecoded::L2L3_g2_1010_TrackDecoded(Int_t ssdindex, const char* mode, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
 {
   // 关闭当前通道
   if (switchsetting == kFALSE) return;
 
-  if ((trackevent->fCsINum[ssdindex].size()==GMULTI_2) && (strcmp(mode,MODE_G2_1010)==0))
+  if (strcmp(mode,MODE_G2_1010)==0)
   {
     g2_EL2F_Sum = trackevent->fL2FEMeV[ssdindex][0] + trackevent->fL2FEMeV[ssdindex][1];
+    g2_EL2F_Ch_Sum = trackevent->fL2FECh[ssdindex][0] + trackevent->fL2FECh[ssdindex][1];
     // 考虑 L2B 双击
     if (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][0],g2_EL2F_Sum))
     {
@@ -709,10 +691,10 @@ void L2L3_TrackDecoded::L2L3_g2_1010_TrackDecoded(Int_t ssdindex, const char* mo
         if (IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][itrack]],fMCut[itrack],trackevent->fCsIECh[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]))
         {
           fL1SELoss  = GetEL1S(ssdindex,trackevent->fL2FEMeV[ssdindex][itrack],fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A);
-          FillGlobalEvent_L2L3(globalevent, GMULTI_2, MODEINDEX_G2_1010, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                          trackevent->fL1SNumStrip[ssdindex][itrack], fL1SELoss,
-                          trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                          trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+          FillGlobalEvent_L2L3(globalevent, GMULTI_2, MODEINDEX_G2_1010, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                          trackevent->fL1SNumStrip[ssdindex][itrack], fL1SELoss,                              trackevent->fL1SECh[ssdindex][itrack],
+                          trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                          trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                           trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
                           trackevent->fL2FTime[ssdindex][itrack]);
         }
@@ -725,10 +707,10 @@ void L2L3_TrackDecoded::L2L3_g2_1010_TrackDecoded(Int_t ssdindex, const char* mo
         if (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]) &&
             IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][itrack]],fMCut[itrack],trackevent->fCsIECh[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]))
         {
-          FillGlobalEvent_L2L3(globalevent, GMULTI_2, MODEINDEX_G2_1010, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                          trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack],
-                          trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                          trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+          FillGlobalEvent_L2L3(globalevent, GMULTI_2, MODEINDEX_G2_1010, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                          trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                          trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                          trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                           trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
                           trackevent->fL2FTime[ssdindex][itrack]);
           break;
@@ -739,12 +721,12 @@ void L2L3_TrackDecoded::L2L3_g2_1010_TrackDecoded(Int_t ssdindex, const char* mo
 }
 
 //______________________________________________________________________________
-void L2L3_TrackDecoded::L2L3_g2_1101_TrackDecoded(Int_t ssdindex, const char* mode, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
+void L2L3_TrackDecoded::L2L3_g2_1101_TrackDecoded(Int_t ssdindex, const char* mode, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
 {
   // 关闭当前通道
   if (switchsetting == kFALSE) return;
 
-  if ((trackevent->fCsINum[ssdindex].size()==GMULTI_2) && (strcmp(mode,MODE_G2_1101)==0))
+  if (strcmp(mode,MODE_G2_1101)==0)
   {
     g2_EL2B_Sum = trackevent->fL2BEMeV[ssdindex][0] + trackevent->fL2BEMeV[ssdindex][1];
     // 考虑 L2F 双击, 此时使用 EL2B 代替第二层能量, 需要将 EL2B Scale 一下
@@ -755,10 +737,10 @@ void L2L3_TrackDecoded::L2L3_g2_1101_TrackDecoded(Int_t ssdindex, const char* mo
       {
         if (IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][itrack]],fMCut[itrack],trackevent->fCsIECh[ssdindex][itrack],trackevent->fL2BEMeV[ssdindex][itrack]*EL2B_TO_EL2F_SCALE[ssdindex]))
         {
-          FillGlobalEvent_L2L3(globalevent, GMULTI_2, MODEINDEX_G2_1101, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                          trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack],
-                          trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack]*EL2B_TO_EL2F_SCALE[ssdindex],
-                          trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+          FillGlobalEvent_L2L3(globalevent, GMULTI_2, MODEINDEX_G2_1101, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                          trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                          trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack]*EL2B_TO_EL2F_SCALE[ssdindex], trackevent->fL2FECh[ssdindex][itrack],
+                          trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                           trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
                           trackevent->fL2FTime[ssdindex][itrack]);
         }
@@ -771,10 +753,10 @@ void L2L3_TrackDecoded::L2L3_g2_1101_TrackDecoded(Int_t ssdindex, const char* mo
         if (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]) &&
             IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][itrack]],fMCut[itrack],trackevent->fCsIECh[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]))
         {
-          FillGlobalEvent_L2L3(globalevent, GMULTI_2, MODEINDEX_G2_1101, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                          trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack],
-                          trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                          trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+          FillGlobalEvent_L2L3(globalevent, GMULTI_2, MODEINDEX_G2_1101, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                          trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                          trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                          trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                           trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
                           trackevent->fL2FTime[ssdindex][itrack]);
           break;
@@ -785,22 +767,22 @@ void L2L3_TrackDecoded::L2L3_g2_1101_TrackDecoded(Int_t ssdindex, const char* mo
 }
 
 //______________________________________________________________________________
-void L2L3_TrackDecoded::L2L3_g2_1111_TrackDecoded(Int_t ssdindex, const char* mode, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
+void L2L3_TrackDecoded::L2L3_g2_1111_TrackDecoded(Int_t ssdindex, const char* mode, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
 {
   // 关闭当前通道
   if (switchsetting == kFALSE) return;
 
-  if ((trackevent->fCsINum[ssdindex].size()==GMULTI_2) && (strcmp(mode,MODE_G2_1111)==0))
+  if (strcmp(mode,MODE_G2_1111)==0)
   {
     for (Int_t itrack=0; itrack<GMULTI_2; itrack++)
     {
       if (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]) &&
           IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][itrack]],fMCut[itrack],trackevent->fCsIECh[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]))
       {
-        FillGlobalEvent_L2L3(globalevent, GMULTI_2, MODEINDEX_G2_1111, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                        trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack],
-                        trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                        trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+        FillGlobalEvent_L2L3(globalevent, GMULTI_2, MODEINDEX_G2_1111, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                        trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                        trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                        trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                         trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
                         trackevent->fL2FTime[ssdindex][itrack]);
       }
@@ -813,49 +795,50 @@ void L2L3_TrackDecoded::L2L3_g2_1111_TrackDecoded(Int_t ssdindex, const char* mo
 //             L2L3_g3_TrackDecoded
 //          ------------------------
 //______________________________________________________________________________
-void L2L3_TrackDecoded::L2L3_g3_0002_TrackDecoded(Int_t ssdindex, const char* mode, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
+void L2L3_TrackDecoded::L2L3_g3_0002_TrackDecoded(Int_t ssdindex, const char* mode, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
 {
   // 关闭当前通道
   if (switchsetting == kFALSE) return;
 
-  if ((trackevent->fCsINum[ssdindex].size()==GMULTI_3) && (strcmp(mode,MODE_G3_0002)==0))
+  if (strcmp(mode,MODE_G3_0002)==0)
   {
     if (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][0],trackevent->fL2FEMeV[ssdindex][0]) &&
 				IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][0]],fMCut[0],trackevent->fCsIECh[ssdindex][0],trackevent->fL2FEMeV[ssdindex][0]))
     {
       if (IsEneConstraint_L1S_L2F(ssdindex, trackevent->fL1SEMeV[ssdindex][0], trackevent->fL2FEMeV[ssdindex][0]))
       {
-        FillGlobalEvent_L2L3(globalevent, GMULTI_3, MODEINDEX_G3_0002, ssdindex, fSSDgMulti[ssdindex], fMCut[0].Cut_Z, fMCut[0].Cut_A,
-                        trackevent->fL1SNumStrip[ssdindex][0], trackevent->fL1SEMeV[ssdindex][0],
-                        trackevent->fL2FNumStrip[ssdindex][0], trackevent->fL2FEMeV[ssdindex][0],
-                        trackevent->fL2BNumStrip[ssdindex][0], trackevent->fL2BEMeV[ssdindex][0],
+        FillGlobalEvent_L2L3(globalevent, GMULTI_3, MODEINDEX_G3_0002, ssdindex, ssdmulti, fMCut[0].Cut_Z, fMCut[0].Cut_A,
+                        trackevent->fL1SNumStrip[ssdindex][0], trackevent->fL1SEMeV[ssdindex][0], trackevent->fL1SECh[ssdindex][0],
+                        trackevent->fL2FNumStrip[ssdindex][0], trackevent->fL2FEMeV[ssdindex][0], trackevent->fL2FECh[ssdindex][0],
+                        trackevent->fL2BNumStrip[ssdindex][0], trackevent->fL2BEMeV[ssdindex][0], trackevent->fL2BECh[ssdindex][0],
                         trackevent->fCsINum[ssdindex][0],      trackevent->fCsIECh[ssdindex][0],
                         trackevent->fL2FTime[ssdindex][0]);
       }
       else if (IsEneConstraint_L1S_L2F(ssdindex, trackevent->fL1SEMeV[ssdindex][1], trackevent->fL2FEMeV[ssdindex][1]))
       {
-        FillGlobalEvent_L2L3(globalevent, GMULTI_3, MODEINDEX_G3_0002, ssdindex, fSSDgMulti[ssdindex], fMCut[0].Cut_Z, fMCut[0].Cut_A,
-                        trackevent->fL1SNumStrip[ssdindex][1], trackevent->fL1SEMeV[ssdindex][1],
-                        trackevent->fL2FNumStrip[ssdindex][1], trackevent->fL2FEMeV[ssdindex][1],
-                        trackevent->fL2BNumStrip[ssdindex][1], trackevent->fL2BEMeV[ssdindex][1],
+        FillGlobalEvent_L2L3(globalevent, GMULTI_3, MODEINDEX_G3_0002, ssdindex, ssdmulti, fMCut[0].Cut_Z, fMCut[0].Cut_A,
+                        trackevent->fL1SNumStrip[ssdindex][1], trackevent->fL1SEMeV[ssdindex][1], trackevent->fL1SECh[ssdindex][1],
+                        trackevent->fL2FNumStrip[ssdindex][1], trackevent->fL2FEMeV[ssdindex][1], trackevent->fL2FECh[ssdindex][1],
+                        trackevent->fL2BNumStrip[ssdindex][1], trackevent->fL2BEMeV[ssdindex][1], trackevent->fL2BECh[ssdindex][1],
                         trackevent->fCsINum[ssdindex][1],      trackevent->fCsIECh[ssdindex][1],
                         trackevent->fL2FTime[ssdindex][1]);
       }
       else if (IsEneConstraint_L1S_L2F(ssdindex, trackevent->fL1SEMeV[ssdindex][2], trackevent->fL2FEMeV[ssdindex][2]))
       {
-        FillGlobalEvent_L2L3(globalevent, GMULTI_3, MODEINDEX_G3_0002, ssdindex, fSSDgMulti[ssdindex], fMCut[0].Cut_Z, fMCut[0].Cut_A,
-                        trackevent->fL1SNumStrip[ssdindex][2], trackevent->fL1SEMeV[ssdindex][2],
-                        trackevent->fL2FNumStrip[ssdindex][2], trackevent->fL2FEMeV[ssdindex][2],
-                        trackevent->fL2BNumStrip[ssdindex][2], trackevent->fL2BEMeV[ssdindex][2],
+        FillGlobalEvent_L2L3(globalevent, GMULTI_3, MODEINDEX_G3_0002, ssdindex, ssdmulti, fMCut[0].Cut_Z, fMCut[0].Cut_A,
+                        trackevent->fL1SNumStrip[ssdindex][2], trackevent->fL1SEMeV[ssdindex][2], trackevent->fL1SECh[ssdindex][2],
+                        trackevent->fL2FNumStrip[ssdindex][2], trackevent->fL2FEMeV[ssdindex][2], trackevent->fL2FECh[ssdindex][2],
+                        trackevent->fL2BNumStrip[ssdindex][2], trackevent->fL2BEMeV[ssdindex][2], trackevent->fL2BECh[ssdindex][2],
                         trackevent->fCsINum[ssdindex][2],      trackevent->fCsIECh[ssdindex][2],
                         trackevent->fL2FTime[ssdindex][2]);
       }
-      else {
+      else
+      {
         fL1SELoss = GetEL1S(ssdindex,trackevent->fL2FEMeV[ssdindex][0],fMCut[0].Cut_Z, fMCut[0].Cut_A);
-        FillGlobalEvent_L2L3(globalevent, GMULTI_3, MODEINDEX_G3_0002, ssdindex, fSSDgMulti[ssdindex], fMCut[0].Cut_Z, fMCut[0].Cut_A,
-                        trackevent->fL2BNumStrip[ssdindex][0], fL1SELoss,  // 认为 L1S 与 L2B 击中位置 strip 编号相同
-                        trackevent->fL2FNumStrip[ssdindex][0], trackevent->fL2FEMeV[ssdindex][0],
-                        trackevent->fL2BNumStrip[ssdindex][0], trackevent->fL2BEMeV[ssdindex][0],
+        FillGlobalEvent_L2L3(globalevent, GMULTI_3, MODEINDEX_G3_0002, ssdindex, ssdmulti, fMCut[0].Cut_Z, fMCut[0].Cut_A,
+                        trackevent->fL2BNumStrip[ssdindex][0], fL1SELoss,                         trackevent->fL1SECh[ssdindex][0], // 认为 L1S 与 L2B 击中位置 strip 编号相同
+                        trackevent->fL2FNumStrip[ssdindex][0], trackevent->fL2FEMeV[ssdindex][0], trackevent->fL2FECh[ssdindex][0],
+                        trackevent->fL2BNumStrip[ssdindex][0], trackevent->fL2BEMeV[ssdindex][0], trackevent->fL2BECh[ssdindex][0],
                         trackevent->fCsINum[ssdindex][0],      trackevent->fCsIECh[ssdindex][0],
                         trackevent->fL2FTime[ssdindex][0]);
       }
@@ -864,28 +847,38 @@ void L2L3_TrackDecoded::L2L3_g3_0002_TrackDecoded(Int_t ssdindex, const char* mo
 }
 
 //______________________________________________________________________________
-void L2L3_TrackDecoded::L2L3_g3_0020_TrackDecoded(Int_t ssdindex, const char* mode, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
+void L2L3_TrackDecoded::L2L3_g3_0020_TrackDecoded(Int_t ssdindex, const char* mode, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
 {
   // 关闭当前通道
   if (switchsetting == kFALSE) return;
 
-  if ((trackevent->fCsINum[ssdindex].size()==GMULTI_3) && (strcmp(mode,MODE_G3_0020)==0))
+  if (strcmp(mode,MODE_G3_0020)==0)
   {
     // 考虑 L2F sharing
     g3_EL2F_Sum_01 = trackevent->fL2FEMeV[ssdindex][0] + trackevent->fL2FEMeV[ssdindex][1];
     g3_EL2F_Sum_12 = trackevent->fL2FEMeV[ssdindex][1] + trackevent->fL2FEMeV[ssdindex][2];
+    g3_EL2F_Ch_Sum_01 = trackevent->fL2FECh[ssdindex][0] + trackevent->fL2FECh[ssdindex][1];
+    g3_EL2F_Ch_Sum_12 = trackevent->fL2FECh[ssdindex][1] + trackevent->fL2FECh[ssdindex][2];
+
     // 考虑第0)条与第 1)条候选径迹在 L2F 产生 charge sharing
     if ((TMath::Abs(trackevent->fL2FNumStrip[ssdindex][0]-trackevent->fL2FNumStrip[ssdindex][1])==1) &&
         IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][0],g3_EL2F_Sum_01) &&
         IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][0]],fMCut[0],trackevent->fCsIECh[ssdindex][0],g3_EL2F_Sum_01))
     {
       g3_ChargeCenter_01 = GetChargeCenter(trackevent->fL2FNumStrip[ssdindex][0],trackevent->fL2FNumStrip[ssdindex][1],trackevent->fL2FEMeV[ssdindex][0],trackevent->fL2FEMeV[ssdindex][1]);
-      FillGlobalEvent_L2L3(globalevent, GMULTI_3, MODEINDEX_G3_0020, ssdindex, fSSDgMulti[ssdindex], fMCut[0].Cut_Z, fMCut[0].Cut_A,
-                      trackevent->fL1SNumStrip[ssdindex][0], trackevent->fL1SEMeV[ssdindex][0],
-                      g3_ChargeCenter_01,                   g3_EL2F_Sum_01,
-                      trackevent->fL2BNumStrip[ssdindex][0], trackevent->fL2BEMeV[ssdindex][0],
-                      trackevent->fCsINum[ssdindex][0],      trackevent->fCsIECh[ssdindex][0],
-                      trackevent->fL2FTime[ssdindex][0]);
+      //
+      for (Int_t itrack=0; itrack<GMULTI_3; itrack++)
+      {
+        if (itrack==0)
+        {
+          FillGlobalEvent_L2L3(globalevent, GMULTI_3, MODEINDEX_G3_0020, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                          trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                          g3_ChargeCenter_01,                         g3_EL2F_Sum_01,                         g3_EL2F_Ch_Sum_01,
+                          trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
+                          trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
+                          trackevent->fL2FTime[ssdindex][itrack]);
+        }
+      }
     }
     // 考虑第1)条与第2)条候选径迹在 L2F 产生 charge sharing
     else if ((TMath::Abs(trackevent->fL2FNumStrip[ssdindex][1]-trackevent->fL2FNumStrip[ssdindex][2])==1) &&
@@ -893,12 +886,18 @@ void L2L3_TrackDecoded::L2L3_g3_0020_TrackDecoded(Int_t ssdindex, const char* mo
              IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][1]],fMCut[1],trackevent->fCsIECh[ssdindex][1],g3_EL2F_Sum_12))
     {
       g3_ChargeCenter_12 = GetChargeCenter(trackevent->fL2FNumStrip[ssdindex][1],trackevent->fL2FNumStrip[ssdindex][2],trackevent->fL2FEMeV[ssdindex][1],trackevent->fL2FEMeV[ssdindex][2]);
-      FillGlobalEvent_L2L3(globalevent, GMULTI_3, MODEINDEX_G3_0020, ssdindex, fSSDgMulti[ssdindex], fMCut[1].Cut_Z, fMCut[1].Cut_A,
-                      trackevent->fL1SNumStrip[ssdindex][1], trackevent->fL1SEMeV[ssdindex][1],
-                      g3_ChargeCenter_12,                   g3_EL2F_Sum_12,
-                      trackevent->fL2BNumStrip[ssdindex][1], trackevent->fL2BEMeV[ssdindex][1],
-                      trackevent->fCsINum[ssdindex][1],      trackevent->fCsIECh[ssdindex][1],
-                      trackevent->fL2FTime[ssdindex][1]);
+      for (Int_t itrack=0; itrack<GMULTI_3; itrack++)
+      {
+        if (itrack==1)
+        {
+          FillGlobalEvent_L2L3(globalevent, GMULTI_3, MODEINDEX_G3_0020, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                          trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                          g3_ChargeCenter_12,                         g3_EL2F_Sum_12,                         g3_EL2F_Ch_Sum_12,
+                          trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
+                          trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
+                          trackevent->fL2FTime[ssdindex][itrack]);
+        }
+      }
     }
     else
     {  // 考虑3条候选径迹中只有1条有效径迹
@@ -907,10 +906,10 @@ void L2L3_TrackDecoded::L2L3_g3_0020_TrackDecoded(Int_t ssdindex, const char* mo
         if (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]) &&
     				IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][itrack]],fMCut[itrack],trackevent->fCsIECh[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]))
         {
-          FillGlobalEvent_L2L3(globalevent, GMULTI_3, MODEINDEX_G3_0020, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                          trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack],
-                          trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                          trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+          FillGlobalEvent_L2L3(globalevent, GMULTI_3, MODEINDEX_G3_0020, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                          trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                          trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                          trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                           trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
                           trackevent->fL2FTime[ssdindex][itrack]);
           break;
@@ -921,28 +920,38 @@ void L2L3_TrackDecoded::L2L3_g3_0020_TrackDecoded(Int_t ssdindex, const char* mo
 }
 
 //______________________________________________________________________________
-void L2L3_TrackDecoded::L2L3_g3_0101_TrackDecoded(Int_t ssdindex, const char* mode, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
+void L2L3_TrackDecoded::L2L3_g3_0101_TrackDecoded(Int_t ssdindex, const char* mode, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
 {
   // 关闭当前通道
   if (switchsetting == kFALSE) return;
 
-  if ((trackevent->fCsINum[ssdindex].size()==GMULTI_3) && (strcmp(mode,MODE_G3_0101)==0))
+  if (strcmp(mode,MODE_G3_0101)==0)
   {
     // 考虑 L2B sharing
     g3_EL2B_Sum_01 = trackevent->fL2BEMeV[ssdindex][0] + trackevent->fL2BEMeV[ssdindex][1];
     g3_EL2B_Sum_12 = trackevent->fL2BEMeV[ssdindex][1] + trackevent->fL2BEMeV[ssdindex][2];
+    g3_EL2B_Ch_Sum_01 = trackevent->fL2BECh[ssdindex][0] + trackevent->fL2BECh[ssdindex][1];
+    g3_EL2B_Ch_Sum_12 = trackevent->fL2BECh[ssdindex][1] + trackevent->fL2BECh[ssdindex][2];
+
     // 考虑第0)条与第1)条候选径迹在 L2B 产生 charge sharing
     if ((TMath::Abs(trackevent->fL2BNumStrip[ssdindex][0]-trackevent->fL2BNumStrip[ssdindex][1])==1) &&
         IsEneConstraint_L2B_L2F(ssdindex,g3_EL2B_Sum_01,trackevent->fL2FEMeV[ssdindex][0]) &&
         IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][0]],fMCut[0],trackevent->fCsIECh[ssdindex][0],trackevent->fL2FEMeV[ssdindex][0]))
     {
       g3_ChargeCenter_01 = GetChargeCenter(trackevent->fL2BNumStrip[ssdindex][0],trackevent->fL2BNumStrip[ssdindex][1],trackevent->fL2BEMeV[ssdindex][0],trackevent->fL2BEMeV[ssdindex][1]);
-      FillGlobalEvent_L2L3(globalevent, GMULTI_3, MODEINDEX_G3_0101, ssdindex, fSSDgMulti[ssdindex], fMCut[0].Cut_Z, fMCut[0].Cut_A,
-                      trackevent->fL1SNumStrip[ssdindex][0], trackevent->fL1SEMeV[ssdindex][0],
-                      trackevent->fL2FNumStrip[ssdindex][0], trackevent->fL2FEMeV[ssdindex][0],
-                      g3_ChargeCenter_01,                    g3_EL2B_Sum_01,
-                      trackevent->fCsINum[ssdindex][0],      trackevent->fCsIECh[ssdindex][0],
-                      trackevent->fL2FTime[ssdindex][0]);
+      //
+      for (Int_t itrack=0; itrack<GMULTI_3; itrack++)
+      {
+        if (itrack==0)
+        {
+          FillGlobalEvent_L2L3(globalevent, GMULTI_3, MODEINDEX_G3_0101, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                          trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                          trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                          g3_ChargeCenter_01,                         g3_EL2B_Sum_01,                         g3_EL2B_Ch_Sum_01,
+                          trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
+                          trackevent->fL2FTime[ssdindex][itrack]);
+        }
+      }
     }
     // 考虑第1)条与第2)条候选径迹在 L2B 产生 charge sharing
     else if ((TMath::Abs(trackevent->fL2BNumStrip[ssdindex][1]-trackevent->fL2BNumStrip[ssdindex][2])==1) &&
@@ -950,12 +959,19 @@ void L2L3_TrackDecoded::L2L3_g3_0101_TrackDecoded(Int_t ssdindex, const char* mo
              IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][1]],fMCut[1],trackevent->fCsIECh[ssdindex][1],trackevent->fL2FEMeV[ssdindex][1]))
     {
       g3_ChargeCenter_12 = GetChargeCenter(trackevent->fL2BNumStrip[ssdindex][1],trackevent->fL2BNumStrip[ssdindex][2],trackevent->fL2BEMeV[ssdindex][1],trackevent->fL2BEMeV[ssdindex][2]);
-      FillGlobalEvent_L2L3(globalevent, GMULTI_3, MODEINDEX_G3_0101, ssdindex, fSSDgMulti[ssdindex], fMCut[1].Cut_Z, fMCut[1].Cut_A,
-                      trackevent->fL1SNumStrip[ssdindex][1], trackevent->fL1SEMeV[ssdindex][1],
-                      trackevent->fL2FNumStrip[ssdindex][1], trackevent->fL2FEMeV[ssdindex][1],
-                      g3_ChargeCenter_12,                    g3_EL2B_Sum_12,
-                      trackevent->fCsINum[ssdindex][1],      trackevent->fCsIECh[ssdindex][1],
-                      trackevent->fL2FTime[ssdindex][1]);
+      //
+      for (Int_t itrack=0; itrack<GMULTI_3; itrack++)
+      {
+        if (itrack==1)
+        {
+          FillGlobalEvent_L2L3(globalevent, GMULTI_3, MODEINDEX_G3_0101, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                          trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                          trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                          g3_ChargeCenter_12,                         g3_EL2B_Sum_12,                         g3_EL2B_Ch_Sum_12,
+                          trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
+                          trackevent->fL2FTime[ssdindex][itrack]);
+        }
+      }
     }
     else
     {  // 考虑3条候选径迹中只有1条有效径迹
@@ -964,10 +980,10 @@ void L2L3_TrackDecoded::L2L3_g3_0101_TrackDecoded(Int_t ssdindex, const char* mo
         if (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]) &&
     				IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][itrack]],fMCut[itrack],trackevent->fCsIECh[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]))
         {
-          FillGlobalEvent_L2L3(globalevent, GMULTI_3, MODEINDEX_G3_0101, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                          trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack],
-                          trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                          trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+          FillGlobalEvent_L2L3(globalevent, GMULTI_3, MODEINDEX_G3_0101, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                          trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                          trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                          trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                           trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
                           trackevent->fL2FTime[ssdindex][itrack]);
           break;
@@ -978,28 +994,38 @@ void L2L3_TrackDecoded::L2L3_g3_0101_TrackDecoded(Int_t ssdindex, const char* mo
 }
 
 //______________________________________________________________________________
-void L2L3_TrackDecoded::L2L3_g3_0102_TrackDecoded(Int_t ssdindex, const char* mode, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
+void L2L3_TrackDecoded::L2L3_g3_0102_TrackDecoded(Int_t ssdindex, const char* mode, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
 {
   // 关闭当前通道
   if (switchsetting == kFALSE) return;
 
-  if ((trackevent->fCsINum[ssdindex].size()==GMULTI_3) && (strcmp(mode,MODE_G3_0102)==0))
+  if (strcmp(mode,MODE_G3_0102)==0)
   {
     // 考虑 L2B sharing
     g3_EL2B_Sum_01 = trackevent->fL2BEMeV[ssdindex][0] + trackevent->fL2BEMeV[ssdindex][1];
     g3_EL2B_Sum_12 = trackevent->fL2BEMeV[ssdindex][1] + trackevent->fL2BEMeV[ssdindex][2];
+    g3_EL2B_Ch_Sum_01 = trackevent->fL2BECh[ssdindex][0] + trackevent->fL2BECh[ssdindex][1];
+    g3_EL2B_Ch_Sum_12 = trackevent->fL2BECh[ssdindex][1] + trackevent->fL2BECh[ssdindex][2];
+
     // 考虑第0)条与第1)条候选径迹在 L2B 产生 charge sharing
     if ((TMath::Abs(trackevent->fL2BNumStrip[ssdindex][0]-trackevent->fL2BNumStrip[ssdindex][1])==1) &&
         IsEneConstraint_L2B_L2F(ssdindex,g3_EL2B_Sum_01,trackevent->fL2FEMeV[ssdindex][0]) &&
         IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][0]],fMCut[0],trackevent->fCsIECh[ssdindex][0],trackevent->fL2FEMeV[ssdindex][0]))
     {
       g3_ChargeCenter_01 = GetChargeCenter(trackevent->fL2BNumStrip[ssdindex][0],trackevent->fL2BNumStrip[ssdindex][1],trackevent->fL2BEMeV[ssdindex][0],trackevent->fL2BEMeV[ssdindex][1]);
-      FillGlobalEvent_L2L3(globalevent, GMULTI_3, MODEINDEX_G3_0102, ssdindex, fSSDgMulti[ssdindex], fMCut[0].Cut_Z, fMCut[0].Cut_A,
-                      trackevent->fL1SNumStrip[ssdindex][0], trackevent->fL1SEMeV[ssdindex][0],
-                      trackevent->fL2FNumStrip[ssdindex][0], trackevent->fL2FEMeV[ssdindex][0],
-                      g3_ChargeCenter_01,                    g3_EL2B_Sum_01,
-                      trackevent->fCsINum[ssdindex][0],      trackevent->fCsIECh[ssdindex][0],
-                      trackevent->fL2FTime[ssdindex][0]);
+      //
+      for (Int_t itrack=0; itrack<GMULTI_3; itrack++)
+      {
+        if (itrack==0)
+        {
+          FillGlobalEvent_L2L3(globalevent, GMULTI_3, MODEINDEX_G3_0102, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                          trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                          trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                          g3_ChargeCenter_01,                         g3_EL2B_Sum_01,                         g3_EL2B_Ch_Sum_01,
+                          trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
+                          trackevent->fL2FTime[ssdindex][itrack]);
+        }
+      }
     }
     // 考虑第1)条与第2)条候选径迹在 L2B 产生 charge sharing
     else if ((TMath::Abs(trackevent->fL2BNumStrip[ssdindex][1]-trackevent->fL2BNumStrip[ssdindex][2])==1) &&
@@ -1007,12 +1033,19 @@ void L2L3_TrackDecoded::L2L3_g3_0102_TrackDecoded(Int_t ssdindex, const char* mo
              IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][1]],fMCut[1],trackevent->fCsIECh[ssdindex][1],trackevent->fL2FEMeV[ssdindex][1]))
     {
       g3_ChargeCenter_12 = GetChargeCenter(trackevent->fL2BNumStrip[ssdindex][1],trackevent->fL2BNumStrip[ssdindex][2],trackevent->fL2BEMeV[ssdindex][1],trackevent->fL2BEMeV[ssdindex][2]);
-      FillGlobalEvent_L2L3(globalevent, GMULTI_3, MODEINDEX_G3_0102, ssdindex, fSSDgMulti[ssdindex], fMCut[1].Cut_Z, fMCut[1].Cut_A,
-                      trackevent->fL1SNumStrip[ssdindex][1], trackevent->fL1SEMeV[ssdindex][1],
-                      trackevent->fL2FNumStrip[ssdindex][1], trackevent->fL2FEMeV[ssdindex][1],
-                      g3_ChargeCenter_12,                    g3_EL2B_Sum_12,
-                      trackevent->fCsINum[ssdindex][1],      trackevent->fCsIECh[ssdindex][1],
-                      trackevent->fL2FTime[ssdindex][1]);
+      //
+      for (Int_t itrack=0; itrack<GMULTI_3; itrack++)
+      {
+        if (itrack==1)
+        {
+          FillGlobalEvent_L2L3(globalevent, GMULTI_3, MODEINDEX_G3_0102, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                          trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                          trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                          g3_ChargeCenter_12,                         g3_EL2B_Sum_12,                         g3_EL2B_Ch_Sum_12,
+                          trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
+                          trackevent->fL2FTime[ssdindex][itrack]);
+        }
+      }
     }
     else
     {  // 考虑3条候选径迹中只有1条有效径迹
@@ -1021,10 +1054,10 @@ void L2L3_TrackDecoded::L2L3_g3_0102_TrackDecoded(Int_t ssdindex, const char* mo
         if (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]) &&
     				IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][itrack]],fMCut[itrack],trackevent->fCsIECh[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]))
         {
-          FillGlobalEvent_L2L3(globalevent, GMULTI_3, MODEINDEX_G3_0102, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                          trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack],
-                          trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                          trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+          FillGlobalEvent_L2L3(globalevent, GMULTI_3, MODEINDEX_G3_0102, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                          trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                          trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                          trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                           trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
                           trackevent->fL2FTime[ssdindex][itrack]);
           break;
@@ -1035,28 +1068,38 @@ void L2L3_TrackDecoded::L2L3_g3_0102_TrackDecoded(Int_t ssdindex, const char* mo
 }
 
 //______________________________________________________________________________
-void L2L3_TrackDecoded::L2L3_g3_0201_TrackDecoded(Int_t ssdindex, const char* mode, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
+void L2L3_TrackDecoded::L2L3_g3_0201_TrackDecoded(Int_t ssdindex, const char* mode, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
 {
   // 关闭当前通道
   if (switchsetting == kFALSE) return;
 
-  if ((trackevent->fCsINum[ssdindex].size()==GMULTI_3) && (strcmp(mode,MODE_G3_0201)==0))
+  if (strcmp(mode,MODE_G3_0201)==0)
   {
     // 考虑 L2B sharing
     g3_EL2B_Sum_01 = trackevent->fL2BEMeV[ssdindex][0] + trackevent->fL2BEMeV[ssdindex][1];
     g3_EL2B_Sum_12 = trackevent->fL2BEMeV[ssdindex][1] + trackevent->fL2BEMeV[ssdindex][2];
+    g3_EL2B_Ch_Sum_01 = trackevent->fL2BECh[ssdindex][0] + trackevent->fL2BECh[ssdindex][1];
+    g3_EL2B_Ch_Sum_12 = trackevent->fL2BECh[ssdindex][1] + trackevent->fL2BECh[ssdindex][2];
+
     // 考虑第0)条与第1)条候选径迹在 L2B 产生 charge sharing
     if ((TMath::Abs(trackevent->fL2BNumStrip[ssdindex][0]-trackevent->fL2BNumStrip[ssdindex][1])==1) &&
         IsEneConstraint_L2B_L2F(ssdindex,g3_EL2B_Sum_01,trackevent->fL2FEMeV[ssdindex][0]) &&
         IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][0]],fMCut[0],trackevent->fCsIECh[ssdindex][0],trackevent->fL2FEMeV[ssdindex][0]))
     {
       g3_ChargeCenter_01 = GetChargeCenter(trackevent->fL2BNumStrip[ssdindex][0],trackevent->fL2BNumStrip[ssdindex][1],trackevent->fL2BEMeV[ssdindex][0],trackevent->fL2BEMeV[ssdindex][1]);
-      FillGlobalEvent_L2L3(globalevent, GMULTI_3, MODEINDEX_G3_0201, ssdindex, fSSDgMulti[ssdindex], fMCut[0].Cut_Z, fMCut[0].Cut_A,
-                      trackevent->fL1SNumStrip[ssdindex][0], trackevent->fL1SEMeV[ssdindex][0],
-                      trackevent->fL2FNumStrip[ssdindex][0], trackevent->fL2FEMeV[ssdindex][0],
-                      g3_ChargeCenter_01,                    g3_EL2B_Sum_01,
-                      trackevent->fCsINum[ssdindex][0],      trackevent->fCsIECh[ssdindex][0],
-                      trackevent->fL2FTime[ssdindex][0]);
+      //
+      for (Int_t itrack=0; itrack<GMULTI_3; itrack++)
+      {
+        if (itrack==0)
+        {
+          FillGlobalEvent_L2L3(globalevent, GMULTI_3, MODEINDEX_G3_0201, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                          trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                          trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                          g3_ChargeCenter_01,                         g3_EL2B_Sum_01,                         g3_EL2B_Ch_Sum_01,
+                          trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
+                          trackevent->fL2FTime[ssdindex][itrack]);
+        }
+      }
     }
     // 考虑第1)条与第2)条候选径迹在 L2B 产生 charge sharing
     else if ((TMath::Abs(trackevent->fL2BNumStrip[ssdindex][1]-trackevent->fL2BNumStrip[ssdindex][2])==1) &&
@@ -1064,12 +1107,19 @@ void L2L3_TrackDecoded::L2L3_g3_0201_TrackDecoded(Int_t ssdindex, const char* mo
              IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][1]],fMCut[1],trackevent->fCsIECh[ssdindex][1],trackevent->fL2FEMeV[ssdindex][1]))
     {
       g3_ChargeCenter_12 = GetChargeCenter(trackevent->fL2BNumStrip[ssdindex][1],trackevent->fL2BNumStrip[ssdindex][2],trackevent->fL2BEMeV[ssdindex][1],trackevent->fL2BEMeV[ssdindex][2]);
-      FillGlobalEvent_L2L3(globalevent, GMULTI_3, MODEINDEX_G3_0201, ssdindex, fSSDgMulti[ssdindex], fMCut[1].Cut_Z, fMCut[1].Cut_A,
-                      trackevent->fL1SNumStrip[ssdindex][1], trackevent->fL1SEMeV[ssdindex][1],
-                      trackevent->fL2FNumStrip[ssdindex][1], trackevent->fL2FEMeV[ssdindex][1],
-                      g3_ChargeCenter_12,                    g3_EL2B_Sum_12,
-                      trackevent->fCsINum[ssdindex][1],      trackevent->fCsIECh[ssdindex][1],
-                      trackevent->fL2FTime[ssdindex][1]);
+      //
+      for (Int_t itrack=0; itrack<GMULTI_3; itrack++)
+      {
+        if (itrack==1)
+        {
+          FillGlobalEvent_L2L3(globalevent, GMULTI_3, MODEINDEX_G3_0201, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                          trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                          trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                          g3_ChargeCenter_12,                         g3_EL2B_Sum_12,                         g3_EL2B_Ch_Sum_12,
+                          trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
+                          trackevent->fL2FTime[ssdindex][itrack]);
+        }
+      }
     }
     else
     {  // 考虑3条候选径迹中只有1条有效径迹
@@ -1078,10 +1128,10 @@ void L2L3_TrackDecoded::L2L3_g3_0201_TrackDecoded(Int_t ssdindex, const char* mo
         if (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]) &&
     				IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][itrack]],fMCut[itrack],trackevent->fCsIECh[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]))
         {
-          FillGlobalEvent_L2L3(globalevent, GMULTI_3, MODEINDEX_G3_0201, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                          trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack],
-                          trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                          trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+          FillGlobalEvent_L2L3(globalevent, GMULTI_3, MODEINDEX_G3_0201, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                          trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                          trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                          trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                           trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
                           trackevent->fL2FTime[ssdindex][itrack]);
           break;
@@ -1092,29 +1142,34 @@ void L2L3_TrackDecoded::L2L3_g3_0201_TrackDecoded(Int_t ssdindex, const char* mo
 }
 
 //______________________________________________________________________________
-void L2L3_TrackDecoded::L2L3_g3_1010_TrackDecoded(Int_t ssdindex, const char* mode, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
+void L2L3_TrackDecoded::L2L3_g3_1010_TrackDecoded(Int_t ssdindex, const char* mode, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
 {
   // 关闭当前通道
   if (switchsetting == kFALSE) return;
 
-  if ((trackevent->fCsINum[ssdindex].size()==GMULTI_3) && (strcmp(mode,MODE_G3_1010)==0))
+  if (strcmp(mode,MODE_G3_1010)==0)
   {
     //
     g3_EL2F_Sum_01 = trackevent->fL2FEMeV[ssdindex][0] + trackevent->fL2FEMeV[ssdindex][1];
     g3_EL2F_Sum_12 = trackevent->fL2FEMeV[ssdindex][1] + trackevent->fL2FEMeV[ssdindex][2];
+    g3_EL2F_Ch_Sum_01 = trackevent->fL2FECh[ssdindex][0] + trackevent->fL2FECh[ssdindex][1];
+    g3_EL2F_Ch_Sum_12 = trackevent->fL2FECh[ssdindex][1] + trackevent->fL2FECh[ssdindex][2];
+
     // 考虑 L2B 双击, 第0)条与第1)条候选径迹为有效径迹
     if (((trackevent->fCsIECh[ssdindex][0]!=trackevent->fCsIECh[ssdindex][1]) && (trackevent->fL2FEMeV[ssdindex][0]!=trackevent->fL2FEMeV[ssdindex][1])) &&
 				(IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][0],g3_EL2F_Sum_01) &&
 				 IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][0]],fMCut[0],trackevent->fCsIECh[ssdindex][0],trackevent->fL2FEMeV[ssdindex][0]) &&
 				 IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][1]],fMCut[1],trackevent->fCsIECh[ssdindex][1],trackevent->fL2FEMeV[ssdindex][1])))
 		{
-      for (Int_t itrack=0; itrack<GMULTI_3; itrack++) {
-				if (itrack==0 || itrack==1) {
+      for (Int_t itrack=0; itrack<GMULTI_3; itrack++)
+      {
+				if (itrack==0 || itrack==1)
+        {
           fL1SELoss = GetEL1S(ssdindex,trackevent->fL2FEMeV[ssdindex][itrack],fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A);
-          FillGlobalEvent_L2L3(globalevent, GMULTI_3, MODEINDEX_G3_1010, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                          trackevent->fL1SNumStrip[ssdindex][itrack], fL1SELoss,
-                          trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                          trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+          FillGlobalEvent_L2L3(globalevent, GMULTI_3, MODEINDEX_G3_1010, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                          trackevent->fL1SNumStrip[ssdindex][itrack], fL1SELoss,                              trackevent->fL1SECh[ssdindex][itrack],
+                          trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                          trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                           trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
                           trackevent->fL2FTime[ssdindex][itrack]);
         }
@@ -1126,13 +1181,15 @@ void L2L3_TrackDecoded::L2L3_g3_1010_TrackDecoded(Int_t ssdindex, const char* mo
 				      IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][1]],fMCut[1],trackevent->fCsIECh[ssdindex][1],trackevent->fL2FEMeV[ssdindex][1]) &&
 				      IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][2]],fMCut[2],trackevent->fCsIECh[ssdindex][2],trackevent->fL2FEMeV[ssdindex][2])))
 		{
-      for (Int_t itrack=0; itrack<GMULTI_3; itrack++) {
-				if (itrack==1 || itrack==2) {
+      for (Int_t itrack=0; itrack<GMULTI_3; itrack++)
+      {
+				if (itrack==1 || itrack==2)
+        {
           fL1SELoss = GetEL1S(ssdindex,trackevent->fL2FEMeV[ssdindex][itrack],fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A);
-          FillGlobalEvent_L2L3(globalevent, GMULTI_3, MODEINDEX_G3_1010, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                          trackevent->fL1SNumStrip[ssdindex][itrack], fL1SELoss,
-                          trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                          trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+          FillGlobalEvent_L2L3(globalevent, GMULTI_3, MODEINDEX_G3_1010, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                          trackevent->fL1SNumStrip[ssdindex][itrack], fL1SELoss,                              trackevent->fL1SECh[ssdindex][itrack],
+                          trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                          trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                           trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
                           trackevent->fL2FTime[ssdindex][itrack]);
         }
@@ -1145,10 +1202,10 @@ void L2L3_TrackDecoded::L2L3_g3_1010_TrackDecoded(Int_t ssdindex, const char* mo
         if (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]) &&
     				IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][itrack]],fMCut[itrack],trackevent->fCsIECh[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]))
         {
-          FillGlobalEvent_L2L3(globalevent, GMULTI_3, MODEINDEX_G3_1010, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                          trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack],
-                          trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                          trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+          FillGlobalEvent_L2L3(globalevent, GMULTI_3, MODEINDEX_G3_1010, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                          trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                          trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                          trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                           trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
                           trackevent->fL2FTime[ssdindex][itrack]);
           break;
@@ -1159,30 +1216,36 @@ void L2L3_TrackDecoded::L2L3_g3_1010_TrackDecoded(Int_t ssdindex, const char* mo
 }
 
 //______________________________________________________________________________
-void L2L3_TrackDecoded::L2L3_g3_1020_TrackDecoded(Int_t ssdindex, const char* mode, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
+void L2L3_TrackDecoded::L2L3_g3_1020_TrackDecoded(Int_t ssdindex, const char* mode, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
 {
   // 关闭当前通道
   if (switchsetting == kFALSE) return;
 
-  if ((trackevent->fCsINum[ssdindex].size()==GMULTI_3) && (strcmp(mode,MODE_G3_1020)==0))
+  if (strcmp(mode,MODE_G3_1020)==0)
   {
     //
     g3_EL2F_Sum_01 = trackevent->fL2FEMeV[ssdindex][0] + trackevent->fL2FEMeV[ssdindex][1];
     g3_EL2F_Sum_02 = trackevent->fL2FEMeV[ssdindex][0] + trackevent->fL2FEMeV[ssdindex][2];
     g3_EL2F_Sum_12 = trackevent->fL2FEMeV[ssdindex][1] + trackevent->fL2FEMeV[ssdindex][2];
+    g3_EL2F_Ch_Sum_01 = trackevent->fL2FECh[ssdindex][0] + trackevent->fL2FECh[ssdindex][1];
+    g3_EL2F_Ch_Sum_02 = trackevent->fL2FECh[ssdindex][0] + trackevent->fL2FECh[ssdindex][2];
+    g3_EL2F_Ch_Sum_12 = trackevent->fL2FECh[ssdindex][1] + trackevent->fL2FECh[ssdindex][2];
+
     // 考虑 L2B 双击, 第0)条与第1)条候选径迹为有效径迹
     if ((trackevent->fCsIECh[ssdindex][0]!=trackevent->fCsIECh[ssdindex][1]) &&
 				(IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][0],g3_EL2F_Sum_01) &&
 				 IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][0]],fMCut[0],trackevent->fCsIECh[ssdindex][0],trackevent->fL2FEMeV[ssdindex][0]) &&
 				 IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][1]],fMCut[1],trackevent->fCsIECh[ssdindex][1],trackevent->fL2FEMeV[ssdindex][1])))
 		{
-      for (Int_t itrack=0; itrack<GMULTI_3; itrack++) {
-				if (itrack==0 || itrack==1) {
+      for (Int_t itrack=0; itrack<GMULTI_3; itrack++)
+      {
+				if (itrack==0 || itrack==1)
+        {
           fL1SELoss = GetEL1S(ssdindex,trackevent->fL2FEMeV[ssdindex][itrack],fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A);
-          FillGlobalEvent_L2L3(globalevent, GMULTI_3, MODEINDEX_G3_1020, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                          trackevent->fL1SNumStrip[ssdindex][itrack], fL1SELoss,
-                          trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                          trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+          FillGlobalEvent_L2L3(globalevent, GMULTI_3, MODEINDEX_G3_1020, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                          trackevent->fL1SNumStrip[ssdindex][itrack], fL1SELoss,                              trackevent->fL1SECh[ssdindex][itrack],
+                          trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                          trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                           trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
                           trackevent->fL2FTime[ssdindex][itrack]);
         }
@@ -1194,13 +1257,15 @@ void L2L3_TrackDecoded::L2L3_g3_1020_TrackDecoded(Int_t ssdindex, const char* mo
 				      IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][0]],fMCut[0],trackevent->fCsIECh[ssdindex][0],trackevent->fL2FEMeV[ssdindex][0]) &&
 				      IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][2]],fMCut[2],trackevent->fCsIECh[ssdindex][2],trackevent->fL2FEMeV[ssdindex][2])))
 		{
-      for (Int_t itrack=0; itrack<GMULTI_3; itrack++) {
-				if (itrack==0 || itrack==2) {
+      for (Int_t itrack=0; itrack<GMULTI_3; itrack++)
+      {
+				if (itrack==0 || itrack==2)
+        {
           fL1SELoss = GetEL1S(ssdindex,trackevent->fL2FEMeV[ssdindex][itrack],fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A);
-          FillGlobalEvent_L2L3(globalevent, GMULTI_3, MODEINDEX_G3_1020, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                          trackevent->fL1SNumStrip[ssdindex][itrack], fL1SELoss,
-                          trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                          trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+          FillGlobalEvent_L2L3(globalevent, GMULTI_3, MODEINDEX_G3_1020, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                          trackevent->fL1SNumStrip[ssdindex][itrack], fL1SELoss,                              trackevent->fL1SECh[ssdindex][itrack],
+                          trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                          trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                           trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
                           trackevent->fL2FTime[ssdindex][itrack]);
         }
@@ -1212,13 +1277,15 @@ void L2L3_TrackDecoded::L2L3_g3_1020_TrackDecoded(Int_t ssdindex, const char* mo
 				      IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][1]],fMCut[1],trackevent->fCsIECh[ssdindex][1],trackevent->fL2FEMeV[ssdindex][1]) &&
 				      IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][2]],fMCut[2],trackevent->fCsIECh[ssdindex][2],trackevent->fL2FEMeV[ssdindex][2])))
 		{
-      for (Int_t itrack=0; itrack<GMULTI_3; itrack++) {
-				if (itrack==1 || itrack==2) {
+      for (Int_t itrack=0; itrack<GMULTI_3; itrack++)
+      {
+				if (itrack==1 || itrack==2)
+        {
           fL1SELoss = GetEL1S(ssdindex,trackevent->fL2FEMeV[ssdindex][itrack],fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A);
-          FillGlobalEvent_L2L3(globalevent, GMULTI_3, MODEINDEX_G3_1020, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                          trackevent->fL1SNumStrip[ssdindex][itrack], fL1SELoss,
-                          trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                          trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+          FillGlobalEvent_L2L3(globalevent, GMULTI_3, MODEINDEX_G3_1020, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                          trackevent->fL1SNumStrip[ssdindex][itrack], fL1SELoss,                              trackevent->fL1SECh[ssdindex][itrack],
+                          trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                          trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                           trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
                           trackevent->fL2FTime[ssdindex][itrack]);
         }
@@ -1231,10 +1298,10 @@ void L2L3_TrackDecoded::L2L3_g3_1020_TrackDecoded(Int_t ssdindex, const char* mo
         if (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]) &&
     				IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][itrack]],fMCut[itrack],trackevent->fCsIECh[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]))
         {
-          FillGlobalEvent_L2L3(globalevent, GMULTI_3, MODEINDEX_G3_1020, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                          trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack],
-                          trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                          trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+          FillGlobalEvent_L2L3(globalevent, GMULTI_3, MODEINDEX_G3_1020, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                          trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                          trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                          trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                           trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
                           trackevent->fL2FTime[ssdindex][itrack]);
           break;
@@ -1245,12 +1312,12 @@ void L2L3_TrackDecoded::L2L3_g3_1020_TrackDecoded(Int_t ssdindex, const char* mo
 }
 
 //______________________________________________________________________________
-void L2L3_TrackDecoded::L2L3_g3_1110_TrackDecoded(Int_t ssdindex, const char* mode, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
+void L2L3_TrackDecoded::L2L3_g3_1110_TrackDecoded(Int_t ssdindex, const char* mode, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
 {
   // 关闭当前通道
   if (switchsetting == kFALSE) return;
 
-  if ((trackevent->fCsINum[ssdindex].size()==GMULTI_3) && (strcmp(mode,MODE_G3_1110)==0))
+  if (strcmp(mode,MODE_G3_1110)==0)
   {
     // 考虑第0)条与第1)条候选径迹为有效径迹
     if (((trackevent->fCsIECh[ssdindex][0]!=trackevent->fCsIECh[ssdindex][1]) && (trackevent->fL2BEMeV[ssdindex][0]!=trackevent->fL2BEMeV[ssdindex][1]) && (trackevent->fL2FEMeV[ssdindex][0]!=trackevent->fL2FEMeV[ssdindex][1])) &&
@@ -1259,13 +1326,15 @@ void L2L3_TrackDecoded::L2L3_g3_1110_TrackDecoded(Int_t ssdindex, const char* mo
         (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][1],trackevent->fL2FEMeV[ssdindex][1]) &&
          IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][1]],fMCut[1],trackevent->fCsIECh[ssdindex][1],trackevent->fL2FEMeV[ssdindex][1])))
     {
-      for (Int_t itrack=0; itrack<GMULTI_3; itrack++) {
-				if (itrack==0 || itrack==1) {
+      for (Int_t itrack=0; itrack<GMULTI_3; itrack++)
+      {
+				if (itrack==0 || itrack==1)
+        {
           fL1SELoss = GetEL1S(ssdindex,trackevent->fL2FEMeV[ssdindex][itrack],fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A);
-          FillGlobalEvent_L2L3(globalevent, GMULTI_3, MODEINDEX_G3_1110, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                          trackevent->fL1SNumStrip[ssdindex][itrack], fL1SELoss,
-                          trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                          trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+          FillGlobalEvent_L2L3(globalevent, GMULTI_3, MODEINDEX_G3_1110, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                          trackevent->fL1SNumStrip[ssdindex][itrack], fL1SELoss,                              trackevent->fL1SECh[ssdindex][itrack],
+                          trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                          trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                           trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
                           trackevent->fL2FTime[ssdindex][itrack]);
         }
@@ -1278,13 +1347,15 @@ void L2L3_TrackDecoded::L2L3_g3_1110_TrackDecoded(Int_t ssdindex, const char* mo
              (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][2],trackevent->fL2FEMeV[ssdindex][2]) &&
               IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][2]],fMCut[2],trackevent->fCsIECh[ssdindex][2],trackevent->fL2FEMeV[ssdindex][2])))
     {
-      for (Int_t itrack=0; itrack<GMULTI_3; itrack++) {
-				if (itrack==1 || itrack==2) {
+      for (Int_t itrack=0; itrack<GMULTI_3; itrack++)
+      {
+				if (itrack==1 || itrack==2)
+        {
           fL1SELoss = GetEL1S(ssdindex,trackevent->fL2FEMeV[ssdindex][itrack],fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A);
-          FillGlobalEvent_L2L3(globalevent, GMULTI_3, MODEINDEX_G3_1110, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                          trackevent->fL1SNumStrip[ssdindex][itrack], fL1SELoss,
-                          trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                          trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+          FillGlobalEvent_L2L3(globalevent, GMULTI_3, MODEINDEX_G3_1110, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                          trackevent->fL1SNumStrip[ssdindex][itrack], fL1SELoss,                              trackevent->fL1SECh[ssdindex][itrack],
+                          trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                          trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                           trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
                           trackevent->fL2FTime[ssdindex][itrack]);
         }
@@ -1297,10 +1368,10 @@ void L2L3_TrackDecoded::L2L3_g3_1110_TrackDecoded(Int_t ssdindex, const char* mo
         if (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]) &&
     				IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][itrack]],fMCut[itrack],trackevent->fCsIECh[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]))
         {
-          FillGlobalEvent_L2L3(globalevent, GMULTI_3, MODEINDEX_G3_1110, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                          trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack],
-                          trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                          trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+          FillGlobalEvent_L2L3(globalevent, GMULTI_3, MODEINDEX_G3_1110, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                          trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                          trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                          trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                           trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
                           trackevent->fL2FTime[ssdindex][itrack]);
           break;
@@ -1311,12 +1382,12 @@ void L2L3_TrackDecoded::L2L3_g3_1110_TrackDecoded(Int_t ssdindex, const char* mo
 }
 
 //______________________________________________________________________________
-void L2L3_TrackDecoded::L2L3_g3_1111_TrackDecoded(Int_t ssdindex, const char* mode, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
+void L2L3_TrackDecoded::L2L3_g3_1111_TrackDecoded(Int_t ssdindex, const char* mode, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
 {
   // 关闭当前通道
   if (switchsetting == kFALSE) return;
 
-  if ((trackevent->fCsINum[ssdindex].size()==GMULTI_3) && (strcmp(mode,MODE_G3_1111)==0))
+  if (strcmp(mode,MODE_G3_1111)==0)
   {
     // 考虑第0)条与第1)条候选径迹为有效径迹
     if (((trackevent->fCsIECh[ssdindex][0]!=trackevent->fCsIECh[ssdindex][1]) && (trackevent->fL2BEMeV[ssdindex][0]!=trackevent->fL2BEMeV[ssdindex][1]) && (trackevent->fL2FEMeV[ssdindex][0]!=trackevent->fL2FEMeV[ssdindex][1]) && (trackevent->fL1SEMeV[ssdindex][0]!=trackevent->fL1SEMeV[ssdindex][1])) &&
@@ -1325,12 +1396,14 @@ void L2L3_TrackDecoded::L2L3_g3_1111_TrackDecoded(Int_t ssdindex, const char* mo
         (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][1],trackevent->fL2FEMeV[ssdindex][1]) &&
          IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][1]],fMCut[1],trackevent->fCsIECh[ssdindex][1],trackevent->fL2FEMeV[ssdindex][1])))
     {
-      for (Int_t itrack=0; itrack<GMULTI_3; itrack++) {
-				if (itrack==0 || itrack==1) {
-          FillGlobalEvent_L2L3(globalevent, GMULTI_3, MODEINDEX_G3_1111, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                          trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack],
-                          trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                          trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+      for (Int_t itrack=0; itrack<GMULTI_3; itrack++)
+      {
+				if (itrack==0 || itrack==1)
+        {
+          FillGlobalEvent_L2L3(globalevent, GMULTI_3, MODEINDEX_G3_1111, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                          trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                          trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                          trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                           trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
                           trackevent->fL2FTime[ssdindex][itrack]);
         }
@@ -1343,12 +1416,14 @@ void L2L3_TrackDecoded::L2L3_g3_1111_TrackDecoded(Int_t ssdindex, const char* mo
              (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][2],trackevent->fL2FEMeV[ssdindex][2]) &&
               IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][2]],fMCut[2],trackevent->fCsIECh[ssdindex][2],trackevent->fL2FEMeV[ssdindex][2])))
     {
-      for (Int_t itrack=0; itrack<GMULTI_3; itrack++) {
-        if (itrack==1 || itrack==2) {
-          FillGlobalEvent_L2L3(globalevent, GMULTI_3, MODEINDEX_G3_1111, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                          trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack],
-                          trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                          trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+      for (Int_t itrack=0; itrack<GMULTI_3; itrack++)
+      {
+        if (itrack==1 || itrack==2)
+        {
+          FillGlobalEvent_L2L3(globalevent, GMULTI_3, MODEINDEX_G3_1111, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                          trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                          trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                          trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                           trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
                           trackevent->fL2FTime[ssdindex][itrack]);
         }
@@ -1361,10 +1436,10 @@ void L2L3_TrackDecoded::L2L3_g3_1111_TrackDecoded(Int_t ssdindex, const char* mo
         if (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]) &&
     				IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][itrack]],fMCut[itrack],trackevent->fCsIECh[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]))
         {
-          FillGlobalEvent_L2L3(globalevent, GMULTI_3, MODEINDEX_G3_1111, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                          trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack],
-                          trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                          trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+          FillGlobalEvent_L2L3(globalevent, GMULTI_3, MODEINDEX_G3_1111, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                          trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                          trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                          trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                           trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
                           trackevent->fL2FTime[ssdindex][itrack]);
           break;
@@ -1375,14 +1450,13 @@ void L2L3_TrackDecoded::L2L3_g3_1111_TrackDecoded(Int_t ssdindex, const char* mo
 }
 
 //______________________________________________________________________________
-void L2L3_TrackDecoded::L2L3_g3_1112_TrackDecoded(Int_t ssdindex, const char* mode, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
+void L2L3_TrackDecoded::L2L3_g3_1112_TrackDecoded(Int_t ssdindex, const char* mode, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
 {
   // 关闭当前通道
   if (switchsetting == kFALSE) return;
 
-  if ((trackevent->fCsINum[ssdindex].size()==GMULTI_3) && (strcmp(mode,MODE_G3_1112)==0))
+  if (strcmp(mode,MODE_G3_1112)==0)
   {
-    fSSDgMulti[ssdindex] = 0;
     // 考虑第0)条与第1)条候选径迹为有效径迹
     if (((trackevent->fCsIECh[ssdindex][0]!=trackevent->fCsIECh[ssdindex][1]) && (trackevent->fL2BEMeV[ssdindex][0]!=trackevent->fL2BEMeV[ssdindex][1]) && (trackevent->fL2FEMeV[ssdindex][0]!=trackevent->fL2FEMeV[ssdindex][1])) &&
         (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][0],trackevent->fL2FEMeV[ssdindex][0]) &&
@@ -1390,12 +1464,13 @@ void L2L3_TrackDecoded::L2L3_g3_1112_TrackDecoded(Int_t ssdindex, const char* mo
         (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][1],trackevent->fL2FEMeV[ssdindex][1]) &&
          IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][1]],fMCut[1],trackevent->fCsIECh[ssdindex][1],trackevent->fL2FEMeV[ssdindex][1])))
     {
-      for (Int_t itrack=0; itrack<GMULTI_3; itrack++) {
+      for (Int_t itrack=0; itrack<GMULTI_3; itrack++)
+      {
 				if (itrack==0 || itrack==1) {
-          FillGlobalEvent_L2L3(globalevent, GMULTI_3, MODEINDEX_G3_1112, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                          trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack],
-                          trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                          trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+          FillGlobalEvent_L2L3(globalevent, GMULTI_3, MODEINDEX_G3_1112, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                          trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                          trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                          trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                           trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
                           trackevent->fL2FTime[ssdindex][itrack]);
         }
@@ -1408,12 +1483,13 @@ void L2L3_TrackDecoded::L2L3_g3_1112_TrackDecoded(Int_t ssdindex, const char* mo
              (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][2],trackevent->fL2FEMeV[ssdindex][2]) &&
               IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][2]],fMCut[2],trackevent->fCsIECh[ssdindex][2],trackevent->fL2FEMeV[ssdindex][2])))
     {
-      for (Int_t itrack=0; itrack<GMULTI_3; itrack++) {
+      for (Int_t itrack=0; itrack<GMULTI_3; itrack++)
+      {
         if (itrack==1 || itrack==2) {
-          FillGlobalEvent_L2L3(globalevent, GMULTI_3, MODEINDEX_G3_1112, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                          trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack],
-                          trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                          trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+          FillGlobalEvent_L2L3(globalevent, GMULTI_3, MODEINDEX_G3_1112, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                          trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                          trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                          trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                           trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
                           trackevent->fL2FTime[ssdindex][itrack]);
         }
@@ -1426,10 +1502,10 @@ void L2L3_TrackDecoded::L2L3_g3_1112_TrackDecoded(Int_t ssdindex, const char* mo
         if (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]) &&
     				IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][itrack]],fMCut[itrack],trackevent->fCsIECh[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]))
         {
-          FillGlobalEvent_L2L3(globalevent, GMULTI_3, MODEINDEX_G3_1112, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                          trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack],
-                          trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                          trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+          FillGlobalEvent_L2L3(globalevent, GMULTI_3, MODEINDEX_G3_1112, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                          trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                          trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                          trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                           trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
                           trackevent->fL2FTime[ssdindex][itrack]);
           break;
@@ -1440,16 +1516,19 @@ void L2L3_TrackDecoded::L2L3_g3_1112_TrackDecoded(Int_t ssdindex, const char* mo
 }
 
 //______________________________________________________________________________
-void L2L3_TrackDecoded::L2L3_g3_1121_TrackDecoded(Int_t ssdindex, const char* mode, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
+void L2L3_TrackDecoded::L2L3_g3_1121_TrackDecoded(Int_t ssdindex, const char* mode, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
 {
   // 关闭当前通道
   if (switchsetting == kFALSE) return;
 
-  if ((trackevent->fCsINum[ssdindex].size()==GMULTI_3) && (strcmp(mode,MODE_G3_1121)==0))
+  if (strcmp(mode,MODE_G3_1121)==0)
   {
     // 考虑 L2F sharing
     g3_EL2F_Sum_01 = trackevent->fL2FEMeV[ssdindex][0] + trackevent->fL2FEMeV[ssdindex][1];
     g3_EL2F_Sum_12 = trackevent->fL2FEMeV[ssdindex][1] + trackevent->fL2FEMeV[ssdindex][2];
+    g3_EL2F_Ch_Sum_01 = trackevent->fL2FECh[ssdindex][0] + trackevent->fL2FECh[ssdindex][1];
+    g3_EL2F_Ch_Sum_12 = trackevent->fL2FECh[ssdindex][1] + trackevent->fL2FECh[ssdindex][2];
+
     // 考虑第0)条与第1)条候选径迹在 L2F 有 charge sharing
     if (((trackevent->fCsIECh[ssdindex][0]==trackevent->fCsIECh[ssdindex][1]) && (trackevent->fL2BEMeV[ssdindex][0]==trackevent->fL2BEMeV[ssdindex][1]) && (trackevent->fL1SEMeV[ssdindex][0]==trackevent->fL1SEMeV[ssdindex][1])) &&
 				(TMath::Abs(trackevent->fL2FNumStrip[ssdindex][0]-trackevent->fL2FNumStrip[ssdindex][1])==1) &&
@@ -1458,21 +1537,24 @@ void L2L3_TrackDecoded::L2L3_g3_1121_TrackDecoded(Int_t ssdindex, const char* mo
 				(IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][2],trackevent->fL2FEMeV[ssdindex][2]) &&
 				 IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][2]],fMCut[2],trackevent->fCsIECh[ssdindex][2],trackevent->fL2FEMeV[ssdindex][2])))
 		{
-      for (Int_t itrack=0; itrack<GMULTI_3; itrack++) {
-			  if (itrack==0) {
+      for (Int_t itrack=0; itrack<GMULTI_3; itrack++)
+      {
+			  if (itrack==0)
+        {
           g3_ChargeCenter_01 = GetChargeCenter(trackevent->fL2FNumStrip[ssdindex][0],trackevent->fL2FNumStrip[ssdindex][1],trackevent->fL2FEMeV[ssdindex][0],trackevent->fL2FEMeV[ssdindex][1]);
-          FillGlobalEvent_L2L3(globalevent, GMULTI_3, MODEINDEX_G3_1121, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                          trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack],
-                          g3_ChargeCenter_01,                         g3_EL2F_Sum_01,
-                          trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+          FillGlobalEvent_L2L3(globalevent, GMULTI_3, MODEINDEX_G3_1121, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                          trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                          g3_ChargeCenter_01,                         g3_EL2F_Sum_01,                         g3_EL2F_Ch_Sum_01,
+                          trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                           trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
                           trackevent->fL2FTime[ssdindex][itrack]);
         }
-        else if (itrack==2) {
-          FillGlobalEvent_L2L3(globalevent, GMULTI_3, MODEINDEX_G3_1121, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                          trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack],
-                          trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                          trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+        else if (itrack==2)
+        {
+          FillGlobalEvent_L2L3(globalevent, GMULTI_3, MODEINDEX_G3_1121, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                          trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                          trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                          trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                           trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
                           trackevent->fL2FTime[ssdindex][itrack]);
         }
@@ -1486,21 +1568,24 @@ void L2L3_TrackDecoded::L2L3_g3_1121_TrackDecoded(Int_t ssdindex, const char* mo
 				(IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][0],trackevent->fL2FEMeV[ssdindex][0]) &&
 				 IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][0]],fMCut[0],trackevent->fCsIECh[ssdindex][0],trackevent->fL2FEMeV[ssdindex][0])))
 		{
-      for (Int_t itrack=0; itrack<GMULTI_3; itrack++) {
-        if (itrack==0) {
-          FillGlobalEvent_L2L3(globalevent, GMULTI_3, MODEINDEX_G3_1121, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                          trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack],
-                          trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                          trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+      for (Int_t itrack=0; itrack<GMULTI_3; itrack++)
+      {
+        if (itrack==0)
+        {
+          FillGlobalEvent_L2L3(globalevent, GMULTI_3, MODEINDEX_G3_1121, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                          trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                          trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                          trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                           trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
                           trackevent->fL2FTime[ssdindex][itrack]);
         }
-			  else if (itrack==1) {
+			  else if (itrack==1)
+        {
           g3_ChargeCenter_12 = GetChargeCenter(trackevent->fL2FNumStrip[ssdindex][1],trackevent->fL2FNumStrip[ssdindex][2],trackevent->fL2FEMeV[ssdindex][1],trackevent->fL2FEMeV[ssdindex][2]);
-          FillGlobalEvent_L2L3(globalevent, GMULTI_3, MODEINDEX_G3_1121, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                          trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack],
-                          g3_ChargeCenter_12,                         g3_EL2F_Sum_12,
-                          trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+          FillGlobalEvent_L2L3(globalevent, GMULTI_3, MODEINDEX_G3_1121, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                          trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                          g3_ChargeCenter_12,                         g3_EL2F_Sum_12,                         g3_EL2F_Ch_Sum_12,
+                          trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                           trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
                           trackevent->fL2FTime[ssdindex][itrack]);
         }
@@ -1513,12 +1598,14 @@ void L2L3_TrackDecoded::L2L3_g3_1121_TrackDecoded(Int_t ssdindex, const char* mo
           	  IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][1]],fMCut[1],trackevent->fCsIECh[ssdindex][1],trackevent->fL2FEMeV[ssdindex][1])) &&
 						 ((trackevent->fCsIECh[ssdindex][0]!=trackevent->fCsIECh[ssdindex][1]) && (trackevent->fL2BEMeV[ssdindex][0]!=trackevent->fL2BEMeV[ssdindex][1]) && (trackevent->fL1SEMeV[ssdindex][0]!=trackevent->fL1SEMeV[ssdindex][1])))
     {
-      for (Int_t itrack=0; itrack<GMULTI_3; itrack++) {
-        if (itrack==0 || itrack==1) {
-          FillGlobalEvent_L2L3(globalevent, GMULTI_3, MODEINDEX_G3_1121, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                          trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack],
-                          trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                          trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+      for (Int_t itrack=0; itrack<GMULTI_3; itrack++)
+      {
+        if (itrack==0 || itrack==1)
+        {
+          FillGlobalEvent_L2L3(globalevent, GMULTI_3, MODEINDEX_G3_1121, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                          trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                          trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                          trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                           trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
                           trackevent->fL2FTime[ssdindex][itrack]);
         }
@@ -1531,12 +1618,14 @@ void L2L3_TrackDecoded::L2L3_g3_1121_TrackDecoded(Int_t ssdindex, const char* mo
           	  IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][2]],fMCut[2],trackevent->fCsIECh[ssdindex][2],trackevent->fL2FEMeV[ssdindex][2])) &&
 						 ((trackevent->fCsIECh[ssdindex][0]!=trackevent->fCsIECh[ssdindex][2]) && (trackevent->fL2BEMeV[ssdindex][0]!=trackevent->fL2BEMeV[ssdindex][2]) && (trackevent->fL1SEMeV[ssdindex][0]!=trackevent->fL1SEMeV[ssdindex][2])))
     {
-      for (Int_t itrack=0; itrack<GMULTI_3; itrack++) {
-        if (itrack==0 || itrack==2) {
-          FillGlobalEvent_L2L3(globalevent, GMULTI_3, MODEINDEX_G3_1121, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                          trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack],
-                          trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                          trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+      for (Int_t itrack=0; itrack<GMULTI_3; itrack++)
+      {
+        if (itrack==0 || itrack==2)
+        {
+          FillGlobalEvent_L2L3(globalevent, GMULTI_3, MODEINDEX_G3_1121, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                          trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                          trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                          trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                           trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
                           trackevent->fL2FTime[ssdindex][itrack]);
         }
@@ -1549,12 +1638,14 @@ void L2L3_TrackDecoded::L2L3_g3_1121_TrackDecoded(Int_t ssdindex, const char* mo
           	  IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][2]],fMCut[2],trackevent->fCsIECh[ssdindex][2],trackevent->fL2FEMeV[ssdindex][2])) &&
 						 ((trackevent->fCsIECh[ssdindex][1]!=trackevent->fCsIECh[ssdindex][2]) && (trackevent->fL2BEMeV[ssdindex][1]!=trackevent->fL2BEMeV[ssdindex][2]) && (trackevent->fL1SEMeV[ssdindex][1]!=trackevent->fL1SEMeV[ssdindex][2])))
     {
-      for (Int_t itrack=0; itrack<GMULTI_3; itrack++) {
-        if (itrack==1 || itrack==2) {
-          FillGlobalEvent_L2L3(globalevent, GMULTI_3, MODEINDEX_G3_1121, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                          trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack],
-                          trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                          trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+      for (Int_t itrack=0; itrack<GMULTI_3; itrack++)
+      {
+        if (itrack==1 || itrack==2)
+        {
+          FillGlobalEvent_L2L3(globalevent, GMULTI_3, MODEINDEX_G3_1121, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                          trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                          trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                          trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                           trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
                           trackevent->fL2FTime[ssdindex][itrack]);
         }
@@ -1567,10 +1658,10 @@ void L2L3_TrackDecoded::L2L3_g3_1121_TrackDecoded(Int_t ssdindex, const char* mo
         if (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]) &&
     				IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][itrack]],fMCut[itrack],trackevent->fCsIECh[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]))
         {
-          FillGlobalEvent_L2L3(globalevent, GMULTI_3, MODEINDEX_G3_1121, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                          trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack],
-                          trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                          trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+          FillGlobalEvent_L2L3(globalevent, GMULTI_3, MODEINDEX_G3_1121, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                          trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                          trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                          trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                           trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
                           trackevent->fL2FTime[ssdindex][itrack]);
           break;
@@ -1581,16 +1672,19 @@ void L2L3_TrackDecoded::L2L3_g3_1121_TrackDecoded(Int_t ssdindex, const char* mo
 }
 
 //______________________________________________________________________________
-void L2L3_TrackDecoded::L2L3_g3_1211_TrackDecoded(Int_t ssdindex, const char* mode, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
+void L2L3_TrackDecoded::L2L3_g3_1211_TrackDecoded(Int_t ssdindex, const char* mode, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
 {
   // 关闭当前通道
   if (switchsetting == kFALSE) return;
 
-  if ((trackevent->fCsINum[ssdindex].size()==GMULTI_3) && (strcmp(mode,MODE_G3_1211)==0))
+  if (strcmp(mode,MODE_G3_1211)==0)
   {
     // 考虑 L2B sharing
     g3_EL2B_Sum_01 = trackevent->fL2BEMeV[ssdindex][0] + trackevent->fL2BEMeV[ssdindex][1];
     g3_EL2B_Sum_12 = trackevent->fL2BEMeV[ssdindex][1] + trackevent->fL2BEMeV[ssdindex][2];
+    g3_EL2B_Ch_Sum_01 = trackevent->fL2BECh[ssdindex][0] + trackevent->fL2BECh[ssdindex][1];
+    g3_EL2B_Ch_Sum_12 = trackevent->fL2BECh[ssdindex][1] + trackevent->fL2BECh[ssdindex][2];
+
     // 考虑第0)条与第1)条候选径迹在 L2B 有 charge sharing
     if (((trackevent->fCsIECh[ssdindex][0]==trackevent->fCsIECh[ssdindex][1]) && (trackevent->fL2FEMeV[ssdindex][0]==trackevent->fL2FEMeV[ssdindex][1]) && (trackevent->fL1SEMeV[ssdindex][0]==trackevent->fL1SEMeV[ssdindex][1])) &&
 				(TMath::Abs(trackevent->fL2BNumStrip[ssdindex][0]-trackevent->fL2BNumStrip[ssdindex][1])==1) &&
@@ -1599,21 +1693,24 @@ void L2L3_TrackDecoded::L2L3_g3_1211_TrackDecoded(Int_t ssdindex, const char* mo
 				(IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][2],trackevent->fL2FEMeV[ssdindex][2]) &&
 				 IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][2]],fMCut[2],trackevent->fCsIECh[ssdindex][2],trackevent->fL2FEMeV[ssdindex][2])))
 		{
-      for (Int_t itrack=0; itrack<GMULTI_3; itrack++) {
-			  if (itrack==0) {
+      for (Int_t itrack=0; itrack<GMULTI_3; itrack++)
+      {
+			  if (itrack==0)
+        {
           g3_ChargeCenter_01 = GetChargeCenter(trackevent->fL2BNumStrip[ssdindex][0],trackevent->fL2BNumStrip[ssdindex][1],trackevent->fL2BEMeV[ssdindex][0],trackevent->fL2BEMeV[ssdindex][1]);
-          FillGlobalEvent_L2L3(globalevent, GMULTI_3, MODEINDEX_G3_1211, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                          trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack],
-                          trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                          g3_ChargeCenter_01,                         g3_EL2B_Sum_01,
+          FillGlobalEvent_L2L3(globalevent, GMULTI_3, MODEINDEX_G3_1211, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                          trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                          trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                          g3_ChargeCenter_01,                         g3_EL2B_Sum_01,                         g3_EL2B_Ch_Sum_01,
                           trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
                           trackevent->fL2FTime[ssdindex][itrack]);
         }
-        else if (itrack==2) {
-          FillGlobalEvent_L2L3(globalevent, GMULTI_3, MODEINDEX_G3_1211, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                          trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack],
-                          trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                          trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+        else if (itrack==2)
+        {
+          FillGlobalEvent_L2L3(globalevent, GMULTI_3, MODEINDEX_G3_1211, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                          trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                          trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                          trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                           trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
                           trackevent->fL2FTime[ssdindex][itrack]);
         }
@@ -1627,21 +1724,24 @@ void L2L3_TrackDecoded::L2L3_g3_1211_TrackDecoded(Int_t ssdindex, const char* mo
 				(IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][0],trackevent->fL2FEMeV[ssdindex][0]) &&
 				 IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][0]],fMCut[0],trackevent->fCsIECh[ssdindex][0],trackevent->fL2FEMeV[ssdindex][0])))
 		{
-      for (Int_t itrack=0; itrack<GMULTI_3; itrack++) {
-        if (itrack==0) {
-          FillGlobalEvent_L2L3(globalevent, GMULTI_3, MODEINDEX_G3_1211, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                          trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack],
-                          trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                          trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+      for (Int_t itrack=0; itrack<GMULTI_3; itrack++)
+      {
+        if (itrack==0)
+        {
+          FillGlobalEvent_L2L3(globalevent, GMULTI_3, MODEINDEX_G3_1211, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                          trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                          trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                          trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                           trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
                           trackevent->fL2FTime[ssdindex][itrack]);
         }
-			  else if (itrack==1) {
+			  else if (itrack==1)
+        {
           g3_ChargeCenter_12 = GetChargeCenter(trackevent->fL2BNumStrip[ssdindex][1],trackevent->fL2BNumStrip[ssdindex][2],trackevent->fL2BEMeV[ssdindex][1],trackevent->fL2BEMeV[ssdindex][2]);
-          FillGlobalEvent_L2L3(globalevent, GMULTI_3, MODEINDEX_G3_1211, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                          trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack],
-                          trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                          g3_ChargeCenter_12,                         g3_EL2B_Sum_12,
+          FillGlobalEvent_L2L3(globalevent, GMULTI_3, MODEINDEX_G3_1211, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                          trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                          trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                          g3_ChargeCenter_12,                         g3_EL2B_Sum_12,                         g3_EL2B_Ch_Sum_12,
                           trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
                           trackevent->fL2FTime[ssdindex][itrack]);
         }
@@ -1654,12 +1754,14 @@ void L2L3_TrackDecoded::L2L3_g3_1211_TrackDecoded(Int_t ssdindex, const char* mo
           	  IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][1]],fMCut[1],trackevent->fCsIECh[ssdindex][1],trackevent->fL2FEMeV[ssdindex][1])) &&
 						 ((trackevent->fCsIECh[ssdindex][0]!=trackevent->fCsIECh[ssdindex][1]) && (trackevent->fL2FEMeV[ssdindex][0]!=trackevent->fL2FEMeV[ssdindex][1]) && (trackevent->fL1SEMeV[ssdindex][0]!=trackevent->fL1SEMeV[ssdindex][1])))
     {
-      for (Int_t itrack=0; itrack<GMULTI_3; itrack++) {
-        if (itrack==0 || itrack==1) {
-          FillGlobalEvent_L2L3(globalevent, GMULTI_3, MODEINDEX_G3_1211, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                          trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack],
-                          trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                          trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+      for (Int_t itrack=0; itrack<GMULTI_3; itrack++)
+      {
+        if (itrack==0 || itrack==1)
+        {
+          FillGlobalEvent_L2L3(globalevent, GMULTI_3, MODEINDEX_G3_1211, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                          trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                          trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                          trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                           trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
                           trackevent->fL2FTime[ssdindex][itrack]);
         }
@@ -1672,12 +1774,14 @@ void L2L3_TrackDecoded::L2L3_g3_1211_TrackDecoded(Int_t ssdindex, const char* mo
           	  IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][2]],fMCut[2],trackevent->fCsIECh[ssdindex][2],trackevent->fL2FEMeV[ssdindex][2])) &&
 						 ((trackevent->fCsIECh[ssdindex][0]!=trackevent->fCsIECh[ssdindex][2]) && (trackevent->fL2FEMeV[ssdindex][0]!=trackevent->fL2FEMeV[ssdindex][2]) && (trackevent->fL1SEMeV[ssdindex][0]!=trackevent->fL1SEMeV[ssdindex][2])))
     {
-      for (Int_t itrack=0; itrack<GMULTI_3; itrack++) {
-        if (itrack==0 || itrack==2) {
-          FillGlobalEvent_L2L3(globalevent, GMULTI_3, MODEINDEX_G3_1211, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                          trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack],
-                          trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                          trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+      for (Int_t itrack=0; itrack<GMULTI_3; itrack++)
+      {
+        if (itrack==0 || itrack==2)
+        {
+          FillGlobalEvent_L2L3(globalevent, GMULTI_3, MODEINDEX_G3_1211, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                          trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                          trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                          trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                           trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
                           trackevent->fL2FTime[ssdindex][itrack]);
         }
@@ -1690,12 +1794,14 @@ void L2L3_TrackDecoded::L2L3_g3_1211_TrackDecoded(Int_t ssdindex, const char* mo
           	  IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][2]],fMCut[2],trackevent->fCsIECh[ssdindex][2],trackevent->fL2FEMeV[ssdindex][2])) &&
 						 ((trackevent->fCsIECh[ssdindex][1]!=trackevent->fCsIECh[ssdindex][2]) && (trackevent->fL2FEMeV[ssdindex][1]!=trackevent->fL2FEMeV[ssdindex][2]) && (trackevent->fL1SEMeV[ssdindex][1]!=trackevent->fL1SEMeV[ssdindex][2])))
     {
-      for (Int_t itrack=0; itrack<GMULTI_3; itrack++) {
-        if (itrack==1 || itrack==2) {
-          FillGlobalEvent_L2L3(globalevent, GMULTI_3, MODEINDEX_G3_1211, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                          trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack],
-                          trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                          trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+      for (Int_t itrack=0; itrack<GMULTI_3; itrack++)
+      {
+        if (itrack==1 || itrack==2)
+        {
+          FillGlobalEvent_L2L3(globalevent, GMULTI_3, MODEINDEX_G3_1211, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                          trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                          trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                          trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                           trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
                           trackevent->fL2FTime[ssdindex][itrack]);
         }
@@ -1708,10 +1814,10 @@ void L2L3_TrackDecoded::L2L3_g3_1211_TrackDecoded(Int_t ssdindex, const char* mo
         if (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]) &&
     				IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][itrack]],fMCut[itrack],trackevent->fCsIECh[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]))
         {
-          FillGlobalEvent_L2L3(globalevent, GMULTI_3, MODEINDEX_G3_1211, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                          trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack],
-                          trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                          trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+          FillGlobalEvent_L2L3(globalevent, GMULTI_3, MODEINDEX_G3_1211, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                          trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                          trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                          trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                           trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
                           trackevent->fL2FTime[ssdindex][itrack]);
           break;
@@ -1722,12 +1828,12 @@ void L2L3_TrackDecoded::L2L3_g3_1211_TrackDecoded(Int_t ssdindex, const char* mo
 }
 
 //______________________________________________________________________________
-void L2L3_TrackDecoded::L2L3_g3_2111_TrackDecoded(Int_t ssdindex, const char* mode, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
+void L2L3_TrackDecoded::L2L3_g3_2111_TrackDecoded(Int_t ssdindex, const char* mode, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
 {
   // 关闭当前通道
   if (switchsetting == kFALSE) return;
 
-  if ((trackevent->fCsINum[ssdindex].size()==GMULTI_3) && (strcmp(mode,MODE_G3_2111)==0))
+  if (strcmp(mode,MODE_G3_2111)==0)
   {
     // 考虑第0)条与第1)条候选径迹为有效径迹
     if ((IsEneConstraint_L2B_L2F(ssdindex, trackevent->fL2BEMeV[ssdindex][0], trackevent->fL2FEMeV[ssdindex][0]) &&
@@ -1737,12 +1843,14 @@ void L2L3_TrackDecoded::L2L3_g3_2111_TrackDecoded(Int_t ssdindex, const char* mo
 				((trackevent->fL2BEMeV[ssdindex][0]!=trackevent->fL2BEMeV[ssdindex][1]) && (trackevent->fL2FEMeV[ssdindex][0]!=trackevent->fL2FEMeV[ssdindex][1]) &&
          (trackevent->fL1SEMeV[ssdindex][0]!=trackevent->fL1SEMeV[ssdindex][1])))
     {
-      for (Int_t itrack=0; itrack<GMULTI_3; itrack++) {
-				if (itrack==0 || itrack==1) {
-          FillGlobalEvent_L2L3(globalevent, GMULTI_3, MODEINDEX_G3_2111, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                          trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack],
-                          trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                          trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+      for (Int_t itrack=0; itrack<GMULTI_3; itrack++)
+      {
+				if (itrack==0 || itrack==1)
+        {
+          FillGlobalEvent_L2L3(globalevent, GMULTI_3, MODEINDEX_G3_2111, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                          trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                          trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                          trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                           trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
                           trackevent->fL2FTime[ssdindex][itrack]);
         }
@@ -1756,12 +1864,14 @@ void L2L3_TrackDecoded::L2L3_g3_2111_TrackDecoded(Int_t ssdindex, const char* mo
 				     ((trackevent->fL2BEMeV[ssdindex][0]!=trackevent->fL2BEMeV[ssdindex][2]) && (trackevent->fL2FEMeV[ssdindex][0]!=trackevent->fL2FEMeV[ssdindex][2]) &&
               (trackevent->fL1SEMeV[ssdindex][0]!=trackevent->fL1SEMeV[ssdindex][2])))
     {
-      for (Int_t itrack=0; itrack<GMULTI_3; itrack++) {
-				if (itrack==0 || itrack==2) {
-          FillGlobalEvent_L2L3(globalevent, GMULTI_3, MODEINDEX_G3_2111, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                          trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack],
-                          trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                          trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+      for (Int_t itrack=0; itrack<GMULTI_3; itrack++)
+      {
+				if (itrack==0 || itrack==2)
+        {
+          FillGlobalEvent_L2L3(globalevent, GMULTI_3, MODEINDEX_G3_2111, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                          trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                          trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                          trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                           trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
                           trackevent->fL2FTime[ssdindex][itrack]);
         }
@@ -1775,12 +1885,14 @@ void L2L3_TrackDecoded::L2L3_g3_2111_TrackDecoded(Int_t ssdindex, const char* mo
 				     ((trackevent->fL2BEMeV[ssdindex][1]!=trackevent->fL2BEMeV[ssdindex][2]) && (trackevent->fL2FEMeV[ssdindex][1]!=trackevent->fL2FEMeV[ssdindex][2]) &&
               (trackevent->fL1SEMeV[ssdindex][1]!=trackevent->fL1SEMeV[ssdindex][2])))
     {
-      for (Int_t itrack=0; itrack<GMULTI_3; itrack++) {
-				if (itrack==1 || itrack==2) {
-          FillGlobalEvent_L2L3(globalevent, GMULTI_3, MODEINDEX_G3_2111, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                          trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack],
-                          trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                          trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+      for (Int_t itrack=0; itrack<GMULTI_3; itrack++)
+      {
+				if (itrack==1 || itrack==2)
+        {
+          FillGlobalEvent_L2L3(globalevent, GMULTI_3, MODEINDEX_G3_2111, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                          trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                          trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                          trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                           trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
                           trackevent->fL2FTime[ssdindex][itrack]);
         }
@@ -1793,10 +1905,10 @@ void L2L3_TrackDecoded::L2L3_g3_2111_TrackDecoded(Int_t ssdindex, const char* mo
         if (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]) &&
     				IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][itrack]],fMCut[itrack],trackevent->fCsIECh[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]))
         {
-          FillGlobalEvent_L2L3(globalevent, GMULTI_3, MODEINDEX_G3_2111, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                          trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack],
-                          trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                          trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+          FillGlobalEvent_L2L3(globalevent, GMULTI_3, MODEINDEX_G3_2111, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                          trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                          trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                          trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                           trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
                           trackevent->fL2FTime[ssdindex][itrack]);
           break;
@@ -1807,12 +1919,12 @@ void L2L3_TrackDecoded::L2L3_g3_2111_TrackDecoded(Int_t ssdindex, const char* mo
 }
 
 //______________________________________________________________________________
-void L2L3_TrackDecoded::L2L3_g3_2222_TrackDecoded(Int_t ssdindex, const char* mode, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
+void L2L3_TrackDecoded::L2L3_g3_2222_TrackDecoded(Int_t ssdindex, const char* mode, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
 {
   // 关闭当前通道
   if (switchsetting == kFALSE) return;
 
-  if ((trackevent->fCsINum[ssdindex].size()==GMULTI_3) && (strcmp(mode,MODE_G3_2222)==0))
+  if (strcmp(mode,MODE_G3_2222)==0)
   {
     //
     for (Int_t itrack=0; itrack<GMULTI_3; itrack++)
@@ -1820,10 +1932,10 @@ void L2L3_TrackDecoded::L2L3_g3_2222_TrackDecoded(Int_t ssdindex, const char* mo
       if (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]) &&
           IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][itrack]],fMCut[itrack],trackevent->fCsIECh[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]))
       {
-        FillGlobalEvent_L2L3(globalevent, GMULTI_3, MODEINDEX_G3_2222, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                        trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack],
-                        trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                        trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+        FillGlobalEvent_L2L3(globalevent, GMULTI_3, MODEINDEX_G3_2222, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                        trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                        trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                        trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                         trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
                         trackevent->fL2FTime[ssdindex][itrack]);
       }
@@ -1837,12 +1949,12 @@ void L2L3_TrackDecoded::L2L3_g3_2222_TrackDecoded(Int_t ssdindex, const char* mo
 //             L2L3_g4_TrackDecoded
 //          ------------------------
 //______________________________________________________________________________
-void L2L3_TrackDecoded::L2L3_g4_0011_TrackDecoded(Int_t ssdindex, const char* mode, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
+void L2L3_TrackDecoded::L2L3_g4_0011_TrackDecoded(Int_t ssdindex, const char* mode, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
 {
   // 关闭当前通道
   if (switchsetting == kFALSE) return;
 
-  if ((trackevent->fCsINum[ssdindex].size()==GMULTI_4) && (strcmp(mode,MODE_G4_0011)==0))
+  if (strcmp(mode,MODE_G4_0011)==0)
   {
     //  g4-0011 模式
     //   0) 0000
@@ -1850,6 +1962,8 @@ void L2L3_TrackDecoded::L2L3_g4_0011_TrackDecoded(Int_t ssdindex, const char* mo
     //   2) 0010
     //   3) 0011
     g4_EL2F_Sum_03 = trackevent->fL2FEMeV[ssdindex][0] + trackevent->fL2FEMeV[ssdindex][3];
+    g4_EL2F_Ch_Sum_03 = trackevent->fL2FECh[ssdindex][0] + trackevent->fL2FECh[ssdindex][3];
+
     //
     // 考虑 L2F sharing: 0)3) sharing
     if ((TMath::Abs(trackevent->fL2FNumStrip[ssdindex][0]-trackevent->fL2FNumStrip[ssdindex][3])==1) &&
@@ -1857,12 +1971,19 @@ void L2L3_TrackDecoded::L2L3_g4_0011_TrackDecoded(Int_t ssdindex, const char* mo
 			  IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][0]],fMCut[0],trackevent->fCsIECh[ssdindex][0],g4_EL2F_Sum_03))
 		{
       g4_ChargeCenter = GetChargeCenter(trackevent->fL2FNumStrip[ssdindex][0],trackevent->fL2FNumStrip[ssdindex][3],trackevent->fL2FEMeV[ssdindex][0],trackevent->fL2FEMeV[ssdindex][3]);
-      FillGlobalEvent_L2L3(globalevent, GMULTI_4, MODEINDEX_G4_0011, ssdindex, fSSDgMulti[ssdindex], fMCut[0].Cut_Z, fMCut[0].Cut_A,
-                      trackevent->fL1SNumStrip[ssdindex][0], trackevent->fL1SEMeV[ssdindex][0],
-                      g4_ChargeCenter,                       g4_EL2F_Sum_03,
-                      trackevent->fL2BNumStrip[ssdindex][0], trackevent->fL2BEMeV[ssdindex][0],
-                      trackevent->fCsINum[ssdindex][0],      trackevent->fCsIECh[ssdindex][0],
-                      trackevent->fL2FTime[ssdindex][0]);
+      //
+      for (Int_t itrack=0; itrack<GMULTI_4; itrack++)
+      {
+        if (itrack==0)
+        {
+          FillGlobalEvent_L2L3(globalevent, GMULTI_4, MODEINDEX_G4_0011, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                          trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                          g4_ChargeCenter,                            g4_EL2F_Sum_03,                         g4_EL2F_Ch_Sum_03,
+                          trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
+                          trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
+                          trackevent->fL2FTime[ssdindex][itrack]);
+        }
+      }
     }
     // 直接判选
     else
@@ -1871,10 +1992,10 @@ void L2L3_TrackDecoded::L2L3_g4_0011_TrackDecoded(Int_t ssdindex, const char* mo
         if (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]) &&
             IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][itrack]],fMCut[itrack],trackevent->fCsIECh[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]))
         {
-          FillGlobalEvent_L2L3(globalevent, GMULTI_4, MODEINDEX_G4_0011, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                          trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack],
-                          trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                          trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+          FillGlobalEvent_L2L3(globalevent, GMULTI_4, MODEINDEX_G4_0011, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                          trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                          trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                          trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                           trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
                           trackevent->fL2FTime[ssdindex][itrack]);
           break;
@@ -1885,12 +2006,12 @@ void L2L3_TrackDecoded::L2L3_g4_0011_TrackDecoded(Int_t ssdindex, const char* mo
 }
 
 //______________________________________________________________________________
-void L2L3_TrackDecoded::L2L3_g4_0101_TrackDecoded(Int_t ssdindex, const char* mode, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
+void L2L3_TrackDecoded::L2L3_g4_0101_TrackDecoded(Int_t ssdindex, const char* mode, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
 {
   // 关闭当前通道
   if (switchsetting == kFALSE) return;
 
-  if ((trackevent->fCsINum[ssdindex].size()==GMULTI_4) && (strcmp(mode,MODE_G4_0101)==0))
+  if (strcmp(mode,MODE_G4_0101)==0)
   {
     //  g4-0101 模式
     //  0) 0000
@@ -1898,6 +2019,8 @@ void L2L3_TrackDecoded::L2L3_g4_0101_TrackDecoded(Int_t ssdindex, const char* mo
     //  2) 0100
     //  3) 0101
     g4_EL2B_Sum_03 = trackevent->fL2BEMeV[ssdindex][0] + trackevent->fL2BEMeV[ssdindex][3];
+    g4_EL2B_Ch_Sum_03 = trackevent->fL2BECh[ssdindex][0] + trackevent->fL2BECh[ssdindex][3];
+
     //
     // 考虑 L2B sharing: 0)3) sharing
     if ((TMath::Abs(trackevent->fL2BNumStrip[ssdindex][0]-trackevent->fL2BNumStrip[ssdindex][3])==1) &&
@@ -1905,12 +2028,19 @@ void L2L3_TrackDecoded::L2L3_g4_0101_TrackDecoded(Int_t ssdindex, const char* mo
 			  IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][0]],fMCut[0],trackevent->fCsIECh[ssdindex][0],trackevent->fL2FEMeV[ssdindex][0]))
 		{
       g4_ChargeCenter = GetChargeCenter(trackevent->fL2BNumStrip[ssdindex][0],trackevent->fL2BNumStrip[ssdindex][3],trackevent->fL2BEMeV[ssdindex][0],trackevent->fL2BEMeV[ssdindex][3]);
-      FillGlobalEvent_L2L3(globalevent, GMULTI_4, MODEINDEX_G4_0101, ssdindex, fSSDgMulti[ssdindex], fMCut[0].Cut_Z, fMCut[0].Cut_A,
-                      trackevent->fL1SNumStrip[ssdindex][0], trackevent->fL1SEMeV[ssdindex][0],
-                      trackevent->fL2FNumStrip[ssdindex][0], trackevent->fL2FEMeV[ssdindex][0],
-                      g4_ChargeCenter,                       g4_EL2B_Sum_03,
-                      trackevent->fCsINum[ssdindex][0],      trackevent->fCsIECh[ssdindex][0],
-                      trackevent->fL2FTime[ssdindex][0]);
+      //
+      for (Int_t itrack=0; itrack<GMULTI_4; itrack++)
+      {
+        if (itrack==0)
+        {
+          FillGlobalEvent_L2L3(globalevent, GMULTI_4, MODEINDEX_G4_0101, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                          trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                          trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                          g4_ChargeCenter,                            g4_EL2B_Sum_03,                         g4_EL2B_Ch_Sum_03,
+                          trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
+                          trackevent->fL2FTime[ssdindex][itrack]);
+        }
+      }
     }
     // 直接判选
     else
@@ -1919,10 +2049,10 @@ void L2L3_TrackDecoded::L2L3_g4_0101_TrackDecoded(Int_t ssdindex, const char* mo
         if (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]) &&
             IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][itrack]],fMCut[itrack],trackevent->fCsIECh[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]))
         {
-          FillGlobalEvent_L2L3(globalevent, GMULTI_4, MODEINDEX_G4_0101, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                          trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack],
-                          trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                          trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+          FillGlobalEvent_L2L3(globalevent, GMULTI_4, MODEINDEX_G4_0101, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                          trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                          trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                          trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                           trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
                           trackevent->fL2FTime[ssdindex][itrack]);
           break;
@@ -1933,12 +2063,12 @@ void L2L3_TrackDecoded::L2L3_g4_0101_TrackDecoded(Int_t ssdindex, const char* mo
 }
 
 //______________________________________________________________________________
-void L2L3_TrackDecoded::L2L3_g4_0110_TrackDecoded(Int_t ssdindex, const char* mode, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
+void L2L3_TrackDecoded::L2L3_g4_0110_TrackDecoded(Int_t ssdindex, const char* mode, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
 {
   // 关闭当前通道
   if (switchsetting == kFALSE) return;
 
-  if ((trackevent->fCsINum[ssdindex].size()==GMULTI_4) && (strcmp(mode,MODE_G4_0110)==0))
+  if (strcmp(mode,MODE_G4_0110)==0)
   {
     //  g4-0110 模式
     //  0) 0000
@@ -1949,9 +2079,18 @@ void L2L3_TrackDecoded::L2L3_g4_0110_TrackDecoded(Int_t ssdindex, const char* mo
     g4_EL2F_Sum_03 = trackevent->fL2FEMeV[ssdindex][0] + trackevent->fL2FEMeV[ssdindex][3];
     g4_EL2F_Sum_23 = trackevent->fL2FEMeV[ssdindex][2] + trackevent->fL2FEMeV[ssdindex][3];
 
+    g4_EL2F_Ch_Sum_01 = trackevent->fL2FECh[ssdindex][0] + trackevent->fL2FECh[ssdindex][1];
+    g4_EL2F_Ch_Sum_03 = trackevent->fL2FECh[ssdindex][0] + trackevent->fL2FECh[ssdindex][3];
+    g4_EL2F_Ch_Sum_23 = trackevent->fL2FECh[ssdindex][2] + trackevent->fL2FECh[ssdindex][3];
+
     g4_EL2B_Sum_02 = trackevent->fL2BEMeV[ssdindex][0] + trackevent->fL2BEMeV[ssdindex][2];
     g4_EL2B_Sum_03 = trackevent->fL2BEMeV[ssdindex][0] + trackevent->fL2BEMeV[ssdindex][3];
     g4_EL2B_Sum_13 = trackevent->fL2BEMeV[ssdindex][1] + trackevent->fL2BEMeV[ssdindex][3];
+
+    g4_EL2B_Ch_Sum_02 = trackevent->fL2BECh[ssdindex][0] + trackevent->fL2BECh[ssdindex][2];
+    g4_EL2B_Ch_Sum_03 = trackevent->fL2BECh[ssdindex][0] + trackevent->fL2BECh[ssdindex][3];
+    g4_EL2B_Ch_Sum_13 = trackevent->fL2BECh[ssdindex][1] + trackevent->fL2BECh[ssdindex][3];
+
     //
     // 考虑 L2F sharing : 0)1) sharing
     if ((TMath::Abs(trackevent->fL2FNumStrip[ssdindex][0]-trackevent->fL2FNumStrip[ssdindex][1])==1) &&
@@ -1959,12 +2098,19 @@ void L2L3_TrackDecoded::L2L3_g4_0110_TrackDecoded(Int_t ssdindex, const char* mo
 			  IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][0]],fMCut[0],trackevent->fCsIECh[ssdindex][0],g4_EL2F_Sum_01))
 		{
       g4_ChargeCenter = GetChargeCenter(trackevent->fL2FNumStrip[ssdindex][0],trackevent->fL2FNumStrip[ssdindex][1],trackevent->fL2FEMeV[ssdindex][0],trackevent->fL2FEMeV[ssdindex][1]);
-      FillGlobalEvent_L2L3(globalevent, GMULTI_4, MODEINDEX_G4_0110, ssdindex, fSSDgMulti[ssdindex], fMCut[0].Cut_Z, fMCut[0].Cut_A,
-                      trackevent->fL1SNumStrip[ssdindex][0], trackevent->fL1SEMeV[ssdindex][0],
-                      g4_ChargeCenter,                       g4_EL2F_Sum_01,
-                      trackevent->fL2BNumStrip[ssdindex][0], trackevent->fL2BEMeV[ssdindex][0],
-                      trackevent->fCsINum[ssdindex][0],      trackevent->fCsIECh[ssdindex][0],
-                      trackevent->fL2FTime[ssdindex][0]);
+      //
+      for (Int_t itrack=0; itrack<GMULTI_4; itrack++)
+      {
+        if (itrack==0)
+        {
+          FillGlobalEvent_L2L3(globalevent, GMULTI_4, MODEINDEX_G4_0110, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                          trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                          g4_ChargeCenter,                            g4_EL2F_Sum_01,                         g4_EL2F_Ch_Sum_01,
+                          trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
+                          trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
+                          trackevent->fL2FTime[ssdindex][itrack]);
+        }
+      }
     }
     // 考虑 L2F sharing : 2)3) sharing
     else if ((TMath::Abs(trackevent->fL2FNumStrip[ssdindex][2]-trackevent->fL2FNumStrip[ssdindex][3])==1) &&
@@ -1972,12 +2118,19 @@ void L2L3_TrackDecoded::L2L3_g4_0110_TrackDecoded(Int_t ssdindex, const char* mo
 			       IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][2]],fMCut[2],trackevent->fCsIECh[ssdindex][2],g4_EL2F_Sum_23))
 		{
       g4_ChargeCenter = GetChargeCenter(trackevent->fL2FNumStrip[ssdindex][2],trackevent->fL2FNumStrip[ssdindex][3],trackevent->fL2FEMeV[ssdindex][2],trackevent->fL2FEMeV[ssdindex][3]);
-      FillGlobalEvent_L2L3(globalevent, GMULTI_4, MODEINDEX_G4_0110, ssdindex, fSSDgMulti[ssdindex], fMCut[2].Cut_Z, fMCut[2].Cut_A,
-                      trackevent->fL1SNumStrip[ssdindex][2], trackevent->fL1SEMeV[ssdindex][2],
-                      g4_ChargeCenter,                       g4_EL2F_Sum_23,
-                      trackevent->fL2BNumStrip[ssdindex][2], trackevent->fL2BEMeV[ssdindex][2],
-                      trackevent->fCsINum[ssdindex][2],      trackevent->fCsIECh[ssdindex][2],
-                      trackevent->fL2FTime[ssdindex][2]);
+      //
+      for (Int_t itrack=0; itrack<GMULTI_4; itrack++)
+      {
+        if (itrack==2)
+        {
+          FillGlobalEvent_L2L3(globalevent, GMULTI_4, MODEINDEX_G4_0110, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                          trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                          g4_ChargeCenter,                            g4_EL2F_Sum_23,                         g4_EL2F_Ch_Sum_23,
+                          trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
+                          trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
+                          trackevent->fL2FTime[ssdindex][itrack]);
+        }
+      }
     }
     // 考虑 L2B sharing: 0)2) sharing
     else if ((TMath::Abs(trackevent->fL2BNumStrip[ssdindex][0]-trackevent->fL2BNumStrip[ssdindex][2])==1) &&
@@ -1985,12 +2138,19 @@ void L2L3_TrackDecoded::L2L3_g4_0110_TrackDecoded(Int_t ssdindex, const char* mo
 			       IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][0]],fMCut[0],trackevent->fCsIECh[ssdindex][0],trackevent->fL2FEMeV[ssdindex][0]))
 		{
       g4_ChargeCenter = GetChargeCenter(trackevent->fL2BNumStrip[ssdindex][0],trackevent->fL2BNumStrip[ssdindex][2],trackevent->fL2BEMeV[ssdindex][0],trackevent->fL2BEMeV[ssdindex][2]);
-      FillGlobalEvent_L2L3(globalevent, GMULTI_4, MODEINDEX_G4_0110, ssdindex, fSSDgMulti[ssdindex], fMCut[0].Cut_Z, fMCut[0].Cut_A,
-                      trackevent->fL1SNumStrip[ssdindex][0], trackevent->fL1SEMeV[ssdindex][0],
-                      trackevent->fL2FNumStrip[ssdindex][0], trackevent->fL2FEMeV[ssdindex][0],
-                      g4_ChargeCenter,                       g4_EL2B_Sum_02,
-                      trackevent->fCsINum[ssdindex][0],      trackevent->fCsIECh[ssdindex][0],
-                      trackevent->fL2FTime[ssdindex][0]);
+      //
+      for (Int_t itrack=0; itrack<GMULTI_4; itrack++)
+      {
+        if (itrack==0)
+        {
+          FillGlobalEvent_L2L3(globalevent, GMULTI_4, MODEINDEX_G4_0110, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                          trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                          trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                          g4_ChargeCenter,                            g4_EL2B_Sum_02,                         g4_EL2B_Ch_Sum_02,
+                          trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
+                          trackevent->fL2FTime[ssdindex][itrack]);
+        }
+      }
     }
     // 考虑 L2B sharing: 1)3) sharing
     else if ((TMath::Abs(trackevent->fL2BNumStrip[ssdindex][1]-trackevent->fL2BNumStrip[ssdindex][3])==1) &&
@@ -1998,12 +2158,19 @@ void L2L3_TrackDecoded::L2L3_g4_0110_TrackDecoded(Int_t ssdindex, const char* mo
 			       IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][1]],fMCut[1],trackevent->fCsIECh[ssdindex][1],trackevent->fL2FEMeV[ssdindex][1]))
 		{
       g4_ChargeCenter = GetChargeCenter(trackevent->fL2BNumStrip[ssdindex][1],trackevent->fL2BNumStrip[ssdindex][3],trackevent->fL2BEMeV[ssdindex][1],trackevent->fL2BEMeV[ssdindex][3]);
-      FillGlobalEvent_L2L3(globalevent, GMULTI_4, MODEINDEX_G4_0110, ssdindex, fSSDgMulti[ssdindex], fMCut[1].Cut_Z, fMCut[1].Cut_A,
-                      trackevent->fL1SNumStrip[ssdindex][1], trackevent->fL1SEMeV[ssdindex][1],
-                      trackevent->fL2FNumStrip[ssdindex][1], trackevent->fL2FEMeV[ssdindex][1],
-                      g4_ChargeCenter,                       g4_EL2B_Sum_13,
-                      trackevent->fCsINum[ssdindex][1],      trackevent->fCsIECh[ssdindex][1],
-                      trackevent->fL2FTime[ssdindex][1]);
+      //
+      for (Int_t itrack=0; itrack<GMULTI_4; itrack++)
+      {
+        if (itrack==1)
+        {
+          FillGlobalEvent_L2L3(globalevent, GMULTI_4, MODEINDEX_G4_0110, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                          trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                          trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                          g4_ChargeCenter,                            g4_EL2B_Sum_13,                         g4_EL2B_Ch_Sum_13,
+                          trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
+                          trackevent->fL2FTime[ssdindex][itrack]);
+        }
+      }
     }
     // 考虑 L2F，L2B 同时sharing: 0)3) sharing
     else if (((TMath::Abs(trackevent->fL2FNumStrip[ssdindex][0]-trackevent->fL2FNumStrip[ssdindex][3])==1) && (TMath::Abs(trackevent->fL2BNumStrip[ssdindex][0]-trackevent->fL2BNumStrip[ssdindex][3])==1)) &&
@@ -2012,12 +2179,19 @@ void L2L3_TrackDecoded::L2L3_g4_0110_TrackDecoded(Int_t ssdindex, const char* mo
 		{
       g4_L2F_ChargeCenter = GetChargeCenter(trackevent->fL2FNumStrip[ssdindex][0],trackevent->fL2FNumStrip[ssdindex][3],trackevent->fL2FEMeV[ssdindex][0],trackevent->fL2FEMeV[ssdindex][3]);
       g4_L2B_ChargeCenter = GetChargeCenter(trackevent->fL2BNumStrip[ssdindex][0],trackevent->fL2BNumStrip[ssdindex][3],trackevent->fL2BEMeV[ssdindex][0],trackevent->fL2BEMeV[ssdindex][3]);
-      FillGlobalEvent_L2L3(globalevent, GMULTI_4, MODEINDEX_G4_0110, ssdindex, fSSDgMulti[ssdindex], fMCut[0].Cut_Z, fMCut[0].Cut_A,
-                      trackevent->fL1SNumStrip[ssdindex][0], trackevent->fL1SEMeV[ssdindex][0],
-                      g4_L2F_ChargeCenter,                   g4_EL2F_Sum_03,
-                      g4_L2B_ChargeCenter,                   g4_EL2B_Sum_03,
-                      trackevent->fCsINum[ssdindex][0],      trackevent->fCsIECh[ssdindex][0],
-                      trackevent->fL2FTime[ssdindex][0]);
+      //
+      for (Int_t itrack=0; itrack<GMULTI_4; itrack++)
+      {
+        if (itrack==0)
+        {
+          FillGlobalEvent_L2L3(globalevent, GMULTI_4, MODEINDEX_G4_0110, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                          trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                          g4_L2F_ChargeCenter,                        g4_EL2F_Sum_03,                         g4_EL2F_Ch_Sum_03,
+                          g4_L2B_ChargeCenter,                        g4_EL2B_Sum_03,                         g4_EL2B_Ch_Sum_03,
+                          trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
+                          trackevent->fL2FTime[ssdindex][itrack]);
+        }
+      }
     }
     // 直接判选
     else
@@ -2026,10 +2200,10 @@ void L2L3_TrackDecoded::L2L3_g4_0110_TrackDecoded(Int_t ssdindex, const char* mo
         if (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]) &&
             IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][itrack]],fMCut[itrack],trackevent->fCsIECh[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]))
         {
-          FillGlobalEvent_L2L3(globalevent, GMULTI_4, MODEINDEX_G4_0110, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                          trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack],
-                          trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                          trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+          FillGlobalEvent_L2L3(globalevent, GMULTI_4, MODEINDEX_G4_0110, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                          trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                          trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                          trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                           trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
                           trackevent->fL2FTime[ssdindex][itrack]);
           break;
@@ -2040,12 +2214,12 @@ void L2L3_TrackDecoded::L2L3_g4_0110_TrackDecoded(Int_t ssdindex, const char* mo
 }
 
 //______________________________________________________________________________
-void L2L3_TrackDecoded::L2L3_g4_0111_TrackDecoded(Int_t ssdindex, const char* mode, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
+void L2L3_TrackDecoded::L2L3_g4_0111_TrackDecoded(Int_t ssdindex, const char* mode, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
 {
   // 关闭当前通道
   if (switchsetting == kFALSE) return;
 
-  if ((trackevent->fCsINum[ssdindex].size()==GMULTI_4) && (strcmp(mode,MODE_G4_0111)==0))
+  if (strcmp(mode,MODE_G4_0111)==0)
   {
     // 考虑只有一条有效径迹
     for (Int_t itrack=0; itrack<GMULTI_4; itrack++)
@@ -2053,10 +2227,10 @@ void L2L3_TrackDecoded::L2L3_g4_0111_TrackDecoded(Int_t ssdindex, const char* mo
       if (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]) &&
           IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][itrack]],fMCut[itrack],trackevent->fCsIECh[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]))
       {
-        FillGlobalEvent_L2L3(globalevent, GMULTI_4, MODEINDEX_G4_0111, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                        trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack],
-                        trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                        trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+        FillGlobalEvent_L2L3(globalevent, GMULTI_4, MODEINDEX_G4_0111, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                        trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                        trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                        trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                         trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
                         trackevent->fL2FTime[ssdindex][itrack]);
         break;
@@ -2066,12 +2240,12 @@ void L2L3_TrackDecoded::L2L3_g4_0111_TrackDecoded(Int_t ssdindex, const char* mo
 }
 
 //______________________________________________________________________________
-void L2L3_TrackDecoded::L2L3_g4_1011_TrackDecoded(Int_t ssdindex, const char* mode, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
+void L2L3_TrackDecoded::L2L3_g4_1011_TrackDecoded(Int_t ssdindex, const char* mode, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
 {
   // 关闭当前通道
   if (switchsetting == kFALSE) return;
 
-  if ((trackevent->fCsINum[ssdindex].size()==GMULTI_4) && (strcmp(mode,MODE_G4_1011)==0))
+  if (strcmp(mode,MODE_G4_1011)==0)
   {
     // g4-1011 模式
     // 0) 0000
@@ -2081,17 +2255,20 @@ void L2L3_TrackDecoded::L2L3_g4_1011_TrackDecoded(Int_t ssdindex, const char* mo
     //
     g4_EL2F_Sum_03 = trackevent->fL2FEMeV[ssdindex][0] + trackevent->fL2FEMeV[ssdindex][3];
     g4_EL2F_Sum_12 = trackevent->fL2FEMeV[ssdindex][1] + trackevent->fL2FEMeV[ssdindex][2];
+
     // 考虑 L2B 双击: 0)3)双击
     if (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][0],g4_EL2F_Sum_03) &&
 				IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][0]],fMCut[0],trackevent->fCsIECh[ssdindex][0],trackevent->fL2FEMeV[ssdindex][0]) &&
 			  IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][3]],fMCut[3],trackevent->fCsIECh[ssdindex][3],trackevent->fL2FEMeV[ssdindex][3]))
 		{
-      for (Int_t itrack=0; itrack<GMULTI_4; itrack++) {
-        if (itrack==0 || itrack==3) {
-          FillGlobalEvent_L2L3(globalevent, GMULTI_4, MODEINDEX_G4_1011, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                          trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack],
-                          trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                          trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+      for (Int_t itrack=0; itrack<GMULTI_4; itrack++)
+      {
+        if (itrack==0 || itrack==3)
+        {
+          FillGlobalEvent_L2L3(globalevent, GMULTI_4, MODEINDEX_G4_1011, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                          trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                          trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                          trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                           trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
                           trackevent->fL2FTime[ssdindex][itrack]);
         }
@@ -2102,12 +2279,14 @@ void L2L3_TrackDecoded::L2L3_g4_1011_TrackDecoded(Int_t ssdindex, const char* mo
 				     IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][1]],fMCut[1],trackevent->fCsIECh[ssdindex][1],trackevent->fL2FEMeV[ssdindex][1]) &&
 			       IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][2]],fMCut[2],trackevent->fCsIECh[ssdindex][2],trackevent->fL2FEMeV[ssdindex][2]))
 		{
-      for (Int_t itrack=0; itrack<GMULTI_4; itrack++) {
-        if (itrack==1 || itrack==2) {
-          FillGlobalEvent_L2L3(globalevent, GMULTI_4, MODEINDEX_G4_1011, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                          trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack],
-                          trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                          trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+      for (Int_t itrack=0; itrack<GMULTI_4; itrack++)
+      {
+        if (itrack==1 || itrack==2)
+        {
+          FillGlobalEvent_L2L3(globalevent, GMULTI_4, MODEINDEX_G4_1011, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                          trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                          trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                          trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                           trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
                           trackevent->fL2FTime[ssdindex][itrack]);
         }
@@ -2116,14 +2295,15 @@ void L2L3_TrackDecoded::L2L3_g4_1011_TrackDecoded(Int_t ssdindex, const char* mo
     // 考虑只要有一条有效径迹
     else
     {
-      for (Int_t itrack=0; itrack<GMULTI_4; itrack++) {
+      for (Int_t itrack=0; itrack<GMULTI_4; itrack++)
+      {
         if (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]) &&
             IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][itrack]],fMCut[itrack],trackevent->fCsIECh[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]))
         {
-          FillGlobalEvent_L2L3(globalevent, GMULTI_4, MODEINDEX_G4_1011, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                          trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack],
-                          trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                          trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+          FillGlobalEvent_L2L3(globalevent, GMULTI_4, MODEINDEX_G4_1011, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                          trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                          trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                          trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                           trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
                           trackevent->fL2FTime[ssdindex][itrack]);
           break;
@@ -2134,12 +2314,12 @@ void L2L3_TrackDecoded::L2L3_g4_1011_TrackDecoded(Int_t ssdindex, const char* mo
 }
 
 //______________________________________________________________________________
-void L2L3_TrackDecoded::L2L3_g4_1110_TrackDecoded(Int_t ssdindex, const char* mode, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
+void L2L3_TrackDecoded::L2L3_g4_1110_TrackDecoded(Int_t ssdindex, const char* mode, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
 {
   // 关闭当前通道
   if (switchsetting == kFALSE) return;
 
-  if ((trackevent->fCsINum[ssdindex].size()==GMULTI_4) && (strcmp(mode,MODE_G4_1110)==0))
+  if (strcmp(mode,MODE_G4_1110)==0)
   {
     //   g4_1111 模式:
     //   0）0***
@@ -2153,13 +2333,15 @@ void L2L3_TrackDecoded::L2L3_g4_1110_TrackDecoded(Int_t ssdindex, const char* mo
           (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][2],trackevent->fL2FEMeV[ssdindex][2]) &&
            IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][2]],fMCut[2],trackevent->fCsIECh[ssdindex][2],trackevent->fL2FEMeV[ssdindex][2])))
 		{
-      for (Int_t itrack=0; itrack<GMULTI_4; itrack++) {
-        if (itrack==0 || itrack==2) {
+      for (Int_t itrack=0; itrack<GMULTI_4; itrack++)
+      {
+        if (itrack==0 || itrack==2)
+        {
           fL1SELoss = GetEL1S(ssdindex,trackevent->fL2FEMeV[ssdindex][itrack],fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A);
-          FillGlobalEvent_L2L3(globalevent, GMULTI_4, MODEINDEX_G4_1110, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                          trackevent->fL1SNumStrip[ssdindex][itrack], fL1SELoss,
-                          trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                          trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+          FillGlobalEvent_L2L3(globalevent, GMULTI_4, MODEINDEX_G4_1110, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                          trackevent->fL1SNumStrip[ssdindex][itrack], fL1SELoss,                              trackevent->fL1SECh[ssdindex][itrack],
+                          trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                          trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                           trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
                           trackevent->fL2FTime[ssdindex][itrack]);
         }
@@ -2172,13 +2354,15 @@ void L2L3_TrackDecoded::L2L3_g4_1110_TrackDecoded(Int_t ssdindex, const char* mo
               (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][3],trackevent->fL2FEMeV[ssdindex][3]) &&
                IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][3]],fMCut[3],trackevent->fCsIECh[ssdindex][3],trackevent->fL2FEMeV[ssdindex][3])))
 		{
-      for (Int_t itrack=0; itrack<GMULTI_4; itrack++) {
-        if (itrack==0 || itrack==3) {
+      for (Int_t itrack=0; itrack<GMULTI_4; itrack++)
+      {
+        if (itrack==0 || itrack==3)
+        {
           fL1SELoss = GetEL1S(ssdindex,trackevent->fL2FEMeV[ssdindex][itrack],fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A);
-          FillGlobalEvent_L2L3(globalevent, GMULTI_4, MODEINDEX_G4_1110, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                          trackevent->fL1SNumStrip[ssdindex][itrack], fL1SELoss,
-                          trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                          trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+          FillGlobalEvent_L2L3(globalevent, GMULTI_4, MODEINDEX_G4_1110, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                          trackevent->fL1SNumStrip[ssdindex][itrack], fL1SELoss,                              trackevent->fL1SECh[ssdindex][itrack],
+                          trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                          trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                           trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
                           trackevent->fL2FTime[ssdindex][itrack]);
         }
@@ -2191,13 +2375,15 @@ void L2L3_TrackDecoded::L2L3_g4_1110_TrackDecoded(Int_t ssdindex, const char* mo
               (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][2],trackevent->fL2FEMeV[ssdindex][2]) &&
                IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][2]],fMCut[2],trackevent->fCsIECh[ssdindex][2],trackevent->fL2FEMeV[ssdindex][2])))
 		{
-      for (Int_t itrack=0; itrack<GMULTI_4; itrack++) {
-        if (itrack==1 || itrack==2) {
+      for (Int_t itrack=0; itrack<GMULTI_4; itrack++)
+      {
+        if (itrack==1 || itrack==2)
+        {
           fL1SELoss = GetEL1S(ssdindex,trackevent->fL2FEMeV[ssdindex][itrack],fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A);
-          FillGlobalEvent_L2L3(globalevent, GMULTI_4, MODEINDEX_G4_1110, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                          trackevent->fL1SNumStrip[ssdindex][itrack], fL1SELoss,
-                          trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                          trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+          FillGlobalEvent_L2L3(globalevent, GMULTI_4, MODEINDEX_G4_1110, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                          trackevent->fL1SNumStrip[ssdindex][itrack], fL1SELoss,                              trackevent->fL1SECh[ssdindex][itrack],
+                          trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                          trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                           trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
                           trackevent->fL2FTime[ssdindex][itrack]);
         }
@@ -2210,13 +2396,15 @@ void L2L3_TrackDecoded::L2L3_g4_1110_TrackDecoded(Int_t ssdindex, const char* mo
               (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][3],trackevent->fL2FEMeV[ssdindex][3]) &&
                IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][3]],fMCut[3],trackevent->fCsIECh[ssdindex][3],trackevent->fL2FEMeV[ssdindex][3])))
 		{
-      for (Int_t itrack=0; itrack<GMULTI_4; itrack++) {
-        if (itrack==1 || itrack==3) {
+      for (Int_t itrack=0; itrack<GMULTI_4; itrack++)
+      {
+        if (itrack==1 || itrack==3)
+        {
           fL1SELoss = GetEL1S(ssdindex,trackevent->fL2FEMeV[ssdindex][itrack],fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A);
-          FillGlobalEvent_L2L3(globalevent, GMULTI_4, MODEINDEX_G4_1110, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                          trackevent->fL1SNumStrip[ssdindex][itrack], fL1SELoss,
-                          trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                          trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+          FillGlobalEvent_L2L3(globalevent, GMULTI_4, MODEINDEX_G4_1110, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                          trackevent->fL1SNumStrip[ssdindex][itrack], fL1SELoss,                              trackevent->fL1SECh[ssdindex][itrack],
+                          trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                          trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                           trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
                           trackevent->fL2FTime[ssdindex][itrack]);
         }
@@ -2225,14 +2413,15 @@ void L2L3_TrackDecoded::L2L3_g4_1110_TrackDecoded(Int_t ssdindex, const char* mo
     // 考虑只有一条有效径迹
     else
     {
-      for (Int_t itrack=0; itrack<GMULTI_4; itrack++) {
+      for (Int_t itrack=0; itrack<GMULTI_4; itrack++)
+      {
         if (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]) &&
             IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][itrack]],fMCut[itrack],trackevent->fCsIECh[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]))
         {
-          FillGlobalEvent_L2L3(globalevent, GMULTI_4, MODEINDEX_G4_1110, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                          trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack],
-                          trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                          trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+          FillGlobalEvent_L2L3(globalevent, GMULTI_4, MODEINDEX_G4_1110, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                          trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                          trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                          trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                           trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
                           trackevent->fL2FTime[ssdindex][itrack]);
           break;
@@ -2243,12 +2432,12 @@ void L2L3_TrackDecoded::L2L3_g4_1110_TrackDecoded(Int_t ssdindex, const char* mo
 }
 
 //______________________________________________________________________________
-void L2L3_TrackDecoded::L2L3_g4_1111_TrackDecoded(Int_t ssdindex, const char* mode, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
+void L2L3_TrackDecoded::L2L3_g4_1111_TrackDecoded(Int_t ssdindex, const char* mode, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
 {
   // 关闭当前通道
   if (switchsetting == kFALSE) return;
 
-  if ((trackevent->fCsINum[ssdindex].size()==GMULTI_4) && (strcmp(mode,MODE_G4_1111)==0))
+  if (strcmp(mode,MODE_G4_1111)==0)
   {
     //   g4_1111 模式:
     //   0）0***
@@ -2262,12 +2451,14 @@ void L2L3_TrackDecoded::L2L3_g4_1111_TrackDecoded(Int_t ssdindex, const char* mo
           (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][2],trackevent->fL2FEMeV[ssdindex][2]) &&
            IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][2]],fMCut[2],trackevent->fCsIECh[ssdindex][2],trackevent->fL2FEMeV[ssdindex][2])))
 		{
-      for (Int_t itrack=0; itrack<GMULTI_4; itrack++) {
-        if (itrack==0 || itrack==2) {
-          FillGlobalEvent_L2L3(globalevent, GMULTI_4, MODEINDEX_G4_1111, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                          trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack],
-                          trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                          trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+      for (Int_t itrack=0; itrack<GMULTI_4; itrack++)
+      {
+        if (itrack==0 || itrack==2)
+        {
+          FillGlobalEvent_L2L3(globalevent, GMULTI_4, MODEINDEX_G4_1111, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                          trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                          trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                          trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                           trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
                           trackevent->fL2FTime[ssdindex][itrack]);
         }
@@ -2280,12 +2471,14 @@ void L2L3_TrackDecoded::L2L3_g4_1111_TrackDecoded(Int_t ssdindex, const char* mo
               (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][3],trackevent->fL2FEMeV[ssdindex][3]) &&
                IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][3]],fMCut[3],trackevent->fCsIECh[ssdindex][3],trackevent->fL2FEMeV[ssdindex][3])))
 		{
-      for (Int_t itrack=0; itrack<GMULTI_4; itrack++) {
-        if (itrack==0 || itrack==3) {
-          FillGlobalEvent_L2L3(globalevent, GMULTI_4, MODEINDEX_G4_1111, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                          trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack],
-                          trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                          trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+      for (Int_t itrack=0; itrack<GMULTI_4; itrack++)
+      {
+        if (itrack==0 || itrack==3)
+        {
+          FillGlobalEvent_L2L3(globalevent, GMULTI_4, MODEINDEX_G4_1111, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                          trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                          trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                          trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                           trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
                           trackevent->fL2FTime[ssdindex][itrack]);
         }
@@ -2298,12 +2491,14 @@ void L2L3_TrackDecoded::L2L3_g4_1111_TrackDecoded(Int_t ssdindex, const char* mo
               (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][2],trackevent->fL2FEMeV[ssdindex][2]) &&
                IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][2]],fMCut[2],trackevent->fCsIECh[ssdindex][2],trackevent->fL2FEMeV[ssdindex][2])))
 		{
-      for (Int_t itrack=0; itrack<GMULTI_4; itrack++) {
-        if (itrack==1 || itrack==2) {
-          FillGlobalEvent_L2L3(globalevent, GMULTI_4, MODEINDEX_G4_1111, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                          trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack],
-                          trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                          trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+      for (Int_t itrack=0; itrack<GMULTI_4; itrack++)
+      {
+        if (itrack==1 || itrack==2)
+        {
+          FillGlobalEvent_L2L3(globalevent, GMULTI_4, MODEINDEX_G4_1111, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                          trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                          trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                          trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                           trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
                           trackevent->fL2FTime[ssdindex][itrack]);
         }
@@ -2316,12 +2511,14 @@ void L2L3_TrackDecoded::L2L3_g4_1111_TrackDecoded(Int_t ssdindex, const char* mo
               (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][3],trackevent->fL2FEMeV[ssdindex][3]) &&
                IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][3]],fMCut[3],trackevent->fCsIECh[ssdindex][3],trackevent->fL2FEMeV[ssdindex][3])))
 		{
-      for (Int_t itrack=0; itrack<GMULTI_4; itrack++) {
-        if (itrack==1 || itrack==3) {
-          FillGlobalEvent_L2L3(globalevent, GMULTI_4, MODEINDEX_G4_1111, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                          trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack],
-                          trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                          trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+      for (Int_t itrack=0; itrack<GMULTI_4; itrack++)
+      {
+        if (itrack==1 || itrack==3)
+        {
+          FillGlobalEvent_L2L3(globalevent, GMULTI_4, MODEINDEX_G4_1111, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                          trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                          trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                          trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                           trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
                           trackevent->fL2FTime[ssdindex][itrack]);
         }
@@ -2330,14 +2527,15 @@ void L2L3_TrackDecoded::L2L3_g4_1111_TrackDecoded(Int_t ssdindex, const char* mo
     // 考虑只有一条有效径迹
     else
     {
-      for (Int_t itrack=0; itrack<GMULTI_4; itrack++) {
+      for (Int_t itrack=0; itrack<GMULTI_4; itrack++)
+      {
         if (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]) &&
             IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][itrack]],fMCut[itrack],trackevent->fCsIECh[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]))
         {
-          FillGlobalEvent_L2L3(globalevent, GMULTI_4, MODEINDEX_G4_1111, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                          trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack],
-                          trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                          trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+          FillGlobalEvent_L2L3(globalevent, GMULTI_4, MODEINDEX_G4_1111, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                          trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                          trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                          trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                           trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
                           trackevent->fL2FTime[ssdindex][itrack]);
           break;
@@ -2348,27 +2546,29 @@ void L2L3_TrackDecoded::L2L3_g4_1111_TrackDecoded(Int_t ssdindex, const char* mo
 }
 
 //______________________________________________________________________________
-void L2L3_TrackDecoded::L2L3_g4_2222_TrackDecoded(Int_t ssdindex, const char* mode, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
+void L2L3_TrackDecoded::L2L3_g4_2222_TrackDecoded(Int_t ssdindex, const char* mode, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
 {
   // 关闭当前通道
   if (switchsetting == kFALSE) return;
 
-  if ((trackevent->fCsINum[ssdindex].size()==GMULTI_4) && (strcmp(mode,MODE_G4_2222)==0))
+  if (strcmp(mode,MODE_G4_2222)==0)
   {
     // --00-12--
     // 考虑四条候选径迹中, 第1条与第2条为同一条
     if (trackevent->fCsINum[ssdindex][0]==trackevent->fCsINum[ssdindex][1])
     {
       // 在第1条与第2条中找一条
-      for (Int_t itrack=0; itrack<GMULTI_4; itrack++) {
-        if (itrack==0 || itrack==1) {
+      for (Int_t itrack=0; itrack<GMULTI_4; itrack++)
+      {
+        if (itrack==0 || itrack==1)
+        {
           if (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]) &&
               IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][itrack]],fMCut[itrack],trackevent->fCsIECh[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]))
           {
-            FillGlobalEvent_L2L3(globalevent, GMULTI_4, MODEINDEX_G4_2222, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                            trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack],
-                            trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                            trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+            FillGlobalEvent_L2L3(globalevent, GMULTI_4, MODEINDEX_G4_2222, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                            trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                            trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                            trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                             trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
                             trackevent->fL2FTime[ssdindex][itrack]);
             break;
@@ -2376,15 +2576,17 @@ void L2L3_TrackDecoded::L2L3_g4_2222_TrackDecoded(Int_t ssdindex, const char* mo
         }
       }
       // 第3,4条直接判选
-      for (Int_t itrack=0; itrack<GMULTI_4; itrack++) {
-        if (itrack==2 || itrack==3) {
+      for (Int_t itrack=0; itrack<GMULTI_4; itrack++)
+      {
+        if (itrack==2 || itrack==3)
+        {
           if (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]) &&
               IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][itrack]],fMCut[itrack],trackevent->fCsIECh[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]))
           {
-            FillGlobalEvent_L2L3(globalevent, GMULTI_4, MODEINDEX_G4_2222, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                            trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack],
-                            trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                            trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+            FillGlobalEvent_L2L3(globalevent, GMULTI_4, MODEINDEX_G4_2222, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                            trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                            trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                            trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                             trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
                             trackevent->fL2FTime[ssdindex][itrack]);
           }
@@ -2396,15 +2598,17 @@ void L2L3_TrackDecoded::L2L3_g4_2222_TrackDecoded(Int_t ssdindex, const char* mo
     else if (trackevent->fCsINum[ssdindex][1]==trackevent->fCsINum[ssdindex][2])
     {
       // 在第1条与第2条中找一条
-      for (Int_t itrack=0; itrack<GMULTI_4; itrack++) {
-        if (itrack==1 || itrack==2) {
+      for (Int_t itrack=0; itrack<GMULTI_4; itrack++)
+      {
+        if (itrack==1 || itrack==2)
+        {
           if (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]) &&
               IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][itrack]],fMCut[itrack],trackevent->fCsIECh[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]))
           {
-            FillGlobalEvent_L2L3(globalevent, GMULTI_4, MODEINDEX_G4_2222, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                            trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack],
-                            trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                            trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+            FillGlobalEvent_L2L3(globalevent, GMULTI_4, MODEINDEX_G4_2222, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                            trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                            trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                            trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                             trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
                             trackevent->fL2FTime[ssdindex][itrack]);
             break;
@@ -2412,15 +2616,17 @@ void L2L3_TrackDecoded::L2L3_g4_2222_TrackDecoded(Int_t ssdindex, const char* mo
         }
       }
       // 第3,4条直接判选
-      for (Int_t itrack=0; itrack<GMULTI_4; itrack++) {
-        if (itrack==0 || itrack==3) {
+      for (Int_t itrack=0; itrack<GMULTI_4; itrack++)
+      {
+        if (itrack==0 || itrack==3)
+        {
           if (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]) &&
               IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][itrack]],fMCut[itrack],trackevent->fCsIECh[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]))
           {
-            FillGlobalEvent_L2L3(globalevent, GMULTI_4, MODEINDEX_G4_2222, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                            trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack],
-                            trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                            trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+            FillGlobalEvent_L2L3(globalevent, GMULTI_4, MODEINDEX_G4_2222, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                            trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                            trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                            trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                             trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
                             trackevent->fL2FTime[ssdindex][itrack]);
           }
@@ -2432,15 +2638,17 @@ void L2L3_TrackDecoded::L2L3_g4_2222_TrackDecoded(Int_t ssdindex, const char* mo
     else if (trackevent->fCsINum[ssdindex][2]==trackevent->fCsINum[ssdindex][3])
     {
       // 在第1条与第2条中找一条
-      for (Int_t itrack=0; itrack<GMULTI_4; itrack++) {
-        if (itrack==2 || itrack==3) {
+      for (Int_t itrack=0; itrack<GMULTI_4; itrack++)
+      {
+        if (itrack==2 || itrack==3)
+        {
           if (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]) &&
               IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][itrack]],fMCut[itrack],trackevent->fCsIECh[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]))
           {
-            FillGlobalEvent_L2L3(globalevent, GMULTI_4, MODEINDEX_G4_2222, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                            trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack],
-                            trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                            trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+            FillGlobalEvent_L2L3(globalevent, GMULTI_4, MODEINDEX_G4_2222, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                            trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                            trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                            trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                             trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
                             trackevent->fL2FTime[ssdindex][itrack]);
             break;
@@ -2448,15 +2656,17 @@ void L2L3_TrackDecoded::L2L3_g4_2222_TrackDecoded(Int_t ssdindex, const char* mo
         }
       }
       // 第3,4条直接判选
-      for (Int_t itrack=0; itrack<GMULTI_4; itrack++) {
-        if (itrack==0 || itrack==1) {
+      for (Int_t itrack=0; itrack<GMULTI_4; itrack++)
+      {
+        if (itrack==0 || itrack==1)
+        {
           if (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]) &&
               IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][itrack]],fMCut[itrack],trackevent->fCsIECh[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]))
           {
-            FillGlobalEvent_L2L3(globalevent, GMULTI_4, MODEINDEX_G4_2222, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                            trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack],
-                            trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                            trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+            FillGlobalEvent_L2L3(globalevent, GMULTI_4, MODEINDEX_G4_2222, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                            trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                            trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                            trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                             trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
                             trackevent->fL2FTime[ssdindex][itrack]);
           }
@@ -2472,12 +2682,12 @@ void L2L3_TrackDecoded::L2L3_g4_2222_TrackDecoded(Int_t ssdindex, const char* mo
 //             L2L3_g6_TrackDecoded
 //          ------------------------
 //______________________________________________________________________________
-void L2L3_TrackDecoded::L2L3_g6_0012_TrackDecoded(Int_t ssdindex, const char* mode, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
+void L2L3_TrackDecoded::L2L3_g6_0012_TrackDecoded(Int_t ssdindex, const char* mode, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
 {
   // 关闭当前通道
   if (switchsetting == kFALSE) return;
 
-  if ((trackevent->fCsINum[ssdindex].size()==GMULTI_6) && (strcmp(mode,MODE_G6_0012)==0))
+  if (strcmp(mode,MODE_G6_0012)==0)
   {
     // 考虑只有一条有效径迹
     for (Int_t itrack=0; itrack<GMULTI_6; itrack++)
@@ -2485,10 +2695,10 @@ void L2L3_TrackDecoded::L2L3_g6_0012_TrackDecoded(Int_t ssdindex, const char* mo
       if (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]) &&
           IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][itrack]],fMCut[itrack],trackevent->fCsIECh[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]))
       {
-        FillGlobalEvent_L2L3(globalevent, GMULTI_6, MODEINDEX_G6_0012, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                        trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack],
-                        trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                        trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+        FillGlobalEvent_L2L3(globalevent, GMULTI_6, MODEINDEX_G6_0012, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                        trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                        trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                        trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                         trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
                         trackevent->fL2FTime[ssdindex][itrack]);
         break;
@@ -2498,12 +2708,12 @@ void L2L3_TrackDecoded::L2L3_g6_0012_TrackDecoded(Int_t ssdindex, const char* mo
 }
 
 //______________________________________________________________________________
-void L2L3_TrackDecoded::L2L3_g6_0021_TrackDecoded(Int_t ssdindex, const char* mode, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
+void L2L3_TrackDecoded::L2L3_g6_0021_TrackDecoded(Int_t ssdindex, const char* mode, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
 {
   // 关闭当前通道
   if (switchsetting == kFALSE) return;
 
-  if ((trackevent->fCsINum[ssdindex].size()==GMULTI_6) && (strcmp(mode,MODE_G6_0021)==0))
+  if (strcmp(mode,MODE_G6_0021)==0)
   {
     // 考虑只有一条有效径迹
     for (Int_t itrack=0; itrack<GMULTI_6; itrack++)
@@ -2511,10 +2721,10 @@ void L2L3_TrackDecoded::L2L3_g6_0021_TrackDecoded(Int_t ssdindex, const char* mo
       if (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]) &&
           IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][itrack]],fMCut[itrack],trackevent->fCsIECh[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]))
       {
-        FillGlobalEvent_L2L3(globalevent, GMULTI_6, MODEINDEX_G6_0021, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                        trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack],
-                        trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                        trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+        FillGlobalEvent_L2L3(globalevent, GMULTI_6, MODEINDEX_G6_0021, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                        trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                        trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                        trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                         trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
                         trackevent->fL2FTime[ssdindex][itrack]);
         break;
@@ -2524,12 +2734,12 @@ void L2L3_TrackDecoded::L2L3_g6_0021_TrackDecoded(Int_t ssdindex, const char* mo
 }
 
 //______________________________________________________________________________
-void L2L3_TrackDecoded::L2L3_g6_0111_TrackDecoded(Int_t ssdindex, const char* mode, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
+void L2L3_TrackDecoded::L2L3_g6_0111_TrackDecoded(Int_t ssdindex, const char* mode, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
 {
   // 关闭当前通道
   if (switchsetting == kFALSE) return;
 
-  if ((trackevent->fCsINum[ssdindex].size()==GMULTI_6) && (strcmp(mode,MODE_G6_0111)==0))
+  if (strcmp(mode,MODE_G6_0111)==0)
   {
     // 考虑只有一条有效径迹
     for (Int_t itrack=0; itrack<GMULTI_6; itrack++)
@@ -2537,10 +2747,10 @@ void L2L3_TrackDecoded::L2L3_g6_0111_TrackDecoded(Int_t ssdindex, const char* mo
       if (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]) &&
           IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][itrack]],fMCut[itrack],trackevent->fCsIECh[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]))
       {
-        FillGlobalEvent_L2L3(globalevent, GMULTI_6, MODEINDEX_G6_0111, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                        trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack],
-                        trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                        trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+        FillGlobalEvent_L2L3(globalevent, GMULTI_6, MODEINDEX_G6_0111, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                        trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                        trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                        trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                         trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
                         trackevent->fL2FTime[ssdindex][itrack]);
         break;
@@ -2550,12 +2760,12 @@ void L2L3_TrackDecoded::L2L3_g6_0111_TrackDecoded(Int_t ssdindex, const char* mo
 }
 
 //______________________________________________________________________________
-void L2L3_TrackDecoded::L2L3_g6_0112_TrackDecoded(Int_t ssdindex, const char* mode, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
+void L2L3_TrackDecoded::L2L3_g6_0112_TrackDecoded(Int_t ssdindex, const char* mode, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
 {
   // 关闭当前通道
   if (switchsetting == kFALSE) return;
 
-  if ((trackevent->fCsINum[ssdindex].size()==GMULTI_6) && (strcmp(mode,MODE_G6_0112)==0))
+  if (strcmp(mode,MODE_G6_0112)==0)
   {
     // 考虑只有一条有效径迹
     for (Int_t itrack=0; itrack<GMULTI_6; itrack++)
@@ -2563,10 +2773,10 @@ void L2L3_TrackDecoded::L2L3_g6_0112_TrackDecoded(Int_t ssdindex, const char* mo
       if (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]) &&
           IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][itrack]],fMCut[itrack],trackevent->fCsIECh[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]))
       {
-        FillGlobalEvent_L2L3(globalevent, GMULTI_6, MODEINDEX_G6_0112, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                        trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack],
-                        trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                        trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+        FillGlobalEvent_L2L3(globalevent, GMULTI_6, MODEINDEX_G6_0112, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                        trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                        trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                        trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                         trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
                         trackevent->fL2FTime[ssdindex][itrack]);
         break;
@@ -2576,12 +2786,12 @@ void L2L3_TrackDecoded::L2L3_g6_0112_TrackDecoded(Int_t ssdindex, const char* mo
 }
 
 //______________________________________________________________________________
-void L2L3_TrackDecoded::L2L3_g6_0120_TrackDecoded(Int_t ssdindex, const char* mode, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
+void L2L3_TrackDecoded::L2L3_g6_0120_TrackDecoded(Int_t ssdindex, const char* mode, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
 {
   // 关闭当前通道
   if (switchsetting == kFALSE) return;
 
-  if ((trackevent->fCsINum[ssdindex].size()==GMULTI_6) && (strcmp(mode,MODE_G6_0120)==0))
+  if (strcmp(mode,MODE_G6_0120)==0)
   {
     // 考虑只有一条有效径迹
     for (Int_t itrack=0; itrack<GMULTI_6; itrack++)
@@ -2589,10 +2799,10 @@ void L2L3_TrackDecoded::L2L3_g6_0120_TrackDecoded(Int_t ssdindex, const char* mo
       if (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]) &&
           IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][itrack]],fMCut[itrack],trackevent->fCsIECh[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]))
       {
-        FillGlobalEvent_L2L3(globalevent, GMULTI_6, MODEINDEX_G6_0120, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                        trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack],
-                        trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                        trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+        FillGlobalEvent_L2L3(globalevent, GMULTI_6, MODEINDEX_G6_0120, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                        trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                        trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                        trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                         trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
                         trackevent->fL2FTime[ssdindex][itrack]);
         break;
@@ -2602,12 +2812,12 @@ void L2L3_TrackDecoded::L2L3_g6_0120_TrackDecoded(Int_t ssdindex, const char* mo
 }
 
 //______________________________________________________________________________
-void L2L3_TrackDecoded::L2L3_g6_0121_TrackDecoded(Int_t ssdindex, const char* mode, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
+void L2L3_TrackDecoded::L2L3_g6_0121_TrackDecoded(Int_t ssdindex, const char* mode, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
 {
   // 关闭当前通道
   if (switchsetting == kFALSE) return;
 
-  if ((trackevent->fCsINum[ssdindex].size()==GMULTI_6) && (strcmp(mode,MODE_G6_0121)==0))
+  if (strcmp(mode,MODE_G6_0121)==0)
   {
     // 考虑只有一条有效径迹
     for (Int_t itrack=0; itrack<GMULTI_6; itrack++)
@@ -2615,10 +2825,10 @@ void L2L3_TrackDecoded::L2L3_g6_0121_TrackDecoded(Int_t ssdindex, const char* mo
       if (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]) &&
           IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][itrack]],fMCut[itrack],trackevent->fCsIECh[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]))
       {
-        FillGlobalEvent_L2L3(globalevent, GMULTI_6, MODEINDEX_G6_0121, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                        trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack],
-                        trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                        trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+        FillGlobalEvent_L2L3(globalevent, GMULTI_6, MODEINDEX_G6_0121, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                        trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                        trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                        trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                         trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
                         trackevent->fL2FTime[ssdindex][itrack]);
         break;
@@ -2628,12 +2838,12 @@ void L2L3_TrackDecoded::L2L3_g6_0121_TrackDecoded(Int_t ssdindex, const char* mo
 }
 
 //______________________________________________________________________________
-void L2L3_TrackDecoded::L2L3_g6_0211_TrackDecoded(Int_t ssdindex, const char* mode, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
+void L2L3_TrackDecoded::L2L3_g6_0211_TrackDecoded(Int_t ssdindex, const char* mode, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
 {
   // 关闭当前通道
   if (switchsetting == kFALSE) return;
 
-  if ((trackevent->fCsINum[ssdindex].size()==GMULTI_6) && (strcmp(mode,MODE_G6_0211)==0))
+  if (strcmp(mode,MODE_G6_0211)==0)
   {
     // 考虑只有一条有效径迹
     for (Int_t itrack=0; itrack<GMULTI_6; itrack++)
@@ -2641,10 +2851,10 @@ void L2L3_TrackDecoded::L2L3_g6_0211_TrackDecoded(Int_t ssdindex, const char* mo
       if (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]) &&
           IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][itrack]],fMCut[itrack],trackevent->fCsIECh[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]))
       {
-        FillGlobalEvent_L2L3(globalevent, GMULTI_6, MODEINDEX_G6_0211, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                        trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack],
-                        trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                        trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+        FillGlobalEvent_L2L3(globalevent, GMULTI_6, MODEINDEX_G6_0211, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                        trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                        trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                        trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                         trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
                         trackevent->fL2FTime[ssdindex][itrack]);
         break;
@@ -2654,12 +2864,12 @@ void L2L3_TrackDecoded::L2L3_g6_0211_TrackDecoded(Int_t ssdindex, const char* mo
 }
 
 //______________________________________________________________________________
-void L2L3_TrackDecoded::L2L3_g6_1011_TrackDecoded(Int_t ssdindex, const char* mode, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
+void L2L3_TrackDecoded::L2L3_g6_1011_TrackDecoded(Int_t ssdindex, const char* mode, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
 {
   // 关闭当前通道
   if (switchsetting == kFALSE) return;
 
-  if ((trackevent->fCsINum[ssdindex].size()==GMULTI_6) && (strcmp(mode,MODE_G6_1011)==0))
+  if (strcmp(mode,MODE_G6_1011)==0)
   {
     // g6-1112 模式:
     //    case 1：    case 2:     case 3:     case 4:
@@ -2675,18 +2885,24 @@ void L2L3_TrackDecoded::L2L3_g6_1011_TrackDecoded(Int_t ssdindex, const char* mo
     g6_EL2F_Sum_14 = trackevent->fL2FEMeV[ssdindex][1] + trackevent->fL2FEMeV[ssdindex][4];
     g6_EL2F_Sum_34 = trackevent->fL2FEMeV[ssdindex][3] + trackevent->fL2FEMeV[ssdindex][4];
 
+    g6_EL2F_Ch_Sum_12 = trackevent->fL2FECh[ssdindex][1] + trackevent->fL2FECh[ssdindex][2];
+    g6_EL2F_Ch_Sum_14 = trackevent->fL2FECh[ssdindex][1] + trackevent->fL2FECh[ssdindex][4];
+    g6_EL2F_Ch_Sum_34 = trackevent->fL2FECh[ssdindex][3] + trackevent->fL2FECh[ssdindex][4];
+
     // case 1: 3)4) L2B 双击
     if (((trackevent->fCsINum[ssdindex][3]!=trackevent->fCsINum[ssdindex][4]) && (trackevent->fL2FNumStrip[ssdindex][3]!=trackevent->fL2FNumStrip[ssdindex][4])) &&
         IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][3],g6_EL2F_Sum_34))
 		{
-      for (Int_t itrack=0; itrack<GMULTI_6; itrack++) {
-        if (itrack==3 || itrack==4) {
+      for (Int_t itrack=0; itrack<GMULTI_6; itrack++)
+      {
+        if (itrack==3 || itrack==4)
+        {
           if (IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][itrack]],fMCut[itrack],trackevent->fCsIECh[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]))
           {
-            FillGlobalEvent_L2L3(globalevent, GMULTI_6, MODEINDEX_G6_1011, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                            trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack],
-                            trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                            trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+            FillGlobalEvent_L2L3(globalevent, GMULTI_6, MODEINDEX_G6_1011, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                            trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                            trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                            trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                             trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
                             trackevent->fL2FTime[ssdindex][itrack]);
           }
@@ -2697,14 +2913,16 @@ void L2L3_TrackDecoded::L2L3_g6_1011_TrackDecoded(Int_t ssdindex, const char* mo
     else if (((trackevent->fCsINum[ssdindex][3]!=trackevent->fCsINum[ssdindex][4]) && (trackevent->fL2FNumStrip[ssdindex][1]!=trackevent->fL2FNumStrip[ssdindex][4])) &&
              IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][1],g6_EL2F_Sum_14))
 		{
-      for (Int_t itrack=0; itrack<GMULTI_6; itrack++) {
-        if (itrack==1 || itrack==4) {
+      for (Int_t itrack=0; itrack<GMULTI_6; itrack++)
+      {
+        if (itrack==1 || itrack==4)
+        {
           if (IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][itrack]],fMCut[itrack],trackevent->fCsIECh[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]))
           {
-            FillGlobalEvent_L2L3(globalevent, GMULTI_6, MODEINDEX_G6_1011, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                            trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack],
-                            trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                            trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+            FillGlobalEvent_L2L3(globalevent, GMULTI_6, MODEINDEX_G6_1011, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                            trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                            trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                            trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                             trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
                             trackevent->fL2FTime[ssdindex][itrack]);
           }
@@ -2715,14 +2933,16 @@ void L2L3_TrackDecoded::L2L3_g6_1011_TrackDecoded(Int_t ssdindex, const char* mo
     else if (((trackevent->fCsINum[ssdindex][1]!=trackevent->fCsINum[ssdindex][2]) && (trackevent->fL2FNumStrip[ssdindex][1]!=trackevent->fL2FNumStrip[ssdindex][2])) &&
              IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][1],g6_EL2F_Sum_12))
 		{
-      for (Int_t itrack=0; itrack<GMULTI_6; itrack++) {
-        if (itrack==1 || itrack==2) {
+      for (Int_t itrack=0; itrack<GMULTI_6; itrack++)
+      {
+        if (itrack==1 || itrack==2)
+        {
           if (IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][itrack]],fMCut[itrack],trackevent->fCsIECh[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]))
           {
-            FillGlobalEvent_L2L3(globalevent, GMULTI_6, MODEINDEX_G6_1011, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                            trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack],
-                            trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                            trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+            FillGlobalEvent_L2L3(globalevent, GMULTI_6, MODEINDEX_G6_1011, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                            trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                            trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                            trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                             trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
                             trackevent->fL2FTime[ssdindex][itrack]);
           }
@@ -2733,14 +2953,16 @@ void L2L3_TrackDecoded::L2L3_g6_1011_TrackDecoded(Int_t ssdindex, const char* mo
     else if (((trackevent->fCsINum[ssdindex][1]!=trackevent->fCsINum[ssdindex][2]) && (trackevent->fL2FNumStrip[ssdindex][1]!=trackevent->fL2FNumStrip[ssdindex][4])) &&
              IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][1],g6_EL2F_Sum_14))
 		{
-      for (Int_t itrack=0; itrack<GMULTI_6; itrack++) {
-        if (itrack==1 || itrack==4) {
+      for (Int_t itrack=0; itrack<GMULTI_6; itrack++)
+      {
+        if (itrack==1 || itrack==4)
+        {
           if (IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][itrack]],fMCut[itrack],trackevent->fCsIECh[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]))
           {
-            FillGlobalEvent_L2L3(globalevent, GMULTI_6, MODEINDEX_G6_1011, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                            trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack],
-                            trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                            trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+            FillGlobalEvent_L2L3(globalevent, GMULTI_6, MODEINDEX_G6_1011, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                            trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                            trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                            trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                             trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
                             trackevent->fL2FTime[ssdindex][itrack]);
           }
@@ -2750,14 +2972,15 @@ void L2L3_TrackDecoded::L2L3_g6_1011_TrackDecoded(Int_t ssdindex, const char* mo
     // 考虑只有一条有效径迹
     else
     {
-      for (Int_t itrack=0; itrack<GMULTI_6; itrack++) {
+      for (Int_t itrack=0; itrack<GMULTI_6; itrack++)
+      {
         if (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]) &&
             IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][itrack]],fMCut[itrack],trackevent->fCsIECh[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]))
         {
-          FillGlobalEvent_L2L3(globalevent, GMULTI_6, MODEINDEX_G6_1011, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                          trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack],
-                          trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                          trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+          FillGlobalEvent_L2L3(globalevent, GMULTI_6, MODEINDEX_G6_1011, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                          trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                          trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                          trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                           trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
                           trackevent->fL2FTime[ssdindex][itrack]);
           break;
@@ -2768,12 +2991,12 @@ void L2L3_TrackDecoded::L2L3_g6_1011_TrackDecoded(Int_t ssdindex, const char* mo
 }
 
 //______________________________________________________________________________
-void L2L3_TrackDecoded::L2L3_g6_1110_TrackDecoded(Int_t ssdindex, const char* mode, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
+void L2L3_TrackDecoded::L2L3_g6_1110_TrackDecoded(Int_t ssdindex, const char* mode, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
 {
   // 关闭当前通道
   if (switchsetting == kFALSE) return;
 
-  if ((trackevent->fCsINum[ssdindex].size()==GMULTI_6) && (strcmp(mode,MODE_G6_1110)==0))
+  if (strcmp(mode,MODE_G6_1110)==0)
   {
     // g6-1112 模式:
     // ---0--12345---
@@ -2788,15 +3011,16 @@ void L2L3_TrackDecoded::L2L3_g6_1110_TrackDecoded(Int_t ssdindex, const char* mo
       // 在第0)条候选径迹中找一条
       for (Int_t itrack=0; itrack<GMULTI_6; itrack++)
       {
-        if (itrack==0) {
+        if (itrack==0)
+        {
           if (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]) &&
               IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][itrack]],fMCut[itrack],trackevent->fCsIECh[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]))
           {
             fL1SELoss = GetEL1S(ssdindex,trackevent->fL2FEMeV[ssdindex][itrack],fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A);
-            FillGlobalEvent_L2L3(globalevent, GMULTI_6, MODEINDEX_G6_1110, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                            trackevent->fL1SNumStrip[ssdindex][itrack], fL1SELoss,
-                            trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                            trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+            FillGlobalEvent_L2L3(globalevent, GMULTI_6, MODEINDEX_G6_1110, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                            trackevent->fL1SNumStrip[ssdindex][itrack], fL1SELoss,                              trackevent->fL1SECh[ssdindex][itrack],
+                            trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                            trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                             trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
                             trackevent->fL2FTime[ssdindex][itrack]);
             break;
@@ -2806,15 +3030,16 @@ void L2L3_TrackDecoded::L2L3_g6_1110_TrackDecoded(Int_t ssdindex, const char* mo
       // 在第1)-5)条候选径迹中找一条
       for (Int_t itrack=0; itrack<GMULTI_6; itrack++)
       {
-        if (itrack>=1) {
+        if (itrack>=1)
+        {
           if (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]) &&
               IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][itrack]],fMCut[itrack],trackevent->fCsIECh[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]))
           {
             fL1SELoss = GetEL1S(ssdindex,trackevent->fL2FEMeV[ssdindex][itrack],fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A);
-            FillGlobalEvent_L2L3(globalevent, GMULTI_6, MODEINDEX_G6_1110, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                            trackevent->fL1SNumStrip[ssdindex][itrack], fL1SELoss,
-                            trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                            trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+            FillGlobalEvent_L2L3(globalevent, GMULTI_6, MODEINDEX_G6_1110, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                            trackevent->fL1SNumStrip[ssdindex][itrack], fL1SELoss,                              trackevent->fL1SECh[ssdindex][itrack],
+                            trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                            trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                             trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
                             trackevent->fL2FTime[ssdindex][itrack]);
             break;
@@ -2828,15 +3053,16 @@ void L2L3_TrackDecoded::L2L3_g6_1110_TrackDecoded(Int_t ssdindex, const char* mo
       // 在第0)-1)条候选径迹中找一条
       for (Int_t itrack=0; itrack<GMULTI_6; itrack++)
       {
-        if (itrack<2) {
+        if (itrack<2)
+        {
           if (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]) &&
               IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][itrack]],fMCut[itrack],trackevent->fCsIECh[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]))
           {
             fL1SELoss = GetEL1S(ssdindex,trackevent->fL2FEMeV[ssdindex][itrack],fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A);
-            FillGlobalEvent_L2L3(globalevent, GMULTI_6, MODEINDEX_G6_1110, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                            trackevent->fL1SNumStrip[ssdindex][itrack], fL1SELoss,
-                            trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                            trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+            FillGlobalEvent_L2L3(globalevent, GMULTI_6, MODEINDEX_G6_1110, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                            trackevent->fL1SNumStrip[ssdindex][itrack], fL1SELoss,                              trackevent->fL1SECh[ssdindex][itrack],
+                            trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                            trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                             trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
                             trackevent->fL2FTime[ssdindex][itrack]);
             break;
@@ -2846,15 +3072,16 @@ void L2L3_TrackDecoded::L2L3_g6_1110_TrackDecoded(Int_t ssdindex, const char* mo
       // 在第2)-5)条候选径迹中找一条
       for (Int_t itrack=0; itrack<GMULTI_6; itrack++)
       {
-        if (itrack>=2) {
+        if (itrack>=2)
+        {
           if (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]) &&
               IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][itrack]],fMCut[itrack],trackevent->fCsIECh[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]))
           {
             fL1SELoss = GetEL1S(ssdindex,trackevent->fL2FEMeV[ssdindex][itrack],fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A);
-            FillGlobalEvent_L2L3(globalevent, GMULTI_6, MODEINDEX_G6_1110, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                            trackevent->fL1SNumStrip[ssdindex][itrack], fL1SELoss,
-                            trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                            trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+            FillGlobalEvent_L2L3(globalevent, GMULTI_6, MODEINDEX_G6_1110, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                            trackevent->fL1SNumStrip[ssdindex][itrack], fL1SELoss,                              trackevent->fL1SECh[ssdindex][itrack],
+                            trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                            trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                             trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
                             trackevent->fL2FTime[ssdindex][itrack]);
             break;
@@ -2868,15 +3095,16 @@ void L2L3_TrackDecoded::L2L3_g6_1110_TrackDecoded(Int_t ssdindex, const char* mo
       // 在第0)-2)条候选径迹中找一条
       for (Int_t itrack=0; itrack<GMULTI_6; itrack++)
       {
-        if (itrack<3) {
+        if (itrack<3)
+        {
           if (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]) &&
               IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][itrack]],fMCut[itrack],trackevent->fCsIECh[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]))
           {
             fL1SELoss = GetEL1S(ssdindex,trackevent->fL2FEMeV[ssdindex][itrack],fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A);
-            FillGlobalEvent_L2L3(globalevent, GMULTI_6, MODEINDEX_G6_1110, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                            trackevent->fL1SNumStrip[ssdindex][itrack], fL1SELoss,
-                            trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                            trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+            FillGlobalEvent_L2L3(globalevent, GMULTI_6, MODEINDEX_G6_1110, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                            trackevent->fL1SNumStrip[ssdindex][itrack], fL1SELoss,                              trackevent->fL1SECh[ssdindex][itrack],
+                            trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                            trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                             trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
                             trackevent->fL2FTime[ssdindex][itrack]);
             break;
@@ -2886,15 +3114,16 @@ void L2L3_TrackDecoded::L2L3_g6_1110_TrackDecoded(Int_t ssdindex, const char* mo
       // 在第3)-5)条候选径迹中找一条
       for (Int_t itrack=0; itrack<GMULTI_6; itrack++)
       {
-        if (itrack>=3) {
+        if (itrack>=3)
+        {
           if (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]) &&
               IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][itrack]],fMCut[itrack],trackevent->fCsIECh[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]))
           {
             fL1SELoss = GetEL1S(ssdindex,trackevent->fL2FEMeV[ssdindex][itrack],fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A);
-            FillGlobalEvent_L2L3(globalevent, GMULTI_6, MODEINDEX_G6_1110, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                            trackevent->fL1SNumStrip[ssdindex][itrack], fL1SELoss,
-                            trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                            trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+            FillGlobalEvent_L2L3(globalevent, GMULTI_6, MODEINDEX_G6_1110, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                            trackevent->fL1SNumStrip[ssdindex][itrack], fL1SELoss,                              trackevent->fL1SECh[ssdindex][itrack],
+                            trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                            trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                             trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
                             trackevent->fL2FTime[ssdindex][itrack]);
             break;
@@ -2908,15 +3137,16 @@ void L2L3_TrackDecoded::L2L3_g6_1110_TrackDecoded(Int_t ssdindex, const char* mo
       // 在第0)-3)条候选径迹中找一条
       for (Int_t itrack=0; itrack<GMULTI_6; itrack++)
       {
-        if (itrack<4) {
+        if (itrack<4)
+        {
           if (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]) &&
               IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][itrack]],fMCut[itrack],trackevent->fCsIECh[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]))
           {
             fL1SELoss = GetEL1S(ssdindex,trackevent->fL2FEMeV[ssdindex][itrack],fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A);
-            FillGlobalEvent_L2L3(globalevent, GMULTI_6, MODEINDEX_G6_1110, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                            trackevent->fL1SNumStrip[ssdindex][itrack], fL1SELoss,
-                            trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                            trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+            FillGlobalEvent_L2L3(globalevent, GMULTI_6, MODEINDEX_G6_1110, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                            trackevent->fL1SNumStrip[ssdindex][itrack], fL1SELoss,                              trackevent->fL1SECh[ssdindex][itrack],
+                            trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                            trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                             trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
                             trackevent->fL2FTime[ssdindex][itrack]);
             break;
@@ -2926,15 +3156,16 @@ void L2L3_TrackDecoded::L2L3_g6_1110_TrackDecoded(Int_t ssdindex, const char* mo
       // 在第4)-5)条候选径迹中找一条
       for (Int_t itrack=0; itrack<GMULTI_6; itrack++)
       {
-        if (itrack>=4) {
+        if (itrack>=4)
+        {
           if (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]) &&
               IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][itrack]],fMCut[itrack],trackevent->fCsIECh[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]))
           {
             fL1SELoss = GetEL1S(ssdindex,trackevent->fL2FEMeV[ssdindex][itrack],fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A);
-            FillGlobalEvent_L2L3(globalevent, GMULTI_6, MODEINDEX_G6_1110, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                            trackevent->fL1SNumStrip[ssdindex][itrack], fL1SELoss,
-                            trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                            trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+            FillGlobalEvent_L2L3(globalevent, GMULTI_6, MODEINDEX_G6_1110, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                            trackevent->fL1SNumStrip[ssdindex][itrack], fL1SELoss,                              trackevent->fL1SECh[ssdindex][itrack],
+                            trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                            trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                             trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
                             trackevent->fL2FTime[ssdindex][itrack]);
             break;
@@ -2948,15 +3179,16 @@ void L2L3_TrackDecoded::L2L3_g6_1110_TrackDecoded(Int_t ssdindex, const char* mo
       // 在第0)-4)条候选径迹中找一条
       for (Int_t itrack=0; itrack<GMULTI_6; itrack++)
       {
-        if (itrack<5) {
+        if (itrack<5)
+        {
           if (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]) &&
               IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][itrack]],fMCut[itrack],trackevent->fCsIECh[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]))
           {
             fL1SELoss = GetEL1S(ssdindex,trackevent->fL2FEMeV[ssdindex][itrack],fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A);
-            FillGlobalEvent_L2L3(globalevent, GMULTI_6, MODEINDEX_G6_1110, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                            trackevent->fL1SNumStrip[ssdindex][itrack], fL1SELoss,
-                            trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                            trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+            FillGlobalEvent_L2L3(globalevent, GMULTI_6, MODEINDEX_G6_1110, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                            trackevent->fL1SNumStrip[ssdindex][itrack], fL1SELoss,                              trackevent->fL1SECh[ssdindex][itrack],
+                            trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                            trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                             trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
                             trackevent->fL2FTime[ssdindex][itrack]);
             break;
@@ -2966,15 +3198,16 @@ void L2L3_TrackDecoded::L2L3_g6_1110_TrackDecoded(Int_t ssdindex, const char* mo
       // 在第5)条候选径迹中找一条
       for (Int_t itrack=0; itrack<GMULTI_6; itrack++)
       {
-        if (itrack>=5) {
+        if (itrack>=5)
+        {
           if (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]) &&
               IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][itrack]],fMCut[itrack],trackevent->fCsIECh[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]))
           {
             fL1SELoss = GetEL1S(ssdindex,trackevent->fL2FEMeV[ssdindex][itrack],fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A);
-            FillGlobalEvent_L2L3(globalevent, GMULTI_6, MODEINDEX_G6_1110, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                            trackevent->fL1SNumStrip[ssdindex][itrack], fL1SELoss,
-                            trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                            trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+            FillGlobalEvent_L2L3(globalevent, GMULTI_6, MODEINDEX_G6_1110, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                            trackevent->fL1SNumStrip[ssdindex][itrack], fL1SELoss,                              trackevent->fL1SECh[ssdindex][itrack],
+                            trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                            trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                             trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
                             trackevent->fL2FTime[ssdindex][itrack]);
             break;
@@ -2986,12 +3219,12 @@ void L2L3_TrackDecoded::L2L3_g6_1110_TrackDecoded(Int_t ssdindex, const char* mo
 }
 
 //______________________________________________________________________________
-void L2L3_TrackDecoded::L2L3_g6_1111_TrackDecoded(Int_t ssdindex, const char* mode, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
+void L2L3_TrackDecoded::L2L3_g6_1111_TrackDecoded(Int_t ssdindex, const char* mode, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
 {
   // 关闭当前通道
   if (switchsetting == kFALSE) return;
 
-  if ((trackevent->fCsINum[ssdindex].size()==GMULTI_6) && (strcmp(mode,MODE_G6_1111)==0))
+  if (strcmp(mode,MODE_G6_1111)==0)
   {
     // g6-1112 模式:
     // ---0--12345---
@@ -3006,14 +3239,15 @@ void L2L3_TrackDecoded::L2L3_g6_1111_TrackDecoded(Int_t ssdindex, const char* mo
       // 在第0)条候选径迹中找一条
       for (Int_t itrack=0; itrack<GMULTI_6; itrack++)
       {
-        if (itrack==0) {
+        if (itrack==0)
+        {
           if (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]) &&
               IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][itrack]],fMCut[itrack],trackevent->fCsIECh[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]))
           {
-            FillGlobalEvent_L2L3(globalevent, GMULTI_6, MODEINDEX_G6_1111, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                            trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack],
-                            trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                            trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+            FillGlobalEvent_L2L3(globalevent, GMULTI_6, MODEINDEX_G6_1111, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                            trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                            trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                            trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                             trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
                             trackevent->fL2FTime[ssdindex][itrack]);
             break;
@@ -3023,14 +3257,15 @@ void L2L3_TrackDecoded::L2L3_g6_1111_TrackDecoded(Int_t ssdindex, const char* mo
       // 在第1)-5)条候选径迹中找一条
       for (Int_t itrack=0; itrack<GMULTI_6; itrack++)
       {
-        if (itrack>=1) {
+        if (itrack>=1)
+        {
           if (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]) &&
               IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][itrack]],fMCut[itrack],trackevent->fCsIECh[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]))
           {
-            FillGlobalEvent_L2L3(globalevent, GMULTI_6, MODEINDEX_G6_1111, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                            trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack],
-                            trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                            trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+            FillGlobalEvent_L2L3(globalevent, GMULTI_6, MODEINDEX_G6_1111, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                            trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                            trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                            trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                             trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
                             trackevent->fL2FTime[ssdindex][itrack]);
             break;
@@ -3044,14 +3279,15 @@ void L2L3_TrackDecoded::L2L3_g6_1111_TrackDecoded(Int_t ssdindex, const char* mo
       // 在第0)-1)条候选径迹中找一条
       for (Int_t itrack=0; itrack<GMULTI_6; itrack++)
       {
-        if (itrack<2) {
+        if (itrack<2)
+        {
           if (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]) &&
               IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][itrack]],fMCut[itrack],trackevent->fCsIECh[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]))
           {
-            FillGlobalEvent_L2L3(globalevent, GMULTI_6, MODEINDEX_G6_1111, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                            trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack],
-                            trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                            trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+            FillGlobalEvent_L2L3(globalevent, GMULTI_6, MODEINDEX_G6_1111, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                            trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                            trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                            trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                             trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
                             trackevent->fL2FTime[ssdindex][itrack]);
             break;
@@ -3061,14 +3297,15 @@ void L2L3_TrackDecoded::L2L3_g6_1111_TrackDecoded(Int_t ssdindex, const char* mo
       // 在第2-5)条候选径迹中找一条
       for (Int_t itrack=0; itrack<GMULTI_6; itrack++)
       {
-        if (itrack>=2) {
+        if (itrack>=2)
+        {
           if (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]) &&
               IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][itrack]],fMCut[itrack],trackevent->fCsIECh[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]))
           {
-            FillGlobalEvent_L2L3(globalevent, GMULTI_6, MODEINDEX_G6_1111, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                            trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack],
-                            trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                            trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+            FillGlobalEvent_L2L3(globalevent, GMULTI_6, MODEINDEX_G6_1111, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                            trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                            trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                            trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                             trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
                             trackevent->fL2FTime[ssdindex][itrack]);
             break;
@@ -3082,14 +3319,15 @@ void L2L3_TrackDecoded::L2L3_g6_1111_TrackDecoded(Int_t ssdindex, const char* mo
       // 在第0)-2)条候选径迹中找一条
       for (Int_t itrack=0; itrack<GMULTI_6; itrack++)
       {
-        if (itrack<3) {
+        if (itrack<3)
+        {
           if (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]) &&
               IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][itrack]],fMCut[itrack],trackevent->fCsIECh[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]))
           {
-            FillGlobalEvent_L2L3(globalevent, GMULTI_6, MODEINDEX_G6_1111, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                            trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack],
-                            trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                            trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+            FillGlobalEvent_L2L3(globalevent, GMULTI_6, MODEINDEX_G6_1111, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                            trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                            trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                            trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                             trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
                             trackevent->fL2FTime[ssdindex][itrack]);
             break;
@@ -3099,14 +3337,15 @@ void L2L3_TrackDecoded::L2L3_g6_1111_TrackDecoded(Int_t ssdindex, const char* mo
       // 在第3)-5)条候选径迹中找一条
       for (Int_t itrack=0; itrack<GMULTI_6; itrack++)
       {
-        if (itrack>=3) {
+        if (itrack>=3)
+        {
           if (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]) &&
               IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][itrack]],fMCut[itrack],trackevent->fCsIECh[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]))
           {
-            FillGlobalEvent_L2L3(globalevent, GMULTI_6, MODEINDEX_G6_1111, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                            trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack],
-                            trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                            trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+            FillGlobalEvent_L2L3(globalevent, GMULTI_6, MODEINDEX_G6_1111, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                            trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                            trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                            trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                             trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
                             trackevent->fL2FTime[ssdindex][itrack]);
             break;
@@ -3120,14 +3359,15 @@ void L2L3_TrackDecoded::L2L3_g6_1111_TrackDecoded(Int_t ssdindex, const char* mo
       // 在第0)-3)条候选径迹中找一条
       for (Int_t itrack=0; itrack<GMULTI_6; itrack++)
       {
-        if (itrack<4) {
+        if (itrack<4)
+        {
           if (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]) &&
               IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][itrack]],fMCut[itrack],trackevent->fCsIECh[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]))
           {
-            FillGlobalEvent_L2L3(globalevent, GMULTI_6, MODEINDEX_G6_1111, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                            trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack],
-                            trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                            trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+            FillGlobalEvent_L2L3(globalevent, GMULTI_6, MODEINDEX_G6_1111, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                            trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                            trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                            trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                             trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
                             trackevent->fL2FTime[ssdindex][itrack]);
             break;
@@ -3137,14 +3377,15 @@ void L2L3_TrackDecoded::L2L3_g6_1111_TrackDecoded(Int_t ssdindex, const char* mo
       // 在第4)-5)条候选径迹中找一条
       for (Int_t itrack=0; itrack<GMULTI_6; itrack++)
       {
-        if (itrack>=4) {
+        if (itrack>=4)
+        {
           if (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]) &&
               IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][itrack]],fMCut[itrack],trackevent->fCsIECh[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]))
           {
-            FillGlobalEvent_L2L3(globalevent, GMULTI_6, MODEINDEX_G6_1111, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                            trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack],
-                            trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                            trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+            FillGlobalEvent_L2L3(globalevent, GMULTI_6, MODEINDEX_G6_1111, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                            trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                            trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                            trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                             trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
                             trackevent->fL2FTime[ssdindex][itrack]);
             break;
@@ -3158,14 +3399,15 @@ void L2L3_TrackDecoded::L2L3_g6_1111_TrackDecoded(Int_t ssdindex, const char* mo
       // 在第0)-4)条候选径迹中找一条
       for (Int_t itrack=0; itrack<GMULTI_6; itrack++)
       {
-        if (itrack<5) {
+        if (itrack<5)
+        {
           if (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]) &&
               IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][itrack]],fMCut[itrack],trackevent->fCsIECh[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]))
           {
-            FillGlobalEvent_L2L3(globalevent, GMULTI_6, MODEINDEX_G6_1111, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                            trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack],
-                            trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                            trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+            FillGlobalEvent_L2L3(globalevent, GMULTI_6, MODEINDEX_G6_1111, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                            trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                            trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                            trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                             trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
                             trackevent->fL2FTime[ssdindex][itrack]);
             break;
@@ -3175,14 +3417,15 @@ void L2L3_TrackDecoded::L2L3_g6_1111_TrackDecoded(Int_t ssdindex, const char* mo
       // 在第5)条候选径迹中找一条
       for (Int_t itrack=0; itrack<GMULTI_6; itrack++)
       {
-        if (itrack>=5) {
+        if (itrack>=5)
+        {
           if (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]) &&
               IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][itrack]],fMCut[itrack],trackevent->fCsIECh[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]))
           {
-            FillGlobalEvent_L2L3(globalevent, GMULTI_6, MODEINDEX_G6_1111, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                            trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack],
-                            trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                            trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+            FillGlobalEvent_L2L3(globalevent, GMULTI_6, MODEINDEX_G6_1111, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                            trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                            trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                            trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                             trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
                             trackevent->fL2FTime[ssdindex][itrack]);
             break;
@@ -3194,12 +3437,12 @@ void L2L3_TrackDecoded::L2L3_g6_1111_TrackDecoded(Int_t ssdindex, const char* mo
 }
 
 //______________________________________________________________________________
-void L2L3_TrackDecoded::L2L3_g6_1112_TrackDecoded(Int_t ssdindex, const char* mode, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
+void L2L3_TrackDecoded::L2L3_g6_1112_TrackDecoded(Int_t ssdindex, const char* mode, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
 {
   // 关闭当前通道
   if (switchsetting == kFALSE) return;
 
-  if ((trackevent->fCsINum[ssdindex].size()==GMULTI_6) && (strcmp(mode,MODE_G6_1112)==0))
+  if (strcmp(mode,MODE_G6_1112)==0)
   {
     // g6-1112 模式:
     // ---0--12345---
@@ -3214,14 +3457,15 @@ void L2L3_TrackDecoded::L2L3_g6_1112_TrackDecoded(Int_t ssdindex, const char* mo
       // 在第0)条候选径迹中找一条
       for (Int_t itrack=0; itrack<GMULTI_6; itrack++)
       {
-        if (itrack==0) {
+        if (itrack==0)
+        {
           if (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]) &&
               IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][itrack]],fMCut[itrack],trackevent->fCsIECh[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]))
           {
-            FillGlobalEvent_L2L3(globalevent, GMULTI_6, MODEINDEX_G6_1112, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                            trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack],
-                            trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                            trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+            FillGlobalEvent_L2L3(globalevent, GMULTI_6, MODEINDEX_G6_1112, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                            trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                            trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                            trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                             trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
                             trackevent->fL2FTime[ssdindex][itrack]);
             break;
@@ -3231,14 +3475,15 @@ void L2L3_TrackDecoded::L2L3_g6_1112_TrackDecoded(Int_t ssdindex, const char* mo
       // 在第1)-5)条候选径迹中找一条
       for (Int_t itrack=0; itrack<GMULTI_6; itrack++)
       {
-        if (itrack>=1) {
+        if (itrack>=1)
+        {
           if (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]) &&
               IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][itrack]],fMCut[itrack],trackevent->fCsIECh[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]))
           {
-            FillGlobalEvent_L2L3(globalevent, GMULTI_6, MODEINDEX_G6_1112, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                            trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack],
-                            trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                            trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+            FillGlobalEvent_L2L3(globalevent, GMULTI_6, MODEINDEX_G6_1112, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                            trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                            trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                            trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                             trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
                             trackevent->fL2FTime[ssdindex][itrack]);
             break;
@@ -3252,14 +3497,15 @@ void L2L3_TrackDecoded::L2L3_g6_1112_TrackDecoded(Int_t ssdindex, const char* mo
       // 在第0)-1)条候选径迹中找一条
       for (Int_t itrack=0; itrack<GMULTI_6; itrack++)
       {
-        if (itrack<2) {
+        if (itrack<2)
+        {
           if (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]) &&
               IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][itrack]],fMCut[itrack],trackevent->fCsIECh[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]))
           {
-            FillGlobalEvent_L2L3(globalevent, GMULTI_6, MODEINDEX_G6_1112, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                            trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack],
-                            trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                            trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+            FillGlobalEvent_L2L3(globalevent, GMULTI_6, MODEINDEX_G6_1112, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                            trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                            trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                            trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                             trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
                             trackevent->fL2FTime[ssdindex][itrack]);
             break;
@@ -3269,14 +3515,15 @@ void L2L3_TrackDecoded::L2L3_g6_1112_TrackDecoded(Int_t ssdindex, const char* mo
       // 在第2)-5)条候选径迹中找一条
       for (Int_t itrack=0; itrack<GMULTI_6; itrack++)
       {
-        if (itrack>=2) {
+        if (itrack>=2)
+        {
           if (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]) &&
               IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][itrack]],fMCut[itrack],trackevent->fCsIECh[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]))
           {
-            FillGlobalEvent_L2L3(globalevent, GMULTI_6, MODEINDEX_G6_1112, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                            trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack],
-                            trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                            trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+            FillGlobalEvent_L2L3(globalevent, GMULTI_6, MODEINDEX_G6_1112, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                            trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                            trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                            trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                             trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
                             trackevent->fL2FTime[ssdindex][itrack]);
             break;
@@ -3290,14 +3537,15 @@ void L2L3_TrackDecoded::L2L3_g6_1112_TrackDecoded(Int_t ssdindex, const char* mo
       // 在第0)-2)条候选径迹中找一条
       for (Int_t itrack=0; itrack<GMULTI_6; itrack++)
       {
-        if (itrack<3) {
+        if (itrack<3)
+        {
           if (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]) &&
               IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][itrack]],fMCut[itrack],trackevent->fCsIECh[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]))
           {
-            FillGlobalEvent_L2L3(globalevent, GMULTI_6, MODEINDEX_G6_1112, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                            trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack],
-                            trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                            trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+            FillGlobalEvent_L2L3(globalevent, GMULTI_6, MODEINDEX_G6_1112, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                            trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                            trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                            trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                             trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
                             trackevent->fL2FTime[ssdindex][itrack]);
             break;
@@ -3307,14 +3555,15 @@ void L2L3_TrackDecoded::L2L3_g6_1112_TrackDecoded(Int_t ssdindex, const char* mo
       // 在第3)-5)条候选径迹中找一条
       for (Int_t itrack=0; itrack<GMULTI_6; itrack++)
       {
-        if (itrack>=3) {
+        if (itrack>=3)
+        {
           if (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]) &&
               IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][itrack]],fMCut[itrack],trackevent->fCsIECh[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]))
           {
-            FillGlobalEvent_L2L3(globalevent, GMULTI_6, MODEINDEX_G6_1112, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                            trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack],
-                            trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                            trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+            FillGlobalEvent_L2L3(globalevent, GMULTI_6, MODEINDEX_G6_1112, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                            trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                            trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                            trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                             trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
                             trackevent->fL2FTime[ssdindex][itrack]);
             break;
@@ -3328,14 +3577,15 @@ void L2L3_TrackDecoded::L2L3_g6_1112_TrackDecoded(Int_t ssdindex, const char* mo
       // 在第0)-3)条候选径迹中找一条
       for (Int_t itrack=0; itrack<GMULTI_6; itrack++)
       {
-        if (itrack<4) {
+        if (itrack<4)
+        {
           if (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]) &&
               IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][itrack]],fMCut[itrack],trackevent->fCsIECh[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]))
           {
-            FillGlobalEvent_L2L3(globalevent, GMULTI_6, MODEINDEX_G6_1112, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                            trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack],
-                            trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                            trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+            FillGlobalEvent_L2L3(globalevent, GMULTI_6, MODEINDEX_G6_1112, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                            trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                            trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                            trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                             trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
                             trackevent->fL2FTime[ssdindex][itrack]);
             break;
@@ -3345,14 +3595,15 @@ void L2L3_TrackDecoded::L2L3_g6_1112_TrackDecoded(Int_t ssdindex, const char* mo
       // 在第4)-5)条候选径迹中找一条
       for (Int_t itrack=0; itrack<GMULTI_6; itrack++)
       {
-        if (itrack>=4) {
+        if (itrack>=4)
+        {
           if (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]) &&
               IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][itrack]],fMCut[itrack],trackevent->fCsIECh[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]))
           {
-            FillGlobalEvent_L2L3(globalevent, GMULTI_6, MODEINDEX_G6_1112, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                            trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack],
-                            trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                            trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+            FillGlobalEvent_L2L3(globalevent, GMULTI_6, MODEINDEX_G6_1112, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                            trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                            trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                            trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                             trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
                             trackevent->fL2FTime[ssdindex][itrack]);
             break;
@@ -3366,14 +3617,15 @@ void L2L3_TrackDecoded::L2L3_g6_1112_TrackDecoded(Int_t ssdindex, const char* mo
       // 在第0)-4)条候选径迹中找一条
       for (Int_t itrack=0; itrack<GMULTI_6; itrack++)
       {
-        if (itrack<5) {
+        if (itrack<5)
+        {
           if (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]) &&
               IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][itrack]],fMCut[itrack],trackevent->fCsIECh[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]))
           {
-            FillGlobalEvent_L2L3(globalevent, GMULTI_6, MODEINDEX_G6_1112, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                            trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack],
-                            trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                            trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+            FillGlobalEvent_L2L3(globalevent, GMULTI_6, MODEINDEX_G6_1112, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                            trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                            trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                            trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                             trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
                             trackevent->fL2FTime[ssdindex][itrack]);
             break;
@@ -3383,14 +3635,15 @@ void L2L3_TrackDecoded::L2L3_g6_1112_TrackDecoded(Int_t ssdindex, const char* mo
       // 在第5)条候选径迹中找一条
       for (Int_t itrack=0; itrack<GMULTI_6; itrack++)
       {
-        if (itrack>=5) {
+        if (itrack>=5)
+        {
           if (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]) &&
               IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][itrack]],fMCut[itrack],trackevent->fCsIECh[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]))
           {
-            FillGlobalEvent_L2L3(globalevent, GMULTI_6, MODEINDEX_G6_1112, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                            trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack],
-                            trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                            trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+            FillGlobalEvent_L2L3(globalevent, GMULTI_6, MODEINDEX_G6_1112, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                            trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                            trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                            trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                             trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
                             trackevent->fL2FTime[ssdindex][itrack]);
             break;
@@ -3402,12 +3655,12 @@ void L2L3_TrackDecoded::L2L3_g6_1112_TrackDecoded(Int_t ssdindex, const char* mo
 }
 
 //______________________________________________________________________________
-void L2L3_TrackDecoded::L2L3_g6_1121_TrackDecoded(Int_t ssdindex, const char* mode, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
+void L2L3_TrackDecoded::L2L3_g6_1121_TrackDecoded(Int_t ssdindex, const char* mode, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
 {
   // 关闭当前通道
   if (switchsetting == kFALSE) return;
 
-  if ((trackevent->fCsINum[ssdindex].size()==GMULTI_6) && (strcmp(mode,MODE_G6_1121)==0))
+  if (strcmp(mode,MODE_G6_1121)==0)
   {
     // g6-1121 模式:
     // ---0--12345---
@@ -3422,14 +3675,15 @@ void L2L3_TrackDecoded::L2L3_g6_1121_TrackDecoded(Int_t ssdindex, const char* mo
       // 在第0)条候选径迹中找一条
       for (Int_t itrack=0; itrack<GMULTI_6; itrack++)
       {
-        if (itrack==0) {
+        if (itrack==0)
+        {
           if (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]) &&
               IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][itrack]],fMCut[itrack],trackevent->fCsIECh[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]))
           {
-            FillGlobalEvent_L2L3(globalevent, GMULTI_6, MODEINDEX_G6_1121, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                            trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack],
-                            trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                            trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+            FillGlobalEvent_L2L3(globalevent, GMULTI_6, MODEINDEX_G6_1121, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                            trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                            trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                            trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                             trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
                             trackevent->fL2FTime[ssdindex][itrack]);
             break;
@@ -3439,14 +3693,15 @@ void L2L3_TrackDecoded::L2L3_g6_1121_TrackDecoded(Int_t ssdindex, const char* mo
       // 在第1)-5)条候选径迹中找一条
       for (Int_t itrack=0; itrack<GMULTI_6; itrack++)
       {
-        if (itrack>=1) {
+        if (itrack>=1)
+        {
           if (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]) &&
               IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][itrack]],fMCut[itrack],trackevent->fCsIECh[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]))
           {
-            FillGlobalEvent_L2L3(globalevent, GMULTI_6, MODEINDEX_G6_1121, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                            trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack],
-                            trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                            trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+            FillGlobalEvent_L2L3(globalevent, GMULTI_6, MODEINDEX_G6_1121, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                            trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                            trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                            trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                             trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
                             trackevent->fL2FTime[ssdindex][itrack]);
             break;
@@ -3460,14 +3715,15 @@ void L2L3_TrackDecoded::L2L3_g6_1121_TrackDecoded(Int_t ssdindex, const char* mo
       // 在第0)-1)条候选径迹中找一条
       for (Int_t itrack=0; itrack<GMULTI_6; itrack++)
       {
-        if (itrack<2) {
+        if (itrack<2)
+        {
           if (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]) &&
               IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][itrack]],fMCut[itrack],trackevent->fCsIECh[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]))
           {
-            FillGlobalEvent_L2L3(globalevent, GMULTI_6, MODEINDEX_G6_1121, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                            trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack],
-                            trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                            trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+            FillGlobalEvent_L2L3(globalevent, GMULTI_6, MODEINDEX_G6_1121, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                            trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                            trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                            trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                             trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
                             trackevent->fL2FTime[ssdindex][itrack]);
             break;
@@ -3477,14 +3733,15 @@ void L2L3_TrackDecoded::L2L3_g6_1121_TrackDecoded(Int_t ssdindex, const char* mo
       // 在第2)-5)条候选径迹中找一条
       for (Int_t itrack=0; itrack<GMULTI_6; itrack++)
       {
-        if (itrack>=2) {
+        if (itrack>=2)
+        {
           if (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]) &&
               IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][itrack]],fMCut[itrack],trackevent->fCsIECh[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]))
           {
-            FillGlobalEvent_L2L3(globalevent, GMULTI_6, MODEINDEX_G6_1121, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                            trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack],
-                            trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                            trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+            FillGlobalEvent_L2L3(globalevent, GMULTI_6, MODEINDEX_G6_1121, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                            trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                            trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                            trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                             trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
                             trackevent->fL2FTime[ssdindex][itrack]);
             break;
@@ -3498,14 +3755,15 @@ void L2L3_TrackDecoded::L2L3_g6_1121_TrackDecoded(Int_t ssdindex, const char* mo
       // 在第0)-2)条候选径迹中找一条
       for (Int_t itrack=0; itrack<GMULTI_6; itrack++)
       {
-        if (itrack<3) {
+        if (itrack<3)
+        {
           if (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]) &&
               IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][itrack]],fMCut[itrack],trackevent->fCsIECh[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]))
           {
-            FillGlobalEvent_L2L3(globalevent, GMULTI_6, MODEINDEX_G6_1121, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                            trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack],
-                            trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                            trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+            FillGlobalEvent_L2L3(globalevent, GMULTI_6, MODEINDEX_G6_1121, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                            trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                            trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                            trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                             trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
                             trackevent->fL2FTime[ssdindex][itrack]);
             break;
@@ -3515,14 +3773,15 @@ void L2L3_TrackDecoded::L2L3_g6_1121_TrackDecoded(Int_t ssdindex, const char* mo
       // 在第3)-5)条候选径迹中找一条
       for (Int_t itrack=0; itrack<GMULTI_6; itrack++)
       {
-        if (itrack>=3) {
+        if (itrack>=3)
+        {
           if (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]) &&
               IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][itrack]],fMCut[itrack],trackevent->fCsIECh[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]))
           {
-            FillGlobalEvent_L2L3(globalevent, GMULTI_6, MODEINDEX_G6_1121, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                            trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack],
-                            trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                            trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+            FillGlobalEvent_L2L3(globalevent, GMULTI_6, MODEINDEX_G6_1121, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                            trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                            trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                            trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                             trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
                             trackevent->fL2FTime[ssdindex][itrack]);
             break;
@@ -3536,14 +3795,15 @@ void L2L3_TrackDecoded::L2L3_g6_1121_TrackDecoded(Int_t ssdindex, const char* mo
       // 在第0)-3)条候选径迹中找一条
       for (Int_t itrack=0; itrack<GMULTI_6; itrack++)
       {
-        if (itrack<4) {
+        if (itrack<4)
+        {
           if (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]) &&
               IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][itrack]],fMCut[itrack],trackevent->fCsIECh[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]))
           {
-            FillGlobalEvent_L2L3(globalevent, GMULTI_6, MODEINDEX_G6_1121, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                            trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack],
-                            trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                            trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+            FillGlobalEvent_L2L3(globalevent, GMULTI_6, MODEINDEX_G6_1121, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                            trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                            trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                            trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                             trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
                             trackevent->fL2FTime[ssdindex][itrack]);
             break;
@@ -3553,14 +3813,15 @@ void L2L3_TrackDecoded::L2L3_g6_1121_TrackDecoded(Int_t ssdindex, const char* mo
       // 在第4)-5)条候选径迹中找一条
       for (Int_t itrack=0; itrack<GMULTI_6; itrack++)
       {
-        if (itrack>=4) {
+        if (itrack>=4)
+        {
           if (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]) &&
               IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][itrack]],fMCut[itrack],trackevent->fCsIECh[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]))
           {
-            FillGlobalEvent_L2L3(globalevent, GMULTI_6, MODEINDEX_G6_1121, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                            trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack],
-                            trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                            trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+            FillGlobalEvent_L2L3(globalevent, GMULTI_6, MODEINDEX_G6_1121, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                            trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                            trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                            trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                             trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
                             trackevent->fL2FTime[ssdindex][itrack]);
             break;
@@ -3574,14 +3835,15 @@ void L2L3_TrackDecoded::L2L3_g6_1121_TrackDecoded(Int_t ssdindex, const char* mo
       // 在第0)-4)条候选径迹中找一条
       for (Int_t itrack=0; itrack<GMULTI_6; itrack++)
       {
-        if (itrack<5) {
+        if (itrack<5)
+        {
           if (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]) &&
               IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][itrack]],fMCut[itrack],trackevent->fCsIECh[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]))
           {
-            FillGlobalEvent_L2L3(globalevent, GMULTI_6, MODEINDEX_G6_1121, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                            trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack],
-                            trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                            trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+            FillGlobalEvent_L2L3(globalevent, GMULTI_6, MODEINDEX_G6_1121, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                            trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                            trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                            trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                             trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
                             trackevent->fL2FTime[ssdindex][itrack]);
             break;
@@ -3591,14 +3853,15 @@ void L2L3_TrackDecoded::L2L3_g6_1121_TrackDecoded(Int_t ssdindex, const char* mo
       // 在第5)条候选径迹中找一条
       for (Int_t itrack=0; itrack<GMULTI_6; itrack++)
       {
-        if (itrack>=5) {
+        if (itrack>=5)
+        {
           if (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]) &&
               IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][itrack]],fMCut[itrack],trackevent->fCsIECh[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]))
           {
-            FillGlobalEvent_L2L3(globalevent, GMULTI_6, MODEINDEX_G6_1121, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                            trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack],
-                            trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                            trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+            FillGlobalEvent_L2L3(globalevent, GMULTI_6, MODEINDEX_G6_1121, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                            trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                            trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                            trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                             trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
                             trackevent->fL2FTime[ssdindex][itrack]);
             break;
@@ -3610,12 +3873,12 @@ void L2L3_TrackDecoded::L2L3_g6_1121_TrackDecoded(Int_t ssdindex, const char* mo
 }
 
 //______________________________________________________________________________
-void L2L3_TrackDecoded::L2L3_g6_1211_TrackDecoded(Int_t ssdindex, const char* mode, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
+void L2L3_TrackDecoded::L2L3_g6_1211_TrackDecoded(Int_t ssdindex, const char* mode, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
 {
   // 关闭当前通道
   if (switchsetting == kFALSE) return;
 
-  if ((trackevent->fCsINum[ssdindex].size()==GMULTI_6) && (strcmp(mode,MODE_G6_1211)==0))
+  if (strcmp(mode,MODE_G6_1211)==0)
   {
     // g6-1211 模式:
     // ---0--12345---
@@ -3630,14 +3893,15 @@ void L2L3_TrackDecoded::L2L3_g6_1211_TrackDecoded(Int_t ssdindex, const char* mo
       // 在第0)条候选径迹中找一条
       for (Int_t itrack=0; itrack<GMULTI_6; itrack++)
       {
-        if (itrack==0) {
+        if (itrack==0)
+        {
           if (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]) &&
               IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][itrack]],fMCut[itrack],trackevent->fCsIECh[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]))
           {
-            FillGlobalEvent_L2L3(globalevent, GMULTI_6, MODEINDEX_G6_1211, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                            trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack],
-                            trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                            trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+            FillGlobalEvent_L2L3(globalevent, GMULTI_6, MODEINDEX_G6_1211, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                            trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                            trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                            trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                             trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
                             trackevent->fL2FTime[ssdindex][itrack]);
             break;
@@ -3647,14 +3911,15 @@ void L2L3_TrackDecoded::L2L3_g6_1211_TrackDecoded(Int_t ssdindex, const char* mo
       // 在第1)-5)条候选径迹中找一条
       for (Int_t itrack=0; itrack<GMULTI_6; itrack++)
       {
-        if (itrack>=1) {
+        if (itrack>=1)
+        {
           if (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]) &&
               IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][itrack]],fMCut[itrack],trackevent->fCsIECh[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]))
           {
-            FillGlobalEvent_L2L3(globalevent, GMULTI_6, MODEINDEX_G6_1211, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                            trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack],
-                            trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                            trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+            FillGlobalEvent_L2L3(globalevent, GMULTI_6, MODEINDEX_G6_1211, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                            trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                            trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                            trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                             trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
                             trackevent->fL2FTime[ssdindex][itrack]);
             break;
@@ -3668,14 +3933,15 @@ void L2L3_TrackDecoded::L2L3_g6_1211_TrackDecoded(Int_t ssdindex, const char* mo
       // 在第0)-1)条候选径迹中找一条
       for (Int_t itrack=0; itrack<GMULTI_6; itrack++)
       {
-        if (itrack<2) {
+        if (itrack<2)
+        {
           if (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]) &&
               IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][itrack]],fMCut[itrack],trackevent->fCsIECh[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]))
           {
-            FillGlobalEvent_L2L3(globalevent, GMULTI_6, MODEINDEX_G6_1211, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                            trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack],
-                            trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                            trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+            FillGlobalEvent_L2L3(globalevent, GMULTI_6, MODEINDEX_G6_1211, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                            trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                            trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                            trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                             trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
                             trackevent->fL2FTime[ssdindex][itrack]);
             break;
@@ -3685,14 +3951,15 @@ void L2L3_TrackDecoded::L2L3_g6_1211_TrackDecoded(Int_t ssdindex, const char* mo
       // 在第2)-5)条候选径迹中找一条
       for (Int_t itrack=0; itrack<GMULTI_6; itrack++)
       {
-        if (itrack>=2) {
+        if (itrack>=2)
+        {
           if (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]) &&
               IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][itrack]],fMCut[itrack],trackevent->fCsIECh[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]))
           {
-            FillGlobalEvent_L2L3(globalevent, GMULTI_6, MODEINDEX_G6_1211, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                            trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack],
-                            trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                            trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+            FillGlobalEvent_L2L3(globalevent, GMULTI_6, MODEINDEX_G6_1211, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                            trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                            trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                            trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                             trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
                             trackevent->fL2FTime[ssdindex][itrack]);
             break;
@@ -3706,14 +3973,15 @@ void L2L3_TrackDecoded::L2L3_g6_1211_TrackDecoded(Int_t ssdindex, const char* mo
       // 在第0)-2)条候选径迹中找一条
       for (Int_t itrack=0; itrack<GMULTI_6; itrack++)
       {
-        if (itrack<3) {
+        if (itrack<3)
+        {
           if (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]) &&
               IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][itrack]],fMCut[itrack],trackevent->fCsIECh[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]))
           {
-            FillGlobalEvent_L2L3(globalevent, GMULTI_6, MODEINDEX_G6_1211, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                            trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack],
-                            trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                            trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+            FillGlobalEvent_L2L3(globalevent, GMULTI_6, MODEINDEX_G6_1211, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                            trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                            trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                            trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                             trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
                             trackevent->fL2FTime[ssdindex][itrack]);
             break;
@@ -3723,14 +3991,15 @@ void L2L3_TrackDecoded::L2L3_g6_1211_TrackDecoded(Int_t ssdindex, const char* mo
       // 在第3)-5)条候选径迹中找一条
       for (Int_t itrack=0; itrack<GMULTI_6; itrack++)
       {
-        if (itrack>=3) {
+        if (itrack>=3)
+        {
           if (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]) &&
               IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][itrack]],fMCut[itrack],trackevent->fCsIECh[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]))
           {
-            FillGlobalEvent_L2L3(globalevent, GMULTI_6, MODEINDEX_G6_1211, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                            trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack],
-                            trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                            trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+            FillGlobalEvent_L2L3(globalevent, GMULTI_6, MODEINDEX_G6_1211, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                            trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                            trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                            trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                             trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
                             trackevent->fL2FTime[ssdindex][itrack]);
             break;
@@ -3744,14 +4013,15 @@ void L2L3_TrackDecoded::L2L3_g6_1211_TrackDecoded(Int_t ssdindex, const char* mo
       // 在第0)-3)条候选径迹中找一条
       for (Int_t itrack=0; itrack<GMULTI_6; itrack++)
       {
-        if (itrack<4) {
+        if (itrack<4)
+        {
           if (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]) &&
               IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][itrack]],fMCut[itrack],trackevent->fCsIECh[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]))
           {
-            FillGlobalEvent_L2L3(globalevent, GMULTI_6, MODEINDEX_G6_1211, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                            trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack],
-                            trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                            trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+            FillGlobalEvent_L2L3(globalevent, GMULTI_6, MODEINDEX_G6_1211, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                            trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                            trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                            trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                             trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
                             trackevent->fL2FTime[ssdindex][itrack]);
             break;
@@ -3761,14 +4031,15 @@ void L2L3_TrackDecoded::L2L3_g6_1211_TrackDecoded(Int_t ssdindex, const char* mo
       // 在第4)-5)条候选径迹中找一条
       for (Int_t itrack=0; itrack<GMULTI_6; itrack++)
       {
-        if (itrack>=4) {
+        if (itrack>=4)
+        {
           if (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]) &&
               IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][itrack]],fMCut[itrack],trackevent->fCsIECh[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]))
           {
-            FillGlobalEvent_L2L3(globalevent, GMULTI_6, MODEINDEX_G6_1211, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                            trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack],
-                            trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                            trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+            FillGlobalEvent_L2L3(globalevent, GMULTI_6, MODEINDEX_G6_1211, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                            trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                            trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                            trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                             trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
                             trackevent->fL2FTime[ssdindex][itrack]);
             break;
@@ -3782,14 +4053,15 @@ void L2L3_TrackDecoded::L2L3_g6_1211_TrackDecoded(Int_t ssdindex, const char* mo
       // 在第0)-4)条候选径迹中找一条
       for (Int_t itrack=0; itrack<GMULTI_6; itrack++)
       {
-        if (itrack<5) {
+        if (itrack<5)
+        {
           if (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]) &&
               IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][itrack]],fMCut[itrack],trackevent->fCsIECh[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]))
           {
-            FillGlobalEvent_L2L3(globalevent, GMULTI_6, MODEINDEX_G6_1211, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                            trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack],
-                            trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                            trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+            FillGlobalEvent_L2L3(globalevent, GMULTI_6, MODEINDEX_G6_1211, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                            trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                            trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                            trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                             trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
                             trackevent->fL2FTime[ssdindex][itrack]);
             break;
@@ -3799,14 +4071,15 @@ void L2L3_TrackDecoded::L2L3_g6_1211_TrackDecoded(Int_t ssdindex, const char* mo
       // 在第5)条候选径迹中找一条
       for (Int_t itrack=0; itrack<GMULTI_6; itrack++)
       {
-        if (itrack>=5) {
+        if (itrack>=5)
+        {
           if (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]) &&
               IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][itrack]],fMCut[itrack],trackevent->fCsIECh[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]))
           {
-            FillGlobalEvent_L2L3(globalevent, GMULTI_6, MODEINDEX_G6_1211, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                            trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack],
-                            trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                            trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+            FillGlobalEvent_L2L3(globalevent, GMULTI_6, MODEINDEX_G6_1211, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                            trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                            trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                            trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                             trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
                             trackevent->fL2FTime[ssdindex][itrack]);
             break;
@@ -3818,12 +4091,12 @@ void L2L3_TrackDecoded::L2L3_g6_1211_TrackDecoded(Int_t ssdindex, const char* mo
 }
 
 //______________________________________________________________________________
-void L2L3_TrackDecoded::L2L3_g6_2222_TrackDecoded(Int_t ssdindex, const char* mode, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
+void L2L3_TrackDecoded::L2L3_g6_2222_TrackDecoded(Int_t ssdindex, const char* mode, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
 {
   // 关闭当前通道
   if (switchsetting == kFALSE) return;
 
-  if ((trackevent->fCsINum[ssdindex].size()==GMULTI_6) && (strcmp(mode,MODE_G6_2222)==0))
+  if (strcmp(mode,MODE_G6_2222)==0)
   {
     // g6-2222 模式, 只考虑:
     // ---01--23--45---
@@ -3832,15 +4105,17 @@ void L2L3_TrackDecoded::L2L3_g6_2222_TrackDecoded(Int_t ssdindex, const char* mo
     if ((trackevent->fCsINum[ssdindex][1]!=trackevent->fCsINum[ssdindex][2]) && (trackevent->fCsINum[ssdindex][3]!=trackevent->fCsINum[ssdindex][4]))
     {
       // 在第0)条与第1)条中找一条
-      for (Int_t itrack=0; itrack<GMULTI_6; itrack++) {
-        if (itrack==0 || itrack==1) {
+      for (Int_t itrack=0; itrack<GMULTI_6; itrack++)
+      {
+        if (itrack==0 || itrack==1)
+        {
           if (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]) &&
               IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][itrack]],fMCut[itrack],trackevent->fCsIECh[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]))
           {
-            FillGlobalEvent_L2L3(globalevent, GMULTI_6, MODEINDEX_G6_2222, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                            trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack],
-                            trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                            trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+            FillGlobalEvent_L2L3(globalevent, GMULTI_6, MODEINDEX_G6_2222, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                            trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                            trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                            trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                             trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
                             trackevent->fL2FTime[ssdindex][itrack]);
             break;
@@ -3848,15 +4123,17 @@ void L2L3_TrackDecoded::L2L3_g6_2222_TrackDecoded(Int_t ssdindex, const char* mo
         }
       }
       // 在第2)条与第3)条中找一条
-      for (Int_t itrack=0; itrack<GMULTI_6; itrack++) {
-        if (itrack==2 || itrack==3) {
+      for (Int_t itrack=0; itrack<GMULTI_6; itrack++)
+      {
+        if (itrack==2 || itrack==3)
+        {
           if (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]) &&
               IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][itrack]],fMCut[itrack],trackevent->fCsIECh[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]))
           {
-            FillGlobalEvent_L2L3(globalevent, GMULTI_6, MODEINDEX_G6_2222, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                            trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack],
-                            trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                            trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+            FillGlobalEvent_L2L3(globalevent, GMULTI_6, MODEINDEX_G6_2222, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                            trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                            trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                            trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                             trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
                             trackevent->fL2FTime[ssdindex][itrack]);
             break;
@@ -3864,15 +4141,17 @@ void L2L3_TrackDecoded::L2L3_g6_2222_TrackDecoded(Int_t ssdindex, const char* mo
         }
       }
       // 在第4)条与第5)条中找一条
-      for (Int_t itrack=0; itrack<GMULTI_6; itrack++) {
-        if (itrack==4 || itrack==5) {
+      for (Int_t itrack=0; itrack<GMULTI_6; itrack++)
+      {
+        if (itrack==4 || itrack==5)
+        {
           if (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]) &&
               IsInsideABananaCut(BananaCut[trackevent->fCutTelNum[ssdindex][itrack]],fMCut[itrack],trackevent->fCsIECh[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]))
           {
-            FillGlobalEvent_L2L3(globalevent, GMULTI_6, MODEINDEX_G6_2222, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                            trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack],
-                            trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                            trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+            FillGlobalEvent_L2L3(globalevent, GMULTI_6, MODEINDEX_G6_2222, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                            trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                            trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                            trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                             trackevent->fCsINum[ssdindex][itrack],      trackevent->fCsIECh[ssdindex][itrack],
                             trackevent->fL2FTime[ssdindex][itrack]);
             break;
@@ -3918,8 +4197,8 @@ L1L2_TrackDecoded::~L1L2_TrackDecoded()
 
 //____________________________________
 void L1L2_TrackDecoded::FillGlobalEvent_L1L2(CSHINESSDEvent* globalevent, Int_t gmulti, Int_t mode_index,
-  Int_t ssdindex, Int_t& ssdmulti, Int_t charge, Int_t mass, Double_t Stripl1s, Double_t El1s, Double_t El1s_corrected,
-  Double_t Stripl2f, Double_t El2f, Double_t Stripl2b, Double_t El2b, Int_t Timel2f)
+  Int_t ssdindex, Int_t& ssdmulti, Int_t charge, Int_t mass, Double_t Stripl1s, Double_t El1s, Double_t El1s_corrected, Double_t El1s_Ch,
+  Double_t Stripl2f, Double_t El2f, Double_t El2f_Ch, Double_t Stripl2b, Double_t El2b, Double_t El2b_Ch, Int_t Timel2f)
 {
   fEtot       = El1s + El2f;
   fMomentum   = physcalc.GetMomentumValue(fEtot,charge,mass);
@@ -3934,12 +4213,16 @@ void L1L2_TrackDecoded::FillGlobalEvent_L1L2(CSHINESSDEvent* globalevent, Int_t 
   globalevent->fGL1SNumStrip.push_back(Stripl1s);
   globalevent->fGL1SEMeV.push_back(El1s);
   globalevent->fGL1SEMeVCorrected.push_back(El1s_corrected);
+  globalevent->fGL1SECh.push_back(El1s_Ch);
   globalevent->fGL2FNumStrip.push_back(Stripl2f);
   globalevent->fGL2FEMeV.push_back(El2f);
+  globalevent->fGL2FECh.push_back(El2f_Ch);
   globalevent->fGL2BNumStrip.push_back(Stripl2b);
   globalevent->fGL2BEMeV.push_back(El2b);
+  globalevent->fGL2BECh.push_back(El2b_Ch);
   globalevent->fGCsINum.push_back(fCsINum_Init);
   globalevent->fGCsIEMeV.push_back(fCsIEMeV_Init);
+  globalevent->fGCsIECh.push_back(fCsIECh_Init);
   globalevent->fGL2FTime.push_back(Timel2f);
   globalevent->fDist.push_back(vechitpoint.R());
 	globalevent->fTheta.push_back(vechitpoint.ThetaDeg());
@@ -3955,171 +4238,118 @@ void L1L2_TrackDecoded::FillGlobalEvent_L1L2(CSHINESSDEvent* globalevent, Int_t 
 }
 //______________________________________________________________________________
 
+
 //______________________________________________________________________________
-void L1L2_TrackDecoded::L1L2_g1_TrackDecoded(CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
+void L1L2_TrackDecoded::L1L2_AllModes_TrackDecoded(Int_t ssdindex, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
+{
+  // 关闭 L2L3_TrackDecoded 通道
+  if (switchsetting == kFALSE) return;
+  //
+  if (trackevent->fCsINum[ssdindex].size()==0)
+  {
+    if (trackevent->fL2BNumStrip[ssdindex].size()==GMULTI_1) L1L2_g1_TrackDecoded(ssdindex, ssdmulti, globalevent, trackevent, SWITCH_L1L2_G1);
+    if (trackevent->fL2BNumStrip[ssdindex].size()==GMULTI_2) L1L2_g2_TrackDecoded(ssdindex, ssdmulti, globalevent, trackevent, SWITCH_L1L2_G2);
+    if (trackevent->fL2BNumStrip[ssdindex].size()==GMULTI_3) L1L2_g3_TrackDecoded(ssdindex, ssdmulti, globalevent, trackevent, SWITCH_L1L2_G3);
+    if (trackevent->fL2BNumStrip[ssdindex].size()==GMULTI_4) L1L2_g4_TrackDecoded(ssdindex, ssdmulti, globalevent, trackevent, SWITCH_L1L2_G4);
+    if (trackevent->fL2BNumStrip[ssdindex].size()==GMULTI_6) L1L2_g6_TrackDecoded(ssdindex, ssdmulti, globalevent, trackevent, SWITCH_L1L2_G6);
+  }
+}
+
+
+//______________________________________________________________________________
+void L1L2_TrackDecoded::L1L2_g1_TrackDecoded(Int_t ssdindex, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
 {
   // 关闭 L2L3_g1_TrackDecoded 通道
   if (switchsetting == kFALSE) return;
-
-  fgMulti = 0;
-  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++)
+  //
+  if (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][0],trackevent->fL2FEMeV[ssdindex][0]) &&
+      IsInsideABananaCut(BananaCut[ssdindex],fMCut[0],trackevent->fL2FEMeV[ssdindex][0],trackevent->fL1SEMeV_Corrected[ssdindex][0]))
   {
-    if ((trackevent->fCsINum[ssdindex].size()==0) && (trackevent->fL2BNumStrip[ssdindex].size()==GMULTI_1))
+    for (Int_t itrack=0; itrack<GMULTI_1; itrack++)
     {
-      fSSDgMulti[ssdindex] = 0;
-
-      if (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][0],trackevent->fL2FEMeV[ssdindex][0]) &&
-          IsInsideABananaCut(BananaCut[ssdindex],fMCut[0],trackevent->fL2FEMeV[ssdindex][0],trackevent->fL1SEMeV_Corrected[ssdindex][0]))
-      {
-        FillGlobalEvent_L1L2(globalevent, GMULTI_1, MODEINDEX_G1, ssdindex, fSSDgMulti[ssdindex], fMCut[0].Cut_Z, fMCut[0].Cut_A,
-                             trackevent->fL1SNumStrip[ssdindex][0], trackevent->fL1SEMeV[ssdindex][0], trackevent->fL1SEMeV_Corrected[ssdindex][0],
-                             trackevent->fL2FNumStrip[ssdindex][0], trackevent->fL2FEMeV[ssdindex][0],
-                             trackevent->fL2BNumStrip[ssdindex][0], trackevent->fL2BEMeV[ssdindex][0],
-                             trackevent->fL2FTime[ssdindex][0]);
-      }
-      //
-  		fgMulti += fSSDgMulti[ssdindex];
-  		globalevent->fSSDGlobalMulti.push_back(fSSDgMulti[ssdindex]);
+      FillGlobalEvent_L1L2(globalevent, GMULTI_1, MODEINDEX_G1, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                           trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                           trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                           trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
+                           trackevent->fL2FTime[ssdindex][itrack]);
     }
   }
-  //
- 	globalevent->fGlobalMulti = fgMulti;
 }
 
 //______________________________________________________________________________
-void L1L2_TrackDecoded::L1L2_g2_TrackDecoded(CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
+void L1L2_TrackDecoded::L1L2_g2_TrackDecoded(Int_t ssdindex, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
 {
   // 关闭 L2L3_g2_TrackDecoded 通道
   if (switchsetting == kFALSE) return;
-
-  fgMulti = 0;
-  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++)
-  {
-    fSSDgMulti[ssdindex] = 0;
-    //
-    if ((trackevent->fCsINum[ssdindex].size()==0) && (trackevent->fL2BNumStrip[ssdindex].size()==GMULTI_2))
-    {
-      MODE_EXP[ssdindex] = L1L2_CalcModeFromExpData(GMULTI_2,trackevent->fL2BNumStrip[ssdindex],trackevent->fL2FNumStrip[ssdindex],trackevent->fL1SNumStrip[ssdindex]);
-      L1L2_g2_001_TrackDecoded(ssdindex, MODE_EXP[ssdindex].c_str(), globalevent, trackevent, SWITCH_MODE_G2_001);
-      L1L2_g2_010_TrackDecoded(ssdindex, MODE_EXP[ssdindex].c_str(), globalevent, trackevent, SWITCH_MODE_G2_010);
-      L1L2_g2_100_TrackDecoded(ssdindex, MODE_EXP[ssdindex].c_str(), globalevent, trackevent, SWITCH_MODE_G2_100);
-      L1L2_g2_101_TrackDecoded(ssdindex, MODE_EXP[ssdindex].c_str(), globalevent, trackevent, SWITCH_MODE_G2_101);
-      /*
-      if (ssdindex==0) {
-        cout<<"mode="<<MODE_EXP[ssdindex].c_str()<<setw(15)
-            <<"l2b[0]="<<trackevent->fL2BNumStrip[ssdindex][0]<<setw(15)<<"l2b[1]="<<trackevent->fL2BNumStrip[ssdindex][1]<<setw(15)
-            <<"l2f[0]="<<trackevent->fL2FNumStrip[ssdindex][0]<<setw(15)<<"l2f[1]="<<trackevent->fL2FNumStrip[ssdindex][1]<<setw(15)
-            <<"l1s[0]="<<trackevent->fL1SNumStrip[ssdindex][0]<<setw(15)<<"l1s[1]="<<trackevent->fL1SNumStrip[ssdindex][1]
-            <<endl;
-      }
-      */
-    }
-    //
-    fgMulti += fSSDgMulti[ssdindex];
-    globalevent->fSSDGlobalMulti.push_back(fSSDgMulti[ssdindex]);
-  }
   //
- 	globalevent->fGlobalMulti = fgMulti;
+  MODE_EXP[ssdindex] = L1L2_CalcModeFromExpData(GMULTI_2,trackevent->fL2BNumStrip[ssdindex],trackevent->fL2FNumStrip[ssdindex],trackevent->fL1SNumStrip[ssdindex]);
+  //
+  L1L2_g2_001_TrackDecoded(ssdindex, MODE_EXP[ssdindex].c_str(), ssdmulti, globalevent, trackevent, SWITCH_MODE_G2_001);
+  L1L2_g2_010_TrackDecoded(ssdindex, MODE_EXP[ssdindex].c_str(), ssdmulti, globalevent, trackevent, SWITCH_MODE_G2_010);
+  L1L2_g2_100_TrackDecoded(ssdindex, MODE_EXP[ssdindex].c_str(), ssdmulti, globalevent, trackevent, SWITCH_MODE_G2_100);
+  L1L2_g2_101_TrackDecoded(ssdindex, MODE_EXP[ssdindex].c_str(), ssdmulti, globalevent, trackevent, SWITCH_MODE_G2_101);
 }
 
 //______________________________________________________________________________
-void L1L2_TrackDecoded::L1L2_g3_TrackDecoded(CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
+void L1L2_TrackDecoded::L1L2_g3_TrackDecoded(Int_t ssdindex, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
 {
   // 关闭 L2L3_g3_TrackDecoded 通道
   if (switchsetting == kFALSE) return;
-
-  fgMulti = 0;
-  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++)
-  {
-    fSSDgMulti[ssdindex] = 0;
-    //
-    if ((trackevent->fCsINum[ssdindex].size()==0) && (trackevent->fL2BNumStrip[ssdindex].size()==GMULTI_3))
-    {
-      MODE_EXP[ssdindex] = L1L2_CalcModeFromExpData(GMULTI_3,trackevent->fL2BNumStrip[ssdindex],trackevent->fL2FNumStrip[ssdindex],trackevent->fL1SNumStrip[ssdindex]);
-      L1L2_g3_002_TrackDecoded(ssdindex, MODE_EXP[ssdindex].c_str(), globalevent, trackevent, SWITCH_MODE_G3_002);
-      L1L2_g3_020_TrackDecoded(ssdindex, MODE_EXP[ssdindex].c_str(), globalevent, trackevent, SWITCH_MODE_G3_020);
-      L1L2_g3_101_TrackDecoded(ssdindex, MODE_EXP[ssdindex].c_str(), globalevent, trackevent, SWITCH_MODE_G3_101);
-      L1L2_g3_102_TrackDecoded(ssdindex, MODE_EXP[ssdindex].c_str(), globalevent, trackevent, SWITCH_MODE_G3_102);
-      L1L2_g3_200_TrackDecoded(ssdindex, MODE_EXP[ssdindex].c_str(), globalevent, trackevent, SWITCH_MODE_G3_200);
-      L1L2_g3_201_TrackDecoded(ssdindex, MODE_EXP[ssdindex].c_str(), globalevent, trackevent, SWITCH_MODE_G3_201);
-      L1L2_g3_202_TrackDecoded(ssdindex, MODE_EXP[ssdindex].c_str(), globalevent, trackevent, SWITCH_MODE_G3_202);
-    }
-    //
-    fgMulti += fSSDgMulti[ssdindex];
-    globalevent->fSSDGlobalMulti.push_back(fSSDgMulti[ssdindex]);
-  }
   //
- 	globalevent->fGlobalMulti = fgMulti;
+  MODE_EXP[ssdindex] = L1L2_CalcModeFromExpData(GMULTI_3,trackevent->fL2BNumStrip[ssdindex],trackevent->fL2FNumStrip[ssdindex],trackevent->fL1SNumStrip[ssdindex]);
+  //
+  L1L2_g3_002_TrackDecoded(ssdindex, MODE_EXP[ssdindex].c_str(), ssdmulti, globalevent, trackevent, SWITCH_MODE_G3_002);
+  L1L2_g3_020_TrackDecoded(ssdindex, MODE_EXP[ssdindex].c_str(), ssdmulti, globalevent, trackevent, SWITCH_MODE_G3_020);
+  L1L2_g3_101_TrackDecoded(ssdindex, MODE_EXP[ssdindex].c_str(), ssdmulti, globalevent, trackevent, SWITCH_MODE_G3_101);
+  L1L2_g3_102_TrackDecoded(ssdindex, MODE_EXP[ssdindex].c_str(), ssdmulti, globalevent, trackevent, SWITCH_MODE_G3_102);
+  L1L2_g3_200_TrackDecoded(ssdindex, MODE_EXP[ssdindex].c_str(), ssdmulti, globalevent, trackevent, SWITCH_MODE_G3_200);
+  L1L2_g3_201_TrackDecoded(ssdindex, MODE_EXP[ssdindex].c_str(), ssdmulti, globalevent, trackevent, SWITCH_MODE_G3_201);
+  L1L2_g3_202_TrackDecoded(ssdindex, MODE_EXP[ssdindex].c_str(), ssdmulti, globalevent, trackevent, SWITCH_MODE_G3_202);
 }
 
 //______________________________________________________________________________
-void L1L2_TrackDecoded::L1L2_g4_TrackDecoded(CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
+void L1L2_TrackDecoded::L1L2_g4_TrackDecoded(Int_t ssdindex, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
 {
   // 关闭 L2L3_g3_TrackDecoded 通道
   if (switchsetting == kFALSE) return;
-
-  fgMulti = 0;
-  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++)
-  {
-    fSSDgMulti[ssdindex] = 0;
-    //
-    if ((trackevent->fCsINum[ssdindex].size()==0) && (trackevent->fL2BNumStrip[ssdindex].size()==GMULTI_4))
-    {
-      MODE_EXP[ssdindex] = L1L2_CalcModeFromExpData(GMULTI_4,trackevent->fL2BNumStrip[ssdindex],trackevent->fL2FNumStrip[ssdindex],trackevent->fL1SNumStrip[ssdindex]);
-      L1L2_g4_011_TrackDecoded(ssdindex, MODE_EXP[ssdindex].c_str(), globalevent, trackevent, SWITCH_MODE_G4_011);
-      L1L2_g4_101_TrackDecoded(ssdindex, MODE_EXP[ssdindex].c_str(), globalevent, trackevent, SWITCH_MODE_G4_101);
-      L1L2_g4_110_TrackDecoded(ssdindex, MODE_EXP[ssdindex].c_str(), globalevent, trackevent, SWITCH_MODE_G4_110);
-      L1L2_g4_111_TrackDecoded(ssdindex, MODE_EXP[ssdindex].c_str(), globalevent, trackevent, SWITCH_MODE_G4_111);
-    }
-    //
-    fgMulti += fSSDgMulti[ssdindex];
-    globalevent->fSSDGlobalMulti.push_back(fSSDgMulti[ssdindex]);
-  }
   //
- 	globalevent->fGlobalMulti = fgMulti;
+  MODE_EXP[ssdindex] = L1L2_CalcModeFromExpData(GMULTI_4,trackevent->fL2BNumStrip[ssdindex],trackevent->fL2FNumStrip[ssdindex],trackevent->fL1SNumStrip[ssdindex]);
+  //
+  L1L2_g4_011_TrackDecoded(ssdindex, MODE_EXP[ssdindex].c_str(), ssdmulti, globalevent, trackevent, SWITCH_MODE_G4_011);
+  L1L2_g4_101_TrackDecoded(ssdindex, MODE_EXP[ssdindex].c_str(), ssdmulti, globalevent, trackevent, SWITCH_MODE_G4_101);
+  L1L2_g4_110_TrackDecoded(ssdindex, MODE_EXP[ssdindex].c_str(), ssdmulti, globalevent, trackevent, SWITCH_MODE_G4_110);
+  L1L2_g4_111_TrackDecoded(ssdindex, MODE_EXP[ssdindex].c_str(), ssdmulti, globalevent, trackevent, SWITCH_MODE_G4_111);
 }
 
 //______________________________________________________________________________
-void L1L2_TrackDecoded::L1L2_g6_TrackDecoded(CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
+void L1L2_TrackDecoded::L1L2_g6_TrackDecoded(Int_t ssdindex, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
 {
   // 关闭 L2L3_g3_TrackDecoded 通道
   if (switchsetting == kFALSE) return;
-
-  fgMulti = 0;
-  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++)
-  {
-    fSSDgMulti[ssdindex] = 0;
-    //
-    if ((trackevent->fCsINum[ssdindex].size()==0) && (trackevent->fL2BNumStrip[ssdindex].size()==GMULTI_6))
-    {
-      MODE_EXP[ssdindex] = L1L2_CalcModeFromExpData(GMULTI_6,trackevent->fL2BNumStrip[ssdindex],trackevent->fL2FNumStrip[ssdindex],trackevent->fL1SNumStrip[ssdindex]);
-      L1L2_g6_111_TrackDecoded(ssdindex, MODE_EXP[ssdindex].c_str(), globalevent, trackevent, SWITCH_MODE_G6_111);
-      L1L2_g6_112_TrackDecoded(ssdindex, MODE_EXP[ssdindex].c_str(), globalevent, trackevent, SWITCH_MODE_G6_112);
-      L1L2_g6_120_TrackDecoded(ssdindex, MODE_EXP[ssdindex].c_str(), globalevent, trackevent, SWITCH_MODE_G6_120);
-      L1L2_g6_121_TrackDecoded(ssdindex, MODE_EXP[ssdindex].c_str(), globalevent, trackevent, SWITCH_MODE_G6_121);
-      L1L2_g6_211_TrackDecoded(ssdindex, MODE_EXP[ssdindex].c_str(), globalevent, trackevent, SWITCH_MODE_G6_211);
-    }
-    //
-    fgMulti += fSSDgMulti[ssdindex];
-    globalevent->fSSDGlobalMulti.push_back(fSSDgMulti[ssdindex]);
-  }
   //
- 	globalevent->fGlobalMulti = fgMulti;
+  MODE_EXP[ssdindex] = L1L2_CalcModeFromExpData(GMULTI_6,trackevent->fL2BNumStrip[ssdindex],trackevent->fL2FNumStrip[ssdindex],trackevent->fL1SNumStrip[ssdindex]);
+  //
+  L1L2_g6_111_TrackDecoded(ssdindex, MODE_EXP[ssdindex].c_str(), ssdmulti, globalevent, trackevent, SWITCH_MODE_G6_111);
+  L1L2_g6_112_TrackDecoded(ssdindex, MODE_EXP[ssdindex].c_str(), ssdmulti, globalevent, trackevent, SWITCH_MODE_G6_112);
+  L1L2_g6_120_TrackDecoded(ssdindex, MODE_EXP[ssdindex].c_str(), ssdmulti, globalevent, trackevent, SWITCH_MODE_G6_120);
+  L1L2_g6_121_TrackDecoded(ssdindex, MODE_EXP[ssdindex].c_str(), ssdmulti, globalevent, trackevent, SWITCH_MODE_G6_121);
+  L1L2_g6_211_TrackDecoded(ssdindex, MODE_EXP[ssdindex].c_str(), ssdmulti, globalevent, trackevent, SWITCH_MODE_G6_211);
 }
 
 
 //______________________________________________________________________________
 //            L1L2_g2_TrackDecoded
 //          ------------------------
-void L1L2_TrackDecoded::L1L2_g2_001_TrackDecoded(Int_t ssdindex, const char* mode, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
+void L1L2_TrackDecoded::L1L2_g2_001_TrackDecoded(Int_t ssdindex, const char* mode, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
 {
   // 关闭当前通道
   if (switchsetting == kFALSE) return;
-
-  if (((trackevent->fCsINum[ssdindex].size()==0)&&(trackevent->fL2BNumStrip[ssdindex].size()==GMULTI_2)) && (strcmp(mode,MODE_G2_001)==0))
+  //
+  if (strcmp(mode,MODE_G2_001)==0)
   {
     // 考虑 L1S sharing
     g2_EL1S_Sum = trackevent->fL1SEMeV[ssdindex][0] + trackevent->fL1SEMeV[ssdindex][1];
+    g2_EL1S_Ch_Sum = trackevent->fL1SECh[ssdindex][0] + trackevent->fL1SECh[ssdindex][1];
     g2_EL1S_Sum_Corrected = trackevent->fL1SEMeV_Corrected[ssdindex][0] + trackevent->fL1SEMeV_Corrected[ssdindex][1];
     //
     if ((TMath::Abs(trackevent->fL1SNumStrip[ssdindex][0]-trackevent->fL1SNumStrip[ssdindex][1])==1) &&
@@ -4127,11 +4357,18 @@ void L1L2_TrackDecoded::L1L2_g2_001_TrackDecoded(Int_t ssdindex, const char* mod
 				IsInsideABananaCut(BananaCut[ssdindex],fMCut[0],trackevent->fL2FEMeV[ssdindex][0],g2_EL1S_Sum_Corrected))
     {
       g2_ChargeCenter = GetChargeCenter(trackevent->fL1SNumStrip[ssdindex][0],trackevent->fL1SNumStrip[ssdindex][1],trackevent->fL1SEMeV[ssdindex][0],trackevent->fL1SEMeV[ssdindex][1]);
-      FillGlobalEvent_L1L2(globalevent, GMULTI_2, MODEINDEX_G2_001, ssdindex, fSSDgMulti[ssdindex], fMCut[0].Cut_Z, fMCut[0].Cut_A,
-                           g2_ChargeCenter,                       g2_EL1S_Sum, g2_EL1S_Sum_Corrected,
-                           trackevent->fL2FNumStrip[ssdindex][0], trackevent->fL2FEMeV[ssdindex][0],
-                           trackevent->fL2BNumStrip[ssdindex][0], trackevent->fL2BEMeV[ssdindex][0],
-                           trackevent->fL2FTime[ssdindex][0]);
+      //
+      for (Int_t itrack=0; itrack<GMULTI_2; itrack++)
+      {
+        if (itrack==0)
+        {
+          FillGlobalEvent_L1L2(globalevent, GMULTI_2, MODEINDEX_G2_001, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                               g2_ChargeCenter,                            g2_EL1S_Sum, g2_EL1S_Sum_Corrected,     g2_EL1S_Ch_Sum,
+                               trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                               trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
+                               trackevent->fL2FTime[ssdindex][itrack]);
+        }
+      }
     }
     // 直接判选
     else
@@ -4140,10 +4377,10 @@ void L1L2_TrackDecoded::L1L2_g2_001_TrackDecoded(Int_t ssdindex, const char* mod
         if (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]) &&
 				    IsInsideABananaCut(BananaCut[ssdindex],fMCut[itrack],trackevent->fL2FEMeV[ssdindex][itrack],trackevent->fL1SEMeV_Corrected[ssdindex][itrack]))
         {
-          FillGlobalEvent_L1L2(globalevent, GMULTI_2, MODEINDEX_G2_001, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                               trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack],
-                               trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                               trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+          FillGlobalEvent_L1L2(globalevent, GMULTI_2, MODEINDEX_G2_001, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                               trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                               trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                               trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                                trackevent->fL2FTime[ssdindex][itrack]);
           break;
         }
@@ -4153,38 +4390,48 @@ void L1L2_TrackDecoded::L1L2_g2_001_TrackDecoded(Int_t ssdindex, const char* mod
 }
 
 //______________________________________________________________________________
-void L1L2_TrackDecoded::L1L2_g2_010_TrackDecoded(Int_t ssdindex, const char* mode, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
+void L1L2_TrackDecoded::L1L2_g2_010_TrackDecoded(Int_t ssdindex, const char* mode, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
 {
   // 关闭当前通道
   if (switchsetting == kFALSE) return;
-
-  if (((trackevent->fCsINum[ssdindex].size()==0)&&(trackevent->fL2BNumStrip[ssdindex].size()==GMULTI_2)) && (strcmp(mode,MODE_G2_010)==0))
+  //
+  if (strcmp(mode,MODE_G2_010)==0)
   {
     // 考虑 L2F sharing
     g2_EL2F_Sum = trackevent->fL2FEMeV[ssdindex][0] + trackevent->fL2FEMeV[ssdindex][1];
+    g2_EL2F_Ch_Sum = trackevent->fL2FECh[ssdindex][0] + trackevent->fL2FECh[ssdindex][1];
+
     //
     if ((TMath::Abs(trackevent->fL2FNumStrip[ssdindex][0]-trackevent->fL2FNumStrip[ssdindex][1])==1) &&
 				IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][0],g2_EL2F_Sum) &&
 				IsInsideABananaCut(BananaCut[ssdindex],fMCut[0],g2_EL2F_Sum,trackevent->fL1SEMeV_Corrected[ssdindex][0]))
     {
       g2_ChargeCenter = GetChargeCenter(trackevent->fL2FNumStrip[ssdindex][0],trackevent->fL2FNumStrip[ssdindex][1],trackevent->fL2FEMeV[ssdindex][0],trackevent->fL2FEMeV[ssdindex][1]);
-      FillGlobalEvent_L1L2(globalevent, GMULTI_2, MODEINDEX_G2_010, ssdindex, fSSDgMulti[ssdindex], fMCut[0].Cut_Z, fMCut[0].Cut_A,
-                           trackevent->fL1SNumStrip[ssdindex][0], trackevent->fL1SEMeV[ssdindex][0], trackevent->fL1SEMeV_Corrected[ssdindex][0],
-                           g2_ChargeCenter,                       g2_EL2F_Sum,
-                           trackevent->fL2BNumStrip[ssdindex][0], trackevent->fL2BEMeV[ssdindex][0],
-                           trackevent->fL2FTime[ssdindex][0]);
+      //
+      for (Int_t itrack=0; itrack<GMULTI_2; itrack++)
+      {
+        if (itrack==0)
+        {
+          FillGlobalEvent_L1L2(globalevent, GMULTI_2, MODEINDEX_G2_010, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                               trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                               g2_ChargeCenter,                            g2_EL2F_Sum,                            g2_EL2F_Ch_Sum,
+                               trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
+                               trackevent->fL2FTime[ssdindex][itrack]);
+        }
+      }
     }
     // 直接判选
     else
     {
-      for (Int_t itrack=0; itrack<GMULTI_2; itrack++) {
+      for (Int_t itrack=0; itrack<GMULTI_2; itrack++)
+      {
         if (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]) &&
 				    IsInsideABananaCut(BananaCut[ssdindex],fMCut[itrack],trackevent->fL2FEMeV[ssdindex][itrack],trackevent->fL1SEMeV_Corrected[ssdindex][itrack]))
         {
-          FillGlobalEvent_L1L2(globalevent, GMULTI_2, MODEINDEX_G2_010, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                               trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack],
-                               trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                               trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+          FillGlobalEvent_L1L2(globalevent, GMULTI_2, MODEINDEX_G2_010, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                               trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                               trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                               trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                                trackevent->fL2FTime[ssdindex][itrack]);
           break;
         }
@@ -4194,38 +4441,48 @@ void L1L2_TrackDecoded::L1L2_g2_010_TrackDecoded(Int_t ssdindex, const char* mod
 }
 
 //______________________________________________________________________________
-void L1L2_TrackDecoded::L1L2_g2_100_TrackDecoded(Int_t ssdindex, const char* mode, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
+void L1L2_TrackDecoded::L1L2_g2_100_TrackDecoded(Int_t ssdindex, const char* mode, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
 {
   // 关闭当前通道
   if (switchsetting == kFALSE) return;
-
-  if (((trackevent->fCsINum[ssdindex].size()==0)&&(trackevent->fL2BNumStrip[ssdindex].size()==GMULTI_2)) && (strcmp(mode,MODE_G2_100)==0))
+  //
+  if (strcmp(mode,MODE_G2_100)==0)
   {
     // 考虑 L2B sharing
     g2_EL2B_Sum = trackevent->fL2BEMeV[ssdindex][0] + trackevent->fL2BEMeV[ssdindex][1];
+    g2_EL2B_Ch_Sum = trackevent->fL2BECh[ssdindex][0] + trackevent->fL2BECh[ssdindex][1];
+
     //
     if ((TMath::Abs(trackevent->fL2BNumStrip[ssdindex][0]-trackevent->fL2BNumStrip[ssdindex][1])==1) &&
 				IsEneConstraint_L2B_L2F(ssdindex,g2_EL2B_Sum,trackevent->fL2FEMeV[ssdindex][0]) &&
 				IsInsideABananaCut(BananaCut[ssdindex],fMCut[0],trackevent->fL2FEMeV[ssdindex][0],trackevent->fL1SEMeV_Corrected[ssdindex][0]))
     {
       g2_ChargeCenter = GetChargeCenter(trackevent->fL2BNumStrip[ssdindex][0],trackevent->fL2BNumStrip[ssdindex][1],trackevent->fL2BEMeV[ssdindex][0],trackevent->fL2BEMeV[ssdindex][1]);
-      FillGlobalEvent_L1L2(globalevent, GMULTI_2, MODEINDEX_G2_100, ssdindex, fSSDgMulti[ssdindex], fMCut[0].Cut_Z, fMCut[0].Cut_A,
-                           trackevent->fL1SNumStrip[ssdindex][0], trackevent->fL1SEMeV[ssdindex][0], trackevent->fL1SEMeV_Corrected[ssdindex][0],
-                           trackevent->fL2FNumStrip[ssdindex][0], trackevent->fL2FEMeV[ssdindex][0],
-                           g2_ChargeCenter,                       g2_EL2B_Sum,
-                           trackevent->fL2FTime[ssdindex][0]);
+      //
+      for (Int_t itrack=0; itrack<GMULTI_2; itrack++)
+      {
+        if (itrack==0)
+        {
+          FillGlobalEvent_L1L2(globalevent, GMULTI_2, MODEINDEX_G2_100, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                               trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                               trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                               g2_ChargeCenter,                            g2_EL2B_Sum,                            g2_EL2B_Ch_Sum,
+                               trackevent->fL2FTime[ssdindex][itrack]);
+        }
+      }
     }
     // 直接判选
     else
     {
-      for (Int_t itrack=0; itrack<GMULTI_2; itrack++) {
+      for (Int_t itrack=0; itrack<GMULTI_2; itrack++)
+      {
         if (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]) &&
 				    IsInsideABananaCut(BananaCut[ssdindex],fMCut[itrack],trackevent->fL2FEMeV[ssdindex][itrack],trackevent->fL1SEMeV_Corrected[ssdindex][itrack]))
         {
-          FillGlobalEvent_L1L2(globalevent, GMULTI_2, MODEINDEX_G2_100, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                               trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack],
-                               trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                               trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+          FillGlobalEvent_L1L2(globalevent, GMULTI_2, MODEINDEX_G2_100, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                               trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                               trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                               trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                                trackevent->fL2FTime[ssdindex][itrack]);
           break;
         }
@@ -4235,27 +4492,32 @@ void L1L2_TrackDecoded::L1L2_g2_100_TrackDecoded(Int_t ssdindex, const char* mod
 }
 
 //______________________________________________________________________________
-void L1L2_TrackDecoded::L1L2_g2_101_TrackDecoded(Int_t ssdindex, const char* mode, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
+void L1L2_TrackDecoded::L1L2_g2_101_TrackDecoded(Int_t ssdindex, const char* mode, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
 {
   // 关闭当前通道
   if (switchsetting == kFALSE) return;
-
-  if (((trackevent->fCsINum[ssdindex].size()==0)&&(trackevent->fL2BNumStrip[ssdindex].size()==GMULTI_2)) && (strcmp(mode,MODE_G2_101)==0))
+  //
+  if (strcmp(mode,MODE_G2_101)==0)
   {
     g2_EL2B_Sum = trackevent->fL2BEMeV[ssdindex][0] + trackevent->fL2BEMeV[ssdindex][1];
     g2_EL1S_Sum = trackevent->fL1SEMeV[ssdindex][0] + trackevent->fL1SEMeV[ssdindex][1];
     g2_EL1S_Sum_Corrected = trackevent->fL1SEMeV_Corrected[ssdindex][0] + trackevent->fL1SEMeV_Corrected[ssdindex][1];
+
+    g2_EL2B_Ch_Sum = trackevent->fL2BECh[ssdindex][0] + trackevent->fL2BECh[ssdindex][1];
+    g2_EL1S_Ch_Sum = trackevent->fL1SECh[ssdindex][0] + trackevent->fL1SECh[ssdindex][1];
+
     //
     // 考虑有两条有效径迹: L2F 双击, L2能量用 L2B*EL2B_TO_EL2F_SCALE 代替
     if (IsEneConstraint_L2B_L2F(ssdindex,g2_EL2B_Sum,trackevent->fL2FEMeV[ssdindex][0]))
     {
-      for (Int_t itrack=0; itrack<GMULTI_2; itrack++) {
+      for (Int_t itrack=0; itrack<GMULTI_2; itrack++)
+      {
         if (IsInsideABananaCut(BananaCut[ssdindex],fMCut[itrack],trackevent->fL2BEMeV[ssdindex][itrack]*EL2B_TO_EL2F_SCALE[ssdindex],trackevent->fL1SEMeV_Corrected[ssdindex][itrack]))
         {
-          FillGlobalEvent_L1L2(globalevent, GMULTI_2, MODEINDEX_G2_101, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                               trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack],
-                               trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack]*EL2B_TO_EL2F_SCALE[ssdindex],
-                               trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+          FillGlobalEvent_L1L2(globalevent, GMULTI_2, MODEINDEX_G2_101, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                               trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                               trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack]*EL2B_TO_EL2F_SCALE[ssdindex], trackevent->fL2FECh[ssdindex][itrack],
+                               trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                                trackevent->fL2FTime[ssdindex][itrack]);
         }
       }
@@ -4270,21 +4532,28 @@ void L1L2_TrackDecoded::L1L2_g2_101_TrackDecoded(Int_t ssdindex, const char* mod
       if ((TMath::Abs(trackevent->fL1SNumStrip[ssdindex][0]-trackevent->fL1SNumStrip[ssdindex][1])==1) &&
   				IsInsideABananaCut(BananaCut[ssdindex],fMCut[0],trackevent->fL2FEMeV[ssdindex][0],g2_EL1S_Sum_Corrected))
       {
-        FillGlobalEvent_L1L2(globalevent, GMULTI_2, MODEINDEX_G2_101, ssdindex, fSSDgMulti[ssdindex], fMCut[0].Cut_Z, fMCut[0].Cut_A,
-                             g2_L1S_ChargeCenter,                   g2_EL1S_Sum, g2_EL1S_Sum_Corrected,
-                             trackevent->fL2FNumStrip[ssdindex][0], trackevent->fL2FEMeV[ssdindex][0],
-                             g2_L2B_ChargeCenter,                   g2_EL2B_Sum,
-                             trackevent->fL2FTime[ssdindex][0]);
+        for (Int_t itrack=0; itrack<GMULTI_2; itrack++)
+        {
+          if (itrack==0)
+          {
+            FillGlobalEvent_L1L2(globalevent, GMULTI_2, MODEINDEX_G2_101, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                                 g2_L1S_ChargeCenter,                        g2_EL1S_Sum, g2_EL1S_Sum_Corrected,     g2_EL1S_Ch_Sum,
+                                 trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                                 g2_L2B_ChargeCenter,                        g2_EL2B_Sum,                            g2_EL2B_Ch_Sum,
+                                 trackevent->fL2FTime[ssdindex][itrack]);
+          }
+        }
       }
       else
       {
-        for (Int_t itrack=0; itrack<GMULTI_2; itrack++) {
+        for (Int_t itrack=0; itrack<GMULTI_2; itrack++)
+        {
           if (IsInsideABananaCut(BananaCut[ssdindex],fMCut[itrack],trackevent->fL2FEMeV[ssdindex][itrack],trackevent->fL1SEMeV_Corrected[ssdindex][itrack]))
           {
-            FillGlobalEvent_L1L2(globalevent, GMULTI_2, MODEINDEX_G2_101, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                                 trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack],
-                                 trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                                 trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+            FillGlobalEvent_L1L2(globalevent, GMULTI_2, MODEINDEX_G2_101, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                                 trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                                 trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                                 trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                                  trackevent->fL2FTime[ssdindex][itrack]);
             break;
           }
@@ -4294,14 +4563,15 @@ void L1L2_TrackDecoded::L1L2_g2_101_TrackDecoded(Int_t ssdindex, const char* mod
     // 直接判选
     else
     {
-      for (Int_t itrack=0; itrack<GMULTI_2; itrack++) {
+      for (Int_t itrack=0; itrack<GMULTI_2; itrack++)
+      {
         if (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]) &&
 				    IsInsideABananaCut(BananaCut[ssdindex],fMCut[itrack],trackevent->fL2FEMeV[ssdindex][itrack],trackevent->fL1SEMeV_Corrected[ssdindex][itrack]))
         {
-          FillGlobalEvent_L1L2(globalevent, GMULTI_2, MODEINDEX_G2_101, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                               trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack],
-                               trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                               trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+          FillGlobalEvent_L1L2(globalevent, GMULTI_2, MODEINDEX_G2_101, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                               trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                               trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                               trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                                trackevent->fL2FTime[ssdindex][itrack]);
           break;
         }
@@ -4314,22 +4584,23 @@ void L1L2_TrackDecoded::L1L2_g2_101_TrackDecoded(Int_t ssdindex, const char* mod
 //______________________________________________________________________________
 //            L1L2_g3_TrackDecoded
 //          ------------------------
-void L1L2_TrackDecoded::L1L2_g3_002_TrackDecoded(Int_t ssdindex, const char* mode, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
+void L1L2_TrackDecoded::L1L2_g3_002_TrackDecoded(Int_t ssdindex, const char* mode, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
 {
   // 关闭当前通道
   if (switchsetting == kFALSE) return;
-
-  if (((trackevent->fCsINum[ssdindex].size()==0)&&(trackevent->fL2BNumStrip[ssdindex].size()==GMULTI_3)) && (strcmp(mode,MODE_G3_002)==0))
+  //
+  if (strcmp(mode,MODE_G3_002)==0)
   {
     // 直接判选
-    for (Int_t itrack=0; itrack<GMULTI_3; itrack++) {
+    for (Int_t itrack=0; itrack<GMULTI_3; itrack++)
+    {
       if (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]) &&
           IsInsideABananaCut(BananaCut[ssdindex],fMCut[itrack],trackevent->fL2FEMeV[ssdindex][itrack],trackevent->fL1SEMeV_Corrected[ssdindex][itrack]))
       {
-        FillGlobalEvent_L1L2(globalevent, GMULTI_3, MODEINDEX_G3_002, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                             trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack],
-                             trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                             trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+        FillGlobalEvent_L1L2(globalevent, GMULTI_3, MODEINDEX_G3_002, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                             trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                             trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                             trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                              trackevent->fL2FTime[ssdindex][itrack]);
         break;
       }
@@ -4338,16 +4609,19 @@ void L1L2_TrackDecoded::L1L2_g3_002_TrackDecoded(Int_t ssdindex, const char* mod
 }
 
 //______________________________________________________________________________
-void L1L2_TrackDecoded::L1L2_g3_020_TrackDecoded(Int_t ssdindex, const char* mode, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
+void L1L2_TrackDecoded::L1L2_g3_020_TrackDecoded(Int_t ssdindex, const char* mode, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
 {
   // 关闭当前通道
   if (switchsetting == kFALSE) return;
-
-  if (((trackevent->fCsINum[ssdindex].size()==0)&&(trackevent->fL2BNumStrip[ssdindex].size()==GMULTI_3)) && (strcmp(mode,MODE_G3_020)==0))
+  //
+  if (strcmp(mode,MODE_G3_020)==0)
   {
     // 考虑 L2F sharing
     g3_EL2F_Sum01 = trackevent->fL2FEMeV[ssdindex][0] + trackevent->fL2FEMeV[ssdindex][1];
     g3_EL2F_Sum12 = trackevent->fL2FEMeV[ssdindex][1] + trackevent->fL2FEMeV[ssdindex][2];
+    g3_EL2F_Ch_Sum01 = trackevent->fL2FECh[ssdindex][0] + trackevent->fL2FECh[ssdindex][1];
+    g3_EL2F_Ch_Sum12 = trackevent->fL2FECh[ssdindex][1] + trackevent->fL2FECh[ssdindex][2];
+
     //
     // 考虑 0)1) sharing
     if ((TMath::Abs(trackevent->fL2FNumStrip[ssdindex][0]-trackevent->fL2FNumStrip[ssdindex][1])==1) &&
@@ -4355,11 +4629,18 @@ void L1L2_TrackDecoded::L1L2_g3_020_TrackDecoded(Int_t ssdindex, const char* mod
 				IsInsideABananaCut(BananaCut[ssdindex],fMCut[0],g3_EL2F_Sum01,trackevent->fL1SEMeV_Corrected[ssdindex][0]))
     {
       g3_ChargeCenter = GetChargeCenter(trackevent->fL2FNumStrip[ssdindex][0],trackevent->fL2FNumStrip[ssdindex][1],trackevent->fL2FEMeV[ssdindex][0],trackevent->fL2FEMeV[ssdindex][1]);
-      FillGlobalEvent_L1L2(globalevent, GMULTI_3, MODEINDEX_G3_020, ssdindex, fSSDgMulti[0], fMCut[0].Cut_Z, fMCut[0].Cut_A,
-                           trackevent->fL1SNumStrip[ssdindex][0], trackevent->fL1SEMeV[ssdindex][0], trackevent->fL1SEMeV_Corrected[ssdindex][0],
-                           g3_ChargeCenter,                       g3_EL2F_Sum01,
-                           trackevent->fL2BNumStrip[ssdindex][0], trackevent->fL2BEMeV[ssdindex][0],
-                           trackevent->fL2FTime[ssdindex][0]);
+      //
+      for (Int_t itrack=0; itrack<GMULTI_3; itrack++)
+      {
+        if (itrack==0)
+        {
+          FillGlobalEvent_L1L2(globalevent, GMULTI_3, MODEINDEX_G3_020, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                               trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                               g3_ChargeCenter,                            g3_EL2F_Sum01,                          g3_EL2F_Ch_Sum01,
+                               trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
+                               trackevent->fL2FTime[ssdindex][itrack]);
+        }
+      }
     }
     // 考虑 1)2) sharing
     else if ((TMath::Abs(trackevent->fL2FNumStrip[ssdindex][1]-trackevent->fL2FNumStrip[ssdindex][2])==1) &&
@@ -4367,23 +4648,31 @@ void L1L2_TrackDecoded::L1L2_g3_020_TrackDecoded(Int_t ssdindex, const char* mod
 				     IsInsideABananaCut(BananaCut[ssdindex],fMCut[1],g3_EL2F_Sum12,trackevent->fL1SEMeV_Corrected[ssdindex][1]))
     {
       g3_ChargeCenter = GetChargeCenter(trackevent->fL2FNumStrip[ssdindex][1],trackevent->fL2FNumStrip[ssdindex][2],trackevent->fL2FEMeV[ssdindex][1],trackevent->fL2FEMeV[ssdindex][2]);
-      FillGlobalEvent_L1L2(globalevent, GMULTI_3, MODEINDEX_G3_020, ssdindex, fSSDgMulti[1], fMCut[1].Cut_Z, fMCut[1].Cut_A,
-                           trackevent->fL1SNumStrip[ssdindex][1], trackevent->fL1SEMeV[ssdindex][1], trackevent->fL1SEMeV_Corrected[ssdindex][1],
-                           g3_ChargeCenter,                       g3_EL2F_Sum12,
-                           trackevent->fL2BNumStrip[ssdindex][1], trackevent->fL2BEMeV[ssdindex][1],
-                           trackevent->fL2FTime[ssdindex][1]);
+      //
+      for (Int_t itrack=0; itrack<GMULTI_3; itrack++)
+      {
+        if (itrack==1)
+        {
+          FillGlobalEvent_L1L2(globalevent, GMULTI_3, MODEINDEX_G3_020, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                               trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                               g3_ChargeCenter,                            g3_EL2F_Sum12,                          g3_EL2F_Ch_Sum12,
+                               trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
+                               trackevent->fL2FTime[ssdindex][itrack]);
+        }
+      }
     }
     // 直接判选
     else
     {
-      for (Int_t itrack=0; itrack<GMULTI_3; itrack++) {
+      for (Int_t itrack=0; itrack<GMULTI_3; itrack++)
+      {
         if (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]) &&
             IsInsideABananaCut(BananaCut[ssdindex],fMCut[itrack],trackevent->fL2FEMeV[ssdindex][itrack],trackevent->fL1SEMeV_Corrected[ssdindex][itrack]))
         {
-          FillGlobalEvent_L1L2(globalevent, GMULTI_3, MODEINDEX_G3_020, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                               trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack],
-                               trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                               trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+          FillGlobalEvent_L1L2(globalevent, GMULTI_3, MODEINDEX_G3_020, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                               trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                               trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                               trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                                trackevent->fL2FTime[ssdindex][itrack]);
           break;
         }
@@ -4393,12 +4682,12 @@ void L1L2_TrackDecoded::L1L2_g3_020_TrackDecoded(Int_t ssdindex, const char* mod
 }
 
 //______________________________________________________________________________
-void L1L2_TrackDecoded::L1L2_g3_101_TrackDecoded(Int_t ssdindex, const char* mode, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
+void L1L2_TrackDecoded::L1L2_g3_101_TrackDecoded(Int_t ssdindex, const char* mode, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
 {
   // 关闭当前通道
   if (switchsetting == kFALSE) return;
-
-  if (((trackevent->fCsINum[ssdindex].size()==0)&&(trackevent->fL2BNumStrip[ssdindex].size()==GMULTI_3)) && (strcmp(mode,MODE_G3_101)==0))
+  //
+  if (strcmp(mode,MODE_G3_101)==0)
   {
     //  g3-101 模式:
     //   case 1：          case 2:
@@ -4409,6 +4698,11 @@ void L1L2_TrackDecoded::L1L2_g3_101_TrackDecoded(Int_t ssdindex, const char* mod
     g3_EL2B_Sum01 = trackevent->fL2BEMeV[ssdindex][0] + trackevent->fL2BEMeV[ssdindex][1];
     g3_EL2B_Sum02 = trackevent->fL2BEMeV[ssdindex][0] + trackevent->fL2BEMeV[ssdindex][2];
     g3_EL2B_Sum12 = trackevent->fL2BEMeV[ssdindex][1] + trackevent->fL2BEMeV[ssdindex][2];
+
+    g3_EL2B_Ch_Sum01 = trackevent->fL2BECh[ssdindex][0] + trackevent->fL2BECh[ssdindex][1];
+    g3_EL2B_Ch_Sum02 = trackevent->fL2BECh[ssdindex][0] + trackevent->fL2BECh[ssdindex][2];
+    g3_EL2B_Ch_Sum12 = trackevent->fL2BECh[ssdindex][1] + trackevent->fL2BECh[ssdindex][2];
+
     //
     // 考虑 L2F 双击: 只需考虑 0)2)双击
     if (((trackevent->fL2BEMeV[ssdindex][0]!=trackevent->fL2BEMeV[ssdindex][2]) && (trackevent->fL1SEMeV[ssdindex][0]!=trackevent->fL1SEMeV[ssdindex][2])) &&
@@ -4416,12 +4710,14 @@ void L1L2_TrackDecoded::L1L2_g3_101_TrackDecoded(Int_t ssdindex, const char* mod
 				(IsInsideABananaCut(BananaCut[ssdindex],fMCut[0],trackevent->fL2BEMeV[ssdindex][0]*EL2B_TO_EL2F_SCALE[ssdindex],trackevent->fL1SEMeV_Corrected[ssdindex][0]) &&
          IsInsideABananaCut(BananaCut[ssdindex],fMCut[2],trackevent->fL2BEMeV[ssdindex][2]*EL2B_TO_EL2F_SCALE[ssdindex],trackevent->fL1SEMeV_Corrected[ssdindex][2])))
 		{
-      for (Int_t itrack=0; itrack<GMULTI_3; itrack++) {
-        if (itrack==0 || itrack==2) {
-          FillGlobalEvent_L1L2(globalevent, GMULTI_3, MODEINDEX_G3_101, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                               trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack],
-                               trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack]*EL2B_TO_EL2F_SCALE[ssdindex],
-                               trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+      for (Int_t itrack=0; itrack<GMULTI_3; itrack++)
+      {
+        if (itrack==0 || itrack==2)
+        {
+          FillGlobalEvent_L1L2(globalevent, GMULTI_3, MODEINDEX_G3_101, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                               trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                               trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack]*EL2B_TO_EL2F_SCALE[ssdindex], trackevent->fL2FECh[ssdindex][itrack],
+                               trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                                trackevent->fL2FTime[ssdindex][itrack]);
         }
       }
@@ -4430,15 +4726,17 @@ void L1L2_TrackDecoded::L1L2_g3_101_TrackDecoded(Int_t ssdindex, const char* mod
     else if ((TMath::Abs(trackevent->fL2BNumStrip[ssdindex][0]-trackevent->fL2BNumStrip[ssdindex][2])==1) &&
              IsEneConstraint_L2B_L2F(ssdindex,g3_EL2B_Sum02,trackevent->fL2FEMeV[ssdindex][0]))
     {
-      for (Int_t itrack=0; itrack<GMULTI_3; itrack++) {
-        if (itrack==0 || itrack==2) {
+      for (Int_t itrack=0; itrack<GMULTI_3; itrack++)
+      {
+        if (itrack==0 || itrack==2)
+        {
           if (IsInsideABananaCut(BananaCut[ssdindex],fMCut[itrack],trackevent->fL2FEMeV[ssdindex][itrack],trackevent->fL1SEMeV_Corrected[ssdindex][itrack]))
           {
             g3_ChargeCenter = GetChargeCenter(trackevent->fL2BNumStrip[ssdindex][0],trackevent->fL2BNumStrip[ssdindex][2],trackevent->fL2BEMeV[ssdindex][0],trackevent->fL2BEMeV[ssdindex][2]);
-            FillGlobalEvent_L1L2(globalevent, GMULTI_3, MODEINDEX_G3_101, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                                 trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack],
-                                 trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                                 g3_ChargeCenter,                            g3_EL2B_Sum02,
+            FillGlobalEvent_L1L2(globalevent, GMULTI_3, MODEINDEX_G3_101, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                                 trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                                 trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                                 g3_ChargeCenter,                            g3_EL2B_Sum02,                          g3_EL2B_Ch_Sum02,
                                  trackevent->fL2FTime[ssdindex][itrack]);
             break;
           }
@@ -4448,14 +4746,15 @@ void L1L2_TrackDecoded::L1L2_g3_101_TrackDecoded(Int_t ssdindex, const char* mod
     // 直接判选
     else
     {
-      for (Int_t itrack=0; itrack<GMULTI_3; itrack++) {
+      for (Int_t itrack=0; itrack<GMULTI_3; itrack++)
+      {
         if (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]) &&
             IsInsideABananaCut(BananaCut[ssdindex],fMCut[itrack],trackevent->fL2FEMeV[ssdindex][itrack],trackevent->fL1SEMeV_Corrected[ssdindex][itrack]))
         {
-          FillGlobalEvent_L1L2(globalevent, GMULTI_3, MODEINDEX_G3_101, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                               trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack],
-                               trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                               trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+          FillGlobalEvent_L1L2(globalevent, GMULTI_3, MODEINDEX_G3_101, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                               trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                               trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                               trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                                trackevent->fL2FTime[ssdindex][itrack]);
           break;
         }
@@ -4465,12 +4764,12 @@ void L1L2_TrackDecoded::L1L2_g3_101_TrackDecoded(Int_t ssdindex, const char* mod
 }
 
 //______________________________________________________________________________
-void L1L2_TrackDecoded::L1L2_g3_102_TrackDecoded(Int_t ssdindex, const char* mode, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
+void L1L2_TrackDecoded::L1L2_g3_102_TrackDecoded(Int_t ssdindex, const char* mode, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
 {
   // 关闭当前通道
   if (switchsetting == kFALSE) return;
-
-  if (((trackevent->fCsINum[ssdindex].size()==0)&&(trackevent->fL2BNumStrip[ssdindex].size()==GMULTI_3)) && (strcmp(mode,MODE_G3_102)==0))
+  //
+  if (strcmp(mode,MODE_G3_102)==0)
   {
     //  g3-101 模式:
     //   case 1：          case 2:
@@ -4481,6 +4780,11 @@ void L1L2_TrackDecoded::L1L2_g3_102_TrackDecoded(Int_t ssdindex, const char* mod
     g3_EL2B_Sum01 = trackevent->fL2BEMeV[ssdindex][0] + trackevent->fL2BEMeV[ssdindex][1];
     g3_EL2B_Sum02 = trackevent->fL2BEMeV[ssdindex][0] + trackevent->fL2BEMeV[ssdindex][2];
     g3_EL2B_Sum12 = trackevent->fL2BEMeV[ssdindex][1] + trackevent->fL2BEMeV[ssdindex][2];
+
+    g3_EL2B_Ch_Sum01 = trackevent->fL2BECh[ssdindex][0] + trackevent->fL2BECh[ssdindex][1];
+    g3_EL2B_Ch_Sum02 = trackevent->fL2BECh[ssdindex][0] + trackevent->fL2BECh[ssdindex][2];
+    g3_EL2B_Ch_Sum12 = trackevent->fL2BECh[ssdindex][1] + trackevent->fL2BECh[ssdindex][2];
+
     //
     // 考虑 L2F 双击: 0)1)双击
     if (((trackevent->fL2BEMeV[ssdindex][0]!=trackevent->fL2BEMeV[ssdindex][1]) && (trackevent->fL1SEMeV[ssdindex][0]!=trackevent->fL1SEMeV[ssdindex][1])) &&
@@ -4488,12 +4792,13 @@ void L1L2_TrackDecoded::L1L2_g3_102_TrackDecoded(Int_t ssdindex, const char* mod
 				(IsInsideABananaCut(BananaCut[ssdindex],fMCut[0],trackevent->fL2BEMeV[ssdindex][0]*EL2B_TO_EL2F_SCALE[ssdindex],trackevent->fL1SEMeV_Corrected[ssdindex][0]) &&
          IsInsideABananaCut(BananaCut[ssdindex],fMCut[1],trackevent->fL2BEMeV[ssdindex][1]*EL2B_TO_EL2F_SCALE[ssdindex],trackevent->fL1SEMeV_Corrected[ssdindex][1])))
 		{
-      for (Int_t itrack=0; itrack<GMULTI_3; itrack++) {
+      for (Int_t itrack=0; itrack<GMULTI_3; itrack++)
+      {
         if (itrack==0 || itrack==1) {
-          FillGlobalEvent_L1L2(globalevent, GMULTI_3, MODEINDEX_G3_102, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                               trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack],
-                               trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack]*EL2B_TO_EL2F_SCALE[ssdindex],
-                               trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+          FillGlobalEvent_L1L2(globalevent, GMULTI_3, MODEINDEX_G3_102, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                               trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                               trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack]*EL2B_TO_EL2F_SCALE[ssdindex], trackevent->fL2FECh[ssdindex][itrack],
+                               trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                                trackevent->fL2FTime[ssdindex][itrack]);
         }
       }
@@ -4504,12 +4809,13 @@ void L1L2_TrackDecoded::L1L2_g3_102_TrackDecoded(Int_t ssdindex, const char* mod
 				    (IsInsideABananaCut(BananaCut[ssdindex],fMCut[0],trackevent->fL2BEMeV[ssdindex][0]*EL2B_TO_EL2F_SCALE[ssdindex],trackevent->fL1SEMeV_Corrected[ssdindex][0]) &&
              IsInsideABananaCut(BananaCut[ssdindex],fMCut[2],trackevent->fL2BEMeV[ssdindex][2]*EL2B_TO_EL2F_SCALE[ssdindex],trackevent->fL1SEMeV_Corrected[ssdindex][2])))
 		{
-      for (Int_t itrack=0; itrack<GMULTI_3; itrack++) {
+      for (Int_t itrack=0; itrack<GMULTI_3; itrack++)
+      {
         if (itrack==0 || itrack==2) {
-          FillGlobalEvent_L1L2(globalevent, GMULTI_3, MODEINDEX_G3_102, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                               trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack],
-                               trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack]*EL2B_TO_EL2F_SCALE[ssdindex],
-                               trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+          FillGlobalEvent_L1L2(globalevent, GMULTI_3, MODEINDEX_G3_102, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                               trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                               trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack]*EL2B_TO_EL2F_SCALE[ssdindex], trackevent->fL2FECh[ssdindex][itrack],
+                               trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                                trackevent->fL2FTime[ssdindex][itrack]);
         }
       }
@@ -4520,12 +4826,13 @@ void L1L2_TrackDecoded::L1L2_g3_102_TrackDecoded(Int_t ssdindex, const char* mod
 				    (IsInsideABananaCut(BananaCut[ssdindex],fMCut[1],trackevent->fL2BEMeV[ssdindex][1]*EL2B_TO_EL2F_SCALE[ssdindex],trackevent->fL1SEMeV_Corrected[ssdindex][1]) &&
              IsInsideABananaCut(BananaCut[ssdindex],fMCut[2],trackevent->fL2BEMeV[ssdindex][2]*EL2B_TO_EL2F_SCALE[ssdindex],trackevent->fL1SEMeV_Corrected[ssdindex][2])))
 		{
-      for (Int_t itrack=0; itrack<GMULTI_3; itrack++) {
+      for (Int_t itrack=0; itrack<GMULTI_3; itrack++)
+      {
         if (itrack==1 || itrack==2) {
-          FillGlobalEvent_L1L2(globalevent, GMULTI_3, MODEINDEX_G3_102, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                               trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack],
-                               trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack]*EL2B_TO_EL2F_SCALE[ssdindex],
-                               trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+          FillGlobalEvent_L1L2(globalevent, GMULTI_3, MODEINDEX_G3_102, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                               trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                               trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack]*EL2B_TO_EL2F_SCALE[ssdindex], trackevent->fL2FECh[ssdindex][itrack],
+                               trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                                trackevent->fL2FTime[ssdindex][itrack]);
         }
       }
@@ -4534,15 +4841,16 @@ void L1L2_TrackDecoded::L1L2_g3_102_TrackDecoded(Int_t ssdindex, const char* mod
     else if ((TMath::Abs(trackevent->fL2BNumStrip[ssdindex][0]-trackevent->fL2BNumStrip[ssdindex][1])==1) &&
              IsEneConstraint_L2B_L2F(ssdindex,g3_EL2B_Sum01,trackevent->fL2FEMeV[ssdindex][0]))
     {
-      for (Int_t itrack=0; itrack<GMULTI_3; itrack++) {
+      for (Int_t itrack=0; itrack<GMULTI_3; itrack++)
+      {
         if (itrack==0 || itrack==1) {
           if (IsInsideABananaCut(BananaCut[ssdindex],fMCut[itrack],trackevent->fL2FEMeV[ssdindex][itrack],trackevent->fL1SEMeV_Corrected[ssdindex][itrack]))
           {
             g3_ChargeCenter = GetChargeCenter(trackevent->fL2BNumStrip[ssdindex][0],trackevent->fL2BNumStrip[ssdindex][1],trackevent->fL2BEMeV[ssdindex][0],trackevent->fL2BEMeV[ssdindex][1]);
-            FillGlobalEvent_L1L2(globalevent, GMULTI_3, MODEINDEX_G3_102, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                                 trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack],
-                                 trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                                 g3_ChargeCenter,                            g3_EL2B_Sum01,
+            FillGlobalEvent_L1L2(globalevent, GMULTI_3, MODEINDEX_G3_102, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                                 trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                                 trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                                 g3_ChargeCenter,                            g3_EL2B_Sum01,                          g3_EL2B_Ch_Sum01,
                                  trackevent->fL2FTime[ssdindex][itrack]);
             break;
           }
@@ -4553,15 +4861,16 @@ void L1L2_TrackDecoded::L1L2_g3_102_TrackDecoded(Int_t ssdindex, const char* mod
     else if ((TMath::Abs(trackevent->fL2BNumStrip[ssdindex][1]-trackevent->fL2BNumStrip[ssdindex][2])==1) &&
              IsEneConstraint_L2B_L2F(ssdindex,g3_EL2B_Sum12,trackevent->fL2FEMeV[ssdindex][1]))
     {
-      for (Int_t itrack=0; itrack<GMULTI_3; itrack++) {
+      for (Int_t itrack=0; itrack<GMULTI_3; itrack++)
+      {
         if (itrack==1 || itrack==2) {
           if (IsInsideABananaCut(BananaCut[ssdindex],fMCut[itrack],trackevent->fL2FEMeV[ssdindex][itrack],trackevent->fL1SEMeV_Corrected[ssdindex][itrack]))
           {
             g3_ChargeCenter = GetChargeCenter(trackevent->fL2BNumStrip[ssdindex][1],trackevent->fL2BNumStrip[ssdindex][2],trackevent->fL2BEMeV[ssdindex][1],trackevent->fL2BEMeV[ssdindex][2]);
-            FillGlobalEvent_L1L2(globalevent, GMULTI_3, MODEINDEX_G3_102, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                                 trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack],
-                                 trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                                 g3_ChargeCenter,                            g3_EL2B_Sum12,
+            FillGlobalEvent_L1L2(globalevent, GMULTI_3, MODEINDEX_G3_102, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                                 trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                                 trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                                 g3_ChargeCenter,                            g3_EL2B_Sum12,                          g3_EL2B_Ch_Sum12,
                                  trackevent->fL2FTime[ssdindex][itrack]);
             break;
           }
@@ -4571,14 +4880,15 @@ void L1L2_TrackDecoded::L1L2_g3_102_TrackDecoded(Int_t ssdindex, const char* mod
     // 直接判选
     else
     {
-      for (Int_t itrack=0; itrack<GMULTI_3; itrack++) {
+      for (Int_t itrack=0; itrack<GMULTI_3; itrack++)
+      {
         if (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]) &&
             IsInsideABananaCut(BananaCut[ssdindex],fMCut[itrack],trackevent->fL2FEMeV[ssdindex][itrack],trackevent->fL1SEMeV_Corrected[ssdindex][itrack]))
         {
-          FillGlobalEvent_L1L2(globalevent, GMULTI_3, MODEINDEX_G3_102, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                               trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack],
-                               trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                               trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+          FillGlobalEvent_L1L2(globalevent, GMULTI_3, MODEINDEX_G3_102, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                               trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                               trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                               trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                                trackevent->fL2FTime[ssdindex][itrack]);
           break;
         }
@@ -4588,15 +4898,18 @@ void L1L2_TrackDecoded::L1L2_g3_102_TrackDecoded(Int_t ssdindex, const char* mod
 }
 
 //______________________________________________________________________________
-void L1L2_TrackDecoded::L1L2_g3_200_TrackDecoded(Int_t ssdindex, const char* mode, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
+void L1L2_TrackDecoded::L1L2_g3_200_TrackDecoded(Int_t ssdindex, const char* mode, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
 {
   // 关闭当前通道
   if (switchsetting == kFALSE) return;
-
-  if (((trackevent->fCsINum[ssdindex].size()==0)&&(trackevent->fL2BNumStrip[ssdindex].size()==GMULTI_3)) && (strcmp(mode,MODE_G3_200)==0))
+  //
+  if (strcmp(mode,MODE_G3_200)==0)
   {
     g3_EL2B_Sum01 = trackevent->fL2BEMeV[ssdindex][0] + trackevent->fL2BEMeV[ssdindex][1];
     g3_EL2B_Sum12 = trackevent->fL2BEMeV[ssdindex][1] + trackevent->fL2BEMeV[ssdindex][2];
+
+    g3_EL2B_Ch_Sum01 = trackevent->fL2BECh[ssdindex][0] + trackevent->fL2BECh[ssdindex][1];
+    g3_EL2B_Ch_Sum12 = trackevent->fL2BECh[ssdindex][1] + trackevent->fL2BECh[ssdindex][2];
     //
     // 考虑 L2B sharing: 0)1) sharing
     if ((TMath::Abs(trackevent->fL2BNumStrip[ssdindex][0]-trackevent->fL2BNumStrip[ssdindex][1])==1) &&
@@ -4604,11 +4917,17 @@ void L1L2_TrackDecoded::L1L2_g3_200_TrackDecoded(Int_t ssdindex, const char* mod
         IsInsideABananaCut(BananaCut[ssdindex],fMCut[0],trackevent->fL2FEMeV[ssdindex][0],trackevent->fL1SEMeV_Corrected[ssdindex][0]))
     {
       g3_ChargeCenter = GetChargeCenter(trackevent->fL2BNumStrip[ssdindex][0],trackevent->fL2BNumStrip[ssdindex][1],trackevent->fL2BEMeV[ssdindex][0],trackevent->fL2BEMeV[ssdindex][1]);
-      FillGlobalEvent_L1L2(globalevent, GMULTI_3, MODEINDEX_G3_200, ssdindex, fSSDgMulti[ssdindex], fMCut[0].Cut_Z, fMCut[0].Cut_A,
-                           trackevent->fL1SNumStrip[ssdindex][0], trackevent->fL1SEMeV[ssdindex][0], trackevent->fL1SEMeV_Corrected[ssdindex][0],
-                           trackevent->fL2FNumStrip[ssdindex][0], trackevent->fL2FEMeV[ssdindex][0],
-                           g3_ChargeCenter,                       g3_EL2B_Sum01,
-                           trackevent->fL2FTime[ssdindex][0]);
+      //
+      for (Int_t itrack=0; itrack<GMULTI_3; itrack++)
+      {
+        if (itrack==0) {
+          FillGlobalEvent_L1L2(globalevent, GMULTI_3, MODEINDEX_G3_200, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                               trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                               trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                               g3_ChargeCenter,                            g3_EL2B_Sum01,                          g3_EL2B_Ch_Sum01,
+                               trackevent->fL2FTime[ssdindex][itrack]);
+        }
+      }
     }
     // 考虑 L2B sharing: 1)2) sharing
     else if ((TMath::Abs(trackevent->fL2BNumStrip[ssdindex][1]-trackevent->fL2BNumStrip[ssdindex][2])==1) &&
@@ -4616,23 +4935,31 @@ void L1L2_TrackDecoded::L1L2_g3_200_TrackDecoded(Int_t ssdindex, const char* mod
              IsInsideABananaCut(BananaCut[ssdindex],fMCut[1],trackevent->fL2FEMeV[ssdindex][1],trackevent->fL1SEMeV_Corrected[ssdindex][1]))
     {
       g3_ChargeCenter = GetChargeCenter(trackevent->fL2BNumStrip[ssdindex][1],trackevent->fL2BNumStrip[ssdindex][2],trackevent->fL2BEMeV[ssdindex][1],trackevent->fL2BEMeV[ssdindex][2]);
-      FillGlobalEvent_L1L2(globalevent, GMULTI_3, MODEINDEX_G3_200, ssdindex, fSSDgMulti[ssdindex], fMCut[1].Cut_Z, fMCut[1].Cut_A,
-                           trackevent->fL1SNumStrip[ssdindex][1], trackevent->fL1SEMeV[ssdindex][1], trackevent->fL1SEMeV_Corrected[ssdindex][1],
-                           trackevent->fL2FNumStrip[ssdindex][1], trackevent->fL2FEMeV[ssdindex][1],
-                           g3_ChargeCenter,                       g3_EL2B_Sum12,
-                           trackevent->fL2FTime[ssdindex][1]);
+      //
+      for (Int_t itrack=0; itrack<GMULTI_3; itrack++)
+      {
+        if (itrack==1)
+        {
+          FillGlobalEvent_L1L2(globalevent, GMULTI_3, MODEINDEX_G3_200, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                               trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                               trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                               g3_ChargeCenter,                            g3_EL2B_Sum12,                          g3_EL2B_Ch_Sum12,
+                               trackevent->fL2FTime[ssdindex][itrack]);
+        }
+      }
     }
     // 直接判选
     else
     {
-      for (Int_t itrack=0; itrack<GMULTI_3; itrack++) {
+      for (Int_t itrack=0; itrack<GMULTI_3; itrack++)
+      {
         if (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]) &&
             IsInsideABananaCut(BananaCut[ssdindex],fMCut[itrack],trackevent->fL2FEMeV[ssdindex][itrack],trackevent->fL1SEMeV_Corrected[ssdindex][itrack]))
         {
-          FillGlobalEvent_L1L2(globalevent, GMULTI_3, MODEINDEX_G3_200, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                               trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack],
-                               trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                               trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+          FillGlobalEvent_L1L2(globalevent, GMULTI_3, MODEINDEX_G3_200, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                               trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                               trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                               trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                                trackevent->fL2FTime[ssdindex][itrack]);
           break;
         }
@@ -4642,12 +4969,12 @@ void L1L2_TrackDecoded::L1L2_g3_200_TrackDecoded(Int_t ssdindex, const char* mod
 }
 
 //______________________________________________________________________________
-void L1L2_TrackDecoded::L1L2_g3_201_TrackDecoded(Int_t ssdindex, const char* mode, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
+void L1L2_TrackDecoded::L1L2_g3_201_TrackDecoded(Int_t ssdindex, const char* mode, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
 {
   // 关闭当前通道
   if (switchsetting == kFALSE) return;
-
-  if (((trackevent->fCsINum[ssdindex].size()==0)&&(trackevent->fL2BNumStrip[ssdindex].size()==GMULTI_3)) && (strcmp(mode,MODE_G3_201)==0))
+  //
+  if (strcmp(mode,MODE_G3_201)==0)
   {
     // g3-201 模式：
     //  0) 000    0)000
@@ -4657,6 +4984,10 @@ void L1L2_TrackDecoded::L1L2_g3_201_TrackDecoded(Int_t ssdindex, const char* mod
     g3_EL2B_Sum01 = trackevent->fL2BEMeV[ssdindex][0] + trackevent->fL2BEMeV[ssdindex][1];
     g3_EL2B_Sum02 = trackevent->fL2BEMeV[ssdindex][0] + trackevent->fL2BEMeV[ssdindex][2];
     g3_EL2B_Sum12 = trackevent->fL2BEMeV[ssdindex][1] + trackevent->fL2BEMeV[ssdindex][2];
+
+    g3_EL2B_Ch_Sum01 = trackevent->fL2BECh[ssdindex][0] + trackevent->fL2BECh[ssdindex][1];
+    g3_EL2B_Ch_Sum02 = trackevent->fL2BECh[ssdindex][0] + trackevent->fL2BECh[ssdindex][2];
+    g3_EL2B_Ch_Sum12 = trackevent->fL2BECh[ssdindex][1] + trackevent->fL2BECh[ssdindex][2];
     //
     // 考虑 L2F 双击: 0)1)双击
     if (((trackevent->fL2BEMeV[ssdindex][0]!=trackevent->fL2BEMeV[ssdindex][1]) && (trackevent->fL1SEMeV[ssdindex][0]!=trackevent->fL1SEMeV[ssdindex][1])) &&
@@ -4664,12 +4995,14 @@ void L1L2_TrackDecoded::L1L2_g3_201_TrackDecoded(Int_t ssdindex, const char* mod
 				(IsInsideABananaCut(BananaCut[ssdindex],fMCut[0],trackevent->fL2BEMeV[ssdindex][0]*EL2B_TO_EL2F_SCALE[ssdindex],trackevent->fL1SEMeV_Corrected[ssdindex][0]) &&
          IsInsideABananaCut(BananaCut[ssdindex],fMCut[1],trackevent->fL2BEMeV[ssdindex][1]*EL2B_TO_EL2F_SCALE[ssdindex],trackevent->fL1SEMeV_Corrected[ssdindex][1])))
 		{
-      for (Int_t itrack=0; itrack<GMULTI_3; itrack++) {
-        if (itrack==0 || itrack==1) {
-          FillGlobalEvent_L1L2(globalevent, GMULTI_3, MODEINDEX_G3_201, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                               trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack],
-                               trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack]*EL2B_TO_EL2F_SCALE[ssdindex],
-                               trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+      for (Int_t itrack=0; itrack<GMULTI_3; itrack++)
+      {
+        if (itrack==0 || itrack==1)
+        {
+          FillGlobalEvent_L1L2(globalevent, GMULTI_3, MODEINDEX_G3_201, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                               trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                               trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack]*EL2B_TO_EL2F_SCALE[ssdindex], trackevent->fL2FECh[ssdindex][itrack],
+                               trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                                trackevent->fL2FTime[ssdindex][itrack]);
         }
       }
@@ -4680,12 +5013,14 @@ void L1L2_TrackDecoded::L1L2_g3_201_TrackDecoded(Int_t ssdindex, const char* mod
 				     (IsInsideABananaCut(BananaCut[ssdindex],fMCut[0],trackevent->fL2BEMeV[ssdindex][0]*EL2B_TO_EL2F_SCALE[ssdindex],trackevent->fL1SEMeV_Corrected[ssdindex][0]) &&
               IsInsideABananaCut(BananaCut[ssdindex],fMCut[2],trackevent->fL2BEMeV[ssdindex][2]*EL2B_TO_EL2F_SCALE[ssdindex],trackevent->fL1SEMeV_Corrected[ssdindex][2])))
 		{
-      for (Int_t itrack=0; itrack<GMULTI_3; itrack++) {
-        if (itrack==0 || itrack==2) {
-          FillGlobalEvent_L1L2(globalevent, GMULTI_3, MODEINDEX_G3_201, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                               trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack],
-                               trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack]*EL2B_TO_EL2F_SCALE[ssdindex],
-                               trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+      for (Int_t itrack=0; itrack<GMULTI_3; itrack++)
+      {
+        if (itrack==0 || itrack==2)
+        {
+          FillGlobalEvent_L1L2(globalevent, GMULTI_3, MODEINDEX_G3_201, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                               trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                               trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack]*EL2B_TO_EL2F_SCALE[ssdindex], trackevent->fL2FECh[ssdindex][itrack],
+                               trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                                trackevent->fL2FTime[ssdindex][itrack]);
         }
       }
@@ -4696,12 +5031,13 @@ void L1L2_TrackDecoded::L1L2_g3_201_TrackDecoded(Int_t ssdindex, const char* mod
 				     (IsInsideABananaCut(BananaCut[ssdindex],fMCut[1],trackevent->fL2BEMeV[ssdindex][1]*EL2B_TO_EL2F_SCALE[ssdindex],trackevent->fL1SEMeV_Corrected[ssdindex][1]) &&
               IsInsideABananaCut(BananaCut[ssdindex],fMCut[2],trackevent->fL2BEMeV[ssdindex][2]*EL2B_TO_EL2F_SCALE[ssdindex],trackevent->fL1SEMeV_Corrected[ssdindex][2])))
 		{
-      for (Int_t itrack=0; itrack<GMULTI_3; itrack++) {
+      for (Int_t itrack=0; itrack<GMULTI_3; itrack++)
+      {
         if (itrack==1 || itrack==2) {
-          FillGlobalEvent_L1L2(globalevent, GMULTI_3, MODEINDEX_G3_201, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                               trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack],
-                               trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack]*EL2B_TO_EL2F_SCALE[ssdindex],
-                               trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+          FillGlobalEvent_L1L2(globalevent, GMULTI_3, MODEINDEX_G3_201, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                               trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                               trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack]*EL2B_TO_EL2F_SCALE[ssdindex], trackevent->fL2FECh[ssdindex][itrack],
+                               trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                                trackevent->fL2FTime[ssdindex][itrack]);
         }
       }
@@ -4710,15 +5046,17 @@ void L1L2_TrackDecoded::L1L2_g3_201_TrackDecoded(Int_t ssdindex, const char* mod
     else if ((TMath::Abs(trackevent->fL2BNumStrip[ssdindex][0]-trackevent->fL2BNumStrip[ssdindex][1])==1) &&
              IsEneConstraint_L2B_L2F(ssdindex,g3_EL2B_Sum01,trackevent->fL2FEMeV[ssdindex][0]))
     {
-      for (Int_t itrack=0; itrack<GMULTI_3; itrack++) {
-        if (itrack==0 || itrack==1) {
+      for (Int_t itrack=0; itrack<GMULTI_3; itrack++)
+      {
+        if (itrack==0 || itrack==1)
+        {
           if (IsInsideABananaCut(BananaCut[ssdindex],fMCut[itrack],trackevent->fL2FEMeV[ssdindex][itrack],trackevent->fL1SEMeV_Corrected[ssdindex][itrack]))
           {
             g3_ChargeCenter = GetChargeCenter(trackevent->fL2BNumStrip[ssdindex][0],trackevent->fL2BNumStrip[ssdindex][1],trackevent->fL2BEMeV[ssdindex][0],trackevent->fL2BEMeV[ssdindex][1]);
-            FillGlobalEvent_L1L2(globalevent, GMULTI_3, MODEINDEX_G3_201, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                                 trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack],
-                                 trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                                 g3_ChargeCenter,                            g3_EL2B_Sum01,
+            FillGlobalEvent_L1L2(globalevent, GMULTI_3, MODEINDEX_G3_201, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                                 trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                                 trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                                 g3_ChargeCenter,                            g3_EL2B_Sum01,                          g3_EL2B_Ch_Sum01,
                                  trackevent->fL2FTime[ssdindex][itrack]);
             break;
           }
@@ -4729,15 +5067,17 @@ void L1L2_TrackDecoded::L1L2_g3_201_TrackDecoded(Int_t ssdindex, const char* mod
     else if ((TMath::Abs(trackevent->fL2BNumStrip[ssdindex][1]-trackevent->fL2BNumStrip[ssdindex][2])==1) &&
              IsEneConstraint_L2B_L2F(ssdindex,g3_EL2B_Sum12,trackevent->fL2FEMeV[ssdindex][1]))
     {
-      for (Int_t itrack=0; itrack<GMULTI_3; itrack++) {
-        if (itrack==1 || itrack==2) {
+      for (Int_t itrack=0; itrack<GMULTI_3; itrack++)
+      {
+        if (itrack==1 || itrack==2)
+        {
           if (IsInsideABananaCut(BananaCut[ssdindex],fMCut[itrack],trackevent->fL2FEMeV[ssdindex][itrack],trackevent->fL1SEMeV_Corrected[ssdindex][itrack]))
           {
             g3_ChargeCenter = GetChargeCenter(trackevent->fL2BNumStrip[ssdindex][1],trackevent->fL2BNumStrip[ssdindex][2],trackevent->fL2BEMeV[ssdindex][1],trackevent->fL2BEMeV[ssdindex][2]);
-            FillGlobalEvent_L1L2(globalevent, GMULTI_3, MODEINDEX_G3_201, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                                 trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack],
-                                 trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                                 g3_ChargeCenter,                            g3_EL2B_Sum12,
+            FillGlobalEvent_L1L2(globalevent, GMULTI_3, MODEINDEX_G3_201, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                                 trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                                 trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                                 g3_ChargeCenter,                            g3_EL2B_Sum12,                          g3_EL2B_Ch_Sum12,
                                  trackevent->fL2FTime[ssdindex][itrack]);
             break;
           }
@@ -4747,14 +5087,15 @@ void L1L2_TrackDecoded::L1L2_g3_201_TrackDecoded(Int_t ssdindex, const char* mod
     // 直接判选
     else
     {
-      for (Int_t itrack=0; itrack<GMULTI_3; itrack++) {
+      for (Int_t itrack=0; itrack<GMULTI_3; itrack++)
+      {
         if (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]) &&
             IsInsideABananaCut(BananaCut[ssdindex],fMCut[itrack],trackevent->fL2FEMeV[ssdindex][itrack],trackevent->fL1SEMeV_Corrected[ssdindex][itrack]))
         {
-          FillGlobalEvent_L1L2(globalevent, GMULTI_3, MODEINDEX_G3_102, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                               trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack],
-                               trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                               trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+          FillGlobalEvent_L1L2(globalevent, GMULTI_3, MODEINDEX_G3_102, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                               trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                               trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                               trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                                trackevent->fL2FTime[ssdindex][itrack]);
           break;
         }
@@ -4764,25 +5105,27 @@ void L1L2_TrackDecoded::L1L2_g3_201_TrackDecoded(Int_t ssdindex, const char* mod
 }
 
 //______________________________________________________________________________
-void L1L2_TrackDecoded::L1L2_g3_202_TrackDecoded(Int_t ssdindex, const char* mode, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
+void L1L2_TrackDecoded::L1L2_g3_202_TrackDecoded(Int_t ssdindex, const char* mode, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
 {
   // 关闭当前通道
   if (switchsetting == kFALSE) return;
-
-  if (((trackevent->fCsINum[ssdindex].size()==0)&&(trackevent->fL2BNumStrip[ssdindex].size()==GMULTI_3)) && (strcmp(mode,MODE_G3_202)==0))
+  //
+  if (strcmp(mode,MODE_G3_202)==0)
   {
     g3_EL2B_Sum012 = trackevent->fL2BEMeV[ssdindex][0] + trackevent->fL2BEMeV[ssdindex][1] + trackevent->fL2BEMeV[ssdindex][2];
+    g3_EL2B_Ch_Sum012 = trackevent->fL2BECh[ssdindex][0] + trackevent->fL2BECh[ssdindex][1] + trackevent->fL2BECh[ssdindex][2];
     //
     // 考虑 L2F 三击事件
     if (IsEneConstraint_L2B_L2F(ssdindex,g3_EL2B_Sum012,trackevent->fL2FEMeV[ssdindex][0]))
     {
-      for (Int_t itrack=0; itrack<GMULTI_3; itrack++) {
+      for (Int_t itrack=0; itrack<GMULTI_3; itrack++)
+      {
         if (IsInsideABananaCut(BananaCut[ssdindex],fMCut[itrack],trackevent->fL2BEMeV[ssdindex][itrack]*EL2B_TO_EL2F_SCALE[ssdindex],trackevent->fL1SEMeV_Corrected[ssdindex][itrack]))
         {
-          FillGlobalEvent_L1L2(globalevent, GMULTI_3, MODEINDEX_G3_202, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                               trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack],
-                               trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack]*EL2B_TO_EL2F_SCALE[ssdindex],
-                               trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+          FillGlobalEvent_L1L2(globalevent, GMULTI_3, MODEINDEX_G3_202, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                               trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                               trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack]*EL2B_TO_EL2F_SCALE[ssdindex], trackevent->fL2FECh[ssdindex][itrack],
+                               trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                                trackevent->fL2FTime[ssdindex][itrack]);
         }
       }
@@ -4790,14 +5133,15 @@ void L1L2_TrackDecoded::L1L2_g3_202_TrackDecoded(Int_t ssdindex, const char* mod
     // 直接判选
     else
     {
-      for (Int_t itrack=0; itrack<GMULTI_3; itrack++) {
+      for (Int_t itrack=0; itrack<GMULTI_3; itrack++)
+      {
         if (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]) &&
             IsInsideABananaCut(BananaCut[ssdindex],fMCut[itrack],trackevent->fL2FEMeV[ssdindex][itrack],trackevent->fL1SEMeV_Corrected[ssdindex][itrack]))
         {
-          FillGlobalEvent_L1L2(globalevent, GMULTI_3, MODEINDEX_G3_202, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                               trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack],
-                               trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                               trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+          FillGlobalEvent_L1L2(globalevent, GMULTI_3, MODEINDEX_G3_202, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                               trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                               trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                               trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                                trackevent->fL2FTime[ssdindex][itrack]);
           break;
         }
@@ -4811,12 +5155,12 @@ void L1L2_TrackDecoded::L1L2_g3_202_TrackDecoded(Int_t ssdindex, const char* mod
 //______________________________________________________________________________
 //            L1L2_g4_TrackDecoded
 //          ------------------------
-void L1L2_TrackDecoded::L1L2_g4_011_TrackDecoded(Int_t ssdindex, const char* mode, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
+void L1L2_TrackDecoded::L1L2_g4_011_TrackDecoded(Int_t ssdindex, const char* mode, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
 {
   // 关闭当前通道
   if (switchsetting == kFALSE) return;
-
-  if (((trackevent->fCsINum[ssdindex].size()==0)&&(trackevent->fL2BNumStrip[ssdindex].size()==GMULTI_4)) && (strcmp(mode,MODE_G4_011)==0))
+  //
+  if (strcmp(mode,MODE_G4_011)==0)
   {
     // g4-011 模式:
     //  0) 000
@@ -4827,18 +5171,24 @@ void L1L2_TrackDecoded::L1L2_g4_011_TrackDecoded(Int_t ssdindex, const char* mod
     g4_EL2F_Sum12 = trackevent->fL2FEMeV[ssdindex][1] + trackevent->fL2FEMeV[ssdindex][2];
     g4_EL1S_Sum03 = trackevent->fL1SEMeV[ssdindex][0] + trackevent->fL1SEMeV[ssdindex][3];
     g4_EL1S_Sum03_Corrected = trackevent->fL1SEMeV_Corrected[ssdindex][0] + trackevent->fL1SEMeV_Corrected[ssdindex][3];
+
+    g4_EL2F_Ch_Sum03 = trackevent->fL2FECh[ssdindex][0] + trackevent->fL2FECh[ssdindex][3];
+    g4_EL2F_Ch_Sum12 = trackevent->fL2FECh[ssdindex][1] + trackevent->fL2FECh[ssdindex][2];
+    g4_EL1S_Ch_Sum03 = trackevent->fL1SECh[ssdindex][0] + trackevent->fL1SECh[ssdindex][3];
     //
     // 考虑 L2B 双击: 0)3) 双击
     if (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][0],g4_EL2F_Sum03) &&
 				IsInsideABananaCut(BananaCut[ssdindex],fMCut[0],trackevent->fL2FEMeV[ssdindex][0],trackevent->fL1SEMeV_Corrected[ssdindex][0]) &&
         IsInsideABananaCut(BananaCut[ssdindex],fMCut[3],trackevent->fL2FEMeV[ssdindex][3],trackevent->fL1SEMeV_Corrected[ssdindex][3]))
     {
-      for (Int_t itrack=0; itrack<GMULTI_4; itrack++) {
-        if (itrack==0 || itrack==3) {
-          FillGlobalEvent_L1L2(globalevent, GMULTI_4, MODEINDEX_G4_011, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                               trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack],
-                               trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                               trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+      for (Int_t itrack=0; itrack<GMULTI_4; itrack++)
+      {
+        if (itrack==0 || itrack==3)
+        {
+          FillGlobalEvent_L1L2(globalevent, GMULTI_4, MODEINDEX_G4_011, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                               trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                               trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                               trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                                trackevent->fL2FTime[ssdindex][itrack]);
         }
       }
@@ -4848,12 +5198,14 @@ void L1L2_TrackDecoded::L1L2_g4_011_TrackDecoded(Int_t ssdindex, const char* mod
 				     IsInsideABananaCut(BananaCut[ssdindex],fMCut[1],trackevent->fL2FEMeV[ssdindex][1],trackevent->fL1SEMeV_Corrected[ssdindex][1]) &&
              IsInsideABananaCut(BananaCut[ssdindex],fMCut[2],trackevent->fL2FEMeV[ssdindex][2],trackevent->fL1SEMeV_Corrected[ssdindex][2]))
     {
-      for (Int_t itrack=0; itrack<GMULTI_4; itrack++) {
-        if (itrack==1 || itrack==2) {
-          FillGlobalEvent_L1L2(globalevent, GMULTI_4, MODEINDEX_G4_011, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                               trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack],
-                               trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                               trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+      for (Int_t itrack=0; itrack<GMULTI_4; itrack++)
+      {
+        if (itrack==1 || itrack==2)
+        {
+          FillGlobalEvent_L1L2(globalevent, GMULTI_4, MODEINDEX_G4_011, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                               trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                               trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                               trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                                trackevent->fL2FTime[ssdindex][itrack]);
         }
       }
@@ -4864,11 +5216,18 @@ void L1L2_TrackDecoded::L1L2_g4_011_TrackDecoded(Int_t ssdindex, const char* mod
              IsInsideABananaCut(BananaCut[ssdindex],fMCut[0],g4_EL2F_Sum03,trackevent->fL1SEMeV_Corrected[ssdindex][0]))
     {
       g4_ChargeCenter = GetChargeCenter(trackevent->fL2FNumStrip[ssdindex][0],trackevent->fL2FNumStrip[ssdindex][3],trackevent->fL2FEMeV[ssdindex][0],trackevent->fL2FEMeV[ssdindex][3]);
-      FillGlobalEvent_L1L2(globalevent, GMULTI_4, MODEINDEX_G4_011, ssdindex, fSSDgMulti[ssdindex], fMCut[0].Cut_Z, fMCut[0].Cut_A,
-                           trackevent->fL1SNumStrip[ssdindex][0], trackevent->fL1SEMeV[ssdindex][0], trackevent->fL1SEMeV_Corrected[ssdindex][0],
-                           g4_ChargeCenter,                       g4_EL2F_Sum03,
-                           trackevent->fL2BNumStrip[ssdindex][0], trackevent->fL2BEMeV[ssdindex][0],
-                           trackevent->fL2FTime[ssdindex][0]);
+      //
+      for (Int_t itrack=0; itrack<GMULTI_4; itrack++)
+      {
+        if (itrack==0)
+        {
+          FillGlobalEvent_L1L2(globalevent, GMULTI_4, MODEINDEX_G4_011, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                               trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                               g4_ChargeCenter,                            g4_EL2F_Sum03,                          g4_EL2F_Ch_Sum03,
+                               trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
+                               trackevent->fL2FTime[ssdindex][itrack]);
+        }
+      }
     }
     // 考虑 L2F sharing : 0)3) sharing, 且第3)条候选径迹为有效径迹
     else if ((TMath::Abs(trackevent->fL2FNumStrip[ssdindex][0]-trackevent->fL2FNumStrip[ssdindex][3])==1) &&
@@ -4876,11 +5235,18 @@ void L1L2_TrackDecoded::L1L2_g4_011_TrackDecoded(Int_t ssdindex, const char* mod
              IsInsideABananaCut(BananaCut[ssdindex],fMCut[3],g4_EL2F_Sum03,trackevent->fL1SEMeV_Corrected[ssdindex][3]))
     {
       g4_ChargeCenter = GetChargeCenter(trackevent->fL2FNumStrip[ssdindex][0],trackevent->fL2FNumStrip[ssdindex][3],trackevent->fL2FEMeV[ssdindex][0],trackevent->fL2FEMeV[ssdindex][3]);
-      FillGlobalEvent_L1L2(globalevent, GMULTI_4, MODEINDEX_G4_011, ssdindex, fSSDgMulti[ssdindex], fMCut[3].Cut_Z, fMCut[3].Cut_A,
-                           trackevent->fL1SNumStrip[ssdindex][3], trackevent->fL1SEMeV[ssdindex][3], trackevent->fL1SEMeV_Corrected[ssdindex][3],
-                           g4_ChargeCenter,                       g4_EL2F_Sum03,
-                           trackevent->fL2BNumStrip[ssdindex][3], trackevent->fL2BEMeV[ssdindex][3],
-                           trackevent->fL2FTime[ssdindex][3]);
+      //
+      for (Int_t itrack=0; itrack<GMULTI_4; itrack++)
+      {
+        if (itrack==3)
+        {
+          FillGlobalEvent_L1L2(globalevent, GMULTI_4, MODEINDEX_G4_011, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                               trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                               g4_ChargeCenter,                            g4_EL2F_Sum03,                          g4_EL2F_Ch_Sum03,
+                               trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
+                               trackevent->fL2FTime[ssdindex][itrack]);
+        }
+      }
     }
     // 考虑 L1S sharing：0）3） sharing, 且第0)条候选径迹为有效径迹
     else if ((TMath::Abs(trackevent->fL1SNumStrip[ssdindex][0]-trackevent->fL1SNumStrip[ssdindex][3])==1) &&
@@ -4888,11 +5254,18 @@ void L1L2_TrackDecoded::L1L2_g4_011_TrackDecoded(Int_t ssdindex, const char* mod
              IsInsideABananaCut(BananaCut[ssdindex],fMCut[0],trackevent->fL2FEMeV[ssdindex][0],g4_EL1S_Sum03))
     {
       g4_ChargeCenter = GetChargeCenter(trackevent->fL1SNumStrip[ssdindex][0],trackevent->fL1SNumStrip[ssdindex][3],trackevent->fL1SEMeV[ssdindex][0],trackevent->fL1SEMeV[ssdindex][3]);
-      FillGlobalEvent_L1L2(globalevent, GMULTI_4, MODEINDEX_G4_011, ssdindex, fSSDgMulti[ssdindex], fMCut[0].Cut_Z, fMCut[0].Cut_A,
-                           g4_ChargeCenter,                       g4_EL1S_Sum03, g4_EL1S_Sum03_Corrected,
-                           trackevent->fL2FNumStrip[ssdindex][0], trackevent->fL2FEMeV[ssdindex][0],
-                           trackevent->fL2BNumStrip[ssdindex][0], trackevent->fL2BEMeV[ssdindex][0],
-                           trackevent->fL2FTime[ssdindex][0]);
+      //
+      for (Int_t itrack=0; itrack<GMULTI_4; itrack++)
+      {
+        if (itrack==0)
+        {
+          FillGlobalEvent_L1L2(globalevent, GMULTI_4, MODEINDEX_G4_011, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                               g4_ChargeCenter,                            g4_EL1S_Sum03, g4_EL1S_Sum03_Corrected, g4_EL1S_Ch_Sum03,
+                               trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                               trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
+                               trackevent->fL2FTime[ssdindex][itrack]);
+        }
+      }
     }
     // 考虑 L1S sharing：0）3） sharing, 且第3)条候选径迹为有效径迹
     else if ((TMath::Abs(trackevent->fL1SNumStrip[ssdindex][0]-trackevent->fL1SNumStrip[ssdindex][3])==1) &&
@@ -4900,23 +5273,31 @@ void L1L2_TrackDecoded::L1L2_g4_011_TrackDecoded(Int_t ssdindex, const char* mod
              IsInsideABananaCut(BananaCut[ssdindex],fMCut[3],trackevent->fL2FEMeV[ssdindex][3],g4_EL1S_Sum03))
     {
       g4_ChargeCenter = GetChargeCenter(trackevent->fL1SNumStrip[ssdindex][0],trackevent->fL1SNumStrip[ssdindex][3],trackevent->fL1SEMeV[ssdindex][0],trackevent->fL1SEMeV[ssdindex][3]);
-      FillGlobalEvent_L1L2(globalevent, GMULTI_4, MODEINDEX_G4_011, ssdindex, fSSDgMulti[ssdindex], fMCut[3].Cut_Z, fMCut[3].Cut_A,
-                           g4_ChargeCenter,                       g4_EL1S_Sum03, g4_EL1S_Sum03_Corrected,
-                           trackevent->fL2FNumStrip[ssdindex][3], trackevent->fL2FEMeV[ssdindex][3],
-                           trackevent->fL2BNumStrip[ssdindex][3], trackevent->fL2BEMeV[ssdindex][3],
-                           trackevent->fL2FTime[ssdindex][3]);
+      //
+      for (Int_t itrack=0; itrack<GMULTI_4; itrack++)
+      {
+        if (itrack==3)
+        {
+          FillGlobalEvent_L1L2(globalevent, GMULTI_4, MODEINDEX_G4_011, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                               g4_ChargeCenter,                            g4_EL1S_Sum03, g4_EL1S_Sum03_Corrected, g4_EL1S_Ch_Sum03,
+                               trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                               trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
+                               trackevent->fL2FTime[ssdindex][itrack]);
+        }
+      }
     }
     // 直接判选
     else
     {
-      for (Int_t itrack=0; itrack<GMULTI_4; itrack++) {
+      for (Int_t itrack=0; itrack<GMULTI_4; itrack++)
+      {
         if (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]) &&
             IsInsideABananaCut(BananaCut[ssdindex],fMCut[itrack],trackevent->fL2FEMeV[ssdindex][itrack],trackevent->fL1SEMeV_Corrected[ssdindex][itrack]))
         {
-          FillGlobalEvent_L1L2(globalevent, GMULTI_4, MODEINDEX_G4_011, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                               trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack],
-                               trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                               trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+          FillGlobalEvent_L1L2(globalevent, GMULTI_4, MODEINDEX_G4_011, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                               trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                               trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                               trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                                trackevent->fL2FTime[ssdindex][itrack]);
           break;
         }
@@ -4926,12 +5307,12 @@ void L1L2_TrackDecoded::L1L2_g4_011_TrackDecoded(Int_t ssdindex, const char* mod
 }
 
 //______________________________________________________________________________
-void L1L2_TrackDecoded::L1L2_g4_101_TrackDecoded(Int_t ssdindex, const char* mode, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
+void L1L2_TrackDecoded::L1L2_g4_101_TrackDecoded(Int_t ssdindex, const char* mode, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
 {
   // 关闭当前通道
   if (switchsetting == kFALSE) return;
-
-  if (((trackevent->fCsINum[ssdindex].size()==0)&&(trackevent->fL2BNumStrip[ssdindex].size()==GMULTI_4)) && (strcmp(mode,MODE_G4_101)==0))
+  //
+  if (strcmp(mode,MODE_G4_101)==0)
   {
     // g4-101 模式:
     //  0) 000
@@ -4940,18 +5321,23 @@ void L1L2_TrackDecoded::L1L2_g4_101_TrackDecoded(Int_t ssdindex, const char* mod
     //  3) 101
     g4_EL2B_Sum03 = trackevent->fL2BEMeV[ssdindex][0] + trackevent->fL2BEMeV[ssdindex][3];
     g4_EL2B_Sum12 = trackevent->fL2BEMeV[ssdindex][1] + trackevent->fL2BEMeV[ssdindex][2];
+
+    g4_EL2B_Ch_Sum03 = trackevent->fL2BECh[ssdindex][0] + trackevent->fL2BECh[ssdindex][3];
+    g4_EL2B_Ch_Sum12 = trackevent->fL2BECh[ssdindex][1] + trackevent->fL2BECh[ssdindex][2];
     //
     // 考虑 L2F 双击: 0)3) 双击
     if (IsEneConstraint_L2B_L2F(ssdindex,g4_EL2B_Sum03,trackevent->fL2FEMeV[ssdindex][0]) &&
 				IsInsideABananaCut(BananaCut[ssdindex],fMCut[0],trackevent->fL2BEMeV[ssdindex][0]*EL2B_TO_EL2F_SCALE[ssdindex],trackevent->fL1SEMeV_Corrected[ssdindex][0]) &&
         IsInsideABananaCut(BananaCut[ssdindex],fMCut[3],trackevent->fL2BEMeV[ssdindex][3]*EL2B_TO_EL2F_SCALE[ssdindex],trackevent->fL1SEMeV_Corrected[ssdindex][3]))
     {
-      for (Int_t itrack=0; itrack<GMULTI_4; itrack++) {
-        if (itrack==0 || itrack==3) {
-          FillGlobalEvent_L1L2(globalevent, GMULTI_4, MODEINDEX_G4_101, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                               trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack],
-                               trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack]*EL2B_TO_EL2F_SCALE[ssdindex],
-                               trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+      for (Int_t itrack=0; itrack<GMULTI_4; itrack++)
+      {
+        if (itrack==0 || itrack==3)
+        {
+          FillGlobalEvent_L1L2(globalevent, GMULTI_4, MODEINDEX_G4_101, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                               trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                               trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack]*EL2B_TO_EL2F_SCALE[ssdindex], trackevent->fL2FECh[ssdindex][itrack],
+                               trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                                trackevent->fL2FTime[ssdindex][itrack]);
         }
       }
@@ -4961,12 +5347,14 @@ void L1L2_TrackDecoded::L1L2_g4_101_TrackDecoded(Int_t ssdindex, const char* mod
 			     	 IsInsideABananaCut(BananaCut[ssdindex],fMCut[1],trackevent->fL2BEMeV[ssdindex][1]*EL2B_TO_EL2F_SCALE[ssdindex],trackevent->fL1SEMeV_Corrected[ssdindex][1]) &&
              IsInsideABananaCut(BananaCut[ssdindex],fMCut[2],trackevent->fL2BEMeV[ssdindex][2]*EL2B_TO_EL2F_SCALE[ssdindex],trackevent->fL1SEMeV_Corrected[ssdindex][2]))
     {
-      for (Int_t itrack=0; itrack<GMULTI_4; itrack++) {
-        if (itrack==1 || itrack==2) {
-          FillGlobalEvent_L1L2(globalevent, GMULTI_4, MODEINDEX_G4_101, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                               trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack],
-                               trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack]*EL2B_TO_EL2F_SCALE[ssdindex],
-                               trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+      for (Int_t itrack=0; itrack<GMULTI_4; itrack++)
+      {
+        if (itrack==1 || itrack==2)
+        {
+          FillGlobalEvent_L1L2(globalevent, GMULTI_4, MODEINDEX_G4_101, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                               trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                               trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack]*EL2B_TO_EL2F_SCALE[ssdindex], trackevent->fL2FECh[ssdindex][itrack],
+                               trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                                trackevent->fL2FTime[ssdindex][itrack]);
         }
       }
@@ -4977,11 +5365,18 @@ void L1L2_TrackDecoded::L1L2_g4_101_TrackDecoded(Int_t ssdindex, const char* mod
              IsInsideABananaCut(BananaCut[ssdindex],fMCut[0],trackevent->fL2FEMeV[ssdindex][0],trackevent->fL1SEMeV_Corrected[ssdindex][0]))
     {
       g4_ChargeCenter = GetChargeCenter(trackevent->fL2BNumStrip[ssdindex][0],trackevent->fL2BNumStrip[ssdindex][3],trackevent->fL2BEMeV[ssdindex][0],trackevent->fL2BEMeV[ssdindex][3]);
-      FillGlobalEvent_L1L2(globalevent, GMULTI_4, MODEINDEX_G4_101, ssdindex, fSSDgMulti[ssdindex], fMCut[0].Cut_Z, fMCut[0].Cut_A,
-                           trackevent->fL1SNumStrip[ssdindex][0], trackevent->fL1SEMeV[ssdindex][0], trackevent->fL1SEMeV_Corrected[ssdindex][0],
-                           trackevent->fL2FNumStrip[ssdindex][0], trackevent->fL2FEMeV[ssdindex][0],
-                           g4_ChargeCenter,                       g4_EL2B_Sum03,
-                           trackevent->fL2FTime[ssdindex][0]);
+      //
+      for (Int_t itrack=0; itrack<GMULTI_4; itrack++)
+      {
+        if (itrack==0)
+        {
+          FillGlobalEvent_L1L2(globalevent, GMULTI_4, MODEINDEX_G4_101, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                               trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                               trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                               g4_ChargeCenter,                            g4_EL2B_Sum03,                          g4_EL2B_Ch_Sum03,
+                               trackevent->fL2FTime[ssdindex][itrack]);
+        }
+      }
     }
     // 考虑 L2B sharing : 0)3) sharing,且第3)条候选径迹为有效径迹
     else if ((TMath::Abs(trackevent->fL2BNumStrip[ssdindex][0]-trackevent->fL2BNumStrip[ssdindex][3])==1) &&
@@ -4989,11 +5384,18 @@ void L1L2_TrackDecoded::L1L2_g4_101_TrackDecoded(Int_t ssdindex, const char* mod
              IsInsideABananaCut(BananaCut[ssdindex],fMCut[3],trackevent->fL2FEMeV[ssdindex][3],trackevent->fL1SEMeV_Corrected[ssdindex][3]))
     {
       g4_ChargeCenter = GetChargeCenter(trackevent->fL2BNumStrip[ssdindex][0],trackevent->fL2BNumStrip[ssdindex][3],trackevent->fL2BEMeV[ssdindex][0],trackevent->fL2BEMeV[ssdindex][3]);
-      FillGlobalEvent_L1L2(globalevent, GMULTI_4, MODEINDEX_G4_101, ssdindex, fSSDgMulti[ssdindex], fMCut[3].Cut_Z, fMCut[3].Cut_A,
-                           trackevent->fL1SNumStrip[ssdindex][3], trackevent->fL1SEMeV[ssdindex][3], trackevent->fL1SEMeV_Corrected[ssdindex][3],
-                           trackevent->fL2FNumStrip[ssdindex][3], trackevent->fL2FEMeV[ssdindex][3],
-                           g4_ChargeCenter,                       g4_EL2B_Sum03,
-                           trackevent->fL2FTime[ssdindex][3]);
+      //
+      for (Int_t itrack=0; itrack<GMULTI_4; itrack++)
+      {
+        if (itrack==3)
+        {
+          FillGlobalEvent_L1L2(globalevent, GMULTI_4, MODEINDEX_G4_101, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                               trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                               trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                               g4_ChargeCenter,                            g4_EL2B_Sum03,                          g4_EL2B_Ch_Sum03,
+                               trackevent->fL2FTime[ssdindex][itrack]);
+        }
+      }
     }
     // 考虑 L1S sharing: 0)3) sharing, 且第0)条候选径迹为有效径迹
     else if ((TMath::Abs(trackevent->fL1SNumStrip[ssdindex][0]-trackevent->fL1SNumStrip[ssdindex][3])==1) &&
@@ -5001,11 +5403,18 @@ void L1L2_TrackDecoded::L1L2_g4_101_TrackDecoded(Int_t ssdindex, const char* mod
              IsInsideABananaCut(BananaCut[ssdindex],fMCut[0],trackevent->fL2FEMeV[ssdindex][0],g4_EL1S_Sum03))
     {
       g4_ChargeCenter = GetChargeCenter(trackevent->fL1SNumStrip[ssdindex][0],trackevent->fL1SNumStrip[ssdindex][3],trackevent->fL1SEMeV[ssdindex][0],trackevent->fL1SEMeV[ssdindex][3]);
-      FillGlobalEvent_L1L2(globalevent, GMULTI_4, MODEINDEX_G4_101, ssdindex, fSSDgMulti[ssdindex], fMCut[0].Cut_Z, fMCut[0].Cut_A,
-                           g4_ChargeCenter,                            g4_EL1S_Sum03, g4_EL1S_Sum03_Corrected,
-                           trackevent->fL2FNumStrip[ssdindex][0], trackevent->fL2FEMeV[ssdindex][0],
-                           trackevent->fL2BNumStrip[ssdindex][0], trackevent->fL2BEMeV[ssdindex][0],
-                           trackevent->fL2FTime[ssdindex][0]);
+      //
+      for (Int_t itrack=0; itrack<GMULTI_4; itrack++)
+      {
+        if (itrack==0)
+        {
+          FillGlobalEvent_L1L2(globalevent, GMULTI_4, MODEINDEX_G4_101, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                               g4_ChargeCenter,                            g4_EL1S_Sum03, g4_EL1S_Sum03_Corrected, g4_EL1S_Ch_Sum03,
+                               trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                               trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
+                               trackevent->fL2FTime[ssdindex][itrack]);
+        }
+      }
     }
     // 考虑 L1S sharing: 0)3) sharing, 且第3)条候选径迹为有效径迹
     else if ((TMath::Abs(trackevent->fL1SNumStrip[ssdindex][0]-trackevent->fL1SNumStrip[ssdindex][3])==1) &&
@@ -5013,23 +5422,31 @@ void L1L2_TrackDecoded::L1L2_g4_101_TrackDecoded(Int_t ssdindex, const char* mod
              IsInsideABananaCut(BananaCut[ssdindex],fMCut[3],trackevent->fL2FEMeV[ssdindex][3],g4_EL1S_Sum03))
     {
       g4_ChargeCenter = GetChargeCenter(trackevent->fL1SNumStrip[ssdindex][0],trackevent->fL1SNumStrip[ssdindex][3],trackevent->fL1SEMeV[ssdindex][0],trackevent->fL1SEMeV[ssdindex][3]);
-      FillGlobalEvent_L1L2(globalevent, GMULTI_4, MODEINDEX_G4_101, ssdindex, fSSDgMulti[ssdindex], fMCut[3].Cut_Z, fMCut[3].Cut_A,
-                           g4_ChargeCenter,                       g4_EL1S_Sum03, g4_EL1S_Sum03_Corrected,
-                           trackevent->fL2FNumStrip[ssdindex][3], trackevent->fL2FEMeV[ssdindex][3],
-                           trackevent->fL2BNumStrip[ssdindex][3], trackevent->fL2BEMeV[ssdindex][3],
-                           trackevent->fL2FTime[ssdindex][3]);
+      //
+      for (Int_t itrack=0; itrack<GMULTI_4; itrack++)
+      {
+        if (itrack==3)
+        {
+          FillGlobalEvent_L1L2(globalevent, GMULTI_4, MODEINDEX_G4_101, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                               g4_ChargeCenter,                            g4_EL1S_Sum03, g4_EL1S_Sum03_Corrected, g4_EL1S_Ch_Sum03,
+                               trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                               trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
+                               trackevent->fL2FTime[ssdindex][itrack]);
+        }
+      }
     }
     // 直接判选
     else
     {
-      for (Int_t itrack=0; itrack<GMULTI_4; itrack++) {
+      for (Int_t itrack=0; itrack<GMULTI_4; itrack++)
+      {
         if (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]) &&
             IsInsideABananaCut(BananaCut[ssdindex],fMCut[itrack],trackevent->fL2FEMeV[ssdindex][itrack],trackevent->fL1SEMeV_Corrected[ssdindex][itrack]))
         {
-          FillGlobalEvent_L1L2(globalevent, GMULTI_4, MODEINDEX_G4_101, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                               trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack],
-                               trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                               trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+          FillGlobalEvent_L1L2(globalevent, GMULTI_4, MODEINDEX_G4_101, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                               trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                               trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                               trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                                trackevent->fL2FTime[ssdindex][itrack]);
           break;
         }
@@ -5039,12 +5456,12 @@ void L1L2_TrackDecoded::L1L2_g4_101_TrackDecoded(Int_t ssdindex, const char* mod
 }
 
 //______________________________________________________________________________
-void L1L2_TrackDecoded::L1L2_g4_110_TrackDecoded(Int_t ssdindex, const char* mode, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
+void L1L2_TrackDecoded::L1L2_g4_110_TrackDecoded(Int_t ssdindex, const char* mode, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
 {
   // 关闭当前通道
   if (switchsetting == kFALSE) return;
-
-  if (((trackevent->fCsINum[ssdindex].size()==0)&&(trackevent->fL2BNumStrip[ssdindex].size()==GMULTI_4)) && (strcmp(mode,MODE_G4_110)==0))
+  //
+  if (strcmp(mode,MODE_G4_110)==0)
   {
     // g4-110 模式:
     //  0) 000
@@ -5053,6 +5470,10 @@ void L1L2_TrackDecoded::L1L2_g4_110_TrackDecoded(Int_t ssdindex, const char* mod
     //  3) 110
     g4_EL2F_Sum03 = trackevent->fL2FEMeV[ssdindex][0] + trackevent->fL2FEMeV[ssdindex][3];
     g4_EL2B_Sum03 = trackevent->fL2BEMeV[ssdindex][0] + trackevent->fL2BEMeV[ssdindex][3];
+
+    g4_EL2F_Ch_Sum03 = trackevent->fL2FECh[ssdindex][0] + trackevent->fL2FECh[ssdindex][3];
+    g4_EL2B_Ch_Sum03 = trackevent->fL2BECh[ssdindex][0] + trackevent->fL2BECh[ssdindex][3];
+
     //
     // 考虑 L2B sharing: 0)3) sharing, 且第0)条候选径迹为有效径迹
     if ((TMath::Abs(trackevent->fL2BNumStrip[ssdindex][0]-trackevent->fL2BNumStrip[ssdindex][3])==1) &&
@@ -5060,11 +5481,18 @@ void L1L2_TrackDecoded::L1L2_g4_110_TrackDecoded(Int_t ssdindex, const char* mod
         IsInsideABananaCut(BananaCut[ssdindex],fMCut[0],trackevent->fL2FEMeV[ssdindex][0],trackevent->fL1SEMeV_Corrected[ssdindex][0]))
     {
       g4_ChargeCenter = GetChargeCenter(trackevent->fL2BNumStrip[ssdindex][0],trackevent->fL2BNumStrip[ssdindex][3],trackevent->fL2BEMeV[ssdindex][0],trackevent->fL2BEMeV[ssdindex][3]);
-      FillGlobalEvent_L1L2(globalevent, GMULTI_4, MODEINDEX_G4_110, ssdindex, fSSDgMulti[ssdindex], fMCut[0].Cut_Z, fMCut[0].Cut_A,
-                           trackevent->fL1SNumStrip[ssdindex][0], trackevent->fL1SEMeV[ssdindex][0], trackevent->fL1SEMeV_Corrected[ssdindex][0],
-                           trackevent->fL2FNumStrip[ssdindex][0], trackevent->fL2FEMeV[ssdindex][0],
-                           g4_ChargeCenter,                       g4_EL2B_Sum03,
-                           trackevent->fL2FTime[ssdindex][0]);
+      //
+      for (Int_t itrack=0; itrack<GMULTI_4; itrack++)
+      {
+        if (itrack==0)
+        {
+          FillGlobalEvent_L1L2(globalevent, GMULTI_4, MODEINDEX_G4_110, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                               trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                               trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                               g4_ChargeCenter,                            g4_EL2B_Sum03,                          g4_EL2B_Ch_Sum03,
+                               trackevent->fL2FTime[ssdindex][itrack]);
+        }
+      }
     }
     // 考虑 L2B sharing: 0)3) sharing, 且第3)条候选径迹为有效径迹
     else if ((TMath::Abs(trackevent->fL2BNumStrip[ssdindex][0]-trackevent->fL2BNumStrip[ssdindex][3])==1) &&
@@ -5072,11 +5500,18 @@ void L1L2_TrackDecoded::L1L2_g4_110_TrackDecoded(Int_t ssdindex, const char* mod
              IsInsideABananaCut(BananaCut[ssdindex],fMCut[3],trackevent->fL2FEMeV[ssdindex][3],trackevent->fL1SEMeV_Corrected[ssdindex][3]))
     {
       g4_ChargeCenter = GetChargeCenter(trackevent->fL2BNumStrip[ssdindex][0],trackevent->fL2BNumStrip[ssdindex][3],trackevent->fL2BEMeV[ssdindex][0],trackevent->fL2BEMeV[ssdindex][3]);
-      FillGlobalEvent_L1L2(globalevent, GMULTI_4, MODEINDEX_G4_110, ssdindex, fSSDgMulti[ssdindex], fMCut[3].Cut_Z, fMCut[3].Cut_A,
-                           trackevent->fL1SNumStrip[ssdindex][3], trackevent->fL1SEMeV[ssdindex][3], trackevent->fL1SEMeV_Corrected[ssdindex][3],
-                           trackevent->fL2FNumStrip[ssdindex][3], trackevent->fL2FEMeV[ssdindex][3],
-                           g4_ChargeCenter,                       g4_EL2B_Sum03,
-                           trackevent->fL2FTime[ssdindex][3]);
+      //
+      for (Int_t itrack=0; itrack<GMULTI_4; itrack++)
+      {
+        if (itrack==3)
+        {
+          FillGlobalEvent_L1L2(globalevent, GMULTI_4, MODEINDEX_G4_110, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                               trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                               trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                               g4_ChargeCenter,                            g4_EL2B_Sum03,                          g4_EL2B_Ch_Sum03,
+                               trackevent->fL2FTime[ssdindex][itrack]);
+        }
+      }
     }
     // 考虑 L2F sharing: 0)3) sharing, 且第0)条候选径迹为有效径迹
     else if ((TMath::Abs(trackevent->fL2FNumStrip[ssdindex][0]-trackevent->fL2FNumStrip[ssdindex][3])==1) &&
@@ -5084,11 +5519,18 @@ void L1L2_TrackDecoded::L1L2_g4_110_TrackDecoded(Int_t ssdindex, const char* mod
              IsInsideABananaCut(BananaCut[ssdindex],fMCut[0],g4_EL2F_Sum03,trackevent->fL1SEMeV_Corrected[ssdindex][0]))
     {
       g4_ChargeCenter = GetChargeCenter(trackevent->fL2FNumStrip[ssdindex][0],trackevent->fL2FNumStrip[ssdindex][3],trackevent->fL2FEMeV[ssdindex][0],trackevent->fL2FEMeV[ssdindex][3]);
-      FillGlobalEvent_L1L2(globalevent, GMULTI_4, MODEINDEX_G4_110, ssdindex, fSSDgMulti[ssdindex], fMCut[0].Cut_Z, fMCut[0].Cut_A,
-                           trackevent->fL1SNumStrip[ssdindex][0], trackevent->fL1SEMeV[ssdindex][0], trackevent->fL1SEMeV_Corrected[ssdindex][0],
-                           g4_ChargeCenter,                       g4_EL2F_Sum03,
-                           trackevent->fL2BNumStrip[ssdindex][0], trackevent->fL2BEMeV[ssdindex][0],
-                           trackevent->fL2FTime[ssdindex][0]);
+      //
+      for (Int_t itrack=0; itrack<GMULTI_4; itrack++)
+      {
+        if (itrack==0)
+        {
+          FillGlobalEvent_L1L2(globalevent, GMULTI_4, MODEINDEX_G4_110, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                               trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                               g4_ChargeCenter,                            g4_EL2F_Sum03,                          g4_EL2F_Ch_Sum03,
+                               trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
+                               trackevent->fL2FTime[ssdindex][itrack]);
+        }
+      }
     }
     // 考虑 L2F sharing: 0)3) sharing, 且第3)条候选径迹为有效径迹
     else if ((TMath::Abs(trackevent->fL2FNumStrip[ssdindex][0]-trackevent->fL2FNumStrip[ssdindex][3])==1) &&
@@ -5096,11 +5538,18 @@ void L1L2_TrackDecoded::L1L2_g4_110_TrackDecoded(Int_t ssdindex, const char* mod
              IsInsideABananaCut(BananaCut[ssdindex],fMCut[3],g4_EL2F_Sum03,trackevent->fL1SEMeV_Corrected[ssdindex][3]))
     {
       g4_ChargeCenter = GetChargeCenter(trackevent->fL2FNumStrip[ssdindex][0],trackevent->fL2FNumStrip[ssdindex][3],trackevent->fL2FEMeV[ssdindex][0],trackevent->fL2FEMeV[ssdindex][3]);
-      FillGlobalEvent_L1L2(globalevent, GMULTI_4, MODEINDEX_G4_110, ssdindex, fSSDgMulti[ssdindex], fMCut[3].Cut_Z, fMCut[3].Cut_A,
-                           trackevent->fL1SNumStrip[ssdindex][3], trackevent->fL1SEMeV[ssdindex][3], trackevent->fL1SEMeV_Corrected[ssdindex][3],
-                           g4_ChargeCenter,                       g4_EL2F_Sum03,
-                           trackevent->fL2BNumStrip[ssdindex][3], trackevent->fL2BEMeV[ssdindex][3],
-                           trackevent->fL2FTime[ssdindex][3]);
+      //
+      for (Int_t itrack=0; itrack<GMULTI_4; itrack++)
+      {
+        if (itrack==3)
+        {
+          FillGlobalEvent_L1L2(globalevent, GMULTI_4, MODEINDEX_G4_110, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                               trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                               g4_ChargeCenter,                            g4_EL2F_Sum03,                          g4_EL2F_Ch_Sum03,
+                               trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
+                               trackevent->fL2FTime[ssdindex][itrack]);
+        }
+      }
     }
     // 考虑 L2B, L2F 同时 sharing
     else if ((TMath::Abs(trackevent->fL2BNumStrip[ssdindex][0]-trackevent->fL2BNumStrip[ssdindex][3])==1)&&
@@ -5110,23 +5559,31 @@ void L1L2_TrackDecoded::L1L2_g4_110_TrackDecoded(Int_t ssdindex, const char* mod
     {
       g4_L2B_ChargeCenter = GetChargeCenter(trackevent->fL2BNumStrip[ssdindex][0],trackevent->fL2BNumStrip[ssdindex][3],trackevent->fL2BEMeV[ssdindex][0],trackevent->fL2BEMeV[ssdindex][3]);
       g4_L2F_ChargeCenter = GetChargeCenter(trackevent->fL2FNumStrip[ssdindex][0],trackevent->fL2FNumStrip[ssdindex][3],trackevent->fL2FEMeV[ssdindex][0],trackevent->fL2FEMeV[ssdindex][3]);
-      FillGlobalEvent_L1L2(globalevent, GMULTI_4, MODEINDEX_G4_110, ssdindex, fSSDgMulti[ssdindex], fMCut[0].Cut_Z, fMCut[0].Cut_A,
-                           trackevent->fL1SNumStrip[ssdindex][0],   trackevent->fL1SEMeV[ssdindex][0], trackevent->fL1SEMeV_Corrected[ssdindex][0],
-                           g4_L2F_ChargeCenter,                     g4_EL2F_Sum03,
-                           g4_L2B_ChargeCenter,                     g4_EL2B_Sum03,
-                           trackevent->fL2FTime[ssdindex][0]);
+      //
+      for (Int_t itrack=0; itrack<GMULTI_4; itrack++)
+      {
+        if (itrack==0)
+        {
+          FillGlobalEvent_L1L2(globalevent, GMULTI_4, MODEINDEX_G4_110, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                               trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                               g4_L2F_ChargeCenter,                        g4_EL2F_Sum03,                          g4_EL2F_Ch_Sum03,
+                               g4_L2B_ChargeCenter,                        g4_EL2B_Sum03,                          g4_EL2B_Ch_Sum03,
+                               trackevent->fL2FTime[ssdindex][itrack]);
+        }
+      }
     }
     // 直接判选
     else
     {
-      for (Int_t itrack=0; itrack<GMULTI_4; itrack++) {
+      for (Int_t itrack=0; itrack<GMULTI_4; itrack++)
+      {
         if (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]) &&
             IsInsideABananaCut(BananaCut[ssdindex],fMCut[itrack],trackevent->fL2FEMeV[ssdindex][itrack],trackevent->fL1SEMeV_Corrected[ssdindex][itrack]))
         {
-          FillGlobalEvent_L1L2(globalevent, GMULTI_4, MODEINDEX_G4_110, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                               trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack],
-                               trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                               trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+          FillGlobalEvent_L1L2(globalevent, GMULTI_4, MODEINDEX_G4_110, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                               trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                               trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                               trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                                trackevent->fL2FTime[ssdindex][itrack]);
           break;
         }
@@ -5136,12 +5593,12 @@ void L1L2_TrackDecoded::L1L2_g4_110_TrackDecoded(Int_t ssdindex, const char* mod
 }
 
 //______________________________________________________________________________
-void L1L2_TrackDecoded::L1L2_g4_111_TrackDecoded(Int_t ssdindex, const char* mode, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
+void L1L2_TrackDecoded::L1L2_g4_111_TrackDecoded(Int_t ssdindex, const char* mode, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
 {
   // 关闭当前通道
   if (switchsetting == kFALSE) return;
-
-  if (((trackevent->fCsINum[ssdindex].size()==0)&&(trackevent->fL2BNumStrip[ssdindex].size()==GMULTI_4)) && (strcmp(mode,MODE_G4_111)==0))
+  //
+  if (strcmp(mode,MODE_G4_111)==0)
   {
     // g4-111 模式:
     //  0) 000
@@ -5155,12 +5612,14 @@ void L1L2_TrackDecoded::L1L2_g4_111_TrackDecoded(Int_t ssdindex, const char* mod
         (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][3],trackevent->fL2FEMeV[ssdindex][3]) &&
          IsInsideABananaCut(BananaCut[ssdindex],fMCut[3],trackevent->fL2FEMeV[ssdindex][3],trackevent->fL1SEMeV_Corrected[ssdindex][3])))
     {
-      for (Int_t itrack=0; itrack<GMULTI_4; itrack++) {
-        if (itrack==0 || itrack==3) {
-          FillGlobalEvent_L1L2(globalevent, GMULTI_4, MODEINDEX_G4_111, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                               trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack],
-                               trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                               trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+      for (Int_t itrack=0; itrack<GMULTI_4; itrack++)
+      {
+        if (itrack==0 || itrack==3)
+        {
+          FillGlobalEvent_L1L2(globalevent, GMULTI_4, MODEINDEX_G4_111, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                               trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                               trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                               trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                                trackevent->fL2FTime[ssdindex][itrack]);
         }
       }
@@ -5171,12 +5630,14 @@ void L1L2_TrackDecoded::L1L2_g4_111_TrackDecoded(Int_t ssdindex, const char* mod
              (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][2],trackevent->fL2FEMeV[ssdindex][2]) &&
               IsInsideABananaCut(BananaCut[ssdindex],fMCut[2],trackevent->fL2FEMeV[ssdindex][2],trackevent->fL1SEMeV_Corrected[ssdindex][2])))
     {
-      for (Int_t itrack=0; itrack<GMULTI_4; itrack++) {
-        if (itrack==1 || itrack==2) {
-          FillGlobalEvent_L1L2(globalevent, GMULTI_4, MODEINDEX_G4_111, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                               trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack],
-                               trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                               trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+      for (Int_t itrack=0; itrack<GMULTI_4; itrack++)
+      {
+        if (itrack==1 || itrack==2)
+        {
+          FillGlobalEvent_L1L2(globalevent, GMULTI_4, MODEINDEX_G4_111, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                               trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                               trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                               trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                                trackevent->fL2FTime[ssdindex][itrack]);
         }
       }
@@ -5184,14 +5645,15 @@ void L1L2_TrackDecoded::L1L2_g4_111_TrackDecoded(Int_t ssdindex, const char* mod
     // 考虑有1条有效径迹: 直接判选
     else
     {
-      for (Int_t itrack=0; itrack<GMULTI_4; itrack++) {
+      for (Int_t itrack=0; itrack<GMULTI_4; itrack++)
+      {
         if (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]) &&
             IsInsideABananaCut(BananaCut[ssdindex],fMCut[itrack],trackevent->fL2FEMeV[ssdindex][itrack],trackevent->fL1SEMeV_Corrected[ssdindex][itrack]))
         {
-          FillGlobalEvent_L1L2(globalevent, GMULTI_4, MODEINDEX_G4_111, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                               trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack],
-                               trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                               trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+          FillGlobalEvent_L1L2(globalevent, GMULTI_4, MODEINDEX_G4_111, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                               trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                               trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                               trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                                trackevent->fL2FTime[ssdindex][itrack]);
           break;
         }
@@ -5204,12 +5666,12 @@ void L1L2_TrackDecoded::L1L2_g4_111_TrackDecoded(Int_t ssdindex, const char* mod
 //______________________________________________________________________________
 //            L1L2_g6_TrackDecoded
 //          ------------------------
-void L1L2_TrackDecoded::L1L2_g6_111_TrackDecoded(Int_t ssdindex, const char* mode, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
+void L1L2_TrackDecoded::L1L2_g6_111_TrackDecoded(Int_t ssdindex, const char* mode, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
 {
   // 关闭当前通道
   if (switchsetting == kFALSE) return;
-
-  if (((trackevent->fCsINum[ssdindex].size()==0)&&(trackevent->fL2BNumStrip[ssdindex].size()==GMULTI_6)) && (strcmp(mode,MODE_G6_111)==0))
+  //
+  if (strcmp(mode,MODE_G6_111)==0)
   {
     // g6-111 模式:
     //  0) 000            0) 000
@@ -5228,12 +5690,14 @@ void L1L2_TrackDecoded::L1L2_g6_111_TrackDecoded(Int_t ssdindex, const char* mod
           (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][5],trackevent->fL2FEMeV[ssdindex][5]) &&
            IsInsideABananaCut(BananaCut[ssdindex],fMCut[5],trackevent->fL2FEMeV[ssdindex][5],trackevent->fL1SEMeV_Corrected[ssdindex][5])))
       {
-        for (Int_t itrack=0; itrack<GMULTI_6; itrack++) {
-          if (itrack==0 || itrack==5) {
-            FillGlobalEvent_L1L2(globalevent, GMULTI_6, MODEINDEX_G6_111, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                                 trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack],
-                                 trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                                 trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+        for (Int_t itrack=0; itrack<GMULTI_6; itrack++)
+        {
+          if (itrack==0 || itrack==5)
+          {
+            FillGlobalEvent_L1L2(globalevent, GMULTI_6, MODEINDEX_G6_111, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                                 trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                                 trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                                 trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                                  trackevent->fL2FTime[ssdindex][itrack]);
           }
         }
@@ -5244,12 +5708,14 @@ void L1L2_TrackDecoded::L1L2_g6_111_TrackDecoded(Int_t ssdindex, const char* mod
                (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][3],trackevent->fL2FEMeV[ssdindex][3]) &&
                 IsInsideABananaCut(BananaCut[ssdindex],fMCut[3],trackevent->fL2FEMeV[ssdindex][3],trackevent->fL1SEMeV_Corrected[ssdindex][3])))
       {
-        for (Int_t itrack=0; itrack<GMULTI_6; itrack++) {
-          if (itrack==1 || itrack==3) {
-            FillGlobalEvent_L1L2(globalevent, GMULTI_6, MODEINDEX_G6_111, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                                 trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack],
-                                 trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                                 trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+        for (Int_t itrack=0; itrack<GMULTI_6; itrack++)
+        {
+          if (itrack==1 || itrack==3)
+          {
+            FillGlobalEvent_L1L2(globalevent, GMULTI_6, MODEINDEX_G6_111, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                                 trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                                 trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                                 trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                                  trackevent->fL2FTime[ssdindex][itrack]);
           }
         }
@@ -5257,14 +5723,15 @@ void L1L2_TrackDecoded::L1L2_g6_111_TrackDecoded(Int_t ssdindex, const char* mod
       // 直接判断
       else
       {
-        for (Int_t itrack=0; itrack<GMULTI_6; itrack++) {
+        for (Int_t itrack=0; itrack<GMULTI_6; itrack++)
+        {
           if (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]) &&
               IsInsideABananaCut(BananaCut[ssdindex],fMCut[itrack],trackevent->fL2FEMeV[ssdindex][itrack],trackevent->fL1SEMeV_Corrected[ssdindex][itrack]))
           {
-            FillGlobalEvent_L1L2(globalevent, GMULTI_6, MODEINDEX_G6_111, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                                 trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack],
-                                 trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                                 trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+            FillGlobalEvent_L1L2(globalevent, GMULTI_6, MODEINDEX_G6_111, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                                 trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                                 trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                                 trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                                  trackevent->fL2FTime[ssdindex][itrack]);
             break;
           }
@@ -5280,12 +5747,14 @@ void L1L2_TrackDecoded::L1L2_g6_111_TrackDecoded(Int_t ssdindex, const char* mod
           (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][5],trackevent->fL2FEMeV[ssdindex][5]) &&
            IsInsideABananaCut(BananaCut[ssdindex],fMCut[5],trackevent->fL2FEMeV[ssdindex][5],trackevent->fL1SEMeV_Corrected[ssdindex][5])))
       {
-        for (Int_t itrack=0; itrack<GMULTI_6; itrack++) {
-          if (itrack==0 || itrack==5) {
-            FillGlobalEvent_L1L2(globalevent, GMULTI_6, MODEINDEX_G6_111, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                                 trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack],
-                                 trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                                 trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+        for (Int_t itrack=0; itrack<GMULTI_6; itrack++)
+        {
+          if (itrack==0 || itrack==5)
+          {
+            FillGlobalEvent_L1L2(globalevent, GMULTI_6, MODEINDEX_G6_111, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                                 trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                                 trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                                 trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                                  trackevent->fL2FTime[ssdindex][itrack]);
           }
         }
@@ -5296,12 +5765,14 @@ void L1L2_TrackDecoded::L1L2_g6_111_TrackDecoded(Int_t ssdindex, const char* mod
                (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][4],trackevent->fL2FEMeV[ssdindex][4]) &&
                 IsInsideABananaCut(BananaCut[ssdindex],fMCut[4],trackevent->fL2FEMeV[ssdindex][4],trackevent->fL1SEMeV_Corrected[ssdindex][4])))
       {
-        for (Int_t itrack=0; itrack<GMULTI_6; itrack++) {
-          if (itrack==2 || itrack==4) {
-            FillGlobalEvent_L1L2(globalevent, GMULTI_6, MODEINDEX_G6_111, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                                 trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack],
-                                 trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                                 trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+        for (Int_t itrack=0; itrack<GMULTI_6; itrack++)
+        {
+          if (itrack==2 || itrack==4)
+          {
+            FillGlobalEvent_L1L2(globalevent, GMULTI_6, MODEINDEX_G6_111, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                                 trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                                 trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                                 trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                                  trackevent->fL2FTime[ssdindex][itrack]);
           }
         }
@@ -5309,14 +5780,15 @@ void L1L2_TrackDecoded::L1L2_g6_111_TrackDecoded(Int_t ssdindex, const char* mod
       // 直接判断
       else
       {
-        for (Int_t itrack=0; itrack<GMULTI_6; itrack++) {
+        for (Int_t itrack=0; itrack<GMULTI_6; itrack++)
+        {
           if (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]) &&
               IsInsideABananaCut(BananaCut[ssdindex],fMCut[itrack],trackevent->fL2FEMeV[ssdindex][itrack],trackevent->fL1SEMeV_Corrected[ssdindex][itrack]))
           {
-            FillGlobalEvent_L1L2(globalevent, GMULTI_6, MODEINDEX_G6_111, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                                 trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack],
-                                 trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                                 trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+            FillGlobalEvent_L1L2(globalevent, GMULTI_6, MODEINDEX_G6_111, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                                 trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                                 trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                                 trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                                  trackevent->fL2FTime[ssdindex][itrack]);
             break;
           }
@@ -5328,12 +5800,12 @@ void L1L2_TrackDecoded::L1L2_g6_111_TrackDecoded(Int_t ssdindex, const char* mod
 }
 
 //______________________________________________________________________________
-void L1L2_TrackDecoded::L1L2_g6_112_TrackDecoded(Int_t ssdindex, const char* mode, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
+void L1L2_TrackDecoded::L1L2_g6_112_TrackDecoded(Int_t ssdindex, const char* mode, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
 {
   // 关闭当前通道
   if (switchsetting == kFALSE) return;
-
-  if (((trackevent->fCsINum[ssdindex].size()==0)&&(trackevent->fL2BNumStrip[ssdindex].size()==GMULTI_6)) && (strcmp(mode,MODE_G6_112)==0))
+  //
+  if (strcmp(mode,MODE_G6_112)==0)
   {
     // g6-112 模式:
     //  0) 000            0) 000
@@ -5352,12 +5824,14 @@ void L1L2_TrackDecoded::L1L2_g6_112_TrackDecoded(Int_t ssdindex, const char* mod
           (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][4],trackevent->fL2FEMeV[ssdindex][4]) &&
            IsInsideABananaCut(BananaCut[ssdindex],fMCut[4],trackevent->fL2FEMeV[ssdindex][4],trackevent->fL1SEMeV_Corrected[ssdindex][4])))
       {
-        for (Int_t itrack=0; itrack<GMULTI_6; itrack++) {
-          if (itrack==0 || itrack==4) {
-            FillGlobalEvent_L1L2(globalevent, GMULTI_6, MODEINDEX_G6_112, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                                 trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack],
-                                 trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                                 trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+        for (Int_t itrack=0; itrack<GMULTI_6; itrack++)
+        {
+          if (itrack==0 || itrack==4)
+          {
+            FillGlobalEvent_L1L2(globalevent, GMULTI_6, MODEINDEX_G6_112, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                                 trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                                 trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                                 trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                                  trackevent->fL2FTime[ssdindex][itrack]);
           }
         }
@@ -5368,12 +5842,14 @@ void L1L2_TrackDecoded::L1L2_g6_112_TrackDecoded(Int_t ssdindex, const char* mod
                (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][5],trackevent->fL2FEMeV[ssdindex][5]) &&
                 IsInsideABananaCut(BananaCut[ssdindex],fMCut[5],trackevent->fL2FEMeV[ssdindex][5],trackevent->fL1SEMeV_Corrected[ssdindex][5])))
       {
-        for (Int_t itrack=0; itrack<GMULTI_6; itrack++) {
-          if (itrack==0 || itrack==5) {
-            FillGlobalEvent_L1L2(globalevent, GMULTI_6, MODEINDEX_G6_112, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                                 trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack],
-                                 trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                                 trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+        for (Int_t itrack=0; itrack<GMULTI_6; itrack++)
+        {
+          if (itrack==0 || itrack==5)
+          {
+            FillGlobalEvent_L1L2(globalevent, GMULTI_6, MODEINDEX_G6_112, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                                 trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                                 trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                                 trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                                  trackevent->fL2FTime[ssdindex][itrack]);
           }
         }
@@ -5384,12 +5860,14 @@ void L1L2_TrackDecoded::L1L2_g6_112_TrackDecoded(Int_t ssdindex, const char* mod
                (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][2],trackevent->fL2FEMeV[ssdindex][2]) &&
                 IsInsideABananaCut(BananaCut[ssdindex],fMCut[2],trackevent->fL2FEMeV[ssdindex][2],trackevent->fL1SEMeV_Corrected[ssdindex][2])))
       {
-        for (Int_t itrack=0; itrack<GMULTI_6; itrack++) {
-          if (itrack==1 || itrack==2) {
-            FillGlobalEvent_L1L2(globalevent, GMULTI_6, MODEINDEX_G6_112, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                                 trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack],
-                                 trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                                 trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+        for (Int_t itrack=0; itrack<GMULTI_6; itrack++)
+        {
+          if (itrack==1 || itrack==2)
+          {
+            FillGlobalEvent_L1L2(globalevent, GMULTI_6, MODEINDEX_G6_112, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                                 trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                                 trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                                 trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                                  trackevent->fL2FTime[ssdindex][itrack]);
           }
         }
@@ -5400,12 +5878,14 @@ void L1L2_TrackDecoded::L1L2_g6_112_TrackDecoded(Int_t ssdindex, const char* mod
                (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][3],trackevent->fL2FEMeV[ssdindex][3]) &&
                 IsInsideABananaCut(BananaCut[ssdindex],fMCut[3],trackevent->fL2FEMeV[ssdindex][3],trackevent->fL1SEMeV_Corrected[ssdindex][3])))
       {
-        for (Int_t itrack=0; itrack<GMULTI_6; itrack++) {
-          if (itrack==1 || itrack==3) {
-            FillGlobalEvent_L1L2(globalevent, GMULTI_6, MODEINDEX_G6_112, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                                 trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack],
-                                 trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                                 trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+        for (Int_t itrack=0; itrack<GMULTI_6; itrack++)
+        {
+          if (itrack==1 || itrack==3)
+          {
+            FillGlobalEvent_L1L2(globalevent, GMULTI_6, MODEINDEX_G6_112, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                                 trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                                 trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                                 trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                                  trackevent->fL2FTime[ssdindex][itrack]);
           }
         }
@@ -5413,14 +5893,15 @@ void L1L2_TrackDecoded::L1L2_g6_112_TrackDecoded(Int_t ssdindex, const char* mod
       // 直接判选
       else
       {
-        for (Int_t itrack=0; itrack<GMULTI_6; itrack++) {
+        for (Int_t itrack=0; itrack<GMULTI_6; itrack++)
+        {
           if (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]) &&
               IsInsideABananaCut(BananaCut[ssdindex],fMCut[itrack],trackevent->fL2FEMeV[ssdindex][itrack],trackevent->fL1SEMeV_Corrected[ssdindex][itrack]))
           {
-            FillGlobalEvent_L1L2(globalevent, GMULTI_6, MODEINDEX_G6_112, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                                 trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack],
-                                 trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                                 trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+            FillGlobalEvent_L1L2(globalevent, GMULTI_6, MODEINDEX_G6_112, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                                 trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                                 trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                                 trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                                  trackevent->fL2FTime[ssdindex][itrack]);
             break;
           }
@@ -5436,12 +5917,14 @@ void L1L2_TrackDecoded::L1L2_g6_112_TrackDecoded(Int_t ssdindex, const char* mod
           (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][5],trackevent->fL2FEMeV[ssdindex][5]) &&
            IsInsideABananaCut(BananaCut[ssdindex],fMCut[5],trackevent->fL2FEMeV[ssdindex][5],trackevent->fL1SEMeV_Corrected[ssdindex][5])))
       {
-        for (Int_t itrack=0; itrack<GMULTI_6; itrack++) {
-          if (itrack==0 || itrack==5) {
-            FillGlobalEvent_L1L2(globalevent, GMULTI_6, MODEINDEX_G6_112, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                                 trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack],
-                                 trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                                 trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+        for (Int_t itrack=0; itrack<GMULTI_6; itrack++)
+        {
+          if (itrack==0 || itrack==5)
+          {
+            FillGlobalEvent_L1L2(globalevent, GMULTI_6, MODEINDEX_G6_112, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                                 trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                                 trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                                 trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                                  trackevent->fL2FTime[ssdindex][itrack]);
           }
         }
@@ -5452,12 +5935,14 @@ void L1L2_TrackDecoded::L1L2_g6_112_TrackDecoded(Int_t ssdindex, const char* mod
                (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][5],trackevent->fL2FEMeV[ssdindex][5]) &&
                 IsInsideABananaCut(BananaCut[ssdindex],fMCut[5],trackevent->fL2FEMeV[ssdindex][5],trackevent->fL1SEMeV_Corrected[ssdindex][5])))
       {
-        for (Int_t itrack=0; itrack<GMULTI_6; itrack++) {
-          if (itrack==1 || itrack==5) {
-            FillGlobalEvent_L1L2(globalevent, GMULTI_6, MODEINDEX_G6_112, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                                 trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack],
-                                 trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                                 trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+        for (Int_t itrack=0; itrack<GMULTI_6; itrack++)
+        {
+          if (itrack==1 || itrack==5)
+          {
+            FillGlobalEvent_L1L2(globalevent, GMULTI_6, MODEINDEX_G6_112, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                                 trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                                 trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                                 trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                                  trackevent->fL2FTime[ssdindex][itrack]);
           }
         }
@@ -5468,12 +5953,14 @@ void L1L2_TrackDecoded::L1L2_g6_112_TrackDecoded(Int_t ssdindex, const char* mod
                (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][4],trackevent->fL2FEMeV[ssdindex][4]) &&
                 IsInsideABananaCut(BananaCut[ssdindex],fMCut[4],trackevent->fL2FEMeV[ssdindex][4],trackevent->fL1SEMeV_Corrected[ssdindex][4])))
       {
-        for (Int_t itrack=0; itrack<GMULTI_6; itrack++) {
-          if (itrack==2 || itrack==4) {
-            FillGlobalEvent_L1L2(globalevent, GMULTI_6, MODEINDEX_G6_112, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                                 trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack],
-                                 trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                                 trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+        for (Int_t itrack=0; itrack<GMULTI_6; itrack++)
+        {
+          if (itrack==2 || itrack==4)
+          {
+            FillGlobalEvent_L1L2(globalevent, GMULTI_6, MODEINDEX_G6_112, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                                 trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                                 trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                                 trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                                  trackevent->fL2FTime[ssdindex][itrack]);
           }
         }
@@ -5484,12 +5971,14 @@ void L1L2_TrackDecoded::L1L2_g6_112_TrackDecoded(Int_t ssdindex, const char* mod
                (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][4],trackevent->fL2FEMeV[ssdindex][4]) &&
                 IsInsideABananaCut(BananaCut[ssdindex],fMCut[4],trackevent->fL2FEMeV[ssdindex][4],trackevent->fL1SEMeV_Corrected[ssdindex][4])))
       {
-        for (Int_t itrack=0; itrack<GMULTI_6; itrack++) {
-          if (itrack==3 || itrack==4) {
-            FillGlobalEvent_L1L2(globalevent, GMULTI_6, MODEINDEX_G6_112, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                                 trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack],
-                                 trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                                 trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+        for (Int_t itrack=0; itrack<GMULTI_6; itrack++)
+        {
+          if (itrack==3 || itrack==4)
+          {
+            FillGlobalEvent_L1L2(globalevent, GMULTI_6, MODEINDEX_G6_112, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                                 trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                                 trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                                 trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                                  trackevent->fL2FTime[ssdindex][itrack]);
           }
         }
@@ -5497,14 +5986,15 @@ void L1L2_TrackDecoded::L1L2_g6_112_TrackDecoded(Int_t ssdindex, const char* mod
       // 直接判选
       else
       {
-        for (Int_t itrack=0; itrack<GMULTI_6; itrack++) {
+        for (Int_t itrack=0; itrack<GMULTI_6; itrack++)
+        {
           if (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]) &&
               IsInsideABananaCut(BananaCut[ssdindex],fMCut[itrack],trackevent->fL2FEMeV[ssdindex][itrack],trackevent->fL1SEMeV_Corrected[ssdindex][itrack]))
           {
-            FillGlobalEvent_L1L2(globalevent, GMULTI_6, MODEINDEX_G6_112, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                                 trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack],
-                                 trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                                 trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+            FillGlobalEvent_L1L2(globalevent, GMULTI_6, MODEINDEX_G6_112, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                                 trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                                 trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                                 trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                                  trackevent->fL2FTime[ssdindex][itrack]);
             break;
           }
@@ -5515,12 +6005,12 @@ void L1L2_TrackDecoded::L1L2_g6_112_TrackDecoded(Int_t ssdindex, const char* mod
 }
 
 //______________________________________________________________________________
-void L1L2_TrackDecoded::L1L2_g6_120_TrackDecoded(Int_t ssdindex, const char* mode, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
+void L1L2_TrackDecoded::L1L2_g6_120_TrackDecoded(Int_t ssdindex, const char* mode, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
 {
   // 关闭当前通道
   if (switchsetting == kFALSE) return;
-
-  if (((trackevent->fCsINum[ssdindex].size()==0)&&(trackevent->fL2BNumStrip[ssdindex].size()==GMULTI_6)) && (strcmp(mode,MODE_G6_120)==0))
+  //
+  if (strcmp(mode,MODE_G6_120)==0)
   {
     // g6-120 模式:
     //  0)  000
@@ -5535,6 +6025,12 @@ void L1L2_TrackDecoded::L1L2_g6_120_TrackDecoded(Int_t ssdindex, const char* mod
     g6_EL2B_Sum15 = trackevent->fL2BEMeV[ssdindex][1] + trackevent->fL2BEMeV[ssdindex][5];
     g6_EL2F_Sum04 = trackevent->fL2FEMeV[ssdindex][0] + trackevent->fL2FEMeV[ssdindex][4];
     g6_EL2F_Sum15 = trackevent->fL2FEMeV[ssdindex][1] + trackevent->fL2FEMeV[ssdindex][5];
+
+    g6_EL2B_Ch_Sum03 = trackevent->fL2BECh[ssdindex][0] + trackevent->fL2BECh[ssdindex][3];
+    g6_EL2B_Ch_Sum04 = trackevent->fL2BECh[ssdindex][0] + trackevent->fL2BECh[ssdindex][4];
+    g6_EL2B_Ch_Sum15 = trackevent->fL2BECh[ssdindex][1] + trackevent->fL2BECh[ssdindex][5];
+    g6_EL2F_Ch_Sum04 = trackevent->fL2FECh[ssdindex][0] + trackevent->fL2FECh[ssdindex][4];
+    g6_EL2F_Ch_Sum15 = trackevent->fL2FECh[ssdindex][1] + trackevent->fL2FECh[ssdindex][5];
     //
     // g6-120 仅考虑只有一条有效径迹的情况
     // L2B sharing: 0)3) sharing
@@ -5543,16 +6039,18 @@ void L1L2_TrackDecoded::L1L2_g6_120_TrackDecoded(Int_t ssdindex, const char* mod
          (IsEneConstraint_L2B_L2F(ssdindex,g6_EL2B_Sum03,trackevent->fL2FEMeV[ssdindex][1])) ||
          (IsEneConstraint_L2B_L2F(ssdindex,g6_EL2B_Sum03,trackevent->fL2FEMeV[ssdindex][2]))))
 		{
-      for (Int_t itrack=0; itrack<GMULTI_6; itrack++) {
-        if (itrack==0 || itrack==1 || itrack==2) {
+      for (Int_t itrack=0; itrack<GMULTI_6; itrack++)
+      {
+        if (itrack==0 || itrack==1 || itrack==2)
+        {
           if (IsEneConstraint_L2B_L2F(ssdindex,g6_EL2B_Sum03,trackevent->fL2FEMeV[ssdindex][itrack]) &&
               IsInsideABananaCut(BananaCut[ssdindex],fMCut[itrack],trackevent->fL2FEMeV[ssdindex][itrack],trackevent->fL1SEMeV_Corrected[ssdindex][itrack]))
           {
             g6_L2B_ChargeCenter = GetChargeCenter(trackevent->fL2BNumStrip[ssdindex][0],trackevent->fL2BNumStrip[ssdindex][3],trackevent->fL2BEMeV[ssdindex][0],trackevent->fL2BEMeV[ssdindex][3]);
-            FillGlobalEvent_L1L2(globalevent, GMULTI_6, MODEINDEX_G6_120, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                                 trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack],
-                                 trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                                 g6_L2B_ChargeCenter,                        g6_EL2B_Sum03,
+            FillGlobalEvent_L1L2(globalevent, GMULTI_6, MODEINDEX_G6_120, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                                 trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                                 trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                                 g6_L2B_ChargeCenter,                        g6_EL2B_Sum03,                          g6_EL2B_Ch_Sum03,
                                  trackevent->fL2FTime[ssdindex][itrack]);
             break;
           }
@@ -5565,11 +6063,18 @@ void L1L2_TrackDecoded::L1L2_g6_120_TrackDecoded(Int_t ssdindex, const char* mod
              IsInsideABananaCut(BananaCut[ssdindex],fMCut[0],g6_EL2F_Sum04,trackevent->fL1SEMeV_Corrected[ssdindex][0]))
     {
       g6_L2F_ChargeCenter = GetChargeCenter(trackevent->fL2FNumStrip[ssdindex][0],trackevent->fL2FNumStrip[ssdindex][4],trackevent->fL2FEMeV[ssdindex][0],trackevent->fL2FEMeV[ssdindex][4]);
-      FillGlobalEvent_L1L2(globalevent, GMULTI_6, MODEINDEX_G6_120, ssdindex, fSSDgMulti[ssdindex], fMCut[0].Cut_Z, fMCut[0].Cut_A,
-                           trackevent->fL1SNumStrip[ssdindex][0], trackevent->fL1SEMeV[ssdindex][0], trackevent->fL1SEMeV_Corrected[ssdindex][0],
-                           g6_L2F_ChargeCenter,                   g6_EL2F_Sum04,
-                           trackevent->fL2BNumStrip[ssdindex][0], trackevent->fL2BEMeV[ssdindex][0],
-                           trackevent->fL2FTime[ssdindex][0]);
+      //
+      for (Int_t itrack=0; itrack<GMULTI_6; itrack++)
+      {
+        if (itrack==0)
+        {
+          FillGlobalEvent_L1L2(globalevent, GMULTI_6, MODEINDEX_G6_120, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                               trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                               g6_L2F_ChargeCenter,                        g6_EL2F_Sum04,                          g6_EL2F_Ch_Sum04,
+                               trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
+                               trackevent->fL2FTime[ssdindex][itrack]);
+        }
+      }
     }
     // L2F sharing: 0)4) sharing, 4)是有效径迹
     else if ((TMath::Abs(trackevent->fL2FNumStrip[ssdindex][0]-trackevent->fL2FNumStrip[ssdindex][4])==1) &&
@@ -5577,11 +6082,18 @@ void L1L2_TrackDecoded::L1L2_g6_120_TrackDecoded(Int_t ssdindex, const char* mod
              IsInsideABananaCut(BananaCut[ssdindex],fMCut[4],g6_EL2F_Sum04,trackevent->fL1SEMeV_Corrected[ssdindex][4]))
     {
       g6_L2F_ChargeCenter = GetChargeCenter(trackevent->fL2FNumStrip[ssdindex][0],trackevent->fL2FNumStrip[ssdindex][4],trackevent->fL2FEMeV[ssdindex][0],trackevent->fL2FEMeV[ssdindex][4]);
-      FillGlobalEvent_L1L2(globalevent, GMULTI_6, MODEINDEX_G6_120, ssdindex, fSSDgMulti[ssdindex], fMCut[4].Cut_Z, fMCut[4].Cut_A,
-                           trackevent->fL1SNumStrip[ssdindex][4], trackevent->fL1SEMeV[ssdindex][4], trackevent->fL1SEMeV_Corrected[ssdindex][4],
-                           g6_L2F_ChargeCenter,                   g6_EL2F_Sum04,
-                           trackevent->fL2BNumStrip[ssdindex][4], trackevent->fL2BEMeV[ssdindex][4],
-                           trackevent->fL2FTime[ssdindex][4]);
+      //
+      for (Int_t itrack=0; itrack<GMULTI_6; itrack++)
+      {
+        if (itrack==4)
+        {
+          FillGlobalEvent_L1L2(globalevent, GMULTI_6, MODEINDEX_G6_120, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                               trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                               g6_L2F_ChargeCenter,                        g6_EL2F_Sum04,                          g6_EL2F_Ch_Sum04,
+                               trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
+                               trackevent->fL2FTime[ssdindex][itrack]);
+        }
+      }
     }
     // L2F sharing: 1)5) sharing, 1)是有效径迹
     else if ((TMath::Abs(trackevent->fL2FNumStrip[ssdindex][1]-trackevent->fL2FNumStrip[ssdindex][5])==1) &&
@@ -5589,11 +6101,18 @@ void L1L2_TrackDecoded::L1L2_g6_120_TrackDecoded(Int_t ssdindex, const char* mod
              IsInsideABananaCut(BananaCut[ssdindex],fMCut[1],g6_EL2F_Sum15,trackevent->fL1SEMeV_Corrected[ssdindex][1]))
     {
       g6_L2F_ChargeCenter = GetChargeCenter(trackevent->fL2FNumStrip[ssdindex][1],trackevent->fL2FNumStrip[ssdindex][5],trackevent->fL2FEMeV[ssdindex][1],trackevent->fL2FEMeV[ssdindex][5]);
-      FillGlobalEvent_L1L2(globalevent, GMULTI_6, MODEINDEX_G6_120, ssdindex, fSSDgMulti[ssdindex], fMCut[4].Cut_Z, fMCut[4].Cut_A,
-                           trackevent->fL1SNumStrip[ssdindex][1], trackevent->fL1SEMeV[ssdindex][1], trackevent->fL1SEMeV_Corrected[ssdindex][1],
-                           g6_L2F_ChargeCenter,                   g6_EL2F_Sum15,
-                           trackevent->fL2BNumStrip[ssdindex][1], trackevent->fL2BEMeV[ssdindex][1],
-                           trackevent->fL2FTime[ssdindex][1]);
+      //
+      for (Int_t itrack=0; itrack<GMULTI_6; itrack++)
+      {
+        if (itrack==1)
+        {
+          FillGlobalEvent_L1L2(globalevent, GMULTI_6, MODEINDEX_G6_120, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                               trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                               g6_L2F_ChargeCenter,                        g6_EL2F_Sum15,                          g6_EL2F_Ch_Sum15,
+                               trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
+                               trackevent->fL2FTime[ssdindex][itrack]);
+        }
+      }
     }
     // L2F sharing: 1)5) sharing, 5)是有效径迹
     else if ((TMath::Abs(trackevent->fL2FNumStrip[ssdindex][1]-trackevent->fL2FNumStrip[ssdindex][5])==1) &&
@@ -5601,11 +6120,18 @@ void L1L2_TrackDecoded::L1L2_g6_120_TrackDecoded(Int_t ssdindex, const char* mod
              IsInsideABananaCut(BananaCut[ssdindex],fMCut[5],g6_EL2F_Sum15,trackevent->fL1SEMeV_Corrected[ssdindex][5]))
     {
       g6_L2F_ChargeCenter = GetChargeCenter(trackevent->fL2FNumStrip[ssdindex][1],trackevent->fL2FNumStrip[ssdindex][5],trackevent->fL2FEMeV[ssdindex][1],trackevent->fL2FEMeV[ssdindex][5]);
-      FillGlobalEvent_L1L2(globalevent, GMULTI_6, MODEINDEX_G6_120, ssdindex, fSSDgMulti[ssdindex], fMCut[5].Cut_Z, fMCut[5].Cut_A,
-                           trackevent->fL1SNumStrip[ssdindex][5], trackevent->fL1SEMeV[ssdindex][5], trackevent->fL1SEMeV_Corrected[ssdindex][5],
-                           g6_L2F_ChargeCenter,                   g6_EL2F_Sum15,
-                           trackevent->fL2BNumStrip[ssdindex][5], trackevent->fL2BEMeV[ssdindex][5],
-                           trackevent->fL2FTime[ssdindex][5]);
+      //
+      for (Int_t itrack=0; itrack<GMULTI_6; itrack++)
+      {
+        if (itrack==5)
+        {
+          FillGlobalEvent_L1L2(globalevent, GMULTI_6, MODEINDEX_G6_120, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                               trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                               g6_L2F_ChargeCenter,                        g6_EL2F_Sum15,                          g6_EL2F_Ch_Sum15,
+                               trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
+                               trackevent->fL2FTime[ssdindex][itrack]);
+        }
+      }
     }
     // L2B,L2F同时sharing: 0)4) sharing
     else if ((TMath::Abs(trackevent->fL2BNumStrip[ssdindex][0]-trackevent->fL2BNumStrip[ssdindex][4])==1) &&
@@ -5615,11 +6141,18 @@ void L1L2_TrackDecoded::L1L2_g6_120_TrackDecoded(Int_t ssdindex, const char* mod
     {
       g6_L2F_ChargeCenter = GetChargeCenter(trackevent->fL2FNumStrip[ssdindex][0],trackevent->fL2FNumStrip[ssdindex][4],trackevent->fL2FEMeV[ssdindex][0],trackevent->fL2FEMeV[ssdindex][4]);
       g6_L2B_ChargeCenter = GetChargeCenter(trackevent->fL2BNumStrip[ssdindex][0],trackevent->fL2BNumStrip[ssdindex][4],trackevent->fL2BEMeV[ssdindex][0],trackevent->fL2BEMeV[ssdindex][4]);
-      FillGlobalEvent_L1L2(globalevent, GMULTI_6, MODEINDEX_G6_120, ssdindex, fSSDgMulti[ssdindex], fMCut[0].Cut_Z, fMCut[0].Cut_A,
-                           trackevent->fL1SNumStrip[ssdindex][0], trackevent->fL1SEMeV[ssdindex][0], trackevent->fL1SEMeV_Corrected[ssdindex][0],
-                           g6_L2F_ChargeCenter,                   g6_EL2F_Sum04,
-                           g6_L2B_ChargeCenter,                   g6_EL2B_Sum04,
-                           trackevent->fL2FTime[ssdindex][0]);
+      //
+      for (Int_t itrack=0; itrack<GMULTI_6; itrack++)
+      {
+        if (itrack==0)
+        {
+          FillGlobalEvent_L1L2(globalevent, GMULTI_6, MODEINDEX_G6_120, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                               trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                               g6_L2F_ChargeCenter,                        g6_EL2F_Sum04,                          g6_EL2F_Ch_Sum04,
+                               g6_L2B_ChargeCenter,                        g6_EL2B_Sum04,                          g6_EL2B_Ch_Sum04,
+                               trackevent->fL2FTime[ssdindex][itrack]);
+        }
+      }
     }
     // L2B,L2F同时sharing: 1)5) sharing
     else if ((TMath::Abs(trackevent->fL2BNumStrip[ssdindex][1]-trackevent->fL2BNumStrip[ssdindex][5])==1) &&
@@ -5629,23 +6162,31 @@ void L1L2_TrackDecoded::L1L2_g6_120_TrackDecoded(Int_t ssdindex, const char* mod
     {
       g6_L2F_ChargeCenter = GetChargeCenter(trackevent->fL2FNumStrip[ssdindex][1],trackevent->fL2FNumStrip[ssdindex][5],trackevent->fL2FEMeV[ssdindex][1],trackevent->fL2FEMeV[ssdindex][5]);
       g6_L2B_ChargeCenter = GetChargeCenter(trackevent->fL2BNumStrip[ssdindex][1],trackevent->fL2BNumStrip[ssdindex][5],trackevent->fL2BEMeV[ssdindex][1],trackevent->fL2BEMeV[ssdindex][5]);
-      FillGlobalEvent_L1L2(globalevent, GMULTI_6, MODEINDEX_G6_120, ssdindex, fSSDgMulti[ssdindex], fMCut[1].Cut_Z, fMCut[1].Cut_A,
-                           trackevent->fL1SNumStrip[ssdindex][1], trackevent->fL1SEMeV[ssdindex][1], trackevent->fL1SEMeV_Corrected[ssdindex][1],
-                           g6_L2F_ChargeCenter,                   g6_EL2F_Sum15,
-                           g6_L2B_ChargeCenter,                   g6_EL2B_Sum15,
-                           trackevent->fL2FTime[ssdindex][1]);
+      //
+      for (Int_t itrack=0; itrack<GMULTI_6; itrack++)
+      {
+        if (itrack==1)
+        {
+          FillGlobalEvent_L1L2(globalevent, GMULTI_6, MODEINDEX_G6_120, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                               trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                               g6_L2F_ChargeCenter,                        g6_EL2F_Sum15,                          g6_EL2F_Ch_Sum15,
+                               g6_L2B_ChargeCenter,                        g6_EL2B_Sum15,                          g6_EL2B_Ch_Sum15,
+                               trackevent->fL2FTime[ssdindex][itrack]);
+        }
+      }
     }
     // 直接判选
     else
     {
-      for (Int_t itrack=0; itrack<GMULTI_6; itrack++) {
+      for (Int_t itrack=0; itrack<GMULTI_6; itrack++)
+      {
         if (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]) &&
             IsInsideABananaCut(BananaCut[ssdindex],fMCut[itrack],trackevent->fL2FEMeV[ssdindex][itrack],trackevent->fL1SEMeV_Corrected[ssdindex][itrack]))
         {
-          FillGlobalEvent_L1L2(globalevent, GMULTI_6, MODEINDEX_G6_120, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                               trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack],
-                               trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                               trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+          FillGlobalEvent_L1L2(globalevent, GMULTI_6, MODEINDEX_G6_120, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                               trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                               trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                               trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                                trackevent->fL2FTime[ssdindex][itrack]);
           break;
         }
@@ -5655,12 +6196,12 @@ void L1L2_TrackDecoded::L1L2_g6_120_TrackDecoded(Int_t ssdindex, const char* mod
 }
 
 //______________________________________________________________________________
-void L1L2_TrackDecoded::L1L2_g6_121_TrackDecoded(Int_t ssdindex, const char* mode, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
+void L1L2_TrackDecoded::L1L2_g6_121_TrackDecoded(Int_t ssdindex, const char* mode, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
 {
   // 关闭当前通道
   if (switchsetting == kFALSE) return;
-
-  if (((trackevent->fCsINum[ssdindex].size()==0)&&(trackevent->fL2BNumStrip[ssdindex].size()==GMULTI_6)) && (strcmp(mode,MODE_G6_121)==0))
+  //
+  if (strcmp(mode,MODE_G6_121)==0)
   {
     // g6-121 模式:
     //  0)  000
@@ -5677,12 +6218,14 @@ void L1L2_TrackDecoded::L1L2_g6_121_TrackDecoded(Int_t ssdindex, const char* mod
         (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][4],trackevent->fL2FEMeV[ssdindex][4]) &&
          IsInsideABananaCut(BananaCut[ssdindex],fMCut[4],trackevent->fL2FEMeV[ssdindex][4],trackevent->fL1SEMeV_Corrected[ssdindex][4])))
     {
-      for (Int_t itrack=0; itrack<GMULTI_6; itrack++) {
-        if (itrack==0 || itrack==4) {
-          FillGlobalEvent_L1L2(globalevent, GMULTI_6, MODEINDEX_G6_121, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                               trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack],
-                               trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                               trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+      for (Int_t itrack=0; itrack<GMULTI_6; itrack++)
+      {
+        if (itrack==0 || itrack==4)
+        {
+          FillGlobalEvent_L1L2(globalevent, GMULTI_6, MODEINDEX_G6_121, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                               trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                               trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                               trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                                trackevent->fL2FTime[ssdindex][itrack]);
         }
       }
@@ -5693,12 +6236,14 @@ void L1L2_TrackDecoded::L1L2_g6_121_TrackDecoded(Int_t ssdindex, const char* mod
              (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][5],trackevent->fL2FEMeV[ssdindex][5]) &&
               IsInsideABananaCut(BananaCut[ssdindex],fMCut[5],trackevent->fL2FEMeV[ssdindex][5],trackevent->fL1SEMeV_Corrected[ssdindex][5])))
     {
-      for (Int_t itrack=0; itrack<GMULTI_6; itrack++) {
-        if (itrack==0 || itrack==5) {
-          FillGlobalEvent_L1L2(globalevent, GMULTI_6, MODEINDEX_G6_121, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                               trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack],
-                               trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                               trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+      for (Int_t itrack=0; itrack<GMULTI_6; itrack++)
+      {
+        if (itrack==0 || itrack==5)
+        {
+          FillGlobalEvent_L1L2(globalevent, GMULTI_6, MODEINDEX_G6_121, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                               trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                               trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                               trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                                trackevent->fL2FTime[ssdindex][itrack]);
         }
       }
@@ -5709,12 +6254,14 @@ void L1L2_TrackDecoded::L1L2_g6_121_TrackDecoded(Int_t ssdindex, const char* mod
              (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][3],trackevent->fL2FEMeV[ssdindex][3]) &&
               IsInsideABananaCut(BananaCut[ssdindex],fMCut[3],trackevent->fL2FEMeV[ssdindex][3],trackevent->fL1SEMeV_Corrected[ssdindex][3])))
     {
-      for (Int_t itrack=0; itrack<GMULTI_6; itrack++) {
-        if (itrack==1 || itrack==3) {
-          FillGlobalEvent_L1L2(globalevent, GMULTI_6, MODEINDEX_G6_121, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                               trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack],
-                               trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                               trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+      for (Int_t itrack=0; itrack<GMULTI_6; itrack++)
+      {
+        if (itrack==1 || itrack==3)
+        {
+          FillGlobalEvent_L1L2(globalevent, GMULTI_6, MODEINDEX_G6_121, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                               trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                               trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                               trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                                trackevent->fL2FTime[ssdindex][itrack]);
         }
       }
@@ -5725,12 +6272,14 @@ void L1L2_TrackDecoded::L1L2_g6_121_TrackDecoded(Int_t ssdindex, const char* mod
              (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][5],trackevent->fL2FEMeV[ssdindex][5]) &&
               IsInsideABananaCut(BananaCut[ssdindex],fMCut[5],trackevent->fL2FEMeV[ssdindex][5],trackevent->fL1SEMeV_Corrected[ssdindex][5])))
     {
-      for (Int_t itrack=0; itrack<GMULTI_6; itrack++) {
-        if (itrack==1 || itrack==5) {
-          FillGlobalEvent_L1L2(globalevent, GMULTI_6, MODEINDEX_G6_121, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                               trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack],
-                               trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                               trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+      for (Int_t itrack=0; itrack<GMULTI_6; itrack++)
+      {
+        if (itrack==1 || itrack==5)
+        {
+          FillGlobalEvent_L1L2(globalevent, GMULTI_6, MODEINDEX_G6_121, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                               trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                               trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                               trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                                trackevent->fL2FTime[ssdindex][itrack]);
         }
       }
@@ -5741,12 +6290,14 @@ void L1L2_TrackDecoded::L1L2_g6_121_TrackDecoded(Int_t ssdindex, const char* mod
              (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][3],trackevent->fL2FEMeV[ssdindex][3]) &&
               IsInsideABananaCut(BananaCut[ssdindex],fMCut[3],trackevent->fL2FEMeV[ssdindex][3],trackevent->fL1SEMeV_Corrected[ssdindex][3])))
     {
-      for (Int_t itrack=0; itrack<GMULTI_6; itrack++) {
-        if (itrack==2 || itrack==3) {
-          FillGlobalEvent_L1L2(globalevent, GMULTI_6, MODEINDEX_G6_121, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                               trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack],
-                               trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                               trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+      for (Int_t itrack=0; itrack<GMULTI_6; itrack++)
+      {
+        if (itrack==2 || itrack==3)
+        {
+          FillGlobalEvent_L1L2(globalevent, GMULTI_6, MODEINDEX_G6_121, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                               trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                               trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                               trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                                trackevent->fL2FTime[ssdindex][itrack]);
         }
       }
@@ -5757,12 +6308,14 @@ void L1L2_TrackDecoded::L1L2_g6_121_TrackDecoded(Int_t ssdindex, const char* mod
              (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][4],trackevent->fL2FEMeV[ssdindex][4]) &&
               IsInsideABananaCut(BananaCut[ssdindex],fMCut[4],trackevent->fL2FEMeV[ssdindex][4],trackevent->fL1SEMeV_Corrected[ssdindex][4])))
     {
-      for (Int_t itrack=0; itrack<GMULTI_6; itrack++) {
-        if (itrack==2 || itrack==4) {
-          FillGlobalEvent_L1L2(globalevent, GMULTI_6, MODEINDEX_G6_121, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                               trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack],
-                               trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                               trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+      for (Int_t itrack=0; itrack<GMULTI_6; itrack++)
+      {
+        if (itrack==2 || itrack==4)
+        {
+          FillGlobalEvent_L1L2(globalevent, GMULTI_6, MODEINDEX_G6_121, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                               trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                               trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                               trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                                trackevent->fL2FTime[ssdindex][itrack]);
         }
       }
@@ -5770,14 +6323,15 @@ void L1L2_TrackDecoded::L1L2_g6_121_TrackDecoded(Int_t ssdindex, const char* mod
     // 考虑只有一条有效径迹: 直接判选
     else
     {
-      for (Int_t itrack=0; itrack<GMULTI_6; itrack++) {
+      for (Int_t itrack=0; itrack<GMULTI_6; itrack++)
+      {
         if (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]) &&
             IsInsideABananaCut(BananaCut[ssdindex],fMCut[itrack],trackevent->fL2FEMeV[ssdindex][itrack],trackevent->fL1SEMeV_Corrected[ssdindex][itrack]))
         {
-          FillGlobalEvent_L1L2(globalevent, GMULTI_6, MODEINDEX_G6_121, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                               trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack],
-                               trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                               trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+          FillGlobalEvent_L1L2(globalevent, GMULTI_6, MODEINDEX_G6_121, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                               trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                               trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                               trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                                trackevent->fL2FTime[ssdindex][itrack]);
           break;
         }
@@ -5787,12 +6341,12 @@ void L1L2_TrackDecoded::L1L2_g6_121_TrackDecoded(Int_t ssdindex, const char* mod
 }
 
 //______________________________________________________________________________
-void L1L2_TrackDecoded::L1L2_g6_211_TrackDecoded(Int_t ssdindex, const char* mode, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
+void L1L2_TrackDecoded::L1L2_g6_211_TrackDecoded(Int_t ssdindex, const char* mode, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting)
 {
   // 关闭当前通道
   if (switchsetting == kFALSE) return;
-
-  if (((trackevent->fCsINum[ssdindex].size()==0)&&(trackevent->fL2BNumStrip[ssdindex].size()==GMULTI_6)) && (strcmp(mode,MODE_G6_211)==0))
+  //
+  if (strcmp(mode,MODE_G6_211)==0)
   {
     // g6-211 模式:
     //  0)  000         0) 000
@@ -5807,6 +6361,11 @@ void L1L2_TrackDecoded::L1L2_g6_211_TrackDecoded(Int_t ssdindex, const char* mod
     g6_EL2B_Sum35 = trackevent->fL2BEMeV[ssdindex][3] + trackevent->fL2BEMeV[ssdindex][5];
     g6_EL2B_Sum02 = trackevent->fL2BEMeV[ssdindex][0] + trackevent->fL2BEMeV[ssdindex][2];
     g6_EL2B_Sum13 = trackevent->fL2BEMeV[ssdindex][1] + trackevent->fL2BEMeV[ssdindex][3];
+
+    g6_EL2B_Ch_Sum24 = trackevent->fL2BECh[ssdindex][2] + trackevent->fL2BECh[ssdindex][4];
+    g6_EL2B_Ch_Sum35 = trackevent->fL2BECh[ssdindex][3] + trackevent->fL2BECh[ssdindex][5];
+    g6_EL2B_Ch_Sum02 = trackevent->fL2BECh[ssdindex][0] + trackevent->fL2BECh[ssdindex][2];
+    g6_EL2B_Ch_Sum13 = trackevent->fL2BECh[ssdindex][1] + trackevent->fL2BECh[ssdindex][3];
     //
     // L1S: 01-2345
     if (trackevent->fL1SNumStrip[ssdindex][1]!=trackevent->fL2BNumStrip[ssdindex][2])
@@ -5818,20 +6377,23 @@ void L1L2_TrackDecoded::L1L2_g6_211_TrackDecoded(Int_t ssdindex, const char* mod
           (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][1],trackevent->fL2FEMeV[ssdindex][1]) &&
            IsInsideABananaCut(BananaCut[ssdindex],fMCut[1],trackevent->fL2FEMeV[ssdindex][1],trackevent->fL1SEMeV_Corrected[ssdindex][1])))
       {
-        for (Int_t itrack=0; itrack<GMULTI_6; itrack++) {
-          if (itrack==1) {
-            FillGlobalEvent_L1L2(globalevent, GMULTI_6, MODEINDEX_G6_211, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                                 trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack],
-                                 trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                                 trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+        for (Int_t itrack=0; itrack<GMULTI_6; itrack++)
+        {
+          if (itrack==1)
+          {
+            FillGlobalEvent_L1L2(globalevent, GMULTI_6, MODEINDEX_G6_211, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                                 trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                                 trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                                 trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                                  trackevent->fL2FTime[ssdindex][itrack]);
           }
-          if (itrack==2) {
+          if (itrack==2)
+          {
             g6_L2B_ChargeCenter = GetChargeCenter(trackevent->fL2BNumStrip[ssdindex][2],trackevent->fL2BNumStrip[ssdindex][4],trackevent->fL2BEMeV[ssdindex][2],trackevent->fL2BEMeV[ssdindex][4]);
-            FillGlobalEvent_L1L2(globalevent, GMULTI_6, MODEINDEX_G6_211, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                                 trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack],
-                                 trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                                 g6_L2B_ChargeCenter,                        g6_EL2B_Sum24,
+            FillGlobalEvent_L1L2(globalevent, GMULTI_6, MODEINDEX_G6_211, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                                 trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                                 trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                                 g6_L2B_ChargeCenter,                        g6_EL2B_Sum24,                          g6_EL2B_Ch_Sum24,
                                  trackevent->fL2FTime[ssdindex][itrack]);
           }
         }
@@ -5843,20 +6405,23 @@ void L1L2_TrackDecoded::L1L2_g6_211_TrackDecoded(Int_t ssdindex, const char* mod
                (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][0],trackevent->fL2FEMeV[ssdindex][0]) &&
                 IsInsideABananaCut(BananaCut[ssdindex],fMCut[0],trackevent->fL2FEMeV[ssdindex][0],trackevent->fL1SEMeV_Corrected[ssdindex][0])))
       {
-        for (Int_t itrack=0; itrack<GMULTI_6; itrack++) {
-          if (itrack==0) {
-            FillGlobalEvent_L1L2(globalevent, GMULTI_6, MODEINDEX_G6_211, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                                 trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack],
-                                 trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                                 trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+        for (Int_t itrack=0; itrack<GMULTI_6; itrack++)
+        {
+          if (itrack==0)
+          {
+            FillGlobalEvent_L1L2(globalevent, GMULTI_6, MODEINDEX_G6_211, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                                 trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                                 trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                                 trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                                  trackevent->fL2FTime[ssdindex][itrack]);
           }
-          if (itrack==3) {
+          if (itrack==3)
+          {
             g6_L2B_ChargeCenter = GetChargeCenter(trackevent->fL2BNumStrip[ssdindex][3],trackevent->fL2BNumStrip[ssdindex][5],trackevent->fL2BEMeV[ssdindex][3],trackevent->fL2BEMeV[ssdindex][5]);
-            FillGlobalEvent_L1L2(globalevent, GMULTI_6, MODEINDEX_G6_211, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                                 trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack],
-                                 trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                                 g6_L2B_ChargeCenter,                        g6_EL2B_Sum35,
+            FillGlobalEvent_L1L2(globalevent, GMULTI_6, MODEINDEX_G6_211, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                                 trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                                 trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                                 g6_L2B_ChargeCenter,                        g6_EL2B_Sum35,                          g6_EL2B_Ch_Sum35,
                                  trackevent->fL2FTime[ssdindex][itrack]);
           }
         }
@@ -5867,12 +6432,14 @@ void L1L2_TrackDecoded::L1L2_g6_211_TrackDecoded(Int_t ssdindex, const char* mod
                (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][3],trackevent->fL2FEMeV[ssdindex][3]) &&
                 IsInsideABananaCut(BananaCut[ssdindex],fMCut[3],trackevent->fL2FEMeV[ssdindex][3],trackevent->fL1SEMeV_Corrected[ssdindex][3])))
       {
-        for (Int_t itrack=0; itrack<GMULTI_6; itrack++) {
-          if (itrack==0 || itrack==3) {
-            FillGlobalEvent_L1L2(globalevent, GMULTI_6, MODEINDEX_G6_211, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                                 trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack],
-                                 trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                                 trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+        for (Int_t itrack=0; itrack<GMULTI_6; itrack++)
+        {
+          if (itrack==0 || itrack==3)
+          {
+            FillGlobalEvent_L1L2(globalevent, GMULTI_6, MODEINDEX_G6_211, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                                 trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                                 trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                                 trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                                  trackevent->fL2FTime[ssdindex][itrack]);
           }
         }
@@ -5883,12 +6450,14 @@ void L1L2_TrackDecoded::L1L2_g6_211_TrackDecoded(Int_t ssdindex, const char* mod
                (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][5],trackevent->fL2FEMeV[ssdindex][5]) &&
                 IsInsideABananaCut(BananaCut[ssdindex],fMCut[5],trackevent->fL2FEMeV[ssdindex][5],trackevent->fL1SEMeV_Corrected[ssdindex][5])))
       {
-        for (Int_t itrack=0; itrack<GMULTI_6; itrack++) {
-          if (itrack==0 || itrack==5) {
-            FillGlobalEvent_L1L2(globalevent, GMULTI_6, MODEINDEX_G6_211, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                                 trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack],
-                                 trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                                 trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+        for (Int_t itrack=0; itrack<GMULTI_6; itrack++)
+        {
+          if (itrack==0 || itrack==5)
+          {
+            FillGlobalEvent_L1L2(globalevent, GMULTI_6, MODEINDEX_G6_211, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                                 trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                                 trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                                 trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                                  trackevent->fL2FTime[ssdindex][itrack]);
           }
         }
@@ -5899,12 +6468,14 @@ void L1L2_TrackDecoded::L1L2_g6_211_TrackDecoded(Int_t ssdindex, const char* mod
                (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][2],trackevent->fL2FEMeV[ssdindex][2]) &&
                 IsInsideABananaCut(BananaCut[ssdindex],fMCut[2],trackevent->fL2FEMeV[ssdindex][2],trackevent->fL1SEMeV_Corrected[ssdindex][2])))
       {
-        for (Int_t itrack=0; itrack<GMULTI_6; itrack++) {
-          if (itrack==1 || itrack==2) {
-            FillGlobalEvent_L1L2(globalevent, GMULTI_6, MODEINDEX_G6_211, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                                 trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack],
-                                 trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                                 trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+        for (Int_t itrack=0; itrack<GMULTI_6; itrack++)
+        {
+          if (itrack==1 || itrack==2)
+          {
+            FillGlobalEvent_L1L2(globalevent, GMULTI_6, MODEINDEX_G6_211, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                                 trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                                 trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                                 trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                                  trackevent->fL2FTime[ssdindex][itrack]);
           }
         }
@@ -5915,12 +6486,14 @@ void L1L2_TrackDecoded::L1L2_g6_211_TrackDecoded(Int_t ssdindex, const char* mod
                (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][4],trackevent->fL2FEMeV[ssdindex][4]) &&
                 IsInsideABananaCut(BananaCut[ssdindex],fMCut[4],trackevent->fL2FEMeV[ssdindex][4],trackevent->fL1SEMeV_Corrected[ssdindex][4])))
       {
-        for (Int_t itrack=0; itrack<GMULTI_6; itrack++) {
-          if (itrack==1 || itrack==4) {
-            FillGlobalEvent_L1L2(globalevent, GMULTI_6, MODEINDEX_G6_211, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                                 trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack],
-                                 trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                                 trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+        for (Int_t itrack=0; itrack<GMULTI_6; itrack++)
+        {
+          if (itrack==1 || itrack==4)
+          {
+            FillGlobalEvent_L1L2(globalevent, GMULTI_6, MODEINDEX_G6_211, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                                 trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                                 trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                                 trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                                  trackevent->fL2FTime[ssdindex][itrack]);
           }
         }
@@ -5928,14 +6501,15 @@ void L1L2_TrackDecoded::L1L2_g6_211_TrackDecoded(Int_t ssdindex, const char* mod
       // 只有一条径迹: 直接判选
       else
       {
-        for (Int_t itrack=0; itrack<GMULTI_6; itrack++) {
+        for (Int_t itrack=0; itrack<GMULTI_6; itrack++)
+        {
           if (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]) &&
               IsInsideABananaCut(BananaCut[ssdindex],fMCut[itrack],trackevent->fL2FEMeV[ssdindex][itrack],trackevent->fL1SEMeV_Corrected[ssdindex][itrack]))
           {
-            FillGlobalEvent_L1L2(globalevent, GMULTI_6, MODEINDEX_G6_211, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                                 trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack],
-                                 trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                                 trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+            FillGlobalEvent_L1L2(globalevent, GMULTI_6, MODEINDEX_G6_211, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                                 trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                                 trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                                 trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                                  trackevent->fL2FTime[ssdindex][itrack]);
             break;
           }
@@ -5952,20 +6526,23 @@ void L1L2_TrackDecoded::L1L2_g6_211_TrackDecoded(Int_t ssdindex, const char* mod
           (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][5],trackevent->fL2FEMeV[ssdindex][5]) &&
            IsInsideABananaCut(BananaCut[ssdindex],fMCut[5],trackevent->fL2FEMeV[ssdindex][5],trackevent->fL1SEMeV_Corrected[ssdindex][5])))
       {
-        for (Int_t itrack=0; itrack<GMULTI_6; itrack++) {
-          if (itrack==0) {
+        for (Int_t itrack=0; itrack<GMULTI_6; itrack++)
+        {
+          if (itrack==0)
+          {
             g6_L2B_ChargeCenter = GetChargeCenter(trackevent->fL2BNumStrip[ssdindex][0],trackevent->fL2BNumStrip[ssdindex][2],trackevent->fL2BEMeV[ssdindex][0],trackevent->fL2BEMeV[ssdindex][2]);
-            FillGlobalEvent_L1L2(globalevent, GMULTI_6, MODEINDEX_G6_211, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                                 trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack],
-                                 trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                                 g6_L2B_ChargeCenter,                        g6_EL2B_Sum02,
+            FillGlobalEvent_L1L2(globalevent, GMULTI_6, MODEINDEX_G6_211, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                                 trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                                 trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                                 g6_L2B_ChargeCenter,                        g6_EL2B_Sum02,                          g6_EL2B_Ch_Sum02,
                                  trackevent->fL2FTime[ssdindex][itrack]);
           }
-          if (itrack==5) {
-            FillGlobalEvent_L1L2(globalevent, GMULTI_6, MODEINDEX_G6_211, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                                 trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack],
-                                 trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                                 trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+          if (itrack==5)
+          {
+            FillGlobalEvent_L1L2(globalevent, GMULTI_6, MODEINDEX_G6_211, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                                 trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                                 trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                                 trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                                  trackevent->fL2FTime[ssdindex][itrack]);
           }
         }
@@ -5977,20 +6554,23 @@ void L1L2_TrackDecoded::L1L2_g6_211_TrackDecoded(Int_t ssdindex, const char* mod
                (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][4],trackevent->fL2FEMeV[ssdindex][4]) &&
                 IsInsideABananaCut(BananaCut[ssdindex],fMCut[4],trackevent->fL2FEMeV[ssdindex][4],trackevent->fL1SEMeV_Corrected[ssdindex][4])))
       {
-        for (Int_t itrack=0; itrack<GMULTI_6; itrack++) {
-          if (itrack==1) {
+        for (Int_t itrack=0; itrack<GMULTI_6; itrack++)
+        {
+          if (itrack==1)
+          {
             g6_L2B_ChargeCenter = GetChargeCenter(trackevent->fL2BNumStrip[ssdindex][1],trackevent->fL2BNumStrip[ssdindex][3],trackevent->fL2BEMeV[ssdindex][1],trackevent->fL2BEMeV[ssdindex][3]);
-            FillGlobalEvent_L1L2(globalevent, GMULTI_6, MODEINDEX_G6_211, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                                 trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack],
-                                 trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                                 g6_L2B_ChargeCenter,                        g6_EL2B_Sum13,
+            FillGlobalEvent_L1L2(globalevent, GMULTI_6, MODEINDEX_G6_211, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                                 trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                                 trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                                 g6_L2B_ChargeCenter,                        g6_EL2B_Sum13,                          g6_EL2B_Ch_Sum13,
                                  trackevent->fL2FTime[ssdindex][itrack]);
           }
-          if (itrack==4) {
-            FillGlobalEvent_L1L2(globalevent, GMULTI_6, MODEINDEX_G6_211, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                                 trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack],
-                                 trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                                 trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+          if (itrack==4)
+          {
+            FillGlobalEvent_L1L2(globalevent, GMULTI_6, MODEINDEX_G6_211, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                                 trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                                 trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                                 trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                                  trackevent->fL2FTime[ssdindex][itrack]);
           }
         }
@@ -6001,12 +6581,14 @@ void L1L2_TrackDecoded::L1L2_g6_211_TrackDecoded(Int_t ssdindex, const char* mod
                (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][5],trackevent->fL2FEMeV[ssdindex][5]) &&
                 IsInsideABananaCut(BananaCut[ssdindex],fMCut[5],trackevent->fL2FEMeV[ssdindex][5],trackevent->fL1SEMeV_Corrected[ssdindex][5])))
       {
-        for (Int_t itrack=0; itrack<GMULTI_6; itrack++) {
-          if (itrack==0 || itrack==5) {
-            FillGlobalEvent_L1L2(globalevent, GMULTI_6, MODEINDEX_G6_211, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                                 trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack],
-                                 trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                                 trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+        for (Int_t itrack=0; itrack<GMULTI_6; itrack++)
+        {
+          if (itrack==0 || itrack==5)
+          {
+            FillGlobalEvent_L1L2(globalevent, GMULTI_6, MODEINDEX_G6_211, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                                 trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                                 trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                                 trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                                  trackevent->fL2FTime[ssdindex][itrack]);
           }
         }
@@ -6017,12 +6599,14 @@ void L1L2_TrackDecoded::L1L2_g6_211_TrackDecoded(Int_t ssdindex, const char* mod
                (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][4],trackevent->fL2FEMeV[ssdindex][4]) &&
                 IsInsideABananaCut(BananaCut[ssdindex],fMCut[4],trackevent->fL2FEMeV[ssdindex][4],trackevent->fL1SEMeV_Corrected[ssdindex][4])))
       {
-        for (Int_t itrack=0; itrack<GMULTI_6; itrack++) {
-          if (itrack==1 || itrack==4) {
-            FillGlobalEvent_L1L2(globalevent, GMULTI_6, MODEINDEX_G6_211, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                                 trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack],
-                                 trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                                 trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+        for (Int_t itrack=0; itrack<GMULTI_6; itrack++)
+        {
+          if (itrack==1 || itrack==4)
+          {
+            FillGlobalEvent_L1L2(globalevent, GMULTI_6, MODEINDEX_G6_211, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                                 trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                                 trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                                 trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                                  trackevent->fL2FTime[ssdindex][itrack]);
           }
         }
@@ -6033,12 +6617,14 @@ void L1L2_TrackDecoded::L1L2_g6_211_TrackDecoded(Int_t ssdindex, const char* mod
                (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][5],trackevent->fL2FEMeV[ssdindex][5]) &&
                 IsInsideABananaCut(BananaCut[ssdindex],fMCut[5],trackevent->fL2FEMeV[ssdindex][5],trackevent->fL1SEMeV_Corrected[ssdindex][5])))
       {
-        for (Int_t itrack=0; itrack<GMULTI_6; itrack++) {
-          if (itrack==2 || itrack==5) {
-            FillGlobalEvent_L1L2(globalevent, GMULTI_6, MODEINDEX_G6_211, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                                 trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack],
-                                 trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                                 trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+        for (Int_t itrack=0; itrack<GMULTI_6; itrack++)
+        {
+          if (itrack==2 || itrack==5)
+          {
+            FillGlobalEvent_L1L2(globalevent, GMULTI_6, MODEINDEX_G6_211, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                                 trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                                 trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                                 trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                                  trackevent->fL2FTime[ssdindex][itrack]);
           }
         }
@@ -6049,12 +6635,14 @@ void L1L2_TrackDecoded::L1L2_g6_211_TrackDecoded(Int_t ssdindex, const char* mod
                (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][4],trackevent->fL2FEMeV[ssdindex][4]) &&
                 IsInsideABananaCut(BananaCut[ssdindex],fMCut[4],trackevent->fL2FEMeV[ssdindex][4],trackevent->fL1SEMeV_Corrected[ssdindex][4])))
       {
-        for (Int_t itrack=0; itrack<GMULTI_6; itrack++) {
-          if (itrack==3 || itrack==4) {
-            FillGlobalEvent_L1L2(globalevent, GMULTI_6, MODEINDEX_G6_211, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                                 trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack],
-                                 trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                                 trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+        for (Int_t itrack=0; itrack<GMULTI_6; itrack++)
+        {
+          if (itrack==3 || itrack==4)
+          {
+            FillGlobalEvent_L1L2(globalevent, GMULTI_6, MODEINDEX_G6_211, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                                 trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                                 trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                                 trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                                  trackevent->fL2FTime[ssdindex][itrack]);
           }
         }
@@ -6062,14 +6650,15 @@ void L1L2_TrackDecoded::L1L2_g6_211_TrackDecoded(Int_t ssdindex, const char* mod
       // 只有一条径迹: 直接判选
       else
       {
-        for (Int_t itrack=0; itrack<GMULTI_6; itrack++) {
+        for (Int_t itrack=0; itrack<GMULTI_6; itrack++)
+        {
           if (IsEneConstraint_L2B_L2F(ssdindex,trackevent->fL2BEMeV[ssdindex][itrack],trackevent->fL2FEMeV[ssdindex][itrack]) &&
               IsInsideABananaCut(BananaCut[ssdindex],fMCut[itrack],trackevent->fL2FEMeV[ssdindex][itrack],trackevent->fL1SEMeV_Corrected[ssdindex][itrack]))
           {
-            FillGlobalEvent_L1L2(globalevent, GMULTI_6, MODEINDEX_G6_211, ssdindex, fSSDgMulti[ssdindex], fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
-                                 trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack],
-                                 trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack],
-                                 trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack],
+            FillGlobalEvent_L1L2(globalevent, GMULTI_6, MODEINDEX_G6_211, ssdindex, ssdmulti, fMCut[itrack].Cut_Z, fMCut[itrack].Cut_A,
+                                 trackevent->fL1SNumStrip[ssdindex][itrack], trackevent->fL1SEMeV[ssdindex][itrack], trackevent->fL1SEMeV_Corrected[ssdindex][itrack], trackevent->fL1SECh[ssdindex][itrack],
+                                 trackevent->fL2FNumStrip[ssdindex][itrack], trackevent->fL2FEMeV[ssdindex][itrack], trackevent->fL2FECh[ssdindex][itrack],
+                                 trackevent->fL2BNumStrip[ssdindex][itrack], trackevent->fL2BEMeV[ssdindex][itrack], trackevent->fL2BECh[ssdindex][itrack],
                                  trackevent->fL2FTime[ssdindex][itrack]);
             break;
           }

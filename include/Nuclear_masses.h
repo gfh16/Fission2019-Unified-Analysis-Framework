@@ -26,7 +26,8 @@ private:
   double       fElectron_mass; // MeV
   double       fUMA_MeV;       // MeV/uma
 
-  std::string  pathMassedConf = "/home/sea/Fission2019-Unified-Analysis-Framework/src/Masses.conf";;
+  //std::string  pathMassedConf = "/home/sea/Fission2019-Unified-Analysis-Framework/src/Masses.conf";
+  std::string  pathMassedConf = Form("%ssrc/Masses.conf", PATHHOMEFOLDER);
 };
 
 #endif

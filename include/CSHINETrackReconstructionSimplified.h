@@ -62,8 +62,7 @@ public:
   ~L2L3_TrackDecoded();
 
 public:
-  virtual void    L2L3_AllModes_TrackDecoded(CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
-
+  virtual void    L2L3_AllModes_TrackDecoded(Int_t ssdindex, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
 
 private:
   Int_t fgMulti;
@@ -76,27 +75,32 @@ private:
 
   void      FillGlobalEvent_L2L3(CSHINESSDEvent* globalevent, Int_t gmulti, Int_t modex_index,
                                  Int_t ssdindex, Int_t& ssdmulti, Int_t charge, Int_t mass,
-                                 Double_t Stripl1s, Double_t El1s, Double_t Stripl2f, Double_t El2f,
-                                 Double_t Stripl2b, Double_t El2b, Double_t csiindex, Double_t Ecsi, Int_t Timel2f);
+                                 Double_t Stripl1s, Double_t El1s, Double_t El1s_Ch, Double_t Stripl2f, Double_t El2f, Double_t El2f_Ch,
+                                 Double_t Stripl2b, Double_t El2b, Double_t El2b_Ch, Double_t csiindex, Double_t Ecsi, Int_t Timel2f);
 
 private:
   std::string     MODE_EXP[NUM_SSD];
 
-  Double_t        g2_EL2B_Sum;
-  Double_t        g2_EL2F_Sum;
-  Double_t        g2_EL1S_Sum;
+  Double_t        g2_EL2B_Sum, g2_EL2F_Sum, g2_EL1S_Sum;
+  Double_t        g2_EL2B_Ch_Sum, g2_EL2F_Ch_Sum, g2_EL1S_Ch_Sum;
   Double_t        g2_ChargeCenter;
 
   Double_t        g3_EL2B_Sum_01, g3_EL2B_Sum_02, g3_EL2B_Sum_12;
   Double_t        g3_EL2F_Sum_01, g3_EL2F_Sum_02, g3_EL2F_Sum_12;
   Double_t        g3_EL1S_Sum_01, g3_EL1S_Sum_02, g3_EL1S_Sum_12;
+  Double_t        g3_EL2B_Ch_Sum_01, g3_EL2B_Ch_Sum_02, g3_EL2B_Ch_Sum_12;
+  Double_t        g3_EL2F_Ch_Sum_01, g3_EL2F_Ch_Sum_02, g3_EL2F_Ch_Sum_12;
+  Double_t        g3_EL1S_Ch_Sum_01, g3_EL1S_Ch_Sum_02, g3_EL1S_Ch_Sum_12;
   Double_t        g3_ChargeCenter_01, g3_ChargeCenter_12;
 
   Double_t        g4_EL2F_Sum_03, g4_EL2F_Sum_12, g4_EL2F_Sum_01, g4_EL2F_Sum_23;
   Double_t        g4_EL2B_Sum_02, g4_EL2B_Sum_03, g4_EL2B_Sum_13;
+  Double_t        g4_EL2F_Ch_Sum_03, g4_EL2F_Ch_Sum_12, g4_EL2F_Ch_Sum_01, g4_EL2F_Ch_Sum_23;
+  Double_t        g4_EL2B_Ch_Sum_02, g4_EL2B_Ch_Sum_03, g4_EL2B_Ch_Sum_13;
   Double_t        g4_ChargeCenter, g4_L2F_ChargeCenter, g4_L2B_ChargeCenter;
 
   Double_t        g6_EL2F_Sum_12, g6_EL2F_Sum_14, g6_EL2F_Sum_34;
+  Double_t        g6_EL2F_Ch_Sum_12, g6_EL2F_Ch_Sum_14, g6_EL2F_Ch_Sum_34;
 
 private:
   MBananaCut             fMCut[10];
@@ -204,66 +208,66 @@ private:
 
 //oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 public:
-  virtual void    L2L3_g1_TrackDecoded(CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
-  virtual void    L2L3_g2_TrackDecoded(CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
-  virtual void    L2L3_g3_TrackDecoded(CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
-  virtual void    L2L3_g4_TrackDecoded(CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
-  virtual void    L2L3_g6_TrackDecoded(CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
+  virtual void    L2L3_g1_TrackDecoded(Int_t ssdindex, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
+  virtual void    L2L3_g2_TrackDecoded(Int_t ssdindex, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
+  virtual void    L2L3_g3_TrackDecoded(Int_t ssdindex, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
+  virtual void    L2L3_g4_TrackDecoded(Int_t ssdindex, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
+  virtual void    L2L3_g6_TrackDecoded(Int_t ssdindex, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
 
   //____________________________________
   //  以下是模式分类后的径迹重建算法
 
   // globalmulti = 2
-  virtual void    L2L3_g2_0001_TrackDecoded(Int_t ssdindex, const char* mode, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
-  virtual void    L2L3_g2_0010_TrackDecoded(Int_t ssdindex, const char* mode, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
-  virtual void    L2L3_g2_0100_TrackDecoded(Int_t ssdindex, const char* mode, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
-  virtual void    L2L3_g2_0101_TrackDecoded(Int_t ssdindex, const char* mode, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
-  virtual void    L2L3_g2_1000_TrackDecoded(Int_t ssdindex, const char* mode, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
-  virtual void    L2L3_g2_1010_TrackDecoded(Int_t ssdindex, const char* mode, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
-  virtual void    L2L3_g2_1101_TrackDecoded(Int_t ssdindex, const char* mode, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
-  virtual void    L2L3_g2_1111_TrackDecoded(Int_t ssdindex, const char* mode, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
+  virtual void    L2L3_g2_0001_TrackDecoded(Int_t ssdindex, const char* mode, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
+  virtual void    L2L3_g2_0010_TrackDecoded(Int_t ssdindex, const char* mode, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
+  virtual void    L2L3_g2_0100_TrackDecoded(Int_t ssdindex, const char* mode, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
+  virtual void    L2L3_g2_0101_TrackDecoded(Int_t ssdindex, const char* mode, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
+  virtual void    L2L3_g2_1000_TrackDecoded(Int_t ssdindex, const char* mode, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
+  virtual void    L2L3_g2_1010_TrackDecoded(Int_t ssdindex, const char* mode, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
+  virtual void    L2L3_g2_1101_TrackDecoded(Int_t ssdindex, const char* mode, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
+  virtual void    L2L3_g2_1111_TrackDecoded(Int_t ssdindex, const char* mode, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
 
   // globalmulti = 3
-  virtual void    L2L3_g3_0002_TrackDecoded(Int_t ssdindex, const char* mode, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
-  virtual void    L2L3_g3_0020_TrackDecoded(Int_t ssdindex, const char* mode, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
-  virtual void    L2L3_g3_0101_TrackDecoded(Int_t ssdindex, const char* mode, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
-  virtual void    L2L3_g3_0102_TrackDecoded(Int_t ssdindex, const char* mode, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
-  virtual void    L2L3_g3_0201_TrackDecoded(Int_t ssdindex, const char* mode, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
-  virtual void    L2L3_g3_1010_TrackDecoded(Int_t ssdindex, const char* mode, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
-  virtual void    L2L3_g3_1020_TrackDecoded(Int_t ssdindex, const char* mode, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
-  virtual void    L2L3_g3_1110_TrackDecoded(Int_t ssdindex, const char* mode, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
-  virtual void    L2L3_g3_1111_TrackDecoded(Int_t ssdindex, const char* mode, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
-  virtual void    L2L3_g3_1112_TrackDecoded(Int_t ssdindex, const char* mode, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
-  virtual void    L2L3_g3_1121_TrackDecoded(Int_t ssdindex, const char* mode, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
-  virtual void    L2L3_g3_1211_TrackDecoded(Int_t ssdindex, const char* mode, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
-  virtual void    L2L3_g3_2111_TrackDecoded(Int_t ssdindex, const char* mode, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
-  virtual void    L2L3_g3_2222_TrackDecoded(Int_t ssdindex, const char* mode, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
+  virtual void    L2L3_g3_0002_TrackDecoded(Int_t ssdindex, const char* mode, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
+  virtual void    L2L3_g3_0020_TrackDecoded(Int_t ssdindex, const char* mode, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
+  virtual void    L2L3_g3_0101_TrackDecoded(Int_t ssdindex, const char* mode, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
+  virtual void    L2L3_g3_0102_TrackDecoded(Int_t ssdindex, const char* mode, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
+  virtual void    L2L3_g3_0201_TrackDecoded(Int_t ssdindex, const char* mode, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
+  virtual void    L2L3_g3_1010_TrackDecoded(Int_t ssdindex, const char* mode, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
+  virtual void    L2L3_g3_1020_TrackDecoded(Int_t ssdindex, const char* mode, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
+  virtual void    L2L3_g3_1110_TrackDecoded(Int_t ssdindex, const char* mode, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
+  virtual void    L2L3_g3_1111_TrackDecoded(Int_t ssdindex, const char* mode, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
+  virtual void    L2L3_g3_1112_TrackDecoded(Int_t ssdindex, const char* mode, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
+  virtual void    L2L3_g3_1121_TrackDecoded(Int_t ssdindex, const char* mode, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
+  virtual void    L2L3_g3_1211_TrackDecoded(Int_t ssdindex, const char* mode, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
+  virtual void    L2L3_g3_2111_TrackDecoded(Int_t ssdindex, const char* mode, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
+  virtual void    L2L3_g3_2222_TrackDecoded(Int_t ssdindex, const char* mode, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
 
   // globalmulti = 4
-  virtual void    L2L3_g4_0011_TrackDecoded(Int_t ssdindex, const char* mode, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
-  virtual void    L2L3_g4_0101_TrackDecoded(Int_t ssdindex, const char* mode, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
-  virtual void    L2L3_g4_0110_TrackDecoded(Int_t ssdindex, const char* mode, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
-  virtual void    L2L3_g4_0111_TrackDecoded(Int_t ssdindex, const char* mode, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
-  virtual void    L2L3_g4_1011_TrackDecoded(Int_t ssdindex, const char* mode, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
-  virtual void    L2L3_g4_1110_TrackDecoded(Int_t ssdindex, const char* mode, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
-  virtual void    L2L3_g4_1111_TrackDecoded(Int_t ssdindex, const char* mode, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
-  virtual void    L2L3_g4_2222_TrackDecoded(Int_t ssdindex, const char* mode, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
+  virtual void    L2L3_g4_0011_TrackDecoded(Int_t ssdindex, const char* mode, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
+  virtual void    L2L3_g4_0101_TrackDecoded(Int_t ssdindex, const char* mode, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
+  virtual void    L2L3_g4_0110_TrackDecoded(Int_t ssdindex, const char* mode, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
+  virtual void    L2L3_g4_0111_TrackDecoded(Int_t ssdindex, const char* mode, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
+  virtual void    L2L3_g4_1011_TrackDecoded(Int_t ssdindex, const char* mode, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
+  virtual void    L2L3_g4_1110_TrackDecoded(Int_t ssdindex, const char* mode, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
+  virtual void    L2L3_g4_1111_TrackDecoded(Int_t ssdindex, const char* mode, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
+  virtual void    L2L3_g4_2222_TrackDecoded(Int_t ssdindex, const char* mode, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
 
   // globalmulti = 6
-  virtual void    L2L3_g6_0012_TrackDecoded(Int_t ssdindex, const char* mode, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
-  virtual void    L2L3_g6_0021_TrackDecoded(Int_t ssdindex, const char* mode, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
-  virtual void    L2L3_g6_0111_TrackDecoded(Int_t ssdindex, const char* mode, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
-  virtual void    L2L3_g6_0112_TrackDecoded(Int_t ssdindex, const char* mode, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
-  virtual void    L2L3_g6_0120_TrackDecoded(Int_t ssdindex, const char* mode, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
-  virtual void    L2L3_g6_0121_TrackDecoded(Int_t ssdindex, const char* mode, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
-  virtual void    L2L3_g6_0211_TrackDecoded(Int_t ssdindex, const char* mode, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
-  virtual void    L2L3_g6_1011_TrackDecoded(Int_t ssdindex, const char* mode, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
-  virtual void    L2L3_g6_1110_TrackDecoded(Int_t ssdindex, const char* mode, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
-  virtual void    L2L3_g6_1111_TrackDecoded(Int_t ssdindex, const char* mode, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
-  virtual void    L2L3_g6_1112_TrackDecoded(Int_t ssdindex, const char* mode, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
-  virtual void    L2L3_g6_1121_TrackDecoded(Int_t ssdindex, const char* mode, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
-  virtual void    L2L3_g6_1211_TrackDecoded(Int_t ssdindex, const char* mode, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
-  virtual void    L2L3_g6_2222_TrackDecoded(Int_t ssdindex, const char* mode, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
+  virtual void    L2L3_g6_0012_TrackDecoded(Int_t ssdindex, const char* mode, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
+  virtual void    L2L3_g6_0021_TrackDecoded(Int_t ssdindex, const char* mode, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
+  virtual void    L2L3_g6_0111_TrackDecoded(Int_t ssdindex, const char* mode, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
+  virtual void    L2L3_g6_0112_TrackDecoded(Int_t ssdindex, const char* mode, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
+  virtual void    L2L3_g6_0120_TrackDecoded(Int_t ssdindex, const char* mode, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
+  virtual void    L2L3_g6_0121_TrackDecoded(Int_t ssdindex, const char* mode, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
+  virtual void    L2L3_g6_0211_TrackDecoded(Int_t ssdindex, const char* mode, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
+  virtual void    L2L3_g6_1011_TrackDecoded(Int_t ssdindex, const char* mode, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
+  virtual void    L2L3_g6_1110_TrackDecoded(Int_t ssdindex, const char* mode, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
+  virtual void    L2L3_g6_1111_TrackDecoded(Int_t ssdindex, const char* mode, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
+  virtual void    L2L3_g6_1112_TrackDecoded(Int_t ssdindex, const char* mode, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
+  virtual void    L2L3_g6_1121_TrackDecoded(Int_t ssdindex, const char* mode, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
+  virtual void    L2L3_g6_1211_TrackDecoded(Int_t ssdindex, const char* mode, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
+  virtual void    L2L3_g6_2222_TrackDecoded(Int_t ssdindex, const char* mode, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
 };
 //oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
@@ -280,6 +284,11 @@ public:
   L1L2_TrackDecoded();
   ~L1L2_TrackDecoded();
 
+
+public:
+  virtual void    L1L2_AllModes_TrackDecoded(Int_t ssdindex, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
+
+
 private:
   Int_t           fgMulti;
   Int_t           fSSDgMulti[NUM_CSI];
@@ -289,23 +298,28 @@ private:
 public:
   void      FillGlobalEvent_L1L2(CSHINESSDEvent* globalevent, Int_t gmulti, Int_t modex_index,
                                  Int_t ssdindex, Int_t& ssdmulti, Int_t charge, Int_t mass,
-                                 Double_t Stripl1s, Double_t El1s, Double_t El1s_corrected,
-                                 Double_t Stripl2f, Double_t El2f,
-                                 Double_t Stripl2b, Double_t El2b, Int_t Timel2f);
+                                 Double_t Stripl1s, Double_t El1s, Double_t El1s_corrected, Double_t El1s_Ch,
+                                 Double_t Stripl2f, Double_t El2f, Double_t El2f_Ch,
+                                 Double_t Stripl2b, Double_t El2b, Double_t El2b_Ch, Int_t Timel2f);
 
 
 private:
   Double_t        g2_EL2B_Sum, g2_EL2F_Sum, g2_EL1S_Sum, g2_EL1S_Sum_Corrected;
+  Double_t        g2_EL2B_Ch_Sum, g2_EL2F_Ch_Sum, g2_EL1S_Ch_Sum;
   Double_t        g2_ChargeCenter, g2_L2B_ChargeCenter, g2_L1S_ChargeCenter;
   //
   Double_t        g3_EL2F_Sum01,  g3_EL2F_Sum12, g3_EL2B_Sum01, g3_EL2B_Sum02, g3_EL2B_Sum12, g3_EL2B_Sum012;
+  Double_t        g3_EL2F_Ch_Sum01,  g3_EL2F_Ch_Sum12, g3_EL2B_Ch_Sum01, g3_EL2B_Ch_Sum02, g3_EL2B_Ch_Sum12, g3_EL2B_Ch_Sum012;
   Double_t        g3_ChargeCenter;
   //
   Double_t        g4_EL2F_Sum03, g4_EL2F_Sum12, g4_EL1S_Sum03, g4_EL1S_Sum03_Corrected, g4_EL2B_Sum03, g4_EL2B_Sum12;
+  Double_t        g4_EL2F_Ch_Sum03, g4_EL2F_Ch_Sum12, g4_EL1S_Ch_Sum03, g4_EL1S_Ch_Sum03_Corrected, g4_EL2B_Ch_Sum03, g4_EL2B_Ch_Sum12;
   Double_t        g4_ChargeCenter, g4_L2B_ChargeCenter, g4_L2F_ChargeCenter;
   //
   Double_t        g6_EL2B_Sum03, g6_EL2B_Sum04, g6_EL2B_Sum15,g6_EL2F_Sum04, g6_EL2F_Sum15;
   Double_t        g6_EL2B_Sum24, g6_EL2B_Sum35, g6_EL2B_Sum02, g6_EL2B_Sum13;
+  Double_t        g6_EL2B_Ch_Sum03, g6_EL2B_Ch_Sum04, g6_EL2B_Ch_Sum15, g6_EL2F_Ch_Sum04, g6_EL2F_Ch_Sum15;
+  Double_t        g6_EL2B_Ch_Sum24, g6_EL2B_Ch_Sum35, g6_EL2B_Ch_Sum02, g6_EL2B_Ch_Sum13;
   Double_t        g6_L2B_ChargeCenter, g6_L2F_ChargeCenter;
 
 private:
@@ -324,6 +338,7 @@ private:
 private:
   Double_t          fCsINum_Init  = -1;
   Double_t          fCsIEMeV_Init = -1;
+  Double_t          fCsIECh_Init  = -1;
 
 
 private:
@@ -385,43 +400,43 @@ private:
 
 //oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 public:
-  virtual void    L1L2_g1_TrackDecoded(CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
-  virtual void    L1L2_g2_TrackDecoded(CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
-  virtual void    L1L2_g3_TrackDecoded(CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
-  virtual void    L1L2_g4_TrackDecoded(CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
-  virtual void    L1L2_g6_TrackDecoded(CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
+  virtual void    L1L2_g1_TrackDecoded(Int_t ssdindex, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
+  virtual void    L1L2_g2_TrackDecoded(Int_t ssdindex, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
+  virtual void    L1L2_g3_TrackDecoded(Int_t ssdindex, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
+  virtual void    L1L2_g4_TrackDecoded(Int_t ssdindex, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
+  virtual void    L1L2_g6_TrackDecoded(Int_t ssdindex, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
 
 
   //____________________________________
   //  以下是模式分类后的径迹重建算法
 
   // globalmulti = 2
-  virtual void    L1L2_g2_001_TrackDecoded(Int_t ssdindex, const char* mode, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
-  virtual void    L1L2_g2_010_TrackDecoded(Int_t ssdindex, const char* mode, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
-  virtual void    L1L2_g2_100_TrackDecoded(Int_t ssdindex, const char* mode, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
-  virtual void    L1L2_g2_101_TrackDecoded(Int_t ssdindex, const char* mode, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
+  virtual void    L1L2_g2_001_TrackDecoded(Int_t ssdindex, const char* mode, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
+  virtual void    L1L2_g2_010_TrackDecoded(Int_t ssdindex, const char* mode, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
+  virtual void    L1L2_g2_100_TrackDecoded(Int_t ssdindex, const char* mode, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
+  virtual void    L1L2_g2_101_TrackDecoded(Int_t ssdindex, const char* mode, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
 
   // globalmulti = 3
-  virtual void    L1L2_g3_002_TrackDecoded(Int_t ssdindex, const char* mode, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
-  virtual void    L1L2_g3_020_TrackDecoded(Int_t ssdindex, const char* mode, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
-  virtual void    L1L2_g3_101_TrackDecoded(Int_t ssdindex, const char* mode, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
-  virtual void    L1L2_g3_102_TrackDecoded(Int_t ssdindex, const char* mode, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
-  virtual void    L1L2_g3_200_TrackDecoded(Int_t ssdindex, const char* mode, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
-  virtual void    L1L2_g3_201_TrackDecoded(Int_t ssdindex, const char* mode, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
-  virtual void    L1L2_g3_202_TrackDecoded(Int_t ssdindex, const char* mode, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
+  virtual void    L1L2_g3_002_TrackDecoded(Int_t ssdindex, const char* mode, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
+  virtual void    L1L2_g3_020_TrackDecoded(Int_t ssdindex, const char* mode, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
+  virtual void    L1L2_g3_101_TrackDecoded(Int_t ssdindex, const char* mode, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
+  virtual void    L1L2_g3_102_TrackDecoded(Int_t ssdindex, const char* mode, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
+  virtual void    L1L2_g3_200_TrackDecoded(Int_t ssdindex, const char* mode, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
+  virtual void    L1L2_g3_201_TrackDecoded(Int_t ssdindex, const char* mode, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
+  virtual void    L1L2_g3_202_TrackDecoded(Int_t ssdindex, const char* mode, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
 
   // globalmulti = 4
-  virtual void    L1L2_g4_011_TrackDecoded(Int_t ssdindex, const char* mode, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
-  virtual void    L1L2_g4_101_TrackDecoded(Int_t ssdindex, const char* mode, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
-  virtual void    L1L2_g4_110_TrackDecoded(Int_t ssdindex, const char* mode, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
-  virtual void    L1L2_g4_111_TrackDecoded(Int_t ssdindex, const char* mode, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
+  virtual void    L1L2_g4_011_TrackDecoded(Int_t ssdindex, const char* mode, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
+  virtual void    L1L2_g4_101_TrackDecoded(Int_t ssdindex, const char* mode, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
+  virtual void    L1L2_g4_110_TrackDecoded(Int_t ssdindex, const char* mode, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
+  virtual void    L1L2_g4_111_TrackDecoded(Int_t ssdindex, const char* mode, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
 
   // globalmulti = 6
-  virtual void    L1L2_g6_111_TrackDecoded(Int_t ssdindex, const char* mode, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
-  virtual void    L1L2_g6_112_TrackDecoded(Int_t ssdindex, const char* mode, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
-  virtual void    L1L2_g6_120_TrackDecoded(Int_t ssdindex, const char* mode, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
-  virtual void    L1L2_g6_121_TrackDecoded(Int_t ssdindex, const char* mode, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
-  virtual void    L1L2_g6_211_TrackDecoded(Int_t ssdindex, const char* mode, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
+  virtual void    L1L2_g6_111_TrackDecoded(Int_t ssdindex, const char* mode, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
+  virtual void    L1L2_g6_112_TrackDecoded(Int_t ssdindex, const char* mode, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
+  virtual void    L1L2_g6_120_TrackDecoded(Int_t ssdindex, const char* mode, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
+  virtual void    L1L2_g6_121_TrackDecoded(Int_t ssdindex, const char* mode, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
+  virtual void    L1L2_g6_211_TrackDecoded(Int_t ssdindex, const char* mode, Int_t& ssdmulti, CSHINESSDEvent* globalevent, CSHINETrackEvent2* trackevent, Bool_t switchsetting);
 };
 //oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 

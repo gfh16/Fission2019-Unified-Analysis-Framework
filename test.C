@@ -15,6 +15,11 @@ using namespace std;
 //______________________________________________________________________________
 void test()
 {
+
+  CSHINESiPixelGeometry pixel;
+  pixel.SiPixellation();
+
+
 //  CSHINEAlphaCali alphacali;
 //  alphacali.CalculateAlphaEnergy();
   //_______________________________________
@@ -171,35 +176,35 @@ void test()
 
 
   L1L2_DecodefGlobalMulti2 l1l2track2(150, 160);
-  l1l2track2.L1L2_GlobalMulti2_Decode_001();
-  l1l2track2.L1L2_GlobalMulti2_Decode_010();
-  l1l2track2.L1L2_GlobalMulti2_Decode_100();
-  l1l2track2.L1L2_GlobalMulti2_Decode_101();
+//  l1l2track2.L1L2_GlobalMulti2_Decode_001();
+//  l1l2track2.L1L2_GlobalMulti2_Decode_010();
+//  l1l2track2.L1L2_GlobalMulti2_Decode_100();
+//  l1l2track2.L1L2_GlobalMulti2_Decode_101();
 
 
   L1L2_DecodefGlobalMulti3 l1l2track3(150, 160);
-  l1l2track3.L1L2_GlobalMulti3_Decode_002();
-  l1l2track3.L1L2_GlobalMulti3_Decode_020();
-  l1l2track3.L1L2_GlobalMulti3_Decode_101();
-  l1l2track3.L1L2_GlobalMulti3_Decode_102();
-  l1l2track3.L1L2_GlobalMulti3_Decode_200();
-  l1l2track3.L1L2_GlobalMulti3_Decode_201();
-  l1l2track3.L1L2_GlobalMulti3_Decode_202();
+//  l1l2track3.L1L2_GlobalMulti3_Decode_002();
+//  l1l2track3.L1L2_GlobalMulti3_Decode_020();
+//  l1l2track3.L1L2_GlobalMulti3_Decode_101();
+//  l1l2track3.L1L2_GlobalMulti3_Decode_102();
+//  l1l2track3.L1L2_GlobalMulti3_Decode_200();
+//  l1l2track3.L1L2_GlobalMulti3_Decode_201();
+//  l1l2track3.L1L2_GlobalMulti3_Decode_202();
 
 
   L1L2_DecodefGlobalMulti4 l1l2track4(150, 160);
-  l1l2track4.L1L2_GlobalMulti4_Decode_011();
-  l1l2track4.L1L2_GlobalMulti4_Decode_101();
-  l1l2track4.L1L2_GlobalMulti4_Decode_110();
-  l1l2track4.L1L2_GlobalMulti4_Decode_111();
+//  l1l2track4.L1L2_GlobalMulti4_Decode_011();
+//  l1l2track4.L1L2_GlobalMulti4_Decode_101();
+//  l1l2track4.L1L2_GlobalMulti4_Decode_110();
+//  l1l2track4.L1L2_GlobalMulti4_Decode_111();
 
 
   L1L2_DecodefGlobalMulti6 l1l2track6(150, 160);
-  l1l2track6.L1L2_GlobalMulti6_Decode_111();
-  l1l2track6.L1L2_GlobalMulti6_Decode_112();
-  l1l2track6.L1L2_GlobalMulti6_Decode_120();
-  l1l2track6.L1L2_GlobalMulti6_Decode_121();
-  l1l2track6.L1L2_GlobalMulti6_Decode_211();
+//  l1l2track6.L1L2_GlobalMulti6_Decode_111();
+//  l1l2track6.L1L2_GlobalMulti6_Decode_112();
+//  l1l2track6.L1L2_GlobalMulti6_Decode_120();
+//  l1l2track6.L1L2_GlobalMulti6_Decode_121();
+//  l1l2track6.L1L2_GlobalMulti6_Decode_211();
 
 
 //*******************************************************************************

@@ -81,7 +81,8 @@ public:
   ClassDef(CSHINELayerEvent,1);
 };
 
-//_________________________________________________
+//______________________________________________________-
+// 实际数据转换中, 使用以下 CSHINELayerEvent2 来存储数据
 class CSHINELayerEvent2
 {
 public:
@@ -95,15 +96,18 @@ public:
   Int_t                  fL1SMulti[NUM_SSD];
   std::vector<Int_t>     fL1SNumStrip[NUM_SSD]; //[fL1SMulti[NUM_SSD]]
   std::vector<Double_t>  fL1SEMeV[NUM_SSD];     //[fL1SMulti[NUM_SSD]]
+  std::vector<Double_t>  fL1SECh[NUM_SSD];      //[fL1SMulti[NUM_SSD]]
   // for L2F
   Int_t                  fL2FMulti[NUM_SSD];
   std::vector<Int_t>     fL2FNumStrip[NUM_SSD]; //[fL2FMulti[NUM_SSD]]
   std::vector<Double_t>  fL2FEMeV[NUM_SSD];     //[fL2FMulti[NUM_SSD]]
+  std::vector<Double_t>  fL2FECh[NUM_SSD];      //[fL2FMulti[NUM_SSD]]
   std::vector<Int_t>     fL2FTime[NUM_SSD];     //[fL2FMulti[NUM_SSD]]
   // for L2B
   Int_t                  fL2BMulti[NUM_SSD];
   std::vector<Int_t>     fL2BNumStrip[NUM_SSD]; //[fL2BMulti[NUM_SSD]]
   std::vector<Double_t>  fL2BEMeV[NUM_SSD];     //[fL2BMulti[NUM_SSD]]
+  std::vector<Double_t>  fL2BECh[NUM_SSD];      //[fL2BMulti[NUM_SSD]]
   // for CsI
   Int_t                  fCsIMulti[NUM_SSD];
   std::vector<Int_t>     fCsINum[NUM_SSD];     //[fCsIMulti[NUM_SSD]]
@@ -115,11 +119,14 @@ public:
     for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
       std::vector<Int_t>().swap(fL1SNumStrip[ssdindex]);
       std::vector<Double_t>().swap(fL1SEMeV[ssdindex]);
+      std::vector<Double_t>().swap(fL1SECh[ssdindex]);
       std::vector<Int_t>().swap(fL2FNumStrip[ssdindex]);
       std::vector<Double_t>().swap(fL2FEMeV[ssdindex]);
+      std::vector<Double_t>().swap(fL2FECh[ssdindex]);
       std::vector<Int_t>().swap(fL2FTime[ssdindex]);
       std::vector<Int_t>().swap(fL2BNumStrip[ssdindex]);
       std::vector<Double_t>().swap(fL2BEMeV[ssdindex]);
+      std::vector<Double_t>().swap(fL2BECh[ssdindex]);
       std::vector<Int_t>().swap(fCsINum[ssdindex]);
       std::vector<Int_t>().swap(fCsIECh[ssdindex]);
     }
@@ -186,6 +193,7 @@ public:
 //
 // P.S. TrackEvent 是指, 只使用几何约束得到的候选径迹事件
 //
+// 实际数据处理中, 使用以下 CSHINETrackEvent2 存储数据
 class CSHINETrackEvent2
 {
 public:
@@ -196,13 +204,16 @@ public:
 
   std::vector<Double_t>  fL1SNumStrip[NUM_SSD];
   std::vector<Double_t>  fL1SEMeV[NUM_SSD];
+  std::vector<Double_t>  fL1SECh[NUM_SSD];
+  std::vector<Double_t>  fL1SEMeV_Corrected[NUM_SSD]; // for L1L2 track resconstruction
   std::vector<Double_t>  fL2FNumStrip[NUM_SSD];
   std::vector<Double_t>  fL2FEMeV[NUM_SSD];
+  std::vector<Double_t>  fL2FECh[NUM_SSD];
   std::vector<Double_t>  fL2BNumStrip[NUM_SSD];
   std::vector<Double_t>  fL2BEMeV[NUM_SSD];
+  std::vector<Double_t>  fL2BECh[NUM_SSD];
   std::vector<Double_t>  fCsINum[NUM_SSD];
   std::vector<Double_t>  fCsIECh[NUM_SSD];
-  std::vector<Double_t>  fL1SEMeV_Corrected[NUM_SSD]; // for L1L2 track resconstruction
 
   std::vector<Int_t>     fL2FTime[NUM_SSD];
 
@@ -218,10 +229,13 @@ public:
       std::vector<Double_t>().swap(fCsINum[ssdindex]);
 
       std::vector<Double_t>().swap(fL1SEMeV[ssdindex]);
-      std::vector<Double_t>().swap(fL2FEMeV[ssdindex]);
-      std::vector<Double_t>().swap(fL2BEMeV[ssdindex]);
-      std::vector<Double_t>().swap(fCsIECh[ssdindex]);
+      std::vector<Double_t>().swap(fL1SECh[ssdindex]);
       std::vector<Double_t>().swap(fL1SEMeV_Corrected[ssdindex]);
+      std::vector<Double_t>().swap(fL2FEMeV[ssdindex]);
+      std::vector<Double_t>().swap(fL2FECh[ssdindex]);
+      std::vector<Double_t>().swap(fL2BEMeV[ssdindex]);
+      std::vector<Double_t>().swap(fL2BECh[ssdindex]);
+      std::vector<Double_t>().swap(fCsIECh[ssdindex]);
 
       std::vector<Int_t>().swap(fL2FTime[ssdindex]);
 
@@ -249,14 +263,18 @@ public:
   std::vector<Int_t>       fSSDGlobalMulti;    //[NUM_SSD],      每套SSD的事件数
   std::vector<Int_t>       fGSSDNum;           //[fGlobalMulti], 每个事件点火的SSD编号
   std::vector<Double_t>    fGL1SNumStrip;      //[fGlobalMulti], L1S 点火条的编号
-  std::vector<Double_t>    fGL1SEMeV;          //[fGlobalMulti], L1S 能量
+  std::vector<Double_t>    fGL1SEMeV;          //[fGlobalMulti], L1S 能量, MeV
   std::vector<Double_t>    fGL1SEMeVCorrected; //[fGlobalMulti], L1S 能量,考虑L1的厚度修正
+  std::vector<Double_t>    fGL1SECh;           //[fGlobalMulti], L1S 能量, Ch
   std::vector<Double_t>    fGL2FNumStrip;      //[fGlobalMulti], L2F 点火条的编号
-  std::vector<Double_t>    fGL2FEMeV;          //[fGlobalMulti], L2F 能量
+  std::vector<Double_t>    fGL2FEMeV;          //[fGlobalMulti], L2F 能量, MeV
+  std::vector<Double_t>    fGL2FECh;           //[fGlobalMulti], L2F 能量, Ch
   std::vector<Double_t>    fGL2BNumStrip;      //[fGlobalMulti], L2B 点火条的编号
-  std::vector<Double_t>    fGL2BEMeV;          //[fGlobalMulti], L2B 能量
+  std::vector<Double_t>    fGL2BEMeV;          //[fGlobalMulti], L2B 能量, MeV
+  std::vector<Double_t>    fGL2BECh;           //[fGlobalMulti], L2B 能量, Ch
   std::vector<Double_t>    fGCsINum;           //[fGlobalMulti], CsI 点火编号
-  std::vector<Double_t>    fGCsIEMeV;          //[fGlobalMulti], CsI 能量
+  std::vector<Double_t>    fGCsIEMeV;          //[fGlobalMulti], CsI 能量, MeV
+  std::vector<Double_t>    fGCsIECh;           //[fGlobalMulti], CsI 能量, Ch
 
   std::vector<Int_t>       fGL2FTime;          //[fGlobalMulti], L2F 时间信号
 
@@ -281,12 +299,16 @@ public:
     std::vector<Double_t>().swap(fGL1SNumStrip);
     std::vector<Double_t>().swap(fGL1SEMeV);
     std::vector<Double_t>().swap(fGL1SEMeVCorrected);
+    std::vector<Double_t>().swap(fGL1SECh);
     std::vector<Double_t>().swap(fGL2FNumStrip);
     std::vector<Double_t>().swap(fGL2FEMeV);
+    std::vector<Double_t>().swap(fGL2FECh);
     std::vector<Double_t>().swap(fGL2BNumStrip);
     std::vector<Double_t>().swap(fGL2BEMeV);
+    std::vector<Double_t>().swap(fGL2BECh);
     std::vector<Double_t>().swap(fGCsINum);
     std::vector<Double_t>().swap(fGCsIEMeV);
+    std::vector<Double_t>().swap(fGCsIECh);
 
     std::vector<Int_t>().swap(fGL2FTime);
 
@@ -303,6 +325,7 @@ public:
 
     std::vector<Int_t>().swap(fTrackModeID);
   }
+
 
   ClassDef(CSHINESSDEvent,1);
 };
@@ -326,16 +349,10 @@ public:
   std::vector<Int_t>       fY2;             // [fFFMulti], PPAC原始Y2信号
   std::vector<Int_t>       fTE;             // [fFFMulti], PPAC阴极膜的能量信号
 
-  std::vector<Double_t>    fToF;            // [fFFMulti], 碎片的飞行时间(根据高频RF计算)
-
   std::vector<Double_t>    fDist;           // [fFFMulti], 击中点到靶点的距离 [实验室系]
   std::vector<Double_t>    fTheta;          // [fFFMulti], 击中点的 theta 角 [实验室系]
   std::vector<Double_t>    fPhi;            // [fFFMulti], 击中点的 phi 角   [实验室系]
 
-  std::vector<Int_t>       fModeID;         // [fFFMulti]
-
-  Double_t                 fFoldingAngle12; // FF1 与 FF2 的折叠角
-  Double_t                 fFoldingAngle13; // FF1 与 FF3 的折叠角
 
   void Swap()
   {
@@ -346,11 +363,10 @@ public:
     std::vector<Int_t>().swap(fY1);
     std::vector<Int_t>().swap(fY2);
     std::vector<Int_t>().swap(fTE);
-    std::vector<Double_t>().swap(fToF);
+
     std::vector<Double_t>().swap(fDist);
     std::vector<Double_t>().swap(fTheta);
     std::vector<Double_t>().swap(fPhi);
-    std::vector<Int_t>().swap(fModeID);
   }
 };
 //______________________________________________________________________________
@@ -379,6 +395,9 @@ public:
     std::vector<Int_t>().swap(fL1ESi);
     std::vector<Int_t>().swap(fL2ECsI);
   }
+
+
+  ClassDef(CSHINEAuSiTelEvent,1);
 };
 //______________________________________________________________________________
 
@@ -391,8 +410,12 @@ public:
   ~CSHINERFSignal();
 
 public:
-  Int_t     fRF1;   // 第1路高频信号
-  Int_t     fRF2;   // 第2路高频信号
+  Int_t     fRF1Shifted; // 将第1路高频信号平移到同一个周期内, 作为实际的高频信号
+  Int_t     fRF1;        // 第1路高频信号
+  Int_t     fRF2;        // 第2路高频信号
+
+
+  ClassDef(CSHINERFSignal,1);
 };
 //______________________________________________________________________________
 
