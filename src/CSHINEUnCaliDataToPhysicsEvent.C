@@ -408,15 +408,17 @@ void CSHINEUnCaliDataToPhysicsEvent_PPAC::FillPPACEvent(CSHINEPPACEvent* ppaceve
 	//
 	for (Int_t ippac=0; ippac<NUM_PPAC; ippac++)
 	{
-		// 只有当 X面, Y面都至少有一个信号时,该时间为有效事件
-		PPAC_X1_GOOG[ippac] = PPAC_X1[ippac]>PPAC_TDC_CUT ? true : false;
-    PPAC_X2_GOOG[ippac] = PPAC_X2[ippac]>PPAC_TDC_CUT ? true : false;
-		PPAC_Y1_GOOG[ippac] = PPAC_Y1[ippac]>PPAC_TDC_CUT ? true : false;
-		PPAC_Y2_GOOG[ippac] = PPAC_Y2[ippac]>PPAC_TDC_CUT ? true : false;
 
-		if ((PPAC_X1_GOOG[ippac]&&PPAC_X2_GOOG[ippac]) && (PPAC_Y1_GOOG[ippac]&&PPAC_Y2_GOOG[ippac]))
+		PPAC_T_GOOD[ippac]  = PPAC_T [ippac]>PPAC_TDC_CUT ? true : false;
+		PPAC_X1_GOOD[ippac] = PPAC_X1[ippac]>PPAC_TDC_CUT ? true : false;
+    PPAC_X2_GOOD[ippac] = PPAC_X2[ippac]>PPAC_TDC_CUT ? true : false;
+		PPAC_Y1_GOOD[ippac] = PPAC_Y1[ippac]>PPAC_TDC_CUT ? true : false;
+		PPAC_Y2_GOOD[ippac] = PPAC_Y2[ippac]>PPAC_TDC_CUT ? true : false;
+
+		// 基于原始数据，根据刻度结果，进行计算:
+		if (PPAC_T_GOOD[ippac] && (PPAC_X1_GOOD[ippac]||PPAC_X2_GOOD[ippac]) && (PPAC_Y1_GOOD[ippac]||PPAC_Y2_GOOD[ippac]))
 		{
-			gMulti++;
+      gMulti++;
 
 			// 填充原始数据
 			ppacevent->fPPACFiredNum.push_back(ippac);
@@ -427,7 +429,7 @@ void CSHINEUnCaliDataToPhysicsEvent_PPAC::FillPPACEvent(CSHINEPPACEvent* ppaceve
 			ppacevent->fY2.push_back(PPAC_Y2[ippac]);
 			ppacevent->fTE.push_back(PPAC_TE[ippac]);
 
-			// 基于原始数据，根据刻度结果，进行计算:
+			fPPACCali.GetAndCorrectOriginalSignals(ippac,PPAC_T[ippac],PPAC_X1[ippac],PPAC_X2[ippac],PPAC_Y1[ippac],PPAC_Y2[ippac]);
 			fVec3InPPACFrame = fPPACCali.XYSignalToCoordinateInPPACFrame(ippac,PPAC_X1[ippac],PPAC_X2[ippac],PPAC_Y1[ippac],PPAC_Y2[ippac]);
 			fVec3InLabFrame  = fPPACCali.CoordinatePPACFrameToLabFrame(ippac, fVec3InPPACFrame);
 

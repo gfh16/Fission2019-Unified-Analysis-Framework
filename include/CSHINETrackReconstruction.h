@@ -116,6 +116,8 @@ public:
   virtual void     CheckEnergyLossL1L2_Expdata();
   // 多重性测试
   virtual void     CheckLayerMultiPercentage();
+  //
+  virtual void     CheckEnergyCondition_ExpData();
 
 public:
   //___________________________________________

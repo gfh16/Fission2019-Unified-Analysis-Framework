@@ -179,10 +179,11 @@ private:
 
 private:
 	Int_t   gMulti;
-	Bool_t  PPAC_X1_GOOG[NUM_PPAC];
-	Bool_t  PPAC_X2_GOOG[NUM_PPAC];
-	Bool_t  PPAC_Y1_GOOG[NUM_PPAC];
-	Bool_t  PPAC_Y2_GOOG[NUM_PPAC];
+	Bool_t  PPAC_T_GOOD[NUM_PPAC];
+  Bool_t  PPAC_X1_GOOD[NUM_PPAC];
+  Bool_t  PPAC_X2_GOOD[NUM_PPAC];
+  Bool_t  PPAC_Y1_GOOD[NUM_PPAC];
+  Bool_t  PPAC_Y2_GOOD[NUM_PPAC];
 };
 //oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 

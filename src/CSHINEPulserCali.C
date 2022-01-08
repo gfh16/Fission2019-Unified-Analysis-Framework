@@ -76,6 +76,9 @@ void CSHINEPulserCali::L1_AutoFindPeaksAndFit(const char* pulserfiletag)
   std::string pathPDFbegin(Form("%sfigure_PulserCali/SSD_%s_PulserCali_%s.pdf[",PATHFIGURESFOLDER,L1STag.c_str(),pulserfiletag));
   std::string pathPDFend(Form("%sfigure_PulserCali/SSD_%s_PulserCali_%s.pdf]"  ,PATHFIGURESFOLDER,L1STag.c_str(),pulserfiletag));
 
+  TFile* rootfileout = new TFile((Form("%srootoutput/SSD_%s_PulserCali_%s.root",PATHHOMEFOLDER,L1STag.c_str(),pulserfiletag)),"RECREATE");
+  rootfileout->cd();
+
   std::string pathRootInput[NUM_SSD];
   for (Int_t i=0; i<NUM_SSD; i++) {
     pathRootInput[i] = Form("%sQualityCheck/QC_MapSSD%d_%s_PulserCali_%s0000.root",PATHROOTFILESFOLDER,i+1,L1Tag.c_str(),pulserfiletag);
@@ -164,6 +167,10 @@ void CSHINEPulserCali::L1_AutoFindPeaksAndFit(const char* pulserfiletag)
           }
         }
       }
+      //
+      rootfileout->WriteTObject(PulserPeaks[SSDNum][CHNum],PulserPeaks[SSDNum][CHNum]->GetName());
+
+      //________________________________________________________________________
       cans[SSDNum][CHNum]->cd(2);
       gPad->SetGridx();
       gPad->SetGridy();
@@ -199,6 +206,9 @@ void CSHINEPulserCali::L1_AutoFindPeaksAndFit(const char* pulserfiletag)
       fflush(FileOut);
       gPad->Modified();
       gPad->Update();
+
+      //
+      rootfileout->WriteTObject(grap,grap->GetName());
     }
   }
   fclose(FileOut);
@@ -214,7 +224,8 @@ void CSHINEPulserCali::L1_AutoFindPeaksAndFit(const char* pulserfiletag)
     }
   }
   c_end->Print(pathPDFend.c_str());
-  return;
+
+  rootfileout->Close();
 }
 //oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 

@@ -73,6 +73,28 @@ TVector3 CSHINEPPACCalibration::CoordinatePPACFrameToLabFrame(Int_t numppac, TVe
 
 
 //oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
+void CSHINEPPACCalibration::GetAndCorrectOriginalSignals(Int_t numppac, Int_t& T,
+	Int_t& X1, Int_t& X2, Int_t& Y1, Int_t& Y2)
+{
+	// 只有当 X面, Y面都至少有一个信号时,该时间为有效事件
+	PPAC_X1_GOOD = X1 > PPAC_TDC_CUT ? true : false;
+	PPAC_X2_GOOD = X2 > PPAC_TDC_CUT ? true : false;
+	PPAC_Y1_GOOD = Y1 > PPAC_TDC_CUT ? true : false;
+	PPAC_Y2_GOOD = Y2 > PPAC_TDC_CUT ? true : false;
+
+	T = T;
+
+	if (PPAC_X1_GOOD && PPAC_X2_GOOD)    { X1 = X1; X2 = X2; }
+	if (PPAC_X1_GOOD && (!PPAC_X2_GOOD)) { X1 = X1; X2 = Int_t (fPPAC_X1_Plus_X2_Minus_2T[numppac] + 2*T - X1 + 0.5); } // 取最接近的整数
+	if ((!PPAC_X1_GOOD) && PPAC_X2_GOOD) { X1 = Int_t (fPPAC_X1_Plus_X2_Minus_2T[numppac] + 2*T - X2 + 0.5); X2 = X2; } // 取最接近的整数
+
+	if (PPAC_Y1_GOOD && PPAC_Y2_GOOD)    { Y1 = Y1; Y2 = Y2; }
+	if (PPAC_Y1_GOOD && (!PPAC_Y2_GOOD)) { Y1 = Y1; Y2 = Int_t (fPPAC_Y1_Plus_Y2_Minus_2T[numppac] + 2*T - Y1 + 0.5); } // 取最接近的整数
+	if ((!PPAC_Y1_GOOD) && PPAC_Y2_GOOD) { Y1 = Int_t (fPPAC_Y1_Plus_Y2_Minus_2T[numppac] + 2*T - Y2 + 0.5); Y2 = Y2; } // 取最接近的整数
+}
+
+
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 // 将 RF1 的信号平移到同一个周期
 Int_t CSHINEPPACCalibration::ShiftRF1IntoOnePeriod(Int_t RF1)
 {

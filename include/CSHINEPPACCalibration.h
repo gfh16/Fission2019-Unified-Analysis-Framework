@@ -26,6 +26,17 @@ public:
   TVector3         CoordinatePPACFrameToLabFrame(Int_t numppac, TVector3 vecppacframe);  // 坐标变换：由PPAC本体系转换到实验室系, 单位：mm
 
 
+public:
+  void             GetAndCorrectOriginalSignals(Int_t numppac, Int_t& T, Int_t& X1, Int_t& X2, Int_t& Y1, Int_t& Y2);
+
+
+private:
+  Bool_t           PPAC_X1_GOOD;
+  Bool_t           PPAC_X2_GOOD;
+  Bool_t           PPAC_Y1_GOOD;
+  Bool_t           PPAC_Y2_GOOD;
+
+
 // 以下这种方法计算 TOF 仅适用于 PPAC 两体符合事件，实际数据生成中没用上
 public:
   Int_t            ShiftRF1IntoOnePeriod(Int_t RF1);  // 将 RF1 的信号平移到同一个周期
@@ -46,6 +57,11 @@ private:
   const Double_t   fADCChannelTons = 0.1;         // ns  P.S.: fADCChannelTons = 8.9/(5*16+9);  // TDC 量程设置 0x00000059
   const Double_t   fCalibratedTimeConst = -117.6; // ns  P.S.: 刻度得到的时间常数
   const Int_t      fRF1Period = 755; // ADC channel, 高频 RF1 的周期
+
+
+private:
+  Double_t   fPPAC_X1_Plus_X2_Minus_2T[NUM_PPAC] = {1355.64, 1393.50, 1289.52}; // X 方向的时间常数： X1+X2-2T = const
+  Double_t   fPPAC_Y1_Plus_Y2_Minus_2T[NUM_PPAC] = {1033.71, 1108.57, 1201.30}; // Y 方向的时间常数: Y1+Y2-2T = const
 
 
 //______________________________________________________________________________

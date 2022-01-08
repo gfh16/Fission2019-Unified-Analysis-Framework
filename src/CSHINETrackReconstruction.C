@@ -1825,6 +1825,116 @@ void CSHINETrackReconstruction::CheckEnergyLossL1L2_Expdata()
 
 
 //______________________________________________________________________________
+// 根据实验数据检验能量约束条件
+void CSHINETrackReconstruction::CheckEnergyCondition_ExpData()
+{
+  Double_t EnergyCut[4] = {0.05, 0.10, 0.15, 0.20};
+
+  TFile* fileout = new TFile(Form("%srootoutput/CheckEnergyCondition_ExpData.root", PATHHOMEFOLDER), "RECREATE");
+  fileout->cd();
+
+  TH2D* h2_E1vsE2_vs_E2_Si_CsI[4];
+  TH2D* h2_E1vsE2_vs_E2_Si_Si[4];
+  TH2D* h2_EL2B_vs_EL2F[4];
+  TH2D* h2_DeltaE_vs_EL2F[4];
+  for (Int_t issd=0; issd<4; issd++) {
+    h2_E1vsE2_vs_E2_Si_CsI[issd] = new TH2D(Form("SSD%d_E1vsE2_vs_E2_Si_CsI",issd+1),Form("SSD%d_E1vsE2_vs_E2_Si_CsI",issd+1),4000,0,400,2000,0,200);
+    h2_E1vsE2_vs_E2_Si_Si[issd] = new TH2D(Form("SSD%d_E1vsE2_vs_E2_Si_Si",issd+1),Form("SSD%d_E1vsE2_vs_E2_Si_Si",issd+1),4000,0,400,2000,0,200);
+    h2_EL2B_vs_EL2F[issd] = new TH2D(Form("SSD%d_EL2B_vs_EL2F",issd+1),Form("SSD%d_EL2B_vs_EL2F",issd+1),4000,0,400.,4000,0,400);
+    h2_DeltaE_vs_EL2F[issd] = new TH2D(Form("SSD%d_DeltaE_vs_EL2F",issd+1),Form("SSD%d_DeltaE_vs_EL2F",issd+1),4000,0,400,2000,-100,100);
+  }
+
+  Long64_t nentries = fChainLayerTree->GetEntries();
+  cout<<"nentries = "<<nentries<<endl;
+  for (Long64_t ientry=0; ientry<nentries;ientry++) {
+
+    fChainLayerTree->GetEntry(ientry);
+    timeper.PrintPercentageAndRemainingTime(ientry, nentries);
+
+    for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++)
+    {
+      if (fLayerEvent.fSSDL2BMulti[ssdindex]==1 && fLayerEvent.fSSDL2FMulti[ssdindex]==1 && fLayerEvent.fSSDL1SMulti[ssdindex]==1)
+      {
+        // for L1L2
+        for (Int_t l2f=0; l2f<fLayerEvent.fL2FMulti; l2f++) {
+          for (Int_t l1s=0; l1s<fLayerEvent.fL1SMulti; l1s++) {
+            // for Si-Si: E1/E2 vs E2
+            if (fLayerEvent.fSSDCsIMulti[ssdindex]==0)
+            {
+              if(IsEneConstraint_L2B_L2F(ssdindex, fLayerEvent.fL2BMulti, fLayerEvent.fL2BEMeV.data(), fLayerEvent.fL2BSSDNum.data(),
+                                         fLayerEvent.fL2FNumStrip[l2f], fLayerEvent.fL2BSSDNum[l2f], 0.20) &&
+                 IsGeoConstraint_L2B_L1S(ssdindex, fLayerEvent.fL2BMulti, fLayerEvent.fL2BNumStrip.data(), fLayerEvent.fL2BSSDNum.data(),
+                                         fLayerEvent.fL1SNumStrip[l1s], fLayerEvent.fL1SSSDNum[l1s]))
+              {
+                h2_E1vsE2_vs_E2_Si_Si[ssdindex]->Fill(fLayerEvent.fL2FEMeV[l2f], fLayerEvent.fL1SEMeV[l1s]/fLayerEvent.fL2FEMeV[l2f]*100);
+              }
+            }
+            // for Si-CsI: E1/E2 vs E2
+            if (fLayerEvent.fSSDCsIMulti[ssdindex]==1)
+            {
+              if (IsGeoConstraint_L3A_L2B(ssdindex, fLayerEvent.fCsIMulti, fLayerEvent.fCsINum.data(), fLayerEvent.fCsISSDNum.data(),
+                                          fLayerEvent.fL2BMulti, fLayerEvent.fL2BNumStrip.data(), fLayerEvent.fL2BSSDNum.data()) &&
+                  IsGeoConstraint_L3A_L2F(ssdindex, fLayerEvent.fCsIMulti, fLayerEvent.fCsINum.data(), fLayerEvent.fCsISSDNum.data(),
+                                          fLayerEvent.fL2FNumStrip[l2f], fLayerEvent.fL2FSSDNum[l2f]) &&
+                  IsEneConstraint_L2B_L2F(ssdindex, fLayerEvent.fL2BMulti, fLayerEvent.fL2BEMeV.data(), fLayerEvent.fL2BSSDNum.data(),
+                                          fLayerEvent.fL2FNumStrip[l2f], fLayerEvent.fL2BSSDNum[l2f], 0.20) &&
+                  IsGeoConstraint_L2B_L1S(ssdindex, fLayerEvent.fL2BMulti, fLayerEvent.fL2BNumStrip.data(), fLayerEvent.fL2BSSDNum.data(),
+                                          fLayerEvent.fL1SNumStrip[l1s], fLayerEvent.fL1SSSDNum[l1s]))
+              {
+                h2_E1vsE2_vs_E2_Si_CsI[ssdindex]->Fill(fLayerEvent.fL2FEMeV[l2f], fLayerEvent.fL1SEMeV[l1s]/fLayerEvent.fL2FEMeV[l2f]*100);
+              }
+            }
+          }
+        }
+
+        // for L2L3
+        for (Int_t l2b=0; l2b<fLayerEvent.fL2BMulti; l2b++) {
+          for (Int_t l2f=0; l2f<fLayerEvent.fL2FMulti; l2f++) {
+            if (fLayerEvent.fSSDCsIMulti[ssdindex]==0)
+            {
+              if (IsGeoConstraint_L2B_L1S(ssdindex, fLayerEvent.fL2BNumStrip[l2b], fLayerEvent.fL2BSSDNum[l2b], fLayerEvent.fL1SMulti,
+                                          fLayerEvent.fL1SNumStrip.data(), fLayerEvent.fL1SSSDNum.data()))
+              {
+                if (fLayerEvent.fL2FSSDNum[l2f]==ssdindex)
+                {
+                  h2_EL2B_vs_EL2F[ssdindex]->Fill(fLayerEvent.fL2FEMeV[l2f], fLayerEvent.fL2BEMeV[l2b]);
+                  h2_DeltaE_vs_EL2F[ssdindex]->Fill(fLayerEvent.fL2FEMeV[l2f], (fLayerEvent.fL2BEMeV[l2b]-fLayerEvent.fL2FEMeV[l2f])/fLayerEvent.fL2FEMeV[l2f]*100);
+                }
+              }
+            }
+            //
+            if (fLayerEvent.fSSDCsIMulti[ssdindex]==1)
+            {
+              if (IsGeoConstraint_L3A_L2B(ssdindex, fLayerEvent.fCsIMulti, fLayerEvent.fCsINum.data(), fLayerEvent.fCsISSDNum.data(),fLayerEvent.fL2BNumStrip[l2b], fLayerEvent.fL2BSSDNum[l2b]) &&
+                  IsGeoConstraint_L3A_L2F(ssdindex, fLayerEvent.fCsIMulti, fLayerEvent.fCsINum.data(), fLayerEvent.fCsISSDNum.data(),fLayerEvent.fL2FNumStrip[l2f], fLayerEvent.fL2FSSDNum[l2f]) &&
+                  IsGeoConstraint_L2B_L1S(ssdindex, fLayerEvent.fL2BNumStrip[l2b], fLayerEvent.fL2BSSDNum[l2b],fLayerEvent.fL1SMulti, fLayerEvent.fL1SNumStrip.data(), fLayerEvent.fL1SSSDNum.data()))
+              {
+                h2_EL2B_vs_EL2F[ssdindex]->Fill(fLayerEvent.fL2FEMeV[l2f], fLayerEvent.fL2BEMeV[l2b]);
+                h2_DeltaE_vs_EL2F[ssdindex]->Fill(fLayerEvent.fL2FEMeV[l2f], (fLayerEvent.fL2BEMeV[l2b]-fLayerEvent.fL2FEMeV[l2f])/fLayerEvent.fL2FEMeV[l2f]*100);
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  for (Int_t issd=0; issd<4; issd++) {
+    fileout->WriteTObject(h2_E1vsE2_vs_E2_Si_CsI[issd], h2_E1vsE2_vs_E2_Si_CsI[issd]->GetName());
+    fileout->WriteTObject(h2_E1vsE2_vs_E2_Si_Si[issd], h2_E1vsE2_vs_E2_Si_Si[issd]->GetName());
+    fileout->WriteTObject(h2_EL2B_vs_EL2F[issd],   h2_EL2B_vs_EL2F[issd]->GetName());
+    fileout->WriteTObject(h2_DeltaE_vs_EL2F[issd], h2_DeltaE_vs_EL2F[issd]->GetName());
+  }
+  fileout->Close();
+}
+
+
+
+
+
+
+
+//______________________________________________________________________________
 // 多重性测试
 void PrintMulti(Int_t ssdindex, Int_t num_multi, string layertag, std::ofstream& fileout,
   Double_t* multiratio, Double_t sumratio)
@@ -1995,6 +2105,9 @@ void CSHINETrackReconstruction::CheckAlphaCaliChargeSharing()
   std::string pathAlphaCaliChargeSharingBegin(Form("%sfigure_TrackReconstruction/AlphaCaliChargeSharing.pdf[",PATHFIGURESFOLDER));
   std::string pathAlphaCaliChargeSharingEnd(Form("%sfigure_TrackReconstruction/AlphaCaliChargeSharing.pdf]",PATHFIGURESFOLDER));
 
+  TFile* rootout = new TFile(Form("%srootoutput/CheckAlphaCaliChargeSharing.root",PATHHOMEFOLDER), "RECREATE");
+  rootout->cd();
+
   Double_t range = 500;
   Int_t NBins = 500;
 
@@ -2155,6 +2268,21 @@ void CSHINETrackReconstruction::CheckAlphaCaliChargeSharing()
   DrawChargeSharingERatio(pathAlphaCaliChargeSharing, h1_L2F_ERatio);
   DrawChargeSharingERatio(pathAlphaCaliChargeSharing, h1_L2B_ERatio);
   c_end->Print(pathAlphaCaliChargeSharingEnd.c_str());
+
+  for (Int_t ssdindex=0; ssdindex<NUM_SSD; ssdindex++) {
+    for (Int_t strip=0; strip<(NUM_STRIP-1); strip++) {
+      rootout->WriteTObject(h2_L1S_ChargeSharing[ssdindex][strip], h2_L1S_ChargeSharing[ssdindex][strip]->GetName());
+      rootout->WriteTObject(h1_L1S_ERatio[ssdindex][strip], h1_L1S_ERatio[ssdindex][strip]->GetName());
+
+      rootout->WriteTObject(h2_L2F_ChargeSharing[ssdindex][strip], h2_L2F_ChargeSharing[ssdindex][strip]->GetName());
+      rootout->WriteTObject(h1_L2F_ERatio[ssdindex][strip], h1_L2F_ERatio[ssdindex][strip]->GetName());
+
+      rootout->WriteTObject(h2_L2B_ChargeSharing[ssdindex][strip], h2_L2B_ChargeSharing[ssdindex][strip]->GetName());
+      rootout->WriteTObject(h1_L2B_ERatio[ssdindex][strip], h1_L2B_ERatio[ssdindex][strip]->GetName());
+    }
+  }
+  rootout->Close();
+
 }
 
 
