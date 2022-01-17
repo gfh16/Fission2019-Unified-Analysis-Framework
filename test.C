@@ -29,7 +29,7 @@ void test()
 
   //_______________________________________________
   //  径迹重建前的一些测试与检查
-  CSHINETrackReconstruction test(150, 250);
+  CSHINETrackReconstruction test(150, 160);
 //  test.PrintUsage();
 
 //  test.CheckL2BL2FEnergyCorrelation(0);
@@ -42,7 +42,7 @@ void test()
 //  test.CheckEnergyLossL1L2_Relationship(1);
 //  test.CheckEnergyLossL1L2_Expdata();
 
-//  test.CheckLayerMultiPercentage();
+  test.CheckLayerMultiPercentage();
 
 //___________________________________________
 //              电荷分配效应
@@ -50,7 +50,7 @@ void test()
 //  test.CheckAlphaCaliChargeSharing();
 //  test.CheckClusterSize_Si();
 //  test.CalcClusterSize_Equal2_ERatio();
-  test.CheckEnergyCondition_ExpData();
+//  test.CheckEnergyCondition_ExpData();
 
 //___________________________________________
 //              CsI 晶体的串扰

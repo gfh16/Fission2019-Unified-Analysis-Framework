@@ -1618,7 +1618,6 @@ void CSHINETrackReconstruction::CheckEnergyLossL1L2_Relationship(Bool_t punchthr
   if (punchthrough) pathE1E2Correlation = Form("%sfigure_TrackReconstruction/SSD_E1E2Correlation_punchthrough.png",PATHFIGURESFOLDER);
   else pathE1E2Correlation = Form("%sfigure_TrackReconstruction/SSD_E1E2Correlation.png",PATHFIGURESFOLDER);
 
-  TFile* file = new TFile("/home/sea/Fission2019_Data/SSD_E1E2Correlation.root","RECREATE");
 
   std::vector<Double_t> dE1_SSD1;
   std::vector<Double_t> dE2_SSD1;
@@ -1693,15 +1692,6 @@ void CSHINETrackReconstruction::CheckEnergyLossL1L2_Relationship(Bool_t punchthr
     hist1_SSD_Eratio[3]->Fill(EL1EL2Ratio_SSD4[i]);
   }
 
-  file->WriteTObject(hist2_SSD_dEE[0],hist2_SSD_dEE[0]->GetName());
-  file->WriteTObject(hist2_SSD_dEE[1],hist2_SSD_dEE[1]->GetName());
-  file->WriteTObject(hist2_SSD_dEE[2],hist2_SSD_dEE[2]->GetName());
-  file->WriteTObject(hist2_SSD_dEE[3],hist2_SSD_dEE[3]->GetName());
-  file->WriteTObject(hist1_SSD_Eratio[0],hist1_SSD_Eratio[0]->GetName());
-  file->WriteTObject(hist1_SSD_Eratio[1],hist1_SSD_Eratio[1]->GetName());
-  file->WriteTObject(hist1_SSD_Eratio[2],hist1_SSD_Eratio[2]->GetName());
-  file->WriteTObject(hist1_SSD_Eratio[3],hist1_SSD_Eratio[3]->GetName());
-
   TF1* func_L2B_eq_L2F = new TF1("func", "x", 0, 300);
   func_L2B_eq_L2F->SetLineColor(kRed);
   func_L2B_eq_L2F->SetLineStyle(7);
@@ -1750,6 +1740,18 @@ void CSHINETrackReconstruction::CheckEnergyLossL1L2_Relationship(Bool_t punchthr
   }
   c_Eratio->Print(pathE1E2Ratio.c_str());
   cans->Print(pathE1E2Correlation.c_str());
+
+  TFile* file = new TFile("/home/sea/Fission2019_Data/SSD_E1E2Correlation.root","RECREATE");
+  file->cd();
+  file->WriteTObject(hist2_SSD_dEE[0],hist2_SSD_dEE[0]->GetName());
+  file->WriteTObject(hist2_SSD_dEE[1],hist2_SSD_dEE[1]->GetName());
+  file->WriteTObject(hist2_SSD_dEE[2],hist2_SSD_dEE[2]->GetName());
+  file->WriteTObject(hist2_SSD_dEE[3],hist2_SSD_dEE[3]->GetName());
+  file->WriteTObject(hist1_SSD_Eratio[0],hist1_SSD_Eratio[0]->GetName());
+  file->WriteTObject(hist1_SSD_Eratio[1],hist1_SSD_Eratio[1]->GetName());
+  file->WriteTObject(hist1_SSD_Eratio[2],hist1_SSD_Eratio[2]->GetName());
+  file->WriteTObject(hist1_SSD_Eratio[3],hist1_SSD_Eratio[3]->GetName());
+  file->Close();
 }
 
 

@@ -284,7 +284,7 @@
 
 
 
-#### <font color=#00BBDD>  3.3 无 SSD 单举 [Run212-Run0432]  </font>
+#### <font color=#00BBDD>  3.3 无 SSD 单举 [Run121-Run0432]  </font>
 >+ 实验 Trigger: AuSi单举 + PPAC两体 + SSD两体 + (PPAC两题*SSD单体)
 >+ 此条件下的数据是本次实验的核心！
 >+ 共有效文件 312个， Fisson2019_Kr_Pb.0121 $\sim$ Fisson2019_Kr_Pb.0432

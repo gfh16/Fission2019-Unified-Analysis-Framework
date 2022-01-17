@@ -7830,7 +7830,7 @@ void L1L2_DecodefGlobalMulti6::L1L2_GlobalMulti6_Decode_211()
 							{
 								if (!IsStripsOnCsIGap(L1L2_L2BStripNum[ssdindex][itrack], L1L2_L2FStripNum[ssdindex][itrack]))
 							  {
-                  h2_L1L2_DEE_Discard[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);  
+                  h2_L1L2_DEE_Discard[ssdindex].Fill(L1L2_L2FEMeV[ssdindex][itrack],L1L2_L1SEMeV_Corrected[ssdindex][itrack]);
 								}
 							}
 						}
