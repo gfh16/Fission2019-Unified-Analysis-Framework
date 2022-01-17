@@ -42,7 +42,7 @@ void test()
 //  test.CheckEnergyLossL1L2_Relationship(1);
 //  test.CheckEnergyLossL1L2_Expdata();
 
-  test.CheckLayerMultiPercentage();
+//  test.CheckLayerMultiPercentage();
 
 //___________________________________________
 //              电荷分配效应
@@ -102,7 +102,7 @@ void test()
 //  decode1.GlobalMulti1_L2L3_Decode();
 
 
-  DecodefGlobalMulti2 decode2(150, 160);
+  DecodefGlobalMulti2 decode2(150, 250);
 //  decode2.GlobalMulti2_Checks("L2L3");
 //  decode2.GlobalMulti2_CalcModeRatio();
 
