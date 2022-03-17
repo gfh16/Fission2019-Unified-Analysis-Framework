@@ -25,7 +25,7 @@ void test()
   //_______________________________________
   // step1: build layerevent
   CSHINEBuildEvent build;
-//  build.BuildLayerEventTree(151, 151);
+//  build.BuildLayerEventTree(90, 430);
 
   //_______________________________________________
   //  径迹重建前的一些测试与检查
@@ -59,22 +59,33 @@ void test()
 //  test.CheckCrossTalk_CsI();
 
 
+
 //___________________________________________
 //             径迹重建算法
 //          -----------------
 //            L2-L3 径迹重建
 //           ---------------
 //  test.L2L3_TrackReconstructionAlgorithm();
-//  test.CheckGlobalMultiRatio("L2L3",6);
-//  for (Int_t i=1; i<=6; i++)  test.GlobalMulti_ExtractData("L2L3",i);
+//  test.CheckGlobalMultiRatio("L2L3",12);
+//  for (Int_t i=3; i<=12; i++)  test.GlobalMulti_ExtractData("L2L3",i);
 //  test.L2L3_Mode_DrawClassification(2);
 //  test.L2L3_Mode_CalcRatio(2);
 //  test.L2L3_Mode_CalcRatio(3);
 //  test.L2L3_Mode_CalcRatio(4);
 //  test.L2L3_Mode_CalcRatio(6);
+//  test.L2L3_Mode_CalcRatio(8);
+//  test.L2L3_Mode_CalcRatio(12);
 
 //  test.L2L3_Mode_ExtractData(2);
+  //test.L2L3_Mode_ExtractData(3);
+//  test.L2L3_Mode_ExtractData(4);
+//  test.L2L3_Mode_ExtractData(6);
+//  test.L2L3_Mode_ExtractData(8);
+//  test.L2L3_Mode_ExtractData(12);
 
+
+
+/*
 
 //          L1-L2 径迹重建
 //       -------------------
@@ -89,87 +100,82 @@ void test()
   }
 
 
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 //                           径迹重建结果检查
 //
 // 模式识别
-  DecodefGlobalMulti1 decode1(150, 160);
-//  decode1.GlobalMulti1_Checks();
-//  decode1.GlobalMulti_L2L3_Discard();
-//  decode1.GlobalMulti_L2L3_EneL2BL2F_Discard();
- // decode1.GlobalMulti_L2L3_EneL1SL2F_Discard();
-
-//  decode1.GlobalMulti1_L2L3_Decode();
+  L2L3_DecodefGlobalMulti1 l2l3track1(150, 160);
+//  l2l3track1.GlobalMulti1_L2L3_Decode();
 
 
-  DecodefGlobalMulti2 decode2(150, 250);
-//  decode2.GlobalMulti2_Checks("L2L3");
-//  decode2.GlobalMulti2_CalcModeRatio();
+  L2L3_DecodefGlobalMulti2 l2l3track2(150, 160);
+//  l2l3track2.GlobalMulti2_Checks("L2L3");
+//  l2l3track2.GlobalMulti2_CalcModeRatio();
 
-//  decode2.GlobalMulti2_Decode_1111();
-//  decode2.GlobalMulti2_Decode_1101();
-//  decode2.GlobalMulti2_Decode_1010();
-//  decode2.GlobalMulti2_Decode_1000();
-//  decode2.GlobalMulti2_Decode_0101();
-//  decode2.GlobalMulti2_Decode_0100();
-//  decode2.GlobalMulti2_Decode_0010();
-//  decode2.GlobalMulti2_Decode_0001();
+//  l2l3track2.GlobalMulti2_Decode_1111();
+//  l2l3track2.GlobalMulti2_Decode_1101();
+//  l2l3track2.GlobalMulti2_Decode_1010();
+//  l2l3track2.GlobalMulti2_Decode_1000();
+//  l2l3track2.GlobalMulti2_Decode_0101();
+//  l2l3track2.GlobalMulti2_Decode_0100();
+//  l2l3track2.GlobalMulti2_Decode_0010();
+//  l2l3track2.GlobalMulti2_Decode_0001();
 
 //                           globalmulti = 3
 //                         -------------------
-  DecodefGlobalMulti3 trackg3(150, 160);
-  //trackg3.GlobalMulti3_Checks();
+  L2L3_DecodefGlobalMulti3 l2l3track3(150, 160);
+  //l2l3track3.GlobalMulti3_Checks();
 
-//  trackg3.GlobalMulti3_Decode_2222();
-//  trackg3.GlobalMulti3_Decode_2111();
-//  trackg3.GlobalMulti3_Decode_1211();
-//  trackg3.GlobalMulti3_Decode_1121();
-//  trackg3.GlobalMulti3_Decode_1112();
-//  trackg3.GlobalMulti3_Decode_1111();
-//  trackg3.GlobalMulti3_Decode_1110();
-//  trackg3.GlobalMulti3_Decode_1020();
-//  trackg3.GlobalMulti3_Decode_1010();
-//  trackg3.GlobalMulti3_Decode_0201();
-//  trackg3.GlobalMulti3_Decode_0102();
-//  trackg3.GlobalMulti3_Decode_0101();
-//  trackg3.GlobalMulti3_Decode_0020();
-//  trackg3.GlobalMulti3_Decode_0002();
-
-
-  DecodefGlobalMulti4 trackg4(150, 160);
-  //trackg4.GlobalMulti4_Checks();
-
-//  trackg4.GlobalMulti4_Decode_2222();
-//  trackg4.GlobalMulti4_Decode_1111();
-//  trackg4.GlobalMulti4_Decode_1110();
-//  trackg4.GlobalMulti4_Decode_1011();
-//  trackg4.GlobalMulti4_Decode_0111();
-//  trackg4.GlobalMulti4_Decode_0110();
-//  trackg4.GlobalMulti4_Decode_0101();
-//  trackg4.GlobalMulti4_Decode_0011();
+//  l2l3track3.GlobalMulti3_Decode_2222();
+//  l2l3track3.GlobalMulti3_Decode_2111();
+//  l2l3track3.GlobalMulti3_Decode_1211();
+//  l2l3track3.GlobalMulti3_Decode_1121();
+//  l2l3track3.GlobalMulti3_Decode_1112();
+//  l2l3track3.GlobalMulti3_Decode_1111();
+//  l2l3track3.GlobalMulti3_Decode_1110();
+//  l2l3track3.GlobalMulti3_Decode_1020();
+//  l2l3track3.GlobalMulti3_Decode_1010();
+//  l2l3track3.GlobalMulti3_Decode_0201();
+//  l2l3track3.GlobalMulti3_Decode_0102();
+//  l2l3track3.GlobalMulti3_Decode_0101();
+//  l2l3track3.GlobalMulti3_Decode_0020();
+//  l2l3track3.GlobalMulti3_Decode_0002();
 
 
-  DecodefGlobalMulti6 trackg6(150, 160);
-//  trackg6.GlobalMulti6_Checks();
+  L2L3_DecodefGlobalMulti4 l2l3track4(150, 160);
+  //l2l3track4.GlobalMulti4_Checks();
 
-//  trackg6.GlobalMulti6_Decode_2222();
-//  trackg6.GlobalMulti6_Decode_1211();
-//  trackg6.GlobalMulti6_Decode_1121();
-//  trackg6.GlobalMulti6_Decode_1112();
-//  trackg6.GlobalMulti6_Decode_1111();
-//  trackg6.GlobalMulti6_Decode_1110();
-//  trackg6.GlobalMulti6_Decode_1011();
-//  trackg6.GlobalMulti6_Decode_0211();
-//  trackg6.GlobalMulti6_Decode_0121();
-//  trackg6.GlobalMulti6_Decode_0120();
-//  trackg6.GlobalMulti6_Decode_0112();
-//  trackg6.GlobalMulti6_Decode_0111();
-//  trackg6.GlobalMulti6_Decode_0021();
-//  trackg6.GlobalMulti6_Decode_0012();
+//  l2l3track4.GlobalMulti4_Decode_2222();
+//  l2l3track4.GlobalMulti4_Decode_1111();
+//  l2l3track4.GlobalMulti4_Decode_1110();
+//  l2l3track4.GlobalMulti4_Decode_1011();
+//  l2l3track4.GlobalMulti4_Decode_0111();
+//  l2l3track4.GlobalMulti4_Decode_0110();
+//  l2l3track4.GlobalMulti4_Decode_0101();
+//  l2l3track4.GlobalMulti4_Decode_0011();
 
 
+  L2L3_DecodefGlobalMulti6 l2l3track6(150, 160);
+//  l2l3track6.GlobalMulti6_Checks();
 
-//******************************************************************************
+//  l2l3track6.GlobalMulti6_Decode_2222();
+//  l2l3track6.GlobalMulti6_Decode_1211();
+//  l2l3track6.GlobalMulti6_Decode_1121();
+//  l2l3track6.GlobalMulti6_Decode_1112();
+//  l2l3track6.GlobalMulti6_Decode_1111();
+//  l2l3track6.GlobalMulti6_Decode_1110();
+//  l2l3track6.GlobalMulti6_Decode_1011();
+//  l2l3track6.GlobalMulti6_Decode_0211();
+//  l2l3track6.GlobalMulti6_Decode_0121();
+//  l2l3track6.GlobalMulti6_Decode_0120();
+//  l2l3track6.GlobalMulti6_Decode_0112();
+//  l2l3track6.GlobalMulti6_Decode_0111();
+//  l2l3track6.GlobalMulti6_Decode_0021();
+//  l2l3track6.GlobalMulti6_Decode_0012();
+
+
+
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 //                        L1L2 径迹重建
 //                      ----------------
   L1L2_DecodefGlobalMulti1 l1l2track1(150, 160);
@@ -208,7 +214,7 @@ void test()
 //  l1l2track6.L1L2_GlobalMulti6_Decode_211();
 
 
-//*******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 //                           粒子鉴别
 //                     ------------------
 //  使用 DEEFIT 方法进行粒子鉴别
@@ -222,7 +228,7 @@ void test()
 
 
 
-//******************************************************************************
+//oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 //                        粒子鉴别结果检查
 //                     -------------------
 //  检查 DEE plot
@@ -246,6 +252,7 @@ void test()
 
 ///  deefitcheck.L2L3DrawPIDECsIMap();
 
+*/
 //__________________________________________________________________
 //                        CsI 能量刻度
 //                     -------------------
@@ -253,10 +260,12 @@ void test()
 //  csicali.DoGraphicalCut();
 //  csicali.GetProjectionCsIEnergPoints();
 //  csicali.GetDEEFITCsIEnergyPoints();
-//  csicali.DEEFITDrawAndFit_Z1();
-//  csicali.DEEFITDrawAndFit_ZOver2();
+  csicali.DEEFITDrawAndFit_Z1();
+  csicali.DEEFITDrawAndFit_ZOver2();
 //  csicali.CheckCsIEnergyCaliResults();
 //  csicali.GetStraighteningCsIEnergyPoints();
 //  csicali.StraighteningDrawAndFit_Z1();
 //  csicali.StraighteningDrawAndFit_ZOver2();
+
+
 }

@@ -37,7 +37,7 @@ CSHINETrackReconstruction::CSHINETrackReconstruction(Int_t firstrun, Int_t lastr
   fLastRun = lastrun;
 
   std::string pathLayerRootFile(Form("%sCSHINEEvent/EventTree_Run%04d-Run%04d.root",PATHROOTFILESFOLDER,fFirstRun,fLastRun));
-  std::string pathTrackRootFile(Form("%sL1L2_TrackReconstructionEvent_Run%04d-Run%04d.root",PATHROOTFILESFOLDER,fFirstRun,fLastRun));
+  std::string pathTrackRootFile(Form("%sL2L3_TrackReconstructionEvent_Run%04d-Run%04d.root",PATHROOTFILESFOLDER,fFirstRun,fLastRun));
 
   TTree* layertree = 0;
   TTree* tracktree = 0;;
@@ -1662,7 +1662,7 @@ void CSHINETrackReconstruction::CheckEnergyLossL1L2_Relationship(Bool_t punchthr
       Double_t dEL2;
       Double_t Eres;
       LineStream>>Z>>A>>Einc>>dEL1>>dEL2>>Eres;
-      if (punchthrough==kTRUE && Eres==0) continue;  // 只考虑能穿透第二层硅的情况
+      //if (punchthrough==kTRUE && Eres==0) continue;  // 只考虑能穿透第二层硅的情况
       dE1.push_back(dEL1);
       dE2.push_back(dEL2);
       EL1EL2Ratio.push_back(dEL1/dEL2 * 100);
@@ -1741,7 +1741,7 @@ void CSHINETrackReconstruction::CheckEnergyLossL1L2_Relationship(Bool_t punchthr
   c_Eratio->Print(pathE1E2Ratio.c_str());
   cans->Print(pathE1E2Correlation.c_str());
 
-  TFile* file = new TFile("/home/sea/Fission2019_Data/SSD_E1E2Correlation.root","RECREATE");
+  TFile* file = new TFile("/home/sea/Fission2019_Data/SSD_E1E2Correlation_All.root","RECREATE");
   file->cd();
   file->WriteTObject(hist2_SSD_dEE[0],hist2_SSD_dEE[0]->GetName());
   file->WriteTObject(hist2_SSD_dEE[1],hist2_SSD_dEE[1]->GetName());
@@ -3104,7 +3104,7 @@ void CSHINETrackReconstruction::L2L3_TrackReconstructionAlgorithm()
 
   ofstream  FileOut[NUM_SSD];
   for (Int_t i=0; i<NUM_SSD; i++) {
-    FileOut[i].open(Form("%sdata_Test_Multi/SSD%d_%s_Test_Multi_L1L2EnergyCut.dat",PATHDATAFOLDER,i+1,LayerTag.c_str()));
+    FileOut[i].open(Form("%sdata_Test_Multi/SSD%d_%s_Test_Multi_L2L3EnergyCut.dat",PATHDATAFOLDER,i+1,LayerTag.c_str()));
 
     FileOut[i]<<setw(7)<<"# EntryID"<<setw(15)<<"MultiGlobal"
               <<setw(11)<<"M_L3A"<<setw(11)<<"M_L2B"<<setw(11)<<"M_L2F"<<setw(11)<<"M_L1S"
@@ -3145,9 +3145,9 @@ void CSHINETrackReconstruction::L2L3_TrackReconstructionAlgorithm()
                 if (fLayerEvent.fCsISSDNum[csimulti]==ssdindex && fLayerEvent.fL2BSSDNum[l2bmulti]==ssdindex &&
                     fLayerEvent.fL2FSSDNum[l2fmulti]==ssdindex && fLayerEvent.fL1SSSDNum[l1smulti]==ssdindex)  // 对每个SSD分开讨论
                 {
-                  if (IsGeoConstraint_L3A_L2B(fLayerEvent.fCsINum[csimulti], fLayerEvent.fL2BNumStrip[l2bmulti]) &&
-                      IsGeoConstraint_L3A_L2F(fLayerEvent.fCsINum[csimulti], fLayerEvent.fL2FNumStrip[l2fmulti]) &&
-                    //  IsEneConstraint_L2B_L2F(ssdindex, fLayerEvent.fL2BEMeV[l2bmulti], fLayerEvent.fL2FEMeV[l2fmulti]) &&
+                  if (//IsGeoConstraint_L3A_L2B(fLayerEvent.fCsINum[csimulti], fLayerEvent.fL2BNumStrip[l2bmulti]) &&
+                      //IsGeoConstraint_L3A_L2F(fLayerEvent.fCsINum[csimulti], fLayerEvent.fL2FNumStrip[l2fmulti]) &&
+                      //  IsEneConstraint_L2B_L2F(ssdindex, fLayerEvent.fL2BEMeV[l2bmulti], fLayerEvent.fL2FEMeV[l2fmulti]) &&
                       IsGeoConstraint_L2B_L1S(fLayerEvent.fL2BNumStrip[l2bmulti], fLayerEvent.fL1SNumStrip[l1smulti]))
                     //  IsEneConstraint_L1S_L2F(ssdindex, fLayerEvent.fL1SEMeV[l1smulti], fLayerEvent.fL2FEMeV[l2fmulti]) )
                   {
@@ -3442,7 +3442,7 @@ void CSHINETrackReconstruction::GlobalMulti_ExtractData(const char* pidtag, Int_
                      <<endl;
   }
 
-  fChainTrackTree->SetEntries(50000000);
+  //fChainTrackTree->SetEntries(50000000);
   cout<<Form("Processing globalmulti = %d ......",globalmulti)<<endl;
   Long64_t nentries = fChainTrackTree->GetEntries();
   cout<<"Found nentries = "<<nentries<<endl;

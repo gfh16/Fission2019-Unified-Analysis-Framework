@@ -23,12 +23,12 @@
 //oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 //                           fglobalmulti == 1
 //                        --------------------
-class DecodefGlobalMulti1
+class L2L3_DecodefGlobalMulti1
 {
 public:
-  DecodefGlobalMulti1();
-  DecodefGlobalMulti1(Int_t firstrun, Int_t lastrun);
-  ~DecodefGlobalMulti1();
+  L2L3_DecodefGlobalMulti1();
+  L2L3_DecodefGlobalMulti1(Int_t firstrun, Int_t lastrun);
+  ~L2L3_DecodefGlobalMulti1();
 
   virtual void    GlobalMulti1_Checks();
 
@@ -70,12 +70,12 @@ private:
 //oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 //                           fglobalmulti == 2
 //                        --------------------
-class DecodefGlobalMulti2
+class L2L3_DecodefGlobalMulti2
 {
 public:
-  DecodefGlobalMulti2();
-  DecodefGlobalMulti2(Int_t firstrun, Int_t lastrun);
-  ~DecodefGlobalMulti2();
+  L2L3_DecodefGlobalMulti2();
+  L2L3_DecodefGlobalMulti2(Int_t firstrun, Int_t lastrun);
+  ~L2L3_DecodefGlobalMulti2();
 
   virtual void    GlobalMulti2_Checks();
 
@@ -120,12 +120,12 @@ private:
 //oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 //                           fglobalmulti == 3
 //                        --------------------
-class DecodefGlobalMulti3
+class L2L3_DecodefGlobalMulti3
 {
 public:
-	DecodefGlobalMulti3();
-	DecodefGlobalMulti3(Int_t firstrun, Int_t lastrun);
-	~DecodefGlobalMulti3();
+	L2L3_DecodefGlobalMulti3();
+	L2L3_DecodefGlobalMulti3(Int_t firstrun, Int_t lastrun);
+	~L2L3_DecodefGlobalMulti3();
 
 public:
   virtual void    GlobalMulti3_Checks();
@@ -176,12 +176,12 @@ private:
 //oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 //                           fglobalmulti == 4
 //                        --------------------
-class DecodefGlobalMulti4
+class L2L3_DecodefGlobalMulti4
 {
 public:
-	DecodefGlobalMulti4();
-	DecodefGlobalMulti4(Int_t firstrun, Int_t lastrun);
-	~DecodefGlobalMulti4();
+	L2L3_DecodefGlobalMulti4();
+	L2L3_DecodefGlobalMulti4(Int_t firstrun, Int_t lastrun);
+	~L2L3_DecodefGlobalMulti4();
 
 public:
   virtual void    GlobalMulti4_Checks();
@@ -227,12 +227,12 @@ private:
 //oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 //                           fglobalmulti == 6
 //                        --------------------
-class DecodefGlobalMulti6
+class L2L3_DecodefGlobalMulti6
 {
 public:
-	DecodefGlobalMulti6();
-	DecodefGlobalMulti6(Int_t firstrun, Int_t lastrun);
-	~DecodefGlobalMulti6();
+	L2L3_DecodefGlobalMulti6();
+	L2L3_DecodefGlobalMulti6(Int_t firstrun, Int_t lastrun);
+	~L2L3_DecodefGlobalMulti6();
 
 public:
   virtual void     GlobalMulti6_Checks();

@@ -10,7 +10,7 @@
 //______________________________________________________________________________
 //                        fGlobalMulti = 1
 //                    ------------------------
-DecodefGlobalMulti1::DecodefGlobalMulti1(Int_t firstrun, Int_t lastrun)
+L2L3_DecodefGlobalMulti1::L2L3_DecodefGlobalMulti1(Int_t firstrun, Int_t lastrun)
 {
   fFirstRun = firstrun;
   fLastRun  = lastrun;
@@ -35,14 +35,14 @@ DecodefGlobalMulti1::DecodefGlobalMulti1(Int_t firstrun, Int_t lastrun)
   }
 }
 
-DecodefGlobalMulti1::~DecodefGlobalMulti1()
+L2L3_DecodefGlobalMulti1::~L2L3_DecodefGlobalMulti1()
 {}
 
 //_______________________________________________
 // 对 globalmulti = 1 的事件进行综合检查
 // (1)平行坐标表示, 检验层间关系是否有误
 // (2)检查 fGlobalMulit = 1 事件的 DE-E plot
-void DecodefGlobalMulti1::GlobalMulti1_Checks()
+void L2L3_DecodefGlobalMulti1::GlobalMulti1_Checks()
 {
   gROOT->cd();
 
@@ -60,7 +60,7 @@ void DecodefGlobalMulti1::GlobalMulti1_Checks()
 //  增加约束条件 4: IsEneConstraint_L2B_L2F()
 //  增加约束条件 5: IsEneConstraint_L1S_L2F()
 //  增加约束条件 6: BananaCut.IsInside(EL2F, ECsI);
-void DecodefGlobalMulti1::GlobalMulti1_L2L3_Decode()
+void L2L3_DecodefGlobalMulti1::GlobalMulti1_L2L3_Decode()
 {
   Int_t globalmulti = 1;
   const char* mode = "1111";
@@ -327,7 +327,7 @@ void DecodefGlobalMulti1::GlobalMulti1_L2L3_Decode()
 
 //______________________________________________________________________________
 // 查看径迹重建中扔掉的事件，看看是否有 “好的”事件被丢掉了
-void DecodefGlobalMulti1::GlobalMulti_L2L3_Discard()
+void L2L3_DecodefGlobalMulti1::GlobalMulti_L2L3_Discard()
 {
   Int_t globalmulti = 1;
   Int_t ssdnum, csinum, bananacut_telnum;
@@ -524,7 +524,7 @@ void DecodefGlobalMulti1::GlobalMulti_L2L3_Discard()
 
 //______________________________________________________________________________
 // 考察 EneL2BL2F 能量约束条件对 "丢弃"事件的影响
-void DecodefGlobalMulti1::GlobalMulti_L2L3_EneL2BL2F_Discard()
+void L2L3_DecodefGlobalMulti1::GlobalMulti_L2L3_EneL2BL2F_Discard()
 {
 
   Int_t globalmulti = 1;
@@ -702,7 +702,7 @@ void DecodefGlobalMulti1::GlobalMulti_L2L3_EneL2BL2F_Discard()
 
 //______________________________________________________________________________
 // 考察 EneL1SL2F 能量约束条件对 "丢弃"事件的影响
-void DecodefGlobalMulti1::GlobalMulti_L2L3_EneL1SL2F_Discard()
+void L2L3_DecodefGlobalMulti1::GlobalMulti_L2L3_EneL1SL2F_Discard()
 {
   Int_t globalmulti = 1;
   Int_t ssdnum, csinum, bananacut_telnum;
@@ -884,7 +884,7 @@ void DecodefGlobalMulti1::GlobalMulti_L2L3_EneL1SL2F_Discard()
 //                        fGlobalMulti = 2
 //                    ------------------------
 // 解码 fGlobalMulit = 2的事件
-DecodefGlobalMulti2::DecodefGlobalMulti2(Int_t firstrun, Int_t lastrun)
+L2L3_DecodefGlobalMulti2::L2L3_DecodefGlobalMulti2(Int_t firstrun, Int_t lastrun)
 {
   fFirstRun = firstrun;
   fLastRun = lastrun;
@@ -909,13 +909,13 @@ DecodefGlobalMulti2::DecodefGlobalMulti2(Int_t firstrun, Int_t lastrun)
   }
 }
 
-DecodefGlobalMulti2::~DecodefGlobalMulti2()
+L2L3_DecodefGlobalMulti2::~L2L3_DecodefGlobalMulti2()
 {}
 //______________________________________________________________________________
 
 
 //______________________________________________________________________________
-void DecodefGlobalMulti2::GlobalMulti2_Checks()
+void L2L3_DecodefGlobalMulti2::GlobalMulti2_Checks()
 {
   gROOT->cd();
 
@@ -930,7 +930,7 @@ void DecodefGlobalMulti2::GlobalMulti2_Checks()
 //______________________________________________________________________________
 // Decode 策略:
 // 直接判断
-void DecodefGlobalMulti2::GlobalMulti2_Decode_1111()
+void L2L3_DecodefGlobalMulti2::GlobalMulti2_Decode_1111()
 {
   const Int_t globalmulti = 2;
   const char* mode = "1111";
@@ -1240,7 +1240,7 @@ void DecodefGlobalMulti2::GlobalMulti2_Decode_1111()
 //______________________________________________________________________________
 // Decode 策略:
 //  考虑 L2F 双击
-void DecodefGlobalMulti2::GlobalMulti2_Decode_1101()
+void L2L3_DecodefGlobalMulti2::GlobalMulti2_Decode_1101()
 {
   const Int_t globalmulti = 2;
   const char* mode = "1101";
@@ -1636,7 +1636,7 @@ void DecodefGlobalMulti2::GlobalMulti2_Decode_1101()
 //______________________________________________________________________________
 // Decode 策略:
 //  考虑 L2B 双击
-void DecodefGlobalMulti2::GlobalMulti2_Decode_1010()
+void L2L3_DecodefGlobalMulti2::GlobalMulti2_Decode_1010()
 {
   const Int_t globalmulti = 2;
   const char* mode = "1010";
@@ -2024,7 +2024,7 @@ void DecodefGlobalMulti2::GlobalMulti2_Decode_1010()
 //______________________________________________________________________________
 // Decode 策略:
 // 直接判断
-void DecodefGlobalMulti2::GlobalMulti2_Decode_1000()
+void L2L3_DecodefGlobalMulti2::GlobalMulti2_Decode_1000()
 {
   const Int_t globalmulti = 2;
   const char* mode = "1000";
@@ -2361,7 +2361,7 @@ void DecodefGlobalMulti2::GlobalMulti2_Decode_1000()
 //______________________________________________________________________________
 // Decode 策略:
 // 考虑 L2B sharing
-void DecodefGlobalMulti2::GlobalMulti2_Decode_0101()
+void L2L3_DecodefGlobalMulti2::GlobalMulti2_Decode_0101()
 {
   const Int_t globalmulti = 2;
   const char* mode = "0101";
@@ -2760,7 +2760,7 @@ void DecodefGlobalMulti2::GlobalMulti2_Decode_0101()
 //______________________________________________________________________________
 // Decode 策略:
 // 考虑 L2B sharing
-void DecodefGlobalMulti2::GlobalMulti2_Decode_0100()
+void L2L3_DecodefGlobalMulti2::GlobalMulti2_Decode_0100()
 {
   const Int_t globalmulti = 2;
   const char* mode = "0100";
@@ -3158,7 +3158,7 @@ void DecodefGlobalMulti2::GlobalMulti2_Decode_0100()
 //______________________________________________________________________________
 // Decode 策略:
 // 考虑 L2F sharing
-void DecodefGlobalMulti2::GlobalMulti2_Decode_0010()
+void L2L3_DecodefGlobalMulti2::GlobalMulti2_Decode_0010()
 {
   const Int_t globalmulti = 2;
   const char* mode = "0010";
@@ -3551,7 +3551,7 @@ void DecodefGlobalMulti2::GlobalMulti2_Decode_0010()
 //______________________________________________________________________________
 // Decode 策略:
 // 考虑 L1S sharing
-void DecodefGlobalMulti2::GlobalMulti2_Decode_0001()
+void L2L3_DecodefGlobalMulti2::GlobalMulti2_Decode_0001()
 {
   const Int_t globalmulti = 2;
   const char* mode = "0001";
@@ -3909,13 +3909,13 @@ void DecodefGlobalMulti2::GlobalMulti2_Decode_0001()
 
 //______________________________________________________________________________
 // 解码 fGlobalMulit = 3的事件
-DecodefGlobalMulti3::DecodefGlobalMulti3()
+L2L3_DecodefGlobalMulti3::L2L3_DecodefGlobalMulti3()
 {
 	fFirstRun = 150;
   fLastRun  = 160;
 }
 //
-DecodefGlobalMulti3::DecodefGlobalMulti3(Int_t firstrun, Int_t lastrun)
+L2L3_DecodefGlobalMulti3::L2L3_DecodefGlobalMulti3(Int_t firstrun, Int_t lastrun)
 {
   fFirstRun = firstrun;
   fLastRun  = lastrun;
@@ -3940,13 +3940,13 @@ DecodefGlobalMulti3::DecodefGlobalMulti3(Int_t firstrun, Int_t lastrun)
   }
 }
 
-DecodefGlobalMulti3::~DecodefGlobalMulti3()
+L2L3_DecodefGlobalMulti3::~L2L3_DecodefGlobalMulti3()
 {}
 //______________________________________________________________________________
 
 
 //______________________________________________________________________________
-void DecodefGlobalMulti3::GlobalMulti3_Checks()
+void L2L3_DecodefGlobalMulti3::GlobalMulti3_Checks()
 {
   gROOT->cd();
 
@@ -3960,7 +3960,7 @@ void DecodefGlobalMulti3::GlobalMulti3_Checks()
 
 
 //______________________________________________________________________________
-void DecodefGlobalMulti3::GlobalMulti3_Decode_2222()
+void L2L3_DecodefGlobalMulti3::GlobalMulti3_Decode_2222()
 {
 	const Int_t globalmulti = 3;
   const char* mode = "2222";
@@ -4270,7 +4270,7 @@ void DecodefGlobalMulti3::GlobalMulti3_Decode_2222()
 
 
 //______________________________________________________________________________
-void DecodefGlobalMulti3::GlobalMulti3_Decode_2111()
+void L2L3_DecodefGlobalMulti3::GlobalMulti3_Decode_2111()
 {
 	const Int_t globalmulti = 3;
   const char* mode = "2111";
@@ -4676,7 +4676,7 @@ void DecodefGlobalMulti3::GlobalMulti3_Decode_2111()
 
 
 //______________________________________________________________________________
-void DecodefGlobalMulti3::GlobalMulti3_Decode_1211()
+void L2L3_DecodefGlobalMulti3::GlobalMulti3_Decode_1211()
 {
 	const Int_t globalmulti = 3;
   const char* mode = "1211";
@@ -5174,7 +5174,7 @@ void DecodefGlobalMulti3::GlobalMulti3_Decode_1211()
 
 
 //______________________________________________________________________________
-void DecodefGlobalMulti3::GlobalMulti3_Decode_1121()
+void L2L3_DecodefGlobalMulti3::GlobalMulti3_Decode_1121()
 {
 	const Int_t globalmulti = 3;
   const char* mode = "1121";
@@ -5673,7 +5673,7 @@ void DecodefGlobalMulti3::GlobalMulti3_Decode_1121()
 
 
 //______________________________________________________________________________
-void DecodefGlobalMulti3::GlobalMulti3_Decode_1112()
+void L2L3_DecodefGlobalMulti3::GlobalMulti3_Decode_1112()
 {
 	const Int_t globalmulti = 3;
   const char* mode = "1112";
@@ -6065,7 +6065,7 @@ void DecodefGlobalMulti3::GlobalMulti3_Decode_1112()
 
 
 //______________________________________________________________________________
-void DecodefGlobalMulti3::GlobalMulti3_Decode_1111()
+void L2L3_DecodefGlobalMulti3::GlobalMulti3_Decode_1111()
 {
 	const Int_t globalmulti = 3;
   const char* mode = "1111";
@@ -6481,7 +6481,7 @@ void DecodefGlobalMulti3::GlobalMulti3_Decode_1111()
 
 
 //______________________________________________________________________________
-void DecodefGlobalMulti3::GlobalMulti3_Decode_1110()
+void L2L3_DecodefGlobalMulti3::GlobalMulti3_Decode_1110()
 {
 	const Int_t globalmulti = 3;
   const char* mode = "1110";
@@ -6883,7 +6883,7 @@ void DecodefGlobalMulti3::GlobalMulti3_Decode_1110()
 
 
 //______________________________________________________________________________
-void DecodefGlobalMulti3::GlobalMulti3_Decode_1020()
+void L2L3_DecodefGlobalMulti3::GlobalMulti3_Decode_1020()
 {
 	const Int_t globalmulti = 3;
   const char* mode = "1020";
@@ -7317,7 +7317,7 @@ void DecodefGlobalMulti3::GlobalMulti3_Decode_1020()
 
 
 //______________________________________________________________________________
-void DecodefGlobalMulti3::GlobalMulti3_Decode_1010()
+void L2L3_DecodefGlobalMulti3::GlobalMulti3_Decode_1010()
 {
 	const Int_t globalmulti = 3;
   const char* mode = "1010";
@@ -7738,7 +7738,7 @@ void DecodefGlobalMulti3::GlobalMulti3_Decode_1010()
 
 
 //______________________________________________________________________________
-void DecodefGlobalMulti3::GlobalMulti3_Decode_0201()
+void L2L3_DecodefGlobalMulti3::GlobalMulti3_Decode_0201()
 {
 	const Int_t globalmulti = 3;
   const char* mode = "0201";
@@ -8145,7 +8145,7 @@ void DecodefGlobalMulti3::GlobalMulti3_Decode_0201()
 
 
 //______________________________________________________________________________
-void DecodefGlobalMulti3::GlobalMulti3_Decode_0102()
+void L2L3_DecodefGlobalMulti3::GlobalMulti3_Decode_0102()
 {
 	const Int_t globalmulti = 3;
   const char* mode = "0102";
@@ -8515,7 +8515,7 @@ void DecodefGlobalMulti3::GlobalMulti3_Decode_0102()
 
 
 //______________________________________________________________________________
-void DecodefGlobalMulti3::GlobalMulti3_Decode_0101()
+void L2L3_DecodefGlobalMulti3::GlobalMulti3_Decode_0101()
 {
 	const Int_t globalmulti = 3;
   const char* mode = "0101";
@@ -8945,7 +8945,7 @@ void DecodefGlobalMulti3::GlobalMulti3_Decode_0101()
 
 
 //______________________________________________________________________________
-void DecodefGlobalMulti3::GlobalMulti3_Decode_0020()
+void L2L3_DecodefGlobalMulti3::GlobalMulti3_Decode_0020()
 {
 	const Int_t globalmulti = 3;
   const char* mode = "0020";
@@ -9381,7 +9381,7 @@ void DecodefGlobalMulti3::GlobalMulti3_Decode_0020()
 
 
 //______________________________________________________________________________
-void DecodefGlobalMulti3::GlobalMulti3_Decode_0002()
+void L2L3_DecodefGlobalMulti3::GlobalMulti3_Decode_0002()
 {
 	const Int_t globalmulti = 3;
   const char* mode = "0002";
@@ -9715,13 +9715,13 @@ void DecodefGlobalMulti3::GlobalMulti3_Decode_0002()
 //______________________________________________________________________________
 //______________________________________________________________________________
 // 解码 fGlobalMulit = 4的事件
-DecodefGlobalMulti4::DecodefGlobalMulti4()
+L2L3_DecodefGlobalMulti4::L2L3_DecodefGlobalMulti4()
 {
 	fFirstRun = 150;
   fLastRun  = 160;
 }
 //
-DecodefGlobalMulti4::DecodefGlobalMulti4(Int_t firstrun, Int_t lastrun)
+L2L3_DecodefGlobalMulti4::L2L3_DecodefGlobalMulti4(Int_t firstrun, Int_t lastrun)
 {
   fFirstRun = firstrun;
   fLastRun  = lastrun;
@@ -9746,13 +9746,13 @@ DecodefGlobalMulti4::DecodefGlobalMulti4(Int_t firstrun, Int_t lastrun)
   }
 }
 
-DecodefGlobalMulti4::~DecodefGlobalMulti4()
+L2L3_DecodefGlobalMulti4::~L2L3_DecodefGlobalMulti4()
 {}
 //______________________________________________________________________________
 
 
 //______________________________________________________________________________
-void DecodefGlobalMulti4::GlobalMulti4_Checks()
+void L2L3_DecodefGlobalMulti4::GlobalMulti4_Checks()
 {
   gROOT->cd();
 
@@ -9766,7 +9766,7 @@ void DecodefGlobalMulti4::GlobalMulti4_Checks()
 
 
 //______________________________________________________________________________
-void DecodefGlobalMulti4::GlobalMulti4_Decode_2222()
+void L2L3_DecodefGlobalMulti4::GlobalMulti4_Decode_2222()
 {
 	const Int_t globalmulti = 4;
   const char* mode = "2222";
@@ -10257,7 +10257,7 @@ void DecodefGlobalMulti4::GlobalMulti4_Decode_2222()
 
 
 //______________________________________________________________________________
-void DecodefGlobalMulti4::GlobalMulti4_Decode_1111()
+void L2L3_DecodefGlobalMulti4::GlobalMulti4_Decode_1111()
 {
 	const Int_t globalmulti = 4;
   const char* mode = "1111";
@@ -10708,7 +10708,7 @@ void DecodefGlobalMulti4::GlobalMulti4_Decode_1111()
 
 
 //______________________________________________________________________________
-void DecodefGlobalMulti4::GlobalMulti4_Decode_1110()
+void L2L3_DecodefGlobalMulti4::GlobalMulti4_Decode_1110()
 {
 	const Int_t globalmulti = 4;
   const char* mode = "1110";
@@ -11140,7 +11140,7 @@ void DecodefGlobalMulti4::GlobalMulti4_Decode_1110()
 
 
 //______________________________________________________________________________
-void DecodefGlobalMulti4::GlobalMulti4_Decode_1011()
+void L2L3_DecodefGlobalMulti4::GlobalMulti4_Decode_1011()
 {
 	const Int_t globalmulti = 4;
   const char* mode = "1011";
@@ -11549,7 +11549,7 @@ void DecodefGlobalMulti4::GlobalMulti4_Decode_1011()
 
 
 //______________________________________________________________________________
-void DecodefGlobalMulti4::GlobalMulti4_Decode_0111()
+void L2L3_DecodefGlobalMulti4::GlobalMulti4_Decode_0111()
 {
 	const Int_t globalmulti = 4;
   const char* mode = "0111";
@@ -11881,7 +11881,7 @@ void DecodefGlobalMulti4::GlobalMulti4_Decode_0111()
 
 
 //______________________________________________________________________________
-void DecodefGlobalMulti4::GlobalMulti4_Decode_0110()
+void L2L3_DecodefGlobalMulti4::GlobalMulti4_Decode_0110()
 {
 	const Int_t globalmulti = 4;
   const char* mode = "0110";
@@ -12366,7 +12366,7 @@ void DecodefGlobalMulti4::GlobalMulti4_Decode_0110()
 
 
 //______________________________________________________________________________
-void DecodefGlobalMulti4::GlobalMulti4_Decode_0101()
+void L2L3_DecodefGlobalMulti4::GlobalMulti4_Decode_0101()
 {
 	const Int_t globalmulti = 4;
   const char* mode = "0101";
@@ -12752,7 +12752,7 @@ void DecodefGlobalMulti4::GlobalMulti4_Decode_0101()
 
 
 //______________________________________________________________________________
-void DecodefGlobalMulti4::GlobalMulti4_Decode_0011()
+void L2L3_DecodefGlobalMulti4::GlobalMulti4_Decode_0011()
 {
 	const Int_t globalmulti = 4;
   const char* mode = "0011";
@@ -13134,13 +13134,13 @@ void DecodefGlobalMulti4::GlobalMulti4_Decode_0011()
 
 //______________________________________________________________________________
 // 解码 fGlobalMulit = 6的事件
-DecodefGlobalMulti6::DecodefGlobalMulti6()
+L2L3_DecodefGlobalMulti6::L2L3_DecodefGlobalMulti6()
 {
 	fFirstRun = 150;
   fLastRun  = 160;
 }
 //
-DecodefGlobalMulti6::DecodefGlobalMulti6(Int_t firstrun, Int_t lastrun)
+L2L3_DecodefGlobalMulti6::L2L3_DecodefGlobalMulti6(Int_t firstrun, Int_t lastrun)
 {
   fFirstRun = firstrun;
   fLastRun  = lastrun;
@@ -13165,13 +13165,13 @@ DecodefGlobalMulti6::DecodefGlobalMulti6(Int_t firstrun, Int_t lastrun)
   }
 }
 
-DecodefGlobalMulti6::~DecodefGlobalMulti6()
+L2L3_DecodefGlobalMulti6::~L2L3_DecodefGlobalMulti6()
 {}
 //______________________________________________________________________________
 
 
 //______________________________________________________________________________
-void DecodefGlobalMulti6::GlobalMulti6_Checks()
+void L2L3_DecodefGlobalMulti6::GlobalMulti6_Checks()
 {
   gROOT->cd();
 
@@ -13186,7 +13186,7 @@ void DecodefGlobalMulti6::GlobalMulti6_Checks()
 
 
 //______________________________________________________________________________
-void DecodefGlobalMulti6::GlobalMulti6_Decode_2222()
+void L2L3_DecodefGlobalMulti6::GlobalMulti6_Decode_2222()
 {
 	const Int_t globalmulti = 6;
   const char* mode = "2222";
@@ -13582,7 +13582,7 @@ void DecodefGlobalMulti6::GlobalMulti6_Decode_2222()
 
 
 //______________________________________________________________________________
-void DecodefGlobalMulti6::GlobalMulti6_Decode_1211()
+void L2L3_DecodefGlobalMulti6::GlobalMulti6_Decode_1211()
 {
 	const Int_t globalmulti = 6;
   const char* mode = "1211";
@@ -14170,7 +14170,7 @@ void DecodefGlobalMulti6::GlobalMulti6_Decode_1211()
 
 
 //______________________________________________________________________________
-void DecodefGlobalMulti6::GlobalMulti6_Decode_1121()
+void L2L3_DecodefGlobalMulti6::GlobalMulti6_Decode_1121()
 {
 	const Int_t globalmulti = 6;
   const char* mode = "1121";
@@ -14758,7 +14758,7 @@ void DecodefGlobalMulti6::GlobalMulti6_Decode_1121()
 
 
 //______________________________________________________________________________
-void DecodefGlobalMulti6::GlobalMulti6_Decode_1112()
+void L2L3_DecodefGlobalMulti6::GlobalMulti6_Decode_1112()
 {
 	const Int_t globalmulti = 6;
   const char* mode = "1112";
@@ -15346,7 +15346,7 @@ void DecodefGlobalMulti6::GlobalMulti6_Decode_1112()
 
 
 //______________________________________________________________________________
-void DecodefGlobalMulti6::GlobalMulti6_Decode_1111()
+void L2L3_DecodefGlobalMulti6::GlobalMulti6_Decode_1111()
 {
 	const Int_t globalmulti = 6;
   const char* mode = "1111";
@@ -15934,7 +15934,7 @@ void DecodefGlobalMulti6::GlobalMulti6_Decode_1111()
 
 
 //______________________________________________________________________________
-void DecodefGlobalMulti6::GlobalMulti6_Decode_1110()
+void L2L3_DecodefGlobalMulti6::GlobalMulti6_Decode_1110()
 {
 	const Int_t globalmulti = 6;
   const char* mode = "1110";
@@ -16472,7 +16472,7 @@ void DecodefGlobalMulti6::GlobalMulti6_Decode_1110()
 
 
 //______________________________________________________________________________
-void DecodefGlobalMulti6::GlobalMulti6_Decode_1011()
+void L2L3_DecodefGlobalMulti6::GlobalMulti6_Decode_1011()
 {
 	const Int_t globalmulti = 6;
   const char* mode = "1011";
@@ -16925,7 +16925,7 @@ void DecodefGlobalMulti6::GlobalMulti6_Decode_1011()
 
 
 //______________________________________________________________________________
-void DecodefGlobalMulti6::GlobalMulti6_Decode_0211()
+void L2L3_DecodefGlobalMulti6::GlobalMulti6_Decode_0211()
 {
 	const Int_t globalmulti = 6;
   const char* mode = "0211";
@@ -17258,7 +17258,7 @@ void DecodefGlobalMulti6::GlobalMulti6_Decode_0211()
 
 
 //______________________________________________________________________________
-void DecodefGlobalMulti6::GlobalMulti6_Decode_0121()
+void L2L3_DecodefGlobalMulti6::GlobalMulti6_Decode_0121()
 {
 	const Int_t globalmulti = 6;
   const char* mode = "0121";
@@ -17591,7 +17591,7 @@ void DecodefGlobalMulti6::GlobalMulti6_Decode_0121()
 
 
 //______________________________________________________________________________
-void DecodefGlobalMulti6::GlobalMulti6_Decode_0120()
+void L2L3_DecodefGlobalMulti6::GlobalMulti6_Decode_0120()
 {
 	const Int_t globalmulti = 6;
   const char* mode = "0120";
@@ -17924,7 +17924,7 @@ void DecodefGlobalMulti6::GlobalMulti6_Decode_0120()
 
 
 //______________________________________________________________________________
-void DecodefGlobalMulti6::GlobalMulti6_Decode_0112()
+void L2L3_DecodefGlobalMulti6::GlobalMulti6_Decode_0112()
 {
 	const Int_t globalmulti = 6;
   const char* mode = "0112";
@@ -18257,7 +18257,7 @@ void DecodefGlobalMulti6::GlobalMulti6_Decode_0112()
 
 
 //______________________________________________________________________________
-void DecodefGlobalMulti6::GlobalMulti6_Decode_0111()
+void L2L3_DecodefGlobalMulti6::GlobalMulti6_Decode_0111()
 {
 	const Int_t globalmulti = 6;
   const char* mode = "0111";
@@ -18590,7 +18590,7 @@ void DecodefGlobalMulti6::GlobalMulti6_Decode_0111()
 
 
 //______________________________________________________________________________
-void DecodefGlobalMulti6::GlobalMulti6_Decode_0021()
+void L2L3_DecodefGlobalMulti6::GlobalMulti6_Decode_0021()
 {
 	const Int_t globalmulti = 6;
   const char* mode = "0021";
@@ -18923,7 +18923,7 @@ void DecodefGlobalMulti6::GlobalMulti6_Decode_0021()
 
 
 //______________________________________________________________________________
-void DecodefGlobalMulti6::GlobalMulti6_Decode_0012()
+void L2L3_DecodefGlobalMulti6::GlobalMulti6_Decode_0012()
 {
 	const Int_t globalmulti = 6;
   const char* mode = "0012";

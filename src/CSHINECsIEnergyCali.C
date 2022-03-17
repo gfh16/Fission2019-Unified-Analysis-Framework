@@ -565,8 +565,10 @@ void CSHINECsIEnergyCali::DEEFITDrawAndFit_Z1()
 		gr2D_Z1[numtel]->Fit("fFitHydrogen");
 
 		FileOut<<setw(5)<<numtel<<setw(15)<<ssdindex<<setw(15)<<csiindex<<setw(20)
-		       <<fFitHydrogen->GetParameter(0)<<setw(15)<<fFitHydrogen->GetParameter(1)<<setw(15)
-					 <<fFitHydrogen->GetParameter(2)<<setw(15)<<fFitHydrogen->GetParameter(3)<<endl;
+		       <<setiosflags(ios::fixed)<<setprecision(4)<<fFitHydrogen->GetParameter(0)<<setw(15)
+					 <<setiosflags(ios::fixed)<<setprecision(4)<<fFitHydrogen->GetParameter(1)<<setw(15)
+					 <<setiosflags(ios::fixed)<<setprecision(4)<<fFitHydrogen->GetParameter(2)<<setw(15)
+					 <<setiosflags(ios::fixed)<<setprecision(4)<<fFitHydrogen->GetParameter(3)<<endl;
 
 		for (Int_t ip=0; ip<Charge[numtel].size(); ip++) {
 			if (Charge[numtel][ip]==1) { // for Z==1
@@ -747,8 +749,9 @@ void CSHINECsIEnergyCali::DEEFITDrawAndFit_ZOver2()
 		gr2D_ZOver2[numtel]->Fit("fFitHeavyIOn");
 
 		FileOut<<setw(5)<<numtel<<setw(15)<<ssdindex<<setw(15)<<csiindex<<setw(20)
-		       <<fFitHeavyIOn->GetParameter(0)<<setw(15)<<fFitHeavyIOn->GetParameter(1)<<setw(15)
-					 <<fFitHeavyIOn->GetParameter(2)<<setw(15)<<endl;
+		       <<setiosflags(ios::fixed)<<setprecision(4)<<fFitHeavyIOn->GetParameter(0)<<setw(15)
+					 <<setiosflags(ios::fixed)<<setprecision(4)<<fFitHeavyIOn->GetParameter(1)<<setw(15)
+					 <<setiosflags(ios::fixed)<<setprecision(4)<<fFitHeavyIOn->GetParameter(2)<<setw(15)<<endl;
 
 		for (Int_t ip=0; ip<Charge[numtel].size(); ip++) {
 			if (Charge[numtel][ip]>=2) { // for Z>=2
