@@ -1491,14 +1491,14 @@ void CSHINECheckDEEPlot::CheckPolyFitResults()
 	Int_t SSDNum;
 
 	// for L1L2
-//  Int_t NUMTEL = 50;
-//	std::string DEETag("L1L2");
-//	std::string HistName("h2_dE1_dE2");
+  Int_t NUMTEL = 50;
+	std::string DEETag("L1L2");
+	std::string HistName("h2_dE1_dE2");
 
   // for L2L3
-	Int_t NUMTEL = NUM_SSD*NUM_CSI;
-	std::string DEETag("L2L3");
-	std::string HistName("h2_dE2_ECsI");
+//	Int_t NUMTEL = NUM_SSD*NUM_CSI;
+//	std::string DEETag("L2L3");
+//	std::string HistName("h2_dE2_ECsI");
 
 	std::string pathStraighteningFitPars(Form("%sdata_PID/%s_StraighteningFitPars.dat",PATHDATAFOLDER,DEETag.c_str()));
 	std::string pathDEECutsInput(Form("%sStraighteningData/%sDEECuts.root",PATHROOTFILESFOLDER,DEETag.c_str()));
@@ -1521,6 +1521,9 @@ void CSHINECheckDEEPlot::CheckPolyFitResults()
       if (IsotopeCut[numtel][ip]==0) continue;
 		}
 	}
+
+  TFile* fout = new TFile(Form("%s%sDEE_PolyDraw.root",PATHROOTFILESFOLDER,DEETag.c_str()), "RECREATE");
+	fout->cd();
 
   TCanvas* c_begin = new TCanvas("c_begin","c_begin",600,600);
 	TCanvas* c_end = new TCanvas("c_end","c_end",600,600);
@@ -1559,6 +1562,8 @@ void CSHINECheckDEEPlot::CheckPolyFitResults()
 				func[i]->Draw("SAME");
 				IsotopeCut[numtel][i]->Draw("SAME");
 				IsotopeCut[numtel][i]->SetLineColor(kAzure+7);
+
+				fout->WriteTObject(func[i], Form("SSD%d_Particle%d", numtel, i));
 			}
 		}
     // for L2L3
@@ -1583,6 +1588,8 @@ void CSHINECheckDEEPlot::CheckPolyFitResults()
 				func[i]->Draw("SAME");
 				IsotopeCut[numtel][i]->Draw("SAME");
 				IsotopeCut[numtel][i]->SetLineColor(kAzure+7);
+
+				fout->WriteTObject(func[i], Form("SSD%d_Particle%d", numtel, i));
 			}
 		}
 	}
@@ -1593,6 +1600,9 @@ void CSHINECheckDEEPlot::CheckPolyFitResults()
 		cans[numtel]->Print(pathPDFCheckPoly.c_str());
 	}
 	c_end->Print(pathPDFCheckPolyEnd.c_str());
+
+	// close the file
+	fout->Close();
 }
 
 

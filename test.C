@@ -259,7 +259,7 @@ void test()
   // deefitcheck.CheckCsIAlphaEnergyResolution();
   // deefitcheck.CheckL1L2StraighteningPIDResults();
   // deefitcheck.CheckL2L3StraighteningPIDResults();
-  // deefitcheck.CheckPolyFitResults();
+  deefitcheck.CheckPolyFitResults();
   // deefitcheck.L1S_FindThicknessUniformity();
   // deefitcheck.L1S_DetermineThicknessUniformity();
 
